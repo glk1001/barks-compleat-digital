@@ -12,11 +12,14 @@ class SourceBook:
 
 FAN = "Fantagraphics"
 RTOM = 'Rich Tommaso'
+GLEA = 'Gary Leach'
+SLEA = 'Susan Daigle-Leach'
 CB = 'Carl Barks'
 DD = 'Donald Duck'
 US = 'Uncle Scrooge'
 
 SOURCE_COMICS = {
+        'FANTA_04': SourceBook(f"{CB} Vol. 4 - {DD} - Maharajah Donald (Lil Salem-Empire)", FAN, 2023, GLEA),
         'FANTA_05': SourceBook(f"{CB} Vol. 5 - {DD} - Christmas on Bear Mountain (Digital-Empire)", FAN, 2013, RTOM),
         'FANTA_06': SourceBook(f"{CB} Vol. 6 - {DD} - The Old Castle's Secret (Digital-Empire)", FAN, 2013, RTOM),
         'FANTA_07': SourceBook(f"{CB} Vol. 7 - {DD} - Lost in the Andes (Digital-Empire)", FAN, 2011, RTOM),
@@ -51,8 +54,9 @@ MC = "Boys' and Girls' March of Comics"
 
 DDA = "Donald Duck Adventures"
 
-DONALD_DUCK_ADVENTURES_START_NUM = 14
+DONALD_DUCK_ADVENTURES_START_NUM = 13
 DONALD_DUCK_ADVENTURES = collections.OrderedDict([
+        ('Maharajah Donald', ComicBookInfo(f'{MC} #4, 1947', 'August 13th, 1946', DDA)),
         ('Adventure "Down Under"', ComicBookInfo(f'{FC} #159, August 1947', 'April 4th, 1947', DDA)),
         ('The Ghost of the Grotto', ComicBookInfo(f'{FC} #159, August 1947', 'April 15th, 1947', DDA)),
         ('Christmas on Bear Mountain', ComicBookInfo(f'{FC} #178, December 1947', 'July 22nd, 1947', DDA)),
