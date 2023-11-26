@@ -145,11 +145,36 @@ class ComicBook:
     def get_dest_image_dir(self):
         return os.path.join(self.get_target_dir(), IMAGES_SUBDIR)
 
+    def get_dest_comic_zip(self):
+        return self.get_target_dir() + ".cbz"
+
     def get_trimmed_width(self):
         return DEST_WIDTH - self.trim_amount
 
     def get_trimmed_center(self):
         return int(self.get_trimmed_width() / 2)
+
+
+def zip_comic_book(dry_run: bool, comic: ComicBook):
+    if dry_run:
+        logging.info(
+            f'{DRY_RUN_STR}: Zipping directory "{comic.get_target_dir()}"'
+            f'f" to "{comic.get_dest_comic_zip()}".'
+        )
+    else:
+        logging.info(
+            f'Zipping directory "{comic.get_target_dir()}" to "{comic.get_dest_comic_zip()}".'
+        )
+
+        temp_zip_file = comic.get_target_dir() + ".zip"
+
+        shutil.make_archive(comic.get_target_dir(), "zip", comic.get_target_dir())
+
+        shutil.move(temp_zip_file, comic.get_dest_comic_zip())
+        if not os.path.isfile(comic.get_dest_comic_zip()):
+            raise Exception(
+                f'Could not create final comic zip "{comic.get_dest_comic_zip()}".'
+            )
 
 
 def print_comic_book_properties(comic: ComicBook):
@@ -682,8 +707,9 @@ if __name__ == "__main__":
         )
 
     logging.info("")
-    logging.info(f'Srce image directory: "{comic_book.get_srce_image_dir()}".')
-    logging.info(f'Dest image directory: "{comic_book.get_dest_image_dir()}".')
+    logging.info(f'Srce comic directory: "{comic_book.source_dir}".')
+    logging.info(f'Dest comic directory: "{comic_book.get_target_dir()}".')
+    logging.info(f'Dest comic zip:       "{comic_book.get_dest_comic_zip()}".')
     logging.info("")
     logging.info(f"Dest width, height:        {DEST_WIDTH}, {DEST_HEIGHT}.")
     logging.info(
@@ -703,3 +729,5 @@ if __name__ == "__main__":
     process_additional_files(args.dry_run, comic_book, dest_pages)
 
     print_comic_book_properties(comic_book)
+
+    zip_comic_book(args.dry_run, comic_book)
