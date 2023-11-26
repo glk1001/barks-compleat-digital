@@ -30,8 +30,8 @@ DEST_WIDTH = 2216
 DEST_HEIGHT = 3056
 DEST_X_MARGINS_TRIM = 48
 DEST_Y_MARGINS_TRIM = 48
-DEST_TARGET_WIDTH = DEST_WIDTH - (2 * DEST_Y_MARGINS_TRIM)
-DEST_TARGET_HEIGHT = DEST_HEIGHT - (2 * DEST_Y_MARGINS_TRIM)
+DEST_PRELIM_TARGET_WIDTH = DEST_WIDTH - (2 * DEST_Y_MARGINS_TRIM)
+DEST_PRELIM_TARGET_HEIGHT = DEST_HEIGHT - (2 * DEST_Y_MARGINS_TRIM)
 
 FONT_DIR = str(Path.home()) + "/Prj/fonts"
 # INTRO_TITLE_DEFAULT_FONT_FILE = 'Expressa-Heavy.ttf'
@@ -180,7 +180,7 @@ def get_required_pages_in_order(images_in_book: List[OriginalPage]) -> List[Clea
 
     for image in images_in_book:
         if image.filenames == TITLE_EMPTY_FILENAME:
-            req_pages.append(CleanPage(image.filenames, True, PageType.FRONT_MATTER))
+            req_pages.append(CleanPage(image.filenames, True, PageType.TITLE))
             continue
         if image.filenames == LAST_EMPTY_FILENAME:
             req_pages.append(CleanPage(image.filenames, True, PageType.BACK_MATTER))
@@ -297,19 +297,24 @@ def process_page(
         f'Srce: width = {width}, height = {height}, page_type = "{srce_page.page_type.name}".'
     )
 
-    new_im = im.resize(size=(DEST_WIDTH, DEST_HEIGHT), resample=Image.BICUBIC)
-
-    if dest_page.page_type not in [PageType.FRONT, PageType.COVER]:
+    if dest_page.page_type in [PageType.FRONT, PageType.TITLE, PageType.COVER]:
+        new_im = im.resize(
+            size=(DEST_PRELIM_TARGET_WIDTH, DEST_PRELIM_TARGET_HEIGHT),
+            resample=Image.BICUBIC,
+        )
+    else:
+        new_im = im.resize(size=(DEST_WIDTH, DEST_HEIGHT), resample=Image.BICUBIC)
         new_im = new_im.crop(get_crop_box(comic, dest_page))
-        if new_im.width != DEST_TARGET_WIDTH:
+        dest_final_target_width = DEST_PRELIM_TARGET_WIDTH - comic.trim_amount
+        if new_im.width != dest_final_target_width:
             raise Exception(
                 f'Width mismatch for page "{srce_page.filename}":'
-                f"{new_im.width} != {DEST_TARGET_WIDTH}"
+                f"{new_im.width} != {dest_final_target_width}"
             )
-        if new_im.height != DEST_TARGET_HEIGHT:
+        if new_im.height != DEST_PRELIM_TARGET_HEIGHT:
             raise Exception(
                 f'Height mismatch for page "{srce_page.filename}":'
-                f"{new_im.height} != {DEST_TARGET_HEIGHT}"
+                f"{new_im.height} != {DEST_PRELIM_TARGET_HEIGHT}"
             )
 
     new_width, new_height = new_im.size
@@ -357,9 +362,12 @@ def write_introduction(comic: ComicBook, image: Image):
     top = INTRO_TOP
     text = comic.title
     title_font = ImageFont.truetype(comic.title_font_file, comic.title_font_size)
-    text_width, text_height = draw.multiline_textsize(
-        text, font=title_font, spacing=INTRO_TITLE_SPACING
+    text_bbox = draw.multiline_textbbox(
+        (0, top), text, font=title_font, spacing=INTRO_TITLE_SPACING
     )
+    # text_width = text_bbox[2] - text_bbox[0]
+    text_height = text_bbox[3] - text_bbox[1]
+
     draw_centered_multiline_text(
         text,
         image,
@@ -376,14 +384,16 @@ def write_introduction(comic: ComicBook, image: Image):
     author_font = ImageFont.truetype(
         comic.title_font_file, int(0.6 * comic.author_font_size)
     )
-    text_width, text_height = draw.textsize(text, font=author_font)
+    text_bbox = draw.multiline_textbbox((0, top), text, font=author_font)
+    text_height = text_bbox[3] - text_bbox[1]
     draw_centered_text(text, image, draw, author_font, INTRO_AUTHOR_COLOR, top)
     top += text_height
 
     top += INTRO_TITLE_AUTHOR_BY_GAP
     text = f"{BARKS}"
     author_font = ImageFont.truetype(comic.title_font_file, comic.author_font_size)
-    text_width, text_height = draw.textsize(text, font=author_font)
+    text_bbox = draw.multiline_textbbox((0, top), text, font=author_font)
+    text_height = text_bbox[3] - text_bbox[1]
     draw_centered_text(text, image, draw, author_font, INTRO_AUTHOR_COLOR, top)
     top += text_height + INTRO_AUTHOR_INSET_GAP
 
@@ -400,9 +410,13 @@ def write_introduction(comic: ComicBook, image: Image):
     pub_text_font = ImageFont.truetype(
         get_font_path(INTRO_TEXT_FONT_FILE), INTRO_PUB_TEXT_FONT_SIZE
     )
-    text_width, text_height = draw.multiline_textsize(
-        comic.publication_text, font=pub_text_font, spacing=INTRO_PUB_TEXT_SPACING
+    text_bbox = draw.multiline_textbbox(
+        (0, top),
+        comic.publication_text,
+        font=pub_text_font,
+        spacing=INTRO_PUB_TEXT_SPACING,
     )
+    text_height = text_bbox[3] - text_bbox[1]
     pub_text_top = DEST_HEIGHT - INTRO_BOTTOM_MARGIN - text_height
 
     inset_top = top + int((pub_text_top - top) / 2 - new_inset_height / 2)
@@ -423,7 +437,8 @@ def write_introduction(comic: ComicBook, image: Image):
 def draw_centered_text(
     text: str, image: Image, draw: ImageDraw, font: ImageFont, color, top: int
 ):
-    w, h = draw.textsize(text, font)
+    w = draw.textlength(text, font)
+    # h = font.getbbox(text)[3]
     left = (image.width - w) / 2
     draw.text((left, top), text, fill=color, font=font, align="center")
 
@@ -437,8 +452,8 @@ def draw_centered_multiline_text(
     top: int,
     spacing: int,
 ):
-    w, h = draw.textsize(text, font)
-    left = (image.width - w) / 2
+    textbbox = draw.multiline_textbbox((0, top), text, font)
+    left = (image.width - (textbbox[2] - textbbox[0])) / 2
     draw.multiline_text(
         (left, top), text, fill=color, font=font, align="center", spacing=spacing
     )
@@ -675,7 +690,7 @@ if __name__ == "__main__":
         f"Dest x, y trim:            {DEST_X_MARGINS_TRIM}, {DEST_Y_MARGINS_TRIM}."
     )
     logging.info(
-        f"Dest target width, height: {DEST_TARGET_WIDTH}, {DEST_TARGET_HEIGHT}."
+        f"Dest target width, height: {DEST_PRELIM_TARGET_WIDTH}, {DEST_PRELIM_TARGET_HEIGHT}."
     )
 
     required_pages = get_required_pages_in_order(comic_book.images_in_order)
