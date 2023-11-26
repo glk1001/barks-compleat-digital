@@ -66,5 +66,6 @@ DONALD_DUCK_ADVENTURES = collections.OrderedDict([
         ('Letter to Santa', ComicBookInfo(f'{CP} #1, November 1949', 'June 1st, 1949', DDA)),
         ('Luck of the North', ComicBookInfo(f'{FC} #256, December 1949', 'June 29th, 1949', DDA)),
         ('Trail of the Unicorn', ComicBookInfo(f'{FC} #263, February 1950', 'September 8th, 1949', DDA)),
+        ('Land of the Totem Poles', ComicBookInfo(f'{FC} #263, February 1950', 'September 29th, 1949', DDA)),
         ('In Ancient Persia', ComicBookInfo(f'{FC} #275, May 1950', 'November 23rd, 1949', DDA)),
 ])
