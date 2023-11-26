@@ -1,13 +1,14 @@
-# import sys
 import argparse
 import collections
 import configparser
 import datetime
+import inspect
 import logging
 import os
 import shutil
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import List, Tuple
 
 from PIL import Image, ImageFont, ImageDraw
@@ -19,6 +20,10 @@ from comics_info import (
     SOURCE_COMICS,
 )
 
+THIS_SCRIPT_DIR = os.path.dirname(
+    os.path.abspath(inspect.getfile(inspect.currentframe()))
+)
+
 DRY_RUN_STR = "DRY_RUN"
 
 DEST_WIDTH = 2216
@@ -28,10 +33,10 @@ DEST_Y_MARGINS_TRIM = 48
 DEST_TARGET_WIDTH = DEST_WIDTH - (2 * DEST_Y_MARGINS_TRIM)
 DEST_TARGET_HEIGHT = DEST_HEIGHT - (2 * DEST_Y_MARGINS_TRIM)
 
-FONT_DIR = "/home/greg/Prj"
+FONT_DIR = str(Path.home()) + "/Prj/fonts"
 # INTRO_TITLE_DEFAULT_FONT_FILE = 'Expressa-Heavy.ttf'
 # INTRO_TITLE_DEFAULT_FONT_FILE = 'Blenda Script.otf'
-INTRO_TITLE_DEFAULT_FONT_FILE = "/home/greg/Prj/Carl Barks Script.ttf"
+INTRO_TITLE_DEFAULT_FONT_FILE = FONT_DIR + "/Carl Barks Script.ttf"
 # INTRO_TITLE_DEFAULT_FONT_FILE = 'Square.ttf'
 # INTRO_TITLE_DEFAULT_FONT_FILE = 'chiselscript.ttf'
 INTRO_TEXT_FONT_FILE = "Verdana Italic.ttf"
@@ -59,9 +64,9 @@ PAGE_NUM_HEIGHT = 40
 PAGE_NUM_FONT_SIZE = 30
 
 BARKS = "Carl Barks"
-BARKS_ROOT_DIR = f"/home/greg/Books/{BARKS}"
-TITLE_EMPTY_IMAGE_FILEPATH = f"{BARKS_ROOT_DIR}/Tools/title_empty.png"
-LAST_EMPTY_IMAGE_FILEPATH = f"{BARKS_ROOT_DIR}/Tools/last_empty.png"
+BARKS_ROOT_DIR = str(Path.home()) + f"/Books/{BARKS}"
+TITLE_EMPTY_IMAGE_FILEPATH = f"{THIS_SCRIPT_DIR}/title_empty.png"
+LAST_EMPTY_IMAGE_FILEPATH = f"{THIS_SCRIPT_DIR}/last_empty.png"
 IMAGES_SUBDIR = "images"
 CONFIGS_SUBDIR = "Configs"
 TITLE_EMPTY_FILENAME = "title_empty"
@@ -579,7 +584,7 @@ def get_comic_book(ini_file: str) -> ComicBook:
     title = config["info"]["title"]
     safe_title = title.replace("\n", " ")
     intro_inset_file = os.path.join(
-        BARKS_ROOT_DIR, CONFIGS_SUBDIR, safe_title + " Inset" + INSERT_FILE_EXT
+        CONFIGS_SUBDIR, safe_title + " Inset" + INSERT_FILE_EXT
     )
 
     comic_book_info: ComicBookInfo = DONALD_DUCK_ADVENTURES[safe_title]
