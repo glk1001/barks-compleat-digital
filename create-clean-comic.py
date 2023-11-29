@@ -57,9 +57,9 @@ INTRO_PUB_TEXT_FONT_SIZE = 35
 INTRO_PUB_TEXT_COLOR = (0, 0, 0)
 INTRO_PUB_TEXT_SPACING = 20
 
-PAGE_NUM_X_OFFSET_FROM_CENTRE = 100
+PAGE_NUM_X_OFFSET_FROM_CENTRE = 150
 PAGE_NUM_Y_OFFSET_FROM_BOTTOM = 140
-PAGE_NUM_X_BLANK_PIXEL_OFFSET = 200
+PAGE_NUM_X_BLANK_PIXEL_OFFSET = 250
 PAGE_NUM_HEIGHT = 40
 PAGE_NUM_FONT_SIZE = 30
 
@@ -503,11 +503,11 @@ def write_page_number(comic: ComicBook, image: Image, page: CleanPage, color):
     # Remove the existing page number
     shape = (
         (
-            page_num_x_start,
+            page_num_x_start - 1,
             page_num_y_start - 1,
         ),
         (
-            page_num_x_end,
+            page_num_x_end + 1,
             page_num_y_end + 1,
         ),
     )
@@ -636,7 +636,7 @@ def get_comic_book(ini_file: str) -> ComicBook:
         + f"Submitted to Western Publishing on {comic_book_info.first_submitted}\n"
         + f"\n"
         + f"This edition published by {source_info.pub}, {source_info.year}\n"
-        + f"Pages recolored by {source_info.colorist}"
+        + f"Color restoration by {comic_book_info.colorist}"
     )
 
     return ComicBook(
