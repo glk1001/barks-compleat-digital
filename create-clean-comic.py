@@ -1,5 +1,4 @@
 import argparse
-import collections
 import configparser
 import datetime
 import inspect
@@ -9,13 +8,13 @@ import shutil
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, OrderedDict, Tuple
 
 from PIL import Image, ImageFont, ImageDraw
 
 from comics_info import (
     ComicBookInfo,
-    DONALD_DUCK_ADVENTURES,
+    get_comic_book_series,
     SOURCE_COMICS,
 )
 
@@ -24,6 +23,10 @@ THIS_SCRIPT_DIR = os.path.dirname(
 )
 
 DRY_RUN_STR = "DRY_RUN"
+README_FILENAME = "readme.txt"
+DOUBLE_PAGES_SECTION = "double_pages"
+PAGE_NUMBERS_SECTION = "page_numbers"
+METADATA_FILENAME = "metadata.txt"
 
 DEST_WIDTH = 2216
 DEST_HEIGHT = 3056
@@ -32,12 +35,8 @@ DEST_Y_MARGINS_TRIM = 48
 DEST_PRELIM_TARGET_WIDTH = DEST_WIDTH - (2 * DEST_Y_MARGINS_TRIM)
 DEST_PRELIM_TARGET_HEIGHT = DEST_HEIGHT - (2 * DEST_Y_MARGINS_TRIM)
 
-FONT_DIR = str(Path.home()) + "/Prj/fonts"
-# INTRO_TITLE_DEFAULT_FONT_FILE = 'Expressa-Heavy.ttf'
-# INTRO_TITLE_DEFAULT_FONT_FILE = 'Blenda Script.otf'
-INTRO_TITLE_DEFAULT_FONT_FILE = FONT_DIR + "/Carl Barks Script.ttf"
-# INTRO_TITLE_DEFAULT_FONT_FILE = 'Square.ttf'
-# INTRO_TITLE_DEFAULT_FONT_FILE = 'chiselscript.ttf'
+FONT_DIR = os.path.join(str(Path.home()), "Prj", "fonts")
+INTRO_TITLE_DEFAULT_FONT_FILE = os.path.join(FONT_DIR, "Carl Barks Script.ttf")
 INTRO_TEXT_FONT_FILE = "Verdana Italic.ttf"
 PAGE_NUM_FONT_FILE = "verdana.ttf"
 PAGE_NUM_COLOR = (10, 10, 10)
@@ -63,9 +62,10 @@ PAGE_NUM_HEIGHT = 40
 PAGE_NUM_FONT_SIZE = 30
 
 BARKS = "Carl Barks"
-BARKS_ROOT_DIR = str(Path.home()) + f"/Books/{BARKS}"
-TITLE_EMPTY_IMAGE_FILEPATH = f"{THIS_SCRIPT_DIR}/title_empty.png"
-LAST_EMPTY_IMAGE_FILEPATH = f"{THIS_SCRIPT_DIR}/last_empty.png"
+BARKS_ROOT_DIR = os.path.join(str(Path.home()), "Books", BARKS)
+THE_COMICS_DIR = os.path.join(BARKS_ROOT_DIR, "The Comics")
+TITLE_EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "title_empty.png")
+LAST_EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "last_empty.png")
 IMAGES_SUBDIR = "images"
 CONFIGS_SUBDIR = "Configs"
 TITLE_EMPTY_FILENAME = "title_empty"
@@ -125,18 +125,22 @@ class ComicBook:
     author_font_size: int
     trim_amount: int
     source_dir: str
-    series: str
+    series_name: str
     number_in_series: int
     intro_inset_file: str
     intro_inset_ratio: float
     publication_text: str
     images_in_order: List[OriginalPage]
 
+    def __post_init__(self):
+        assert self.series_name != ""
+        assert self.number_in_series > 0
+
     def get_target_dir(self):
         safe_title = self.title.replace("\n", " ")
         return os.path.join(
-            BARKS_ROOT_DIR,
-            f"{self.series}",
+            THE_COMICS_DIR,
+            f"{self.series_name}",
             f"{self.number_in_series:03d} {safe_title}",
         )
 
@@ -186,7 +190,7 @@ def print_comic_book_properties(comic: ComicBook):
     logging.debug(f"title_font_size = {comic.title_font_size}")
     logging.debug(f"author_font_size = {comic.author_font_size}")
     logging.debug(f"trim_amount = {comic.trim_amount}")
-    logging.debug(f"series = {comic.series}")
+    logging.debug(f"series = {comic.series_name}")
     logging.debug(f"series_book_num = {comic.number_in_series}")
     logging.debug(f'intro_inset_file = "{comic.intro_inset_file}"')
     logging.debug(f"intro_inset_ratio = {comic.intro_inset_ratio}")
@@ -547,8 +551,6 @@ def process_additional_files(
 
 
 def write_readme_file(dry_run: bool, comic: ComicBook):
-    README_FILENAME = "readme.txt"
-
     readme_file = os.path.join(comic.get_target_dir(), README_FILENAME)
     if dry_run:
         logging.info(f'{DRY_RUN_STR}: Write info to "{readme_file}".')
@@ -563,10 +565,6 @@ def write_readme_file(dry_run: bool, comic: ComicBook):
 
 
 def write_metadata_file(dry_run: bool, comic: ComicBook, dst_pages: List[CleanPage]):
-    DOUBLE_PAGES_SECTION = "double_pages"
-    PAGE_NUMBERS_SECTION = "page_numbers"
-    METADATA_FILENAME = "metadata.txt"
-
     metadata_file = os.path.join(comic.get_target_dir(), METADATA_FILENAME)
     if dry_run:
         logging.info(f'{DRY_RUN_STR}: Write metadata to "{metadata_file}".')
@@ -610,13 +608,15 @@ def get_list_of_numbers(list_str: str) -> List[int]:
 
 
 def get_comic_book_info(title: str) -> ComicBookInfo:
-    comic_book_info: ComicBookInfo = DONALD_DUCK_ADVENTURES[title]
-    comic_book_info.number_in_series = get_key_number(DONALD_DUCK_ADVENTURES, title)
+    series_name, series_dict = get_comic_book_series(title)
+    comic_book_info: ComicBookInfo = series_dict[title]
+    comic_book_info.series_name = series_name
+    comic_book_info.number_in_series = get_key_number(series_dict, title)
 
     return comic_book_info
 
 
-def get_key_number(ordered_dict: collections.OrderedDict, key: str) -> int:
+def get_key_number(ordered_dict: OrderedDict[str, ComicBookInfo], key: str) -> int:
     n = 1
     for k in ordered_dict:
         if k == key:
@@ -637,7 +637,7 @@ def get_comic_book(ini_file: str) -> ComicBook:
         CONFIGS_SUBDIR, safe_title + " Inset" + INSERT_FILE_EXT
     )
 
-    comic_book_info: ComicBookInfo = DONALD_DUCK_ADVENTURES[safe_title]
+    comic_book_info: ComicBookInfo = get_comic_book_info(safe_title)
     source_info = SOURCE_COMICS[config["info"]["source_comic"]]
     source_dir = os.path.join(BARKS_ROOT_DIR, source_info.pub, source_info.title)
 
@@ -663,7 +663,7 @@ def get_comic_book(ini_file: str) -> ComicBook:
         ),
         trim_amount=config["info"].getint("trim_amount"),
         source_dir=source_dir,
-        series=comic_book_info.grouping,
+        series_name=comic_book_info.series_name,
         number_in_series=comic_book_info.number_in_series,
         intro_inset_file=intro_inset_file,
         intro_inset_ratio=config["introduction"].getfloat("intro_inset_ratio", 1.0),
@@ -720,6 +720,7 @@ if __name__ == "__main__":
     logging.info(f'Srce comic directory: "{comic_book.source_dir}".')
     logging.info(f'Dest comic directory: "{comic_book.get_target_dir()}".')
     logging.info(f'Dest comic zip:       "{comic_book.get_dest_comic_zip()}".')
+    logging.info(f'Comic book series:    "{comic_book.series_name}".')
     logging.info("")
     logging.info(f"Dest width, height:        {DEST_WIDTH}, {DEST_HEIGHT}.")
     logging.info(
@@ -728,6 +729,7 @@ if __name__ == "__main__":
     logging.info(
         f"Dest target width, height: {DEST_PRELIM_TARGET_WIDTH}, {DEST_PRELIM_TARGET_HEIGHT}."
     )
+    logging.info("")
 
     required_pages = get_required_pages_in_order(comic_book.images_in_order)
     srce_pages, dest_pages = get_srce_and_dest_pages_in_order(
