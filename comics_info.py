@@ -108,5 +108,6 @@ UNCLE_SCROOGE_LONG_STORIES = collections.OrderedDict([
 ])
 
 COMICS_AND_STORIES = collections.OrderedDict([
+        ('Managing the Echo System', ComicBookInfo(f'{CS} #105, June 1949', 'January 13th, 1949', RTOM)),
         ('Plenty of Pets', ComicBookInfo(f'{CS} #106, July 1949', 'January 27th, 1949', RTOM)),
 ])
