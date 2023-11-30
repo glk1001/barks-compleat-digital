@@ -41,6 +41,7 @@ class ComicBookInfo:
     first_submitted: str
     colorist: str
     grouping: str
+    number_in_series: int = -1
 
 
 FC = 'Four Color'

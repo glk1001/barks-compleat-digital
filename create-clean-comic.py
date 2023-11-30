@@ -16,7 +16,6 @@ from PIL import Image, ImageFont, ImageDraw
 from comics_info import (
     ComicBookInfo,
     DONALD_DUCK_ADVENTURES,
-    DONALD_DUCK_ADVENTURES_START_NUM,
     SOURCE_COMICS,
 )
 
@@ -127,7 +126,7 @@ class ComicBook:
     trim_amount: int
     source_dir: str
     series: str
-    series_book_num: int
+    number_in_series: int
     intro_inset_file: str
     intro_inset_ratio: float
     publication_text: str
@@ -136,7 +135,9 @@ class ComicBook:
     def get_target_dir(self):
         safe_title = self.title.replace("\n", " ")
         return os.path.join(
-            BARKS_ROOT_DIR, f"{self.series}", f"{self.series_book_num:03d} {safe_title}"
+            BARKS_ROOT_DIR,
+            f"{self.series}",
+            f"{self.number_in_series:03d} {safe_title}",
         )
 
     def get_srce_image_dir(self):
@@ -186,7 +187,7 @@ def print_comic_book_properties(comic: ComicBook):
     logging.debug(f"author_font_size = {comic.author_font_size}")
     logging.debug(f"trim_amount = {comic.trim_amount}")
     logging.debug(f"series = {comic.series}")
-    logging.debug(f"series_book_num = {comic.series_book_num}")
+    logging.debug(f"series_book_num = {comic.number_in_series}")
     logging.debug(f'intro_inset_file = "{comic.intro_inset_file}"')
     logging.debug(f"intro_inset_ratio = {comic.intro_inset_ratio}")
     logging.debug(f"publication_text = \n{comic.publication_text}")
@@ -325,10 +326,12 @@ def process_page(
     if dest_page.page_type in [PageType.FRONT, PageType.TITLE, PageType.COVER]:
         new_im = im.resize(
             size=(DEST_PRELIM_TARGET_WIDTH, DEST_PRELIM_TARGET_HEIGHT),
-            resample=Image.BICUBIC,
+            resample=Image.Resampling.BICUBIC,
         )
     else:
-        new_im = im.resize(size=(DEST_WIDTH, DEST_HEIGHT), resample=Image.BICUBIC)
+        new_im = im.resize(
+            size=(DEST_WIDTH, DEST_HEIGHT), resample=Image.Resampling.BICUBIC
+        )
         new_im = new_im.crop(get_crop_box(comic, dest_page))
         dest_final_target_width = DEST_PRELIM_TARGET_WIDTH - comic.trim_amount
         if new_im.width != dest_final_target_width:
@@ -429,7 +432,7 @@ def write_introduction(comic: ComicBook, image: Image):
     new_inset_width = int(0.40 * comic.intro_inset_ratio * comic.get_trimmed_width())
     new_inset_height = int((inset_height / inset_width) * new_inset_width)
     new_inset = inset.resize(
-        size=(new_inset_width, new_inset_height), resample=Image.BICUBIC
+        size=(new_inset_width, new_inset_height), resample=Image.Resampling.BICUBIC
     )
 
     pub_text_font = ImageFont.truetype(
@@ -606,8 +609,15 @@ def get_list_of_numbers(list_str: str) -> List[int]:
     return [n for n in range(int(p_start), int(p_end) + 1)]
 
 
+def get_comic_book_info(title: str) -> ComicBookInfo:
+    comic_book_info: ComicBookInfo = DONALD_DUCK_ADVENTURES[title]
+    comic_book_info.number_in_series = get_key_number(DONALD_DUCK_ADVENTURES, title)
+
+    return comic_book_info
+
+
 def get_key_number(ordered_dict: collections.OrderedDict, key: str) -> int:
-    n = DONALD_DUCK_ADVENTURES_START_NUM
+    n = 1
     for k in ordered_dict:
         if k == key:
             return n
@@ -654,7 +664,7 @@ def get_comic_book(ini_file: str) -> ComicBook:
         trim_amount=config["info"].getint("trim_amount"),
         source_dir=source_dir,
         series=comic_book_info.grouping,
-        series_book_num=get_key_number(DONALD_DUCK_ADVENTURES, safe_title),
+        number_in_series=comic_book_info.number_in_series,
         intro_inset_file=intro_inset_file,
         intro_inset_ratio=config["introduction"].getfloat("intro_inset_ratio", 1.0),
         publication_text=publication_text,
