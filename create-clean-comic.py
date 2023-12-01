@@ -15,6 +15,7 @@ from PIL import Image, ImageFont, ImageDraw
 from comics_info import (
     ComicBookInfo,
     get_comic_book_series,
+    MONTH_AS_STR,
     SOURCE_COMICS,
 )
 
@@ -625,6 +626,24 @@ def get_key_number(ordered_dict: OrderedDict[str, ComicBookInfo], key: str) -> i
     return -1
 
 
+def get_formatted_day(day: int) -> str:
+    if day == 1 or day == 31:
+        day_str = str(day) + "st"
+    elif day == 2 or day == 22:
+        day_str = str(day) + "nd"
+    elif day == 3 or day == 23:
+        day_str = str(day) + "rd"
+    else:
+        day_str = str(day) + "th"
+
+    return day_str
+
+
+def get_formatted_submitted_date(info: ComicBookInfo) -> str:
+    return f"{MONTH_AS_STR[info.submitted_month]}"\
+           f" {get_formatted_day(info.submitted_day)}, {info.submitted_year}"
+
+
 def get_comic_book(ini_file: str) -> ComicBook:
     config = configparser.ConfigParser(
         interpolation=configparser.ExtendedInterpolation()
@@ -637,16 +656,16 @@ def get_comic_book(ini_file: str) -> ComicBook:
         CONFIGS_SUBDIR, safe_title + " Inset" + INSERT_FILE_EXT
     )
 
-    comic_book_info: ComicBookInfo = get_comic_book_info(safe_title)
+    cb_info: ComicBookInfo = get_comic_book_info(safe_title)
     source_info = SOURCE_COMICS[config["info"]["source_comic"]]
     source_dir = os.path.join(BARKS_ROOT_DIR, source_info.pub, source_info.title)
 
     publication_text = (
-        f"First published in {comic_book_info.first_published}\n"
-        + f"Submitted to Western Publishing on {comic_book_info.first_submitted}\n"
+        f"First published in {MONTH_AS_STR[cb_info.issue_month]} {cb_info.issue_year}\n"
+        + f"Submitted to Western Publishing on {get_formatted_submitted_date(cb_info)}\n"
         + f"\n"
         + f"This edition published by {source_info.pub}, {source_info.year}\n"
-        + f"Color restoration by {comic_book_info.colorist}"
+        + f"Color restoration by {cb_info.colorist}"
     )
 
     return ComicBook(
@@ -663,8 +682,8 @@ def get_comic_book(ini_file: str) -> ComicBook:
         ),
         trim_amount=config["info"].getint("trim_amount"),
         source_dir=source_dir,
-        series_name=comic_book_info.series_name,
-        number_in_series=comic_book_info.number_in_series,
+        series_name=cb_info.series_name,
+        number_in_series=cb_info.number_in_series,
         intro_inset_file=intro_inset_file,
         intro_inset_ratio=config["introduction"].getfloat("intro_inset_ratio", 1.0),
         publication_text=publication_text,
