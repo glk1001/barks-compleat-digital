@@ -14,8 +14,8 @@ from PIL import Image, ImageFont, ImageDraw
 
 from comics_info import (
     ComicBookInfo,
-    get_comic_book_series,
-    MONTH_AS_STR,
+    get_all_comic_book_info,
+    MONTH_AS_LONG_STR,
     SOURCE_COMICS,
 )
 
@@ -608,15 +608,6 @@ def get_list_of_numbers(list_str: str) -> List[int]:
     return [n for n in range(int(p_start), int(p_end) + 1)]
 
 
-def get_comic_book_info(title: str) -> ComicBookInfo:
-    series_name, series_dict = get_comic_book_series(title)
-    comic_book_info: ComicBookInfo = series_dict[title]
-    comic_book_info.series_name = series_name
-    comic_book_info.number_in_series = get_key_number(series_dict, title)
-
-    return comic_book_info
-
-
 def get_key_number(ordered_dict: OrderedDict[str, ComicBookInfo], key: str) -> int:
     n = 1
     for k in ordered_dict:
@@ -640,8 +631,10 @@ def get_formatted_day(day: int) -> str:
 
 
 def get_formatted_submitted_date(info: ComicBookInfo) -> str:
-    return f"{MONTH_AS_STR[info.submitted_month]}"\
-           f" {get_formatted_day(info.submitted_day)}, {info.submitted_year}"
+    return (
+        f"{MONTH_AS_LONG_STR[info.submitted_month]}"
+        f" {get_formatted_day(info.submitted_day)}, {info.submitted_year}"
+    )
 
 
 def get_comic_book(ini_file: str) -> ComicBook:
@@ -656,12 +649,12 @@ def get_comic_book(ini_file: str) -> ComicBook:
         CONFIGS_SUBDIR, safe_title + " Inset" + INSERT_FILE_EXT
     )
 
-    cb_info: ComicBookInfo = get_comic_book_info(safe_title)
+    cb_info: ComicBookInfo = all_comic_book_info[safe_title]
     source_info = SOURCE_COMICS[config["info"]["source_comic"]]
     source_dir = os.path.join(BARKS_ROOT_DIR, source_info.pub, source_info.title)
 
     publication_text = (
-        f"First published in {MONTH_AS_STR[cb_info.issue_month]} {cb_info.issue_year}\n"
+        f"First published in {MONTH_AS_LONG_STR[cb_info.issue_month]} {cb_info.issue_year}\n"
         + f"Submitted to Western Publishing on {get_formatted_submitted_date(cb_info)}\n"
         + f"\n"
         + f"This edition published by {source_info.pub}, {source_info.year}\n"
@@ -724,6 +717,8 @@ if __name__ == "__main__":
     config_file = args.ini_file
     if not os.path.isfile(config_file):
         raise Exception(f'Could not find ini file "{config_file}".')
+
+    all_comic_book_info = get_all_comic_book_info("Configs/the-stories.csv")
 
     front_pages = get_list_of_numbers(args.front_pages)
     main_pages = get_list_of_numbers(args.main_pages)

@@ -1,7 +1,8 @@
 import collections
+import csv
 from dataclasses import dataclass
 from datetime import date
-from typing import Dict, OrderedDict, Tuple
+from typing import Dict, OrderedDict
 
 JAN = 1
 FEB = 2
@@ -16,19 +17,34 @@ OCT = 10
 NOV = 11
 DEC = 12
 
-MONTH_AS_STR: Dict[int, str] = {
-    JAN: 'January',
-    FEB: 'February',
-    MAR: 'March',
-    APR: 'April',
-    MAY: 'May',
-    JUN: 'June',
-    JUL: 'July',
-    AUG: 'August',
-    SEP: 'September',
-    OCT: 'October',
-    NOV: 'November',
-    DEC: 'December',
+MONTH_AS_LONG_STR: Dict[int, str] = {
+    JAN: "January",
+    FEB: "February",
+    MAR: "March",
+    APR: "April",
+    MAY: "May",
+    JUN: "June",
+    JUL: "July",
+    AUG: "August",
+    SEP: "September",
+    OCT: "October",
+    NOV: "November",
+    DEC: "December",
+}
+MONTH_AS_SHORT_STR: Dict[int, str] = {
+    -1: "   ",
+    JAN: "Jan",
+    FEB: "Feb",
+    MAR: "Mar",
+    APR: "Apr",
+    MAY: "May",
+    JUN: "Jun",
+    JUL: "Jul",
+    AUG: "Aug",
+    SEP: "Sep",
+    OCT: "Oct",
+    NOV: "Nov",
+    DEC: "Dec",
 }
 
 
@@ -36,14 +52,50 @@ MONTH_AS_STR: Dict[int, str] = {
 class ComicBookInfo:
     issue_name: str
     issue_number: int
-    issue_month: int
     issue_year: int
+    issue_month: int
+    submitted_year: int
     submitted_month: int
     submitted_day: int
-    submitted_year: int
     colorist: str
     series_name: str = ""
     number_in_series: int = -1
+
+
+def get_all_comic_book_info(stories_filename: str) -> OrderedDict[str, ComicBookInfo]:
+    current_number_in_series = SERIES_INFO_START_NUMBERS.copy()
+    all_info: OrderedDict[str, ComicBookInfo] = collections.OrderedDict()
+
+    with open(stories_filename, "r") as csv_file:
+        reader = csv.reader(csv_file, delimiter=",", quotechar='"')
+        for row in reader:
+            title = row[0]
+            if title not in SERIES_INFO:
+                continue
+
+            colorist = SERIES_INFO[title].colorist
+            series_name = SERIES_INFO[title].series_name
+
+            if series_name not in current_number_in_series:
+                current_number_in_series[series_name] = 0
+            current_number_in_series[series_name] += 1
+
+            comic_book_info = ComicBookInfo(
+                row[1],
+                int(row[2]),
+                int(row[3]),
+                int(row[4]),
+                int(row[5]),
+                int(row[6]),
+                int(row[7]),
+                colorist,
+                series_name,
+                current_number_in_series[series_name],
+            )
+
+            all_info[title] = comic_book_info
+
+    return all_info
 
 
 def check_story_submission_order(stories: OrderedDict[str, ComicBookInfo]):
@@ -60,17 +112,6 @@ def check_story_submission_order(stories: OrderedDict[str, ComicBookInfo]):
         if prev_submission_date > submission_date:
             raise Exception(f"{story}: Out of order submission date {submission_date}.")
         prev_submission_date = submission_date
-
-
-def get_comic_book_series(title: str) -> Tuple[str, OrderedDict[str, ComicBookInfo]]:
-    if title in DONALD_DUCK_LONG_STORIES:
-        return SERIES_DDA, DONALD_DUCK_LONG_STORIES
-    if title in UNCLE_SCROOGE_LONG_STORIES:
-        return SERIES_US, UNCLE_SCROOGE_LONG_STORIES
-    if title in COMICS_AND_STORIES:
-        return SERIES_CS, COMICS_AND_STORIES
-
-    raise Exception(f"Unknown title: '{title}'.")
 
 
 @dataclass
@@ -110,10 +151,10 @@ SOURCE_COMICS = {
 
 CS = "Comics and Stories"
 FC = "Four Color"
-CP = "Christmas Parade"
-MC = "Boys' and Girls' March of Comics"
-VP = "Vacation Parade"
 DD = "Donald Duck"
+CP = "Christmas Parade"
+VP = "Vacation Parade"
+MC = "Boys' and Girls' March of Comics"
 FG = "Firestone Giveaway"
 CH = "Cheerios Giveaway"
 KI = "Kites Giveaway"
@@ -127,53 +168,55 @@ GLEA = "Gary Leach"
 SLEA = "Susan Daigle-Leach"
 
 
-# fmt: off
-DONALD_DUCK_LONG_STORIES = collections.OrderedDict([
-        ('Donald Duck Finds Pirate Gold', ComicBookInfo(FC, 9, SEP, 1942, MAY, 21, 1942, '?')),
-        ('The Mummy\'s Ring', ComicBookInfo(FC, 29, SEP, 1943, MAY, 10, 1943, '?')),
-        ('The Hard Loser', ComicBookInfo(FC, 29, SEP, 1943, MAY, 10, 1943, '?')),
-        ('Too Many Pets', ComicBookInfo(FC, 29, SEP, 1943, MAY, 29, 1943, '?')),
-        ('Frozen Gold', ComicBookInfo(FC, 62, JAN, 1945, AUG, 9, 1944, '?')),
-        ('The Mystery of the Swamp', ComicBookInfo(FC, 62, JAN, 1945, SEP, 23, 1944, '?')),
-        ('The Firebug', ComicBookInfo(FC, 108, MAY, 1946, JUL, 19, 1945, '?')),
-        ('The Terror of the River!!', ComicBookInfo(FC, 108, MAY, 1946, JAN, 25, 1946, SLEA)),
-        ('Seals Are So Smart!', ComicBookInfo(FC, 108, MAY, 1946, JAN, 25, 1946, GLEA)),
-        ('Maharajah Donald', ComicBookInfo(MC, 4, MAY, 1947, AUG, 13, 1946, GLEA)),
-        ('Volcano Valley', ComicBookInfo(FC, 159, MAY, 1947, DEC, 9, 1946, RTOM)),
-        ('Adventure "Down Under"', ComicBookInfo(FC, 159, AUG, 1947, APR, 4, 1947, RTOM)),
-        ('The Ghost of the Grotto', ComicBookInfo(FC, 159, AUG, 1947, APR, 15, 1947, RTOM)),
-        ('Christmas on Bear Mountain', ComicBookInfo(FC, 178, DEC, 1947, JUL, 22, 1947, RTOM)),
-        ('Darkest Africa', ComicBookInfo(MC, 20, APR, 1948, SEP, 26, 1947, RTOM)),
-        ('The Old Castle\'s Secret', ComicBookInfo(FC, 189, JUN, 1948, DEC, 3, 1947, RTOM)),
-        ('Sheriff of Bullet Valley', ComicBookInfo(FC, 199, OCT, 1948, MAR, 16, 1948, RTOM)),
-        ('The Golden Christmas Tree', ComicBookInfo(FC, 203, DEC, 1948, JUN, 30, 1948, RTOM)),
-        ('Lost in the Andes', ComicBookInfo(FC, 223, APR, 1949, OCT, 21, 1948, RTOM)),
-        ('Race to the South Seas', ComicBookInfo(MC, 41, FEB, 1949, DEC, 15, 1948, RTOM)),
-        ('Voodoo Hoodoo', ComicBookInfo(FC, 238, AUG, 1949, MAR, 3, 1949, RTOM)),
-        ('Letter to Santa', ComicBookInfo(CP, 1, NOV, 1949, JUN, 1, 1949, RTOM)),
-        ('Luck of the North', ComicBookInfo(FC, 256, DEC, 1949, JUN, 29, 1949, RTOM)),
-        ('Trail of the Unicorn', ComicBookInfo(FC, 263, FEB, 1950, SEP, 8, 1949, RTOM)),
-        ('Land of the Totem Poles', ComicBookInfo(FC, 263, FEB, 1950, SEP, 29, 1949, RTOM)),
-        ('In Ancient Persia', ComicBookInfo(FC, 275, MAY, 1950, NOV, 23, 1949, RTOM)),
-        ('Vacation Time', ComicBookInfo(VP, 1, JUL, 1950, JAN, 5, 1950, RTOM)),
-        ('The Pixilated Parrot', ComicBookInfo(FC, 282, JUL, 1950, FEB, 23, 1950, RTOM)),
-        ('The Magic Hourglass', ComicBookInfo(FC, 291, SEP, 1950, MAR, 16, 1950, RTOM)),
-        ('Big-top Bedlam', ComicBookInfo(FC, 300, NOV, 1950, APR, 20, 1950, RTOM)),
-])
-# fmt: on
-check_story_submission_order(DONALD_DUCK_LONG_STORIES)
+@dataclass
+class SeriesInfo:
+    colorist: str
+    series_name: str
+    number_in_series: int = -1
+
+
+SERIES_INFO_START_NUMBERS: Dict[str, int] = {
+    SERIES_DDA: 1,
+    SERIES_US: 1,
+    SERIES_CS: 69,
+}
 
 # fmt: off
-UNCLE_SCROOGE_LONG_STORIES = collections.OrderedDict([
-        ('Only a Poor Old Man', ComicBookInfo(FC, 386, MAR, 1952, SEP, 27, 1951, RTOM)),
-])
-# fmt: on
-check_story_submission_order(UNCLE_SCROOGE_LONG_STORIES)
+SERIES_INFO: Dict[str, SeriesInfo] = {
+    "Donald Duck Finds Pirate Gold": SeriesInfo("?", SERIES_DDA),
+    "The Mummy's Ring": SeriesInfo("?", SERIES_DDA),
+    "The Hard Loser": SeriesInfo("?", SERIES_DDA),
+    "Too Many Pets": SeriesInfo("?", SERIES_DDA),
+    "Frozen Gold": SeriesInfo("?", SERIES_DDA),
+    "The Mystery of the Swamp": SeriesInfo("?", SERIES_DDA),
+    "The Firebug": SeriesInfo("?", SERIES_DDA),
+    "The Terror of the River!!": SeriesInfo(SLEA, SERIES_DDA),
+    "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_DDA),
+    "Maharajah Donald": SeriesInfo(GLEA, SERIES_DDA),
+    "Volcano Valley": SeriesInfo(RTOM, SERIES_DDA),
+    'Adventure "Down Under"': SeriesInfo(RTOM, SERIES_DDA),
+    "The Ghost of the Grotto": SeriesInfo(RTOM, SERIES_DDA),
+    "Christmas on Bear Mountain": SeriesInfo(RTOM, SERIES_DDA),
+    "Darkest Africa": SeriesInfo(RTOM, SERIES_DDA),
+    "The Old Castle's Secret": SeriesInfo(RTOM, SERIES_DDA),
+    "Sheriff of Bullet Valley": SeriesInfo(RTOM, SERIES_DDA),
+    "The Golden Christmas Tree": SeriesInfo(RTOM, SERIES_DDA),
+    "Lost in the Andes": SeriesInfo(RTOM, SERIES_DDA),
+    "Race to the South Seas": SeriesInfo(RTOM, SERIES_DDA),
+    "Voodoo Hoodoo": SeriesInfo(RTOM, SERIES_DDA),
+    "Letter to Santa": SeriesInfo(RTOM, SERIES_DDA),
+    "Luck of the North": SeriesInfo(RTOM, SERIES_DDA),
+    "Trail of the Unicorn": SeriesInfo(RTOM, SERIES_DDA),
+    "Land of the Totem Poles": SeriesInfo(RTOM, SERIES_DDA),
+    "In Ancient Persia": SeriesInfo(RTOM, SERIES_DDA),
+    "Vacation Time": SeriesInfo(RTOM, SERIES_DDA),
+    "The Pixilated Parrot": SeriesInfo(RTOM, SERIES_DDA),
+    "The Magic Hourglass": SeriesInfo(RTOM, SERIES_DDA),
+    "Big-top Bedlam": SeriesInfo(RTOM, SERIES_DDA),
 
-# fmt: off
-COMICS_AND_STORIES = collections.OrderedDict([
-        ('Managing the Echo System', ComicBookInfo(CS, 105, JUN, 1949, JAN, 13, 1949, RTOM)),
-        ('Plenty of Pets', ComicBookInfo(CS, 106, JUL, 1949, JAN, 27, 1949, RTOM)),
-])
+    "Only a Poor Old Man": SeriesInfo(RTOM, SERIES_US),
+
+    "Managing the Echo System": SeriesInfo(RTOM, SERIES_CS),
+    "Plenty of Pets": SeriesInfo(RTOM, SERIES_CS),
+}
 # fmt: on
-check_story_submission_order(COMICS_AND_STORIES)

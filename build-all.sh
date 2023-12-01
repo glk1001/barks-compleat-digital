@@ -13,7 +13,7 @@ if [[ ! -d "${CONFIG_DIR}" ]]; then
 fi
 
 for ini_file in ${CONFIG_DIR}/*.ini ; do
-    python3 "${THIS_SCRIPT_PATH}/create-clean-comic.py" --ini-file "${ini_file}" ${1:-}
+    python3 "${THIS_SCRIPT_PATH}/create_clean_comic.py" --ini-file "${ini_file}" ${1:-}
     if [[ $? != 0 ]]; then
         echo "ERROR: Could process \"${ini_file}\"."
         exit 1
