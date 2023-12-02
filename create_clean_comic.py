@@ -8,12 +8,14 @@ import shutil
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import List, OrderedDict, Tuple
+from typing import List, Tuple
 
 from PIL import Image, ImageFont, ImageDraw
 
 from comics_info import (
     ComicBookInfo,
+    ComicBookInfoDict,
+    check_story_submitted_order,
     get_all_comic_book_info,
     MONTH_AS_LONG_STR,
     SOURCE_COMICS,
@@ -608,7 +610,7 @@ def get_list_of_numbers(list_str: str) -> List[int]:
     return [n for n in range(int(p_start), int(p_end) + 1)]
 
 
-def get_key_number(ordered_dict: OrderedDict[str, ComicBookInfo], key: str) -> int:
+def get_key_number(ordered_dict: ComicBookInfoDict, key: str) -> int:
     n = 1
     for k in ordered_dict:
         if k == key:
@@ -628,6 +630,13 @@ def get_formatted_day(day: int) -> str:
         day_str = str(day) + "th"
 
     return day_str
+
+
+def get_formatted_first_published_str(info: ComicBookInfo) -> str:
+    return (
+        f"{info.issue_name} #{info.issue_number}, "
+        f"{MONTH_AS_LONG_STR[info.issue_month]} {info.issue_year}"
+    )
 
 
 def get_formatted_submitted_date(info: ComicBookInfo) -> str:
@@ -654,7 +663,7 @@ def get_comic_book(ini_file: str) -> ComicBook:
     source_dir = os.path.join(BARKS_ROOT_DIR, source_info.pub, source_info.title)
 
     publication_text = (
-        f"First published in {MONTH_AS_LONG_STR[cb_info.issue_month]} {cb_info.issue_year}\n"
+        f"First published in {get_formatted_first_published_str(cb_info)}\n"
         + f"Submitted to Western Publishing on {get_formatted_submitted_date(cb_info)}\n"
         + f"\n"
         + f"This edition published by {source_info.pub}, {source_info.year}\n"
@@ -719,6 +728,7 @@ if __name__ == "__main__":
         raise Exception(f'Could not find ini file "{config_file}".')
 
     all_comic_book_info = get_all_comic_book_info("Configs/the-stories.csv")
+    check_story_submitted_order(all_comic_book_info)
 
     front_pages = get_list_of_numbers(args.front_pages)
     main_pages = get_list_of_numbers(args.main_pages)

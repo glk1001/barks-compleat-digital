@@ -62,9 +62,12 @@ class ComicBookInfo:
     number_in_series: int = -1
 
 
-def get_all_comic_book_info(stories_filename: str) -> OrderedDict[str, ComicBookInfo]:
+ComicBookInfoDict = OrderedDict[str, ComicBookInfo]
+
+
+def get_all_comic_book_info(stories_filename: str) -> ComicBookInfoDict:
     current_number_in_series = SERIES_INFO_START_NUMBERS.copy()
-    all_info: OrderedDict[str, ComicBookInfo] = collections.OrderedDict()
+    all_info: ComicBookInfoDict = collections.OrderedDict()
 
     with open(stories_filename, "r") as csv_file:
         reader = csv.reader(csv_file, delimiter=",", quotechar='"')
@@ -98,20 +101,26 @@ def get_all_comic_book_info(stories_filename: str) -> OrderedDict[str, ComicBook
     return all_info
 
 
-def check_story_submission_order(stories: OrderedDict[str, ComicBookInfo]):
-    prev_submission_date = date(1940, 1, 1)
+def check_story_submitted_order(stories: ComicBookInfoDict):
+    prev_title = ""
+    prev_submitted_date = date(1940, 1, 1)
     for story in stories:
         submitted_month_str = stories[story].submitted_month
         if submitted_month_str == "<none>":
             continue
-        submission_date = date(
+        title = story.title()
+        submitted_date = date(
             stories[story].submitted_year,
             stories[story].submitted_month,
             stories[story].submitted_day,
         )
-        if prev_submission_date > submission_date:
-            raise Exception(f"{story}: Out of order submission date {submission_date}.")
-        prev_submission_date = submission_date
+        if prev_submitted_date > submitted_date:
+            raise Exception(
+                f'"{title}": Out of order submitted date {submitted_date}.'
+                f' Previous entry: "{prev_title}" - {prev_submitted_date}.'
+            )
+        prev_title = title
+        prev_submitted_date = submitted_date
 
 
 @dataclass

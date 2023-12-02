@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
+
 
 LONG_MONTHS = {
     "<none>",
@@ -19,10 +20,13 @@ LONG_MONTHS = {
 
 
 @dataclass
-class SubmissionInfo:
-    submission_year: str
-    submission_month: str
-    submission_day: str
+class SubmittedInfo:
+    submitted_year: str
+    submitted_month: str
+    submitted_day: str
+
+
+SubmittedInfoDict = Dict[Tuple[str, str], SubmittedInfo]
 
 
 def get_month_day(month_and_day: str) -> Tuple[str, str]:
@@ -39,9 +43,7 @@ def get_month_day(month_and_day: str) -> Tuple[str, str]:
     return issue_month, issue_day
 
 
-def get_all_submission_dates(
-    issue_filename: str, issue_name: str
-) -> Dict[Tuple[str, str], SubmissionInfo]:
+def get_all_submitted_info(issue_filename: str, issue_name: str) -> SubmittedInfoDict:
     all_lines = []
     with open(issue_filename, "r") as f:
         while True:
@@ -58,7 +60,7 @@ def get_all_submission_dates(
 
             all_lines.append((line1, line2))
 
-    all_submission_dates: Dict[Tuple[str, str], SubmissionInfo] = {}
+    all_submitted_info: SubmittedInfoDict = {}
     for line in all_lines:
         # print(line[1])
 
@@ -75,8 +77,8 @@ def get_all_submission_dates(
         if sub_month not in LONG_MONTHS:
             raise Exception(f"Bad month: '{line[1]}'.")
 
-        all_submission_dates[(issue_name, issue_number)] = SubmissionInfo(
+        all_submitted_info[(issue_name, issue_number)] = SubmittedInfo(
             sub_year, sub_month, sub_day
         )
 
-    return all_submission_dates
+    return all_submitted_info

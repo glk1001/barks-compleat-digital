@@ -1,6 +1,8 @@
 import re
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
+
+STORY_INDEX_FILE = "wiki-story-index.txt"
 
 LONG_MONTHS = {
     "<none>": "<none>",
@@ -20,21 +22,21 @@ LONG_MONTHS = {
 }
 
 
-def get_issue_month_year(issue_date):
+def get_issue_month_year(issue_date: str) -> Tuple[str, int]:
     issue_month_year = issue_date.split(" ")
     assert 1 <= len(issue_month_year) <= 2
 
     if len(issue_month_year) == 1:
         issue_month = "<none>"
-        issue_year = issue_month_year[0]
+        issue_year = int(issue_month_year[0])
     else:
         issue_month = issue_month_year[0]
-        issue_year = issue_month_year[1]
+        issue_year = int(issue_month_year[1])
 
     return issue_month, issue_year
 
 
-def replace_char(text, index, new_char):
+def replace_char(text: str, index: int, new_char: str):
     char_list = list(text)
     char_list[index] = new_char
     return "".join(char_list)
@@ -50,10 +52,8 @@ class StoryInfo:
 
 
 def get_all_stories() -> List[StoryInfo]:
-    story_index_file = "wiki-story-index.txt"
-
-    all_lines = []
-    with open(story_index_file, "r") as f:
+    all_lines: List[str] = []
+    with open(STORY_INDEX_FILE, "r") as f:
         while True:
             line = f.readline().strip()
             if not line:
@@ -95,7 +95,9 @@ def get_all_stories() -> List[StoryInfo]:
 
         title = fields[0]
         if title in titles:
-            raise Exception(f'ERROR: Duplicate title in file "{story_index_file}": "{title}".')
+            raise Exception(
+                f'ERROR: Duplicate title in file "{STORY_INDEX_FILE}": "{title}".'
+            )
         titles.add(title)
         issue_name = fields[1]
         issue_number = fields[2]
