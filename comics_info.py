@@ -79,10 +79,6 @@ def get_all_comic_book_info(stories_filename: str) -> ComicBookInfoDict:
             colorist = SERIES_INFO[title].colorist
             series_name = SERIES_INFO[title].series_name
 
-            if series_name not in current_number_in_series:
-                current_number_in_series[series_name] = 0
-            current_number_in_series[series_name] += 1
-
             comic_book_info = ComicBookInfo(
                 row[1],
                 int(row[2]),
@@ -97,6 +93,8 @@ def get_all_comic_book_info(stories_filename: str) -> ComicBookInfoDict:
             )
 
             all_info[title] = comic_book_info
+
+            current_number_in_series[series_name] += 1
 
     return all_info
 
@@ -187,31 +185,31 @@ class SeriesInfo:
 SERIES_INFO_START_NUMBERS: Dict[str, int] = {
     SERIES_DDA: 1,
     SERIES_US: 1,
-    SERIES_CS: 69,
+    SERIES_CS: 74,
 }
 
 # fmt: off
 SERIES_INFO: Dict[str, SeriesInfo] = {
     "Donald Duck Finds Pirate Gold": SeriesInfo("?", SERIES_DDA),
-    "The Mummy's Ring": SeriesInfo("?", SERIES_DDA),
+    "Donald Duck and the Mummy's Ring": SeriesInfo("?", SERIES_DDA),
     "The Hard Loser": SeriesInfo("?", SERIES_DDA),
     "Too Many Pets": SeriesInfo("?", SERIES_DDA),
     "Frozen Gold": SeriesInfo("?", SERIES_DDA),
-    "The Mystery of the Swamp": SeriesInfo("?", SERIES_DDA),
+    "Mystery of the Swamp": SeriesInfo("?", SERIES_DDA),
     "The Firebug": SeriesInfo("?", SERIES_DDA),
     "The Terror of the River!!": SeriesInfo(SLEA, SERIES_DDA),
     "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_DDA),
     "Maharajah Donald": SeriesInfo(GLEA, SERIES_DDA),
     "Volcano Valley": SeriesInfo(RTOM, SERIES_DDA),
-    'Adventure "Down Under"': SeriesInfo(RTOM, SERIES_DDA),
+    "Adventure Down Under": SeriesInfo(RTOM, SERIES_DDA),
     "The Ghost of the Grotto": SeriesInfo(RTOM, SERIES_DDA),
     "Christmas on Bear Mountain": SeriesInfo(RTOM, SERIES_DDA),
     "Darkest Africa": SeriesInfo(RTOM, SERIES_DDA),
     "The Old Castle's Secret": SeriesInfo(RTOM, SERIES_DDA),
     "Sheriff of Bullet Valley": SeriesInfo(RTOM, SERIES_DDA),
     "The Golden Christmas Tree": SeriesInfo(RTOM, SERIES_DDA),
-    "Lost in the Andes": SeriesInfo(RTOM, SERIES_DDA),
-    "Race to the South Seas": SeriesInfo(RTOM, SERIES_DDA),
+    "Lost in the Andes!": SeriesInfo(RTOM, SERIES_DDA),
+    "Race to the South Seas!": SeriesInfo(RTOM, SERIES_DDA),
     "Voodoo Hoodoo": SeriesInfo(RTOM, SERIES_DDA),
     "Letter to Santa": SeriesInfo(RTOM, SERIES_DDA),
     "Luck of the North": SeriesInfo(RTOM, SERIES_DDA),
@@ -221,7 +219,8 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Vacation Time": SeriesInfo(RTOM, SERIES_DDA),
     "The Pixilated Parrot": SeriesInfo(RTOM, SERIES_DDA),
     "The Magic Hourglass": SeriesInfo(RTOM, SERIES_DDA),
-    "Big-top Bedlam": SeriesInfo(RTOM, SERIES_DDA),
+    "Big-Top Bedlam": SeriesInfo(RTOM, SERIES_DDA),
+    "Dangerous Disguise": SeriesInfo(RTOM, SERIES_DDA),
 
     "Only a Poor Old Man": SeriesInfo(RTOM, SERIES_US),
 

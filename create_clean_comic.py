@@ -140,7 +140,7 @@ class ComicBook:
         assert self.number_in_series > 0
 
     def get_target_dir(self):
-        safe_title = self.title.replace("\n", " ")
+        safe_title = get_safe_title(self.title)
         return os.path.join(
             THE_COMICS_DIR,
             f"{self.series_name}",
@@ -163,11 +163,17 @@ class ComicBook:
         return int(self.get_trimmed_width() / 2)
 
 
+def get_safe_title(title: str) -> str:
+    safe_title = title.replace("\n", " ")
+    safe_title = safe_title.replace('"', "")
+    return safe_title
+
+
 def zip_comic_book(dry_run: bool, comic: ComicBook):
     if dry_run:
         logging.info(
             f'{DRY_RUN_STR}: Zipping directory "{comic.get_target_dir()}"'
-            f'f" to "{comic.get_dest_comic_zip()}".'
+            f' to "{comic.get_dest_comic_zip()}".'
         )
     else:
         logging.info(
@@ -633,10 +639,14 @@ def get_formatted_day(day: int) -> str:
 
 
 def get_formatted_first_published_str(info: ComicBookInfo) -> str:
-    return (
-        f"{info.issue_name} #{info.issue_number}, "
-        f"{MONTH_AS_LONG_STR[info.issue_month]} {info.issue_year}"
-    )
+    issue = f"{info.issue_name} #{info.issue_number}"
+
+    if info.issue_month == -1:
+        issue_date = info.issue_year
+    else:
+        issue_date = f"{MONTH_AS_LONG_STR[info.issue_month]} {info.issue_year}"
+
+    return f"{issue}, {issue_date}"
 
 
 def get_formatted_submitted_date(info: ComicBookInfo) -> str:
@@ -653,7 +663,7 @@ def get_comic_book(ini_file: str) -> ComicBook:
     config.read(ini_file)
 
     title = config["info"]["title"]
-    safe_title = title.replace("\n", " ")
+    safe_title = get_safe_title(title)
     intro_inset_file = os.path.join(
         CONFIGS_SUBDIR, safe_title + " Inset" + INSERT_FILE_EXT
     )

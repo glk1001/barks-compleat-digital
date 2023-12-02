@@ -15,7 +15,7 @@ fi
 for ini_file in ${CONFIG_DIR}/*.ini ; do
     python3 "${THIS_SCRIPT_PATH}/create_clean_comic.py" --ini-file "${ini_file}" ${1:-}
     if [[ $? != 0 ]]; then
-        echo "ERROR: Could process \"${ini_file}\"."
+        echo "ERROR: Could not process \"${ini_file}\"."
         exit 1
     fi
 done

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 
 LONG_MONTHS = {
@@ -21,12 +21,13 @@ LONG_MONTHS = {
 
 @dataclass
 class SubmittedInfo:
+    title: str
     submitted_year: str
     submitted_month: str
     submitted_day: str
 
 
-SubmittedInfoDict = Dict[Tuple[str, str], SubmittedInfo]
+SubmittedInfoDict = Dict[Tuple[str, str], List[SubmittedInfo]]
 
 
 def get_month_day(month_and_day: str) -> Tuple[str, str]:
@@ -61,10 +62,21 @@ def get_all_submitted_info(issue_filename: str, issue_name: str) -> SubmittedInf
             all_lines.append((line1, line2))
 
     all_submitted_info: SubmittedInfoDict = {}
+
+
+    def add_info(key: Tuple[str, str], info: SubmittedInfo):
+        if key not in all_submitted_info:
+            all_submitted_info[key] = [info]
+        else:
+            all_submitted_info[key].append(info)
+
+
     for line in all_lines:
         # print(line[1])
 
         issue_number = line[0][len(issue_name) + 1 :].split("-")[0].strip()
+        title = line[0][len(issue_name) + 1 :].split("-")[1].strip()[2:].strip()
+
         sub_year = line[1][12:].split(",")[0].strip()
         sub_month_day = line[1][12:].split(",")[1].strip()
 
@@ -77,8 +89,8 @@ def get_all_submitted_info(issue_filename: str, issue_name: str) -> SubmittedInf
         if sub_month not in LONG_MONTHS:
             raise Exception(f"Bad month: '{line[1]}'.")
 
-        all_submitted_info[(issue_name, issue_number)] = SubmittedInfo(
-            sub_year, sub_month, sub_day
-        )
+        add_info((issue_name, issue_number), SubmittedInfo(
+            title, sub_year, sub_month, sub_day
+        ))
 
     return all_submitted_info
