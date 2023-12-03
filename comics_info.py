@@ -169,6 +169,7 @@ KI = "Kites Giveaway"
 SERIES_DDA = "Donald Duck Adventures"
 SERIES_US = US
 SERIES_CS = CS
+SERIES_MISC = "Misc"
 
 RTOM = "Rich Tommaso"
 GLEA = "Gary Leach"
@@ -186,6 +187,7 @@ SERIES_INFO_START_NUMBERS: Dict[str, int] = {
     SERIES_DDA: 1,
     SERIES_US: 1,
     SERIES_CS: 74,
+    SERIES_MISC: 1,
 }
 
 # fmt: off
@@ -198,7 +200,6 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Mystery of the Swamp": SeriesInfo("?", SERIES_DDA),
     "The Firebug": SeriesInfo("?", SERIES_DDA),
     "The Terror of the River!!": SeriesInfo(SLEA, SERIES_DDA),
-    "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_DDA),
     "Maharajah Donald": SeriesInfo(GLEA, SERIES_DDA),
     "Volcano Valley": SeriesInfo(RTOM, SERIES_DDA),
     "Adventure Down Under": SeriesInfo(RTOM, SERIES_DDA),
@@ -221,10 +222,21 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "The Magic Hourglass": SeriesInfo(RTOM, SERIES_DDA),
     "Big-Top Bedlam": SeriesInfo(RTOM, SERIES_DDA),
     "Dangerous Disguise": SeriesInfo(RTOM, SERIES_DDA),
+    "No Such Varmint": SeriesInfo(RTOM, SERIES_DDA),
+    "In Old California!": SeriesInfo(RTOM, SERIES_DDA),
+    "A Christmas for Shacktown": SeriesInfo(RTOM, SERIES_DDA),
+    "The Golden Helmet": SeriesInfo(RTOM, SERIES_DDA),
+    "The Gilded Man": SeriesInfo(RTOM, SERIES_DDA),
+    "Trick or Treat": SeriesInfo(RTOM, SERIES_DDA),
+    "Secret of Hondorica": SeriesInfo(RTOM, SERIES_DDA),
+    "Forbidden Valley": SeriesInfo(RTOM, SERIES_DDA),
 
     "Only a Poor Old Man": SeriesInfo(RTOM, SERIES_US),
 
     "Managing the Echo System": SeriesInfo(RTOM, SERIES_CS),
     "Plenty of Pets": SeriesInfo(RTOM, SERIES_CS),
+
+    "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_MISC),
+    "The Peaceful Hills": SeriesInfo(SLEA, SERIES_MISC),
 }
 # fmt: on
