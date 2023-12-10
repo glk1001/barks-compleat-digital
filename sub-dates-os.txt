@@ -1328,7 +1328,7 @@ This page contains the following items:
     ccus_os0456-u02 Back to the Klondike [lost cut material]
     ccus_os0495-00 pirate jack-in-the-box
     ccus_os0495-01 trimming sideburns
-    ccus_os0495-02 case of horse-radish
+    ccus_os0495-02 The Horseradish Treasure
     ccus_os0495-03 water tank bin
     ccus_os0495-04 money bin at end of rainbow
     ccus_os0495-05 trained fleas
