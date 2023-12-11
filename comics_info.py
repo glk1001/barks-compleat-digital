@@ -234,6 +234,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Only a Poor Old Man": SeriesInfo(RTOM, SERIES_US),
     "Back to the Klondike": SeriesInfo(RTOM, SERIES_US),
     "The Horseradish Story": SeriesInfo(RTOM, SERIES_US),
+    "The Menehune Mystery": SeriesInfo(RTOM, SERIES_US),
 
     "Managing the Echo System": SeriesInfo(RTOM, SERIES_CS),
     "Plenty of Pets": SeriesInfo(RTOM, SERIES_CS),
