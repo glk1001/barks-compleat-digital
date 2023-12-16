@@ -237,6 +237,8 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "The Menehune Mystery": SeriesInfo(RTOM, SERIES_US),
     "The Secret of Atlantis": SeriesInfo(RTOM, SERIES_US),
     "Tralla La": SeriesInfo(RTOM, SERIES_US),
+    "The Seven Cities of Cibola": SeriesInfo(RTOM, SERIES_US),
+    "The Mysterious Stone Ray": SeriesInfo(RTOM, SERIES_US),
 
     "Managing the Echo System": SeriesInfo(RTOM, SERIES_CS),
     "Plenty of Pets": SeriesInfo(RTOM, SERIES_CS),
