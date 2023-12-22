@@ -268,7 +268,7 @@ def get_srce_and_dest_pages_in_order(
         if not done_front_matter and page.page_type == PageType.BODY:
             done_front_matter = True
             page_num = 1
-        else:
+        elif page.page_type != PageType.FRONT:
             page_num += 1
 
         if len(these_front_pages) == 0 and len(these_main_pages) == 0:
@@ -326,14 +326,14 @@ def process_page(
     dry_run: bool, comic: ComicBook, srce_page: CleanPage, dest_page: CleanPage
 ):
     logging.info(
-        f'Convert "{srce_page.page_type.name}" page "{os.path.basename(srce_page.filename)}"'
-        + f' to "{os.path.basename(dest_page.filename)}"...'
+        f'Convert "{os.path.basename(srce_page.filename)}" (page-type {srce_page.page_type.name})'
+        + f' to "{os.path.basename(dest_page.filename)}" (page number = {dest_page.page_num})...'
     )
 
     im = Image.open(srce_page.filename, "r")
     width, height = im.size
     logging.debug(
-        f'Srce: width = {width}, height = {height}, page_type = "{srce_page.page_type.name}".'
+        f'Srce: width = {width}, height = {height}, page_type = {srce_page.page_type.name}.'
     )
 
     if dest_page.page_type in [PageType.FRONT, PageType.TITLE, PageType.COVER]:
@@ -363,7 +363,7 @@ def process_page(
         f"Dest: width = {new_width}, height = {new_height}, page number = {dest_page.page_num}"
     )
 
-    if dest_page.page_type not in [PageType.FRONT, PageType.COVER]:
+    if dest_page.page_type not in [PageType.FRONT, PageType.TITLE, PageType.COVER]:
         write_page_number(comic, new_im, dest_page, PAGE_NUM_COLOR)
 
     if srce_page.filename == TITLE_EMPTY_IMAGE_FILEPATH:
