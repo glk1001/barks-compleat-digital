@@ -244,6 +244,8 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "The Great Steamboat Race": SeriesInfo(RTOM, SERIES_US),
     "Riches, Riches, Everywhere!": SeriesInfo(RTOM, SERIES_US),
     "The Golden Fleecing": SeriesInfo(RTOM, SERIES_US),
+    "Land Beneath the Ground!": SeriesInfo(RTOM, SERIES_US),
+    "The Lost Crown of Genghis Khan!": SeriesInfo(RTOM, SERIES_US),
 
     "Managing the Echo System": SeriesInfo(RTOM, SERIES_CS),
     "Plenty of Pets": SeriesInfo(RTOM, SERIES_CS),
