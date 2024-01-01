@@ -165,6 +165,7 @@ class ComicBook:
 
 def get_safe_title(title: str) -> str:
     safe_title = title.replace("\n", " ")
+    safe_title = safe_title.replace("- ", "-")
     safe_title = safe_title.replace('"', "")
     return safe_title
 
