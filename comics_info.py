@@ -248,6 +248,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "The Lost Crown of Genghis Khan!": SeriesInfo(RTOM, SERIES_US),
     "The Second-Richest Duck": SeriesInfo(RTOM, SERIES_US),
     "Back to Long Ago!": SeriesInfo(RTOM, SERIES_US),
+    "A Cold Bargain": SeriesInfo(RTOM, SERIES_US),
 
     "Managing the Echo System": SeriesInfo(RTOM, SERIES_CS),
     "Plenty of Pets": SeriesInfo(RTOM, SERIES_CS),
