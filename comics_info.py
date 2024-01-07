@@ -106,11 +106,17 @@ def check_story_submitted_order(stories: ComicBookInfoDict):
         submitted_month_str = stories[story].submitted_month
         if submitted_month_str == "<none>":
             continue
+        print(stories[story].submitted_day)
+        submitted_day = (
+            1
+            if stories[story].submitted_day == -1
+            else stories[story].submitted_day
+        )
         title = story.title()
         submitted_date = date(
             stories[story].submitted_year,
             stories[story].submitted_month,
-            stories[story].submitted_day,
+            submitted_day,
         )
         if prev_submitted_date > submitted_date:
             raise Exception(

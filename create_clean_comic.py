@@ -661,8 +661,11 @@ def get_formatted_first_published_str(info: ComicBookInfo) -> str:
 
 
 def get_formatted_submitted_date(info: ComicBookInfo) -> str:
+    if info.submitted_day == -1:
+        return f", {MONTH_AS_LONG_STR[info.submitted_month]} {info.submitted_year}"
+
     return (
-        f"{MONTH_AS_LONG_STR[info.submitted_month]}"
+        f" on {MONTH_AS_LONG_STR[info.submitted_month]}"
         f" {get_formatted_day(info.submitted_day)}, {info.submitted_year}"
     )
 
@@ -685,7 +688,7 @@ def get_comic_book(ini_file: str) -> ComicBook:
 
     publication_text = (
         f"First published in {get_formatted_first_published_str(cb_info)}\n"
-        + f"Submitted to Western Publishing on {get_formatted_submitted_date(cb_info)}\n"
+        + f"Submitted to Western Publishing{get_formatted_submitted_date(cb_info)}\n"
         + f"\n"
         + f"This edition published by {source_info.pub}, {source_info.year}\n"
         + f"Color restoration by {cb_info.colorist}"
