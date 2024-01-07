@@ -130,8 +130,18 @@ class SourceBook:
 
 FAN = "Fantagraphics"
 CB = "Carl Barks"
+
 DD = "Donald Duck"
 US = "Uncle Scrooge"
+
+CS = "Comics and Stories"
+FC = "Four Color"
+CP = "Christmas Parade"
+VP = "Vacation Parade"
+MC = "Boys' and Girls' March of Comics"
+FG = "Firestone Giveaway"
+CH = "Cheerios Giveaway"
+KI = "Kites Giveaway"
 
 # fmt: off
 SOURCE_COMICS = {
@@ -155,20 +165,12 @@ SOURCE_COMICS = {
 }
 # fmt: on
 
-
-CS = "Comics and Stories"
-FC = "Four Color"
-DD = "Donald Duck"
-CP = "Christmas Parade"
-VP = "Vacation Parade"
-MC = "Boys' and Girls' March of Comics"
-FG = "Firestone Giveaway"
-CH = "Cheerios Giveaway"
-KI = "Kites Giveaway"
-
-SERIES_DDA = "Donald Duck Adventures"
-SERIES_US = US
+SERIES_DDA = DD + " Adventures"
+SERIES_USA = US + " Adventures"
+SERIES_DDS = DD + " Short Stories"
+SERIES_USS = US + " Short Stories"
 SERIES_CS = CS
+SERIES_GG = "Gyro Gearloose"
 SERIES_MISC = "Misc"
 
 RTOM = "Rich Tommaso"
@@ -185,8 +187,11 @@ class SeriesInfo:
 
 SERIES_INFO_START_NUMBERS: Dict[str, int] = {
     SERIES_DDA: 1,
-    SERIES_US: 1,
+    SERIES_USA: 1,
+    SERIES_DDS: 1,
+    SERIES_USS: 1,
     SERIES_CS: 74,
+    SERIES_GG: 1,
     SERIES_MISC: 1,
 }
 
@@ -231,29 +236,29 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Secret of Hondorica": SeriesInfo(RTOM, SERIES_DDA),
     "Forbidden Valley": SeriesInfo(RTOM, SERIES_DDA),
 
-    "Only a Poor Old Man": SeriesInfo(RTOM, SERIES_US),
-    "Back to the Klondike": SeriesInfo(RTOM, SERIES_US),
-    "The Horseradish Story": SeriesInfo(RTOM, SERIES_US),
-    "The Menehune Mystery": SeriesInfo(RTOM, SERIES_US),
-    "The Secret of Atlantis": SeriesInfo(RTOM, SERIES_US),
-    "Tralla La": SeriesInfo(RTOM, SERIES_US),
-    "The Seven Cities of Cibola": SeriesInfo(RTOM, SERIES_US),
-    "The Mysterious Stone Ray": SeriesInfo(RTOM, SERIES_US),
-    "The Lemming with the Locket": SeriesInfo(RTOM, SERIES_US),
-    "The Fabulous Philosopher's Stone": SeriesInfo(RTOM, SERIES_US),
-    "The Great Steamboat Race": SeriesInfo(RTOM, SERIES_US),
-    "Riches, Riches, Everywhere!": SeriesInfo(RTOM, SERIES_US),
-    "The Golden Fleecing": SeriesInfo(RTOM, SERIES_US),
-    "Land Beneath the Ground!": SeriesInfo(RTOM, SERIES_US),
-    "The Lost Crown of Genghis Khan!": SeriesInfo(RTOM, SERIES_US),
-    "The Second-Richest Duck": SeriesInfo(RTOM, SERIES_US),
-    "Back to Long Ago!": SeriesInfo(RTOM, SERIES_US),
-    "A Cold Bargain": SeriesInfo(RTOM, SERIES_US),
+    "Only a Poor Old Man": SeriesInfo(RTOM, SERIES_USA),
+    "Back to the Klondike": SeriesInfo(RTOM, SERIES_USA),
+    "The Horseradish Story": SeriesInfo(RTOM, SERIES_USA),
+    "The Menehune Mystery": SeriesInfo(RTOM, SERIES_USA),
+    "The Secret of Atlantis": SeriesInfo(RTOM, SERIES_USA),
+    "Tralla La": SeriesInfo(RTOM, SERIES_USA),
+    "The Seven Cities of Cibola": SeriesInfo(RTOM, SERIES_USA),
+    "The Mysterious Stone Ray": SeriesInfo(RTOM, SERIES_USA),
+    "The Lemming with the Locket": SeriesInfo(RTOM, SERIES_USA),
+    "The Fabulous Philosopher's Stone": SeriesInfo(RTOM, SERIES_USA),
+    "The Great Steamboat Race": SeriesInfo(RTOM, SERIES_USA),
+    "Riches, Riches, Everywhere!": SeriesInfo(RTOM, SERIES_USA),
+    "The Golden Fleecing": SeriesInfo(RTOM, SERIES_USA),
+    "Land Beneath the Ground!": SeriesInfo(RTOM, SERIES_USA),
+    "The Lost Crown of Genghis Khan!": SeriesInfo(RTOM, SERIES_USA),
+    "The Second-Richest Duck": SeriesInfo(RTOM, SERIES_USA),
+    "Back to Long Ago!": SeriesInfo(RTOM, SERIES_USA),
+    "A Cold Bargain": SeriesInfo(RTOM, SERIES_USA),
 
     "Managing the Echo System": SeriesInfo(RTOM, SERIES_CS),
     "Plenty of Pets": SeriesInfo(RTOM, SERIES_CS),
 
-    "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_MISC),
-    "The Peaceful Hills": SeriesInfo(SLEA, SERIES_MISC),
+    "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_DDS),
+    "The Peaceful Hills": SeriesInfo(SLEA, SERIES_DDS),
 }
 # fmt: on
