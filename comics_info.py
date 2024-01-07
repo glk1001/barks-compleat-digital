@@ -266,5 +266,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
 
     "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_DDS),
     "The Peaceful Hills": SeriesInfo(SLEA, SERIES_DDS),
+
+    "Somethin' Fishy Here": SeriesInfo(RTOM, SERIES_USS),
 }
 # fmt: on
