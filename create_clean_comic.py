@@ -33,10 +33,14 @@ METADATA_FILENAME = "metadata.txt"
 
 DEST_WIDTH = 2216
 DEST_HEIGHT = 3056
+# Trim the width to get more art displayed on 16:10 monitor
 DEST_X_MARGINS_TRIM = 48
 DEST_Y_MARGINS_TRIM = 48
 DEST_PRELIM_TARGET_WIDTH = DEST_WIDTH - (2 * DEST_Y_MARGINS_TRIM)
 DEST_PRELIM_TARGET_HEIGHT = DEST_HEIGHT - (2 * DEST_Y_MARGINS_TRIM)
+DEST_PRELIM_TARGET_ASPECT_RATIO = float(DEST_PRELIM_TARGET_WIDTH) / float(
+    DEST_PRELIM_TARGET_HEIGHT
+)
 
 FONT_DIR = os.path.join(str(Path.home()), "Prj", "fonts")
 INTRO_TITLE_DEFAULT_FONT_FILE = os.path.join(FONT_DIR, "Carl Barks Script.ttf")
@@ -334,10 +338,16 @@ def process_page(
     im = Image.open(srce_page.filename, "r")
     width, height = im.size
     logging.debug(
-        f'Srce: width = {width}, height = {height}, page_type = {srce_page.page_type.name}.'
+        f"Srce: width = {width}, height = {height}, page_type = {srce_page.page_type.name}."
     )
 
     if dest_page.page_type in [PageType.FRONT, PageType.TITLE, PageType.COVER]:
+        page_aspect_ratio = float(width) / float(height)
+        if abs(DEST_PRELIM_TARGET_ASPECT_RATIO - page_aspect_ratio) > 0.01:
+            raise Exception(
+                f"Wrong aspect ratio for page '{srce_page.filename}':"
+                f" {page_aspect_ratio:.2f} != {DEST_PRELIM_TARGET_ASPECT_RATIO:.2f}."
+            )
         new_im = im.resize(
             size=(DEST_PRELIM_TARGET_WIDTH, DEST_PRELIM_TARGET_HEIGHT),
             resample=Image.Resampling.BICUBIC,
