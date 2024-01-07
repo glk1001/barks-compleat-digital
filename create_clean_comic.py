@@ -73,6 +73,7 @@ BARKS_ROOT_DIR = os.path.join(str(Path.home()), "Books", BARKS)
 THE_COMICS_DIR = os.path.join(BARKS_ROOT_DIR, "The Comics")
 TITLE_EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "title_empty.png")
 LAST_EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "last_empty.png")
+EMPTY_IMAGE_FILEPATH = TITLE_EMPTY_IMAGE_FILEPATH
 IMAGES_SUBDIR = "images"
 CONFIGS_SUBDIR = "Configs"
 TITLE_EMPTY_FILENAME = "title_empty"
@@ -100,12 +101,19 @@ class PageType(Enum):
     FRONT = 1
     TITLE = 2
     COVER = 3
-    FRONT_MATTER = 4
-    BODY = 5
-    BACK_MATTER = 6
+    SPLASH = 4
+    FRONT_MATTER = 5
+    BODY = 6
+    BACK_MATTER = 7
 
 
-FRONT_PAGES = [PageType.FRONT, PageType.TITLE, PageType.COVER, PageType.FRONT_MATTER]
+FRONT_PAGES = [
+    PageType.FRONT,
+    PageType.TITLE,
+    PageType.COVER,
+    PageType.SPLASH,
+    PageType.FRONT_MATTER,
+]
 
 
 @dataclass
@@ -341,7 +349,11 @@ def process_page(
         f"Srce: width = {width}, height = {height}, page_type = {srce_page.page_type.name}."
     )
 
-    if dest_page.page_type in [PageType.FRONT, PageType.TITLE, PageType.COVER]:
+    if dest_page.page_type in [
+        PageType.FRONT,
+        PageType.TITLE,
+        PageType.COVER,
+    ]:
         page_aspect_ratio = float(width) / float(height)
         if abs(DEST_PRELIM_TARGET_ASPECT_RATIO - page_aspect_ratio) > 0.01:
             raise Exception(
@@ -352,6 +364,13 @@ def process_page(
             size=(DEST_PRELIM_TARGET_WIDTH, DEST_PRELIM_TARGET_HEIGHT),
             resample=Image.Resampling.BICUBIC,
         )
+    elif dest_page.page_type == PageType.SPLASH:
+        if width != DEST_PRELIM_TARGET_WIDTH:
+            raise Exception(
+                f"Wrong width for splash '{srce_page.filename}':"
+                f" {width} != {DEST_PRELIM_TARGET_WIDTH}."
+            )
+        new_im = get_splash_page(im, srce_page.filename)
     else:
         new_im = im.resize(
             size=(DEST_WIDTH, DEST_HEIGHT), resample=Image.Resampling.BICUBIC
@@ -374,7 +393,12 @@ def process_page(
         f"Dest: width = {new_width}, height = {new_height}, page number = {dest_page.page_num}"
     )
 
-    if dest_page.page_type not in [PageType.FRONT, PageType.TITLE, PageType.COVER]:
+    if dest_page.page_type not in [
+        PageType.FRONT,
+        PageType.TITLE,
+        PageType.COVER,
+        PageType.SPLASH,
+    ]:
         write_page_number(comic, new_im, dest_page, PAGE_NUM_COLOR)
 
     if srce_page.filename == TITLE_EMPTY_IMAGE_FILEPATH:
@@ -404,6 +428,34 @@ def get_crop_box(comic: ComicBook, page: CleanPage) -> Tuple[int, int, int, int]
         right = (DEST_WIDTH - DEST_X_MARGINS_TRIM) - comic.trim_amount
 
     return left, upper, right, lower
+
+
+def get_splash_page(splash_image: Image, splash_filename: str) -> Image:
+    splash_width, splash_height = splash_image.size
+
+    new_splash_image = Image.open(EMPTY_IMAGE_FILEPATH, "r")
+    page_width, page_height = new_splash_image.size
+    if page_width != splash_width:
+        raise Exception(
+            f"Wrong width for empty splash '{EMPTY_IMAGE_FILEPATH}':"
+            f" {page_width} != {splash_width}."
+        )
+    if page_height != DEST_PRELIM_TARGET_HEIGHT:
+        raise Exception(
+            f"Wrong height for empty splash '{EMPTY_IMAGE_FILEPATH}':"
+            f" {page_height} != {DEST_PRELIM_TARGET_HEIGHT}."
+        )
+    if splash_height > page_height:
+        raise Exception(
+            f"Wrong height for splash '{splash_filename}':"
+            f" {splash_height} > {page_height}."
+        )
+
+    splash_top = (page_height - splash_height) / 2
+    insert_pos = (0, int(splash_top))
+    new_splash_image.paste(splash_image, insert_pos)
+
+    return new_splash_image
 
 
 def write_introduction(comic: ComicBook, image: Image):
