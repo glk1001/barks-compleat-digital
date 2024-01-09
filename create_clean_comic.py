@@ -151,6 +151,8 @@ class ComicBook:
     intro_inset_ratio: float
     publication_text: str
     images_in_order: List[OriginalPage]
+    max_left_trim_amount: int = -1
+    max_right_trim_amount: int = -1
 
     def __post_init__(self):
         assert self.series_name != ""
@@ -216,18 +218,19 @@ def print_comic_book_properties(
 
     with open(summary_file, "w") as f:
         f.write("Config Summary:\n")
-        f.write(f'title             = "{comic.title}"\n')
-        f.write(f'source_dir        = "{comic.source_dir}"\n')
-        f.write(f'target_dir        = "{comic.get_target_dir()}"\n')
-        f.write(f'title_font_file   = "{get_font_path(comic.title_font_file)}"\n')
-        f.write(f"title_font_size   = {comic.title_font_size}\n")
-        f.write(f"author_font_size  = {comic.author_font_size}\n")
-        f.write(f"trim_amount       = {comic.trim_amount}\n")
-        f.write(f'series            = "{comic.series_name}"\n')
-        f.write(f"series_book_num   = {comic.number_in_series}\n")
-        f.write(f'intro_inset_file  = "{comic.intro_inset_file}"\n')
-        f.write(f"intro_inset_ratio = {comic.intro_inset_ratio}\n")
-        f.write(f"publication_text  = \n{comic.publication_text}\n")
+        f.write(f'title                 = "{comic.title}"\n')
+        f.write(f'source_dir            = "{comic.source_dir}"\n')
+        f.write(f'target_dir            = "{comic.get_target_dir()}"\n')
+        f.write(f'title_font_file       = "{get_font_path(comic.title_font_file)}"\n')
+        f.write(f"title_font_size       = {comic.title_font_size}\n")
+        f.write(f"author_font_size      = {comic.author_font_size}\n")
+        f.write(f"max_left_trim_amount  = {comic.max_left_trim_amount}\n")
+        f.write(f"max_right_trim_amount = {comic.max_right_trim_amount}\n")
+        f.write(f'series                = "{comic.series_name}"\n')
+        f.write(f"series_book_num       = {comic.number_in_series}\n")
+        f.write(f'intro_inset_file      = "{comic.intro_inset_file}"\n')
+        f.write(f"intro_inset_ratio     = {comic.intro_inset_ratio}\n")
+        f.write(f"publication_text      = \n{comic.publication_text}\n")
         f.write("\n")
 
         f.write("Pages Config Summary:\n")
@@ -375,8 +378,167 @@ def process_pages(
     src_pages: List[CleanPage],
     dst_pages: List[CleanPage],
 ):
+    set_trim_amounts(src_pages, dst_pages)
+    set_max_trim_amounts(comic, src_pages)
+
     for srce_page, dest_page in zip(src_pages, dst_pages):
         process_page(dry_run, comic, srce_page, dest_page)
+
+
+def set_trim_amounts(src_pages: List[CleanPage], dst_pages: List[CleanPage]):
+    logging.debug("Setting trim amounts.")
+
+    for srce_page, dest_page in zip(src_pages, dst_pages):
+        if srce_page.page_type in FRONT_PAGES:
+            srce_page.left_trim_amount, srce_page.right_trim_amount = 0, 0
+        else:
+            srce_page_image = Image.open(srce_page.filename, "r")
+            srce_page_image = srce_page_image.convert("RGB")
+            srce_filename = str(
+                os.path.join(
+                    work_dir,
+                    os.path.splitext(os.path.basename(srce_page.filename))[0]
+                    + f"_{srce_page_image.width}x{srce_page_image.height}.jpg",
+                )
+            )
+            srce_page_image.save(srce_filename, optimize=True, compress_level=9)
+
+            srce_page.left_trim_amount, srce_page.right_trim_amount = get_trim_amounts2(
+                srce_filename, dest_page.page_type
+            )
+
+        dest_page.left_trim_amount = srce_page.left_trim_amount
+        dest_page.right_trim_amount = srce_page.right_trim_amount
+
+
+def set_max_trim_amounts(comic: ComicBook, src_pages: List[CleanPage]):
+    logging.debug("Setting max_trim amounts.")
+
+    max_left_trim_amount = 0
+    max_right_trim_amount = 0
+    for srce_page in src_pages:
+        if max_left_trim_amount < srce_page.left_trim_amount:
+            max_left_trim_amount = srce_page.left_trim_amount
+        if max_right_trim_amount < srce_page.right_trim_amount:
+            max_right_trim_amount = srce_page.right_trim_amount
+
+    comic.max_left_trim_amount = max_left_trim_amount
+    comic.max_right_trim_amount = max_right_trim_amount
+
+
+def get_trim_amounts2(page_filename: str, page_type: PageType) -> Tuple[int, int]:
+    if page_type in FRONT_PAGES:
+        return 0, 0
+
+    segment_info = get_panel_segment_info(page_filename)
+    dump_segment_info(page_filename, segment_info)
+
+    x_min, y_min, x_max, y_max = get_min_max_panel_values(segment_info["panels"])
+    dump_panel_bounds(page_filename, x_min, y_min, x_max, y_max)
+
+    # TODO CHECK MINUS 1
+    left_margin = x_min
+    right_margin = DEST_WIDTH - x_max - 1
+
+    if left_margin > right_margin:
+        left_trim_amount = left_margin - right_margin
+        right_trim_amount = 0
+    else:
+        left_trim_amount = 0
+        right_trim_amount = right_margin - left_margin
+
+    return left_trim_amount, right_trim_amount
+
+
+def get_min_max_panel_values(
+    segment_info: List[List[int]],
+) -> Tuple[int, int, int, int]:
+    x_min = DEST_WIDTH
+    y_min = DEST_HEIGHT
+    x_max = 0
+    y_max = 0
+    for segment in segment_info:
+        x0 = segment[0]
+        y0 = segment[1]
+        w = segment[2]
+        h = segment[3]
+        x1 = x0 + (w - 1)
+        y1 = y0 + (h - 1)
+        if x_min > x0:
+            x_min = x0
+        elif x_max < x1:
+            x_max = x1
+        if y_min > y0:
+            y_min = y0
+        elif y_max < y1:
+            y_max = y1
+
+    assert x_min != DEST_WIDTH
+    assert y_min != DEST_HEIGHT
+    assert x_max != 0
+    assert y_max != 0
+
+    return x_min, y_min, x_max, y_max
+
+
+def get_panel_segment_info(page_filename: str):
+    logging.debug(f'Getting segment info for "{page_filename}".')
+
+    segment_info = run_kumiko(page_filename)
+
+    return segment_info
+
+
+def dump_segment_info(page_filename: str, segment_info: Dict[str, Any]):
+    segment_info_filename = (
+        os.path.splitext(os.path.basename(page_filename))[0] + "_segment.json"
+    )
+    with open(os.path.join(work_dir, segment_info_filename), "w") as f:
+        f.write(f"{segment_info}\n")
+
+
+def dump_panel_bounds(
+    page_filename: str, x_min: int, y_min: int, x_max: int, y_max: int
+):
+    bounds_filename = (
+        os.path.splitext(os.path.basename(page_filename))[0] + "_bounds.txt"
+    )
+    with open(os.path.join(work_dir, bounds_filename), "w") as f:
+        f.write(f"{x_min}, {y_min}, {x_max}, {y_max}\n")
+
+    # Draw the panel bounds on page image.
+    page_image = Image.open(page_filename, "r")
+    draw = ImageDraw.Draw(page_image)
+    draw.line([(x_min, y_min), (x_max, y_min)], width=3, fill=(256, 0, 0))
+    draw.line([(x_max, y_min), (x_max, y_max)], width=3, fill=(256, 0, 0))
+    draw.line([(x_max, y_max), (x_min, y_max)], width=3, fill=(256, 0, 0))
+    draw.line([(x_min, y_max), (x_min, y_min)], width=3, fill=(256, 0, 0))
+
+    marked_srce_filename = (
+        os.path.splitext(os.path.basename(page_filename))[0] + "_marked.jpg"
+    )
+    page_image.save(
+        os.path.join(work_dir, marked_srce_filename), optimize=True, compress_level=5
+    )
+
+
+def run_kumiko(page_filename: str) -> Dict[str, Any]:
+    kumiko_home_dir = "/home/greg/Prj/github/kumiko"
+    kumiko_python_path = os.path.join(kumiko_home_dir, ".venv/bin/python3")
+    kumiko_script_path = os.path.join(kumiko_home_dir, "kumiko")
+    run_args = [kumiko_python_path, kumiko_script_path, "-i", page_filename]
+    logging.debug(f"Running kumiko: {' '.join(run_args)}.")
+    result = subprocess.run(
+        run_args,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    segment_info = json.loads(result.stdout)
+    assert len(segment_info) == 1
+
+    return segment_info[0]
 
 
 def process_page(
@@ -514,23 +676,20 @@ def get_dest_splash_page(splash_image: Image, srce_page: CleanPage) -> Image:
 def get_dest_main_page_image(
     comic: ComicBook, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
 ) -> Image:
-    dest_page_image = srce_page_image.resize(
-        size=(DEST_WIDTH, DEST_HEIGHT), resample=Image.Resampling.BICUBIC
-    )
-    resized_srce_filename = os.path.join(
+    srce_filename = os.path.join(
         work_dir,
         os.path.splitext(os.path.basename(srce_page.filename))[0]
-        + f"_{dest_page_image.width}x{dest_page_image.height}.jpg",
+        + f"_{srce_page_image.width}x{srce_page_image.height}.jpg",
     )
-    dest_page_image.save(resized_srce_filename, optimize=True, compress_level=9)
+    #srce_page_image.save(srce_filename, optimize=True, compress_level=9)
 
-    dest_page.left_trim_amount, dest_page.right_trim_amount = get_trim_amounts2(
-        resized_srce_filename, dest_page.page_type
+    dest_page_image = srce_page_image.crop(get_crop_box2(comic))
+    dest_page_image = dest_page_image.resize(
+        size=(DEST_PRELIM_TARGET_WIDTH, DEST_PRELIM_TARGET_HEIGHT),
+        resample=Image.Resampling.BICUBIC,
     )
 
-    dest_page_image = dest_page_image.crop(get_crop_box(comic, srce_page, dest_page))
-
-    dest_final_target_width = DEST_PRELIM_TARGET_WIDTH - comic.trim_amount
+    dest_final_target_width = DEST_PRELIM_TARGET_WIDTH
     if dest_page_image.width != dest_final_target_width:
         raise Exception(
             f'Width mismatch for page "{srce_page.filename}":'
@@ -574,111 +733,14 @@ def get_trim_amounts(comic: ComicBook, dest_page: CleanPage) -> Tuple[int, int]:
     return left_trim_amount, right_trim_amount
 
 
-def get_trim_amounts2(page_filename: str, page_type: PageType) -> Tuple[int, int]:
-    if page_type in FRONT_PAGES:
-        return 0, 0
+def get_crop_box2(comic: ComicBook) -> Tuple[int, int, int, int]:
+    upper = DEST_Y_MARGINS_TRIM
+    lower = DEST_HEIGHT - DEST_Y_MARGINS_TRIM
 
-    segment_info = get_panel_segment_info(page_filename)
-    dump_segment_info(page_filename, segment_info)
+    left = comic.max_left_trim_amount + DEST_X_MARGINS_TRIM
+    right = DEST_WIDTH - DEST_X_MARGINS_TRIM - comic.max_right_trim_amount
 
-    x_min, y_min, x_max, y_max = get_min_max_panel_values(segment_info["panels"])
-    dump_panel_bounds(page_filename, x_min, y_min, x_max, y_max)
-
-    left_trim_amount = -1
-    right_trim_amount = -1
-
-    return left_trim_amount, right_trim_amount
-
-
-def get_min_max_panel_values(
-    segment_info: List[List[int]],
-) -> Tuple[int, int, int, int]:
-    x_min = DEST_WIDTH
-    y_min = DEST_HEIGHT
-    x_max = 0
-    y_max = 0
-    for segment in segment_info:
-        x0 = segment[0]
-        y0 = segment[1]
-        w = segment[2]
-        h = segment[3]
-        x1 = x0 + (w - 1)
-        y1 = y0 + (h - 1)
-        if x_min > x0:
-            x_min = x0
-        elif x_max < x1:
-            x_max = x1
-        if y_min > y0:
-            y_min = y0
-        elif y_max < y1:
-            y_max = y1
-
-    assert x_min != DEST_WIDTH
-    assert y_min != DEST_HEIGHT
-    assert x_max != 0
-    assert y_max != 0
-
-    return x_min, y_min, x_max, y_max
-
-
-def get_panel_segment_info(page_filename: str):
-    logging.debug(f'Getting segment info for "{page_filename}".')
-
-    segment_info = run_kumiko(page_filename)
-
-    return segment_info
-
-
-def dump_segment_info(page_filename: str, segment_info: Dict[str, Any]):
-    segment_info_filename = (
-        os.path.splitext(os.path.basename(page_filename))[0] + "_segment.json"
-    )
-    with open(os.path.join(work_dir, segment_info_filename), "w") as f:
-        f.write(f"{segment_info}\n")
-
-
-def dump_panel_bounds(
-    page_filename: str, x_min: int, y_min: int, x_max: int, y_max: int
-):
-    bounds_filename = (
-        os.path.splitext(os.path.basename(page_filename))[0] + "_bounds.txt"
-    )
-    with open(os.path.join(work_dir, bounds_filename), "w") as f:
-        f.write(f"{x_min}, {y_min}, {x_max}, {y_max}\n")
-
-    # Draw the panel bounds on page image.
-    page_image = Image.open(page_filename, "r")
-    draw = ImageDraw.Draw(page_image)
-    draw.line([(x_min, y_min), (x_max, y_min)], width=3, fill=(256, 0, 0))
-    draw.line([(x_max, y_min), (x_max, y_max)], width=3, fill=(256, 0, 0))
-    draw.line([(x_max, y_max), (x_min, y_max)], width=3, fill=(256, 0, 0))
-    draw.line([(x_min, y_max), (x_min, y_min)], width=3, fill=(256, 0, 0))
-
-    marked_srce_filename = (
-        os.path.splitext(os.path.basename(page_filename))[0] + "_marked.jpg"
-    )
-    page_image.save(
-        os.path.join(work_dir, marked_srce_filename), optimize=True, compress_level=5
-    )
-
-
-def run_kumiko(page_filename: str) -> Dict[str, Any]:
-    kumiko_home_dir = "/home/greg/Prj/github/kumiko"
-    kumiko_python_path = os.path.join(kumiko_home_dir, ".venv/bin/python3")
-    kumiko_script_path = os.path.join(kumiko_home_dir, "kumiko")
-    run_args = [kumiko_python_path, kumiko_script_path, "-i", page_filename]
-    logging.debug(f"Running kumiko: {' '.join(run_args)}.")
-    result = subprocess.run(
-        run_args,
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-
-    segment_info = json.loads(result.stdout)
-    assert len(segment_info) == 1
-
-    return segment_info[0]
+    return left, upper, right, lower
 
 
 def write_introduction(comic: ComicBook, image: Image):
