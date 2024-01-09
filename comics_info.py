@@ -106,7 +106,6 @@ def check_story_submitted_order(stories: ComicBookInfoDict):
         submitted_month_str = stories[story].submitted_month
         if submitted_month_str == "<none>":
             continue
-        print(stories[story].submitted_day)
         submitted_day = (
             1
             if stories[story].submitted_day == -1

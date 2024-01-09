@@ -112,8 +112,8 @@ FRONT_PAGES = [
     PageType.TITLE,
     PageType.COVER,
     PageType.SPLASH,
-    PageType.FRONT_MATTER,
 ]
+FRONT_MATTER_PAGES = FRONT_PAGES + [PageType.FRONT_MATTER]
 
 
 @dataclass
@@ -126,7 +126,7 @@ class OriginalPage:
 @dataclass
 class CleanPage:
     filename: str
-    is_odd: bool
+    trim_left: bool
     page_type: PageType
     page_num: int = -1
 
@@ -204,7 +204,10 @@ def zip_comic_book(dry_run: bool, comic: ComicBook):
             )
 
 
-def print_comic_book_properties(comic: ComicBook):
+def print_comic_book_properties(
+    comic: ComicBook, srce_page_list: List[CleanPage], dest_page_list: List[CleanPage]
+):
+    logging.debug("Config Summary:")
     logging.debug(f'title = "{comic.title}"')
     logging.debug(f'source_dir = "{comic.source_dir}"')
     logging.debug(f'target_dir = "{comic.get_target_dir()}"')
@@ -217,46 +220,84 @@ def print_comic_book_properties(comic: ComicBook):
     logging.debug(f'intro_inset_file = "{comic.intro_inset_file}"')
     logging.debug(f"intro_inset_ratio = {comic.intro_inset_ratio}")
     logging.debug(f"publication_text = \n{comic.publication_text}")
+    logging.debug("")
+
+    logging.debug("Pages Config Summary:")
     for pg in comic.images_in_order:
         logging.debug(
-            f"pages = {pg.filenames}, page_type = {pg.page_type}, oddness = {pg.is_odd_correct}"
+            f"pages = {pg.filenames:11},"
+            f" page_type = {pg.page_type.name:12},"
+            f" oddness = {pg.is_odd_correct}"
         )
+    logging.debug("")
+
+    logging.debug("Page List Summary:")
+    for srce_page, dest_page in zip(srce_page_list, dest_page_list):
+        srce_filename = f'"{os.path.basename(srce_page.filename)}"'
+        dest_filename = f'"{os.path.basename(dest_page.filename)}"'
+        dest_page_type = f'"{dest_page.page_type.name}"'
+        left_trim_amount, right_trim_amount = get_trim_amounts(comic, dest_page)
+        logging.debug(
+            f"Added srce {srce_filename:17}"
+            f" as dest {dest_filename:6},"
+            f" type {dest_page_type:14}, "
+            f" page {dest_page.page_num:2} ({get_page_num_str(dest_page):>3}),"
+            f" trim ({left_trim_amount:2}, {right_trim_amount:2})."
+        )
+    logging.debug("")
 
 
 def get_font_path(font_filename: str) -> str:
     return os.path.join(FONT_DIR, font_filename)
 
 
-def get_required_pages_in_order(images_in_book: List[OriginalPage]) -> List[CleanPage]:
+def get_trim_left(page_image: OriginalPage, file_num: int) -> bool:
+    if page_image.page_type in FRONT_PAGES:
+        return True
+
+    trim_left = file_num % 2 != 0
+    if not page_image.is_odd_correct:
+        trim_left = not trim_left
+
+    return trim_left
+
+
+def get_required_pages_in_order(
+    page_images_in_book: List[OriginalPage],
+) -> List[CleanPage]:
     req_pages = []
 
-    for image in images_in_book:
-        if image.filenames == TITLE_EMPTY_FILENAME:
-            req_pages.append(CleanPage(image.filenames, True, PageType.TITLE))
+    for page_image in page_images_in_book:
+        if page_image.filenames == TITLE_EMPTY_FILENAME:
+            assert page_image.page_type == PageType.TITLE
+            req_pages.append(
+                CleanPage(page_image.filenames, True, page_image.page_type)
+            )
             continue
-        if image.filenames == LAST_EMPTY_FILENAME:
-            req_pages.append(CleanPage(image.filenames, True, PageType.BACK_MATTER))
+        if page_image.filenames == LAST_EMPTY_FILENAME:
+            assert page_image.page_type == PageType.BACK_MATTER
+            req_pages.append(
+                CleanPage(page_image.filenames, True, page_image.page_type)
+            )
             continue
 
-        if "-" not in image.filenames:
-            filename = image.filenames
-            page_type = image.page_type
+        if "-" not in page_image.filenames:
+            filename = page_image.filenames
             file_num = int(filename)
-            is_odd = file_num % 2 != 0
-            if not image.is_odd_correct:
-                is_odd = not is_odd
-            req_pages.append(CleanPage(filename, is_odd, page_type, file_num))
+            trim_left = get_trim_left(page_image, file_num)
+            req_pages.append(
+                CleanPage(filename, trim_left, page_image.page_type, file_num)
+            )
         else:
-            page_type = image.page_type
-            start, end = image.filenames.split("-")
+            start, end = page_image.filenames.split("-")
             start_num = int(start)
             end_num = int(end)
             for file_num in range(start_num, end_num + 1):
                 filename = f"{file_num:03d}"
-                is_odd = file_num % 2 != 0
-                if not image.is_odd_correct:
-                    is_odd = not is_odd
-                req_pages.append(CleanPage(filename, is_odd, page_type, file_num))
+                trim_left = get_trim_left(page_image, file_num)
+                req_pages.append(
+                    CleanPage(filename, trim_left, page_image.page_type, file_num)
+                )
 
     return req_pages
 
@@ -286,7 +327,7 @@ def get_srce_and_dest_pages_in_order(
 
         if len(these_front_pages) == 0 and len(these_main_pages) == 0:
             add_page = True
-        elif page.page_type in FRONT_PAGES and page_num in these_front_pages:
+        elif page.page_type in FRONT_MATTER_PAGES and page_num in these_front_pages:
             add_page = True
         elif (
             page.page_type in [PageType.BODY, PageType.BACK_MATTER]
@@ -297,13 +338,9 @@ def get_srce_and_dest_pages_in_order(
             add_page = False
 
         if add_page:
-            logging.debug(
-                f'Adding "{os.path.basename(srce_file)}" as type'
-                + f' "{page.page_type.name}" with page number {page_num}.'
-            )
-            srce_page_list.append(CleanPage(srce_file, page.is_odd, page.page_type))
+            srce_page_list.append(CleanPage(srce_file, page.trim_left, page.page_type))
             dest_page_list.append(
-                CleanPage(dest_file, page.is_odd, page.page_type, page_num)
+                CleanPage(dest_file, page.trim_left, page.page_type, page_num)
             )
 
         img_num += 1
@@ -343,119 +380,178 @@ def process_page(
         + f' to "{os.path.basename(dest_page.filename)}" (page number = {dest_page.page_num})...'
     )
 
-    im = Image.open(srce_page.filename, "r")
-    width, height = im.size
-    logging.debug(
-        f"Srce: width = {width}, height = {height}, page_type = {srce_page.page_type.name}."
-    )
+    srce_page_image = Image.open(srce_page.filename, "r")
 
-    if dest_page.page_type in [
-        PageType.FRONT,
-        PageType.TITLE,
-        PageType.COVER,
-    ]:
-        page_aspect_ratio = float(width) / float(height)
-        if abs(DEST_PRELIM_TARGET_ASPECT_RATIO - page_aspect_ratio) > 0.01:
-            raise Exception(
-                f"Wrong aspect ratio for page '{srce_page.filename}':"
-                f" {page_aspect_ratio:.2f} != {DEST_PRELIM_TARGET_ASPECT_RATIO:.2f}."
-            )
-        new_im = im.resize(
-            size=(DEST_PRELIM_TARGET_WIDTH, DEST_PRELIM_TARGET_HEIGHT),
-            resample=Image.Resampling.BICUBIC,
-        )
-    elif dest_page.page_type == PageType.SPLASH:
-        if width != DEST_PRELIM_TARGET_WIDTH:
-            raise Exception(
-                f"Wrong width for splash '{srce_page.filename}':"
-                f" {width} != {DEST_PRELIM_TARGET_WIDTH}."
-            )
-        new_im = get_splash_page(im, srce_page.filename)
-    else:
-        new_im = im.resize(
-            size=(DEST_WIDTH, DEST_HEIGHT), resample=Image.Resampling.BICUBIC
-        )
-        new_im = new_im.crop(get_crop_box(comic, dest_page))
-        dest_final_target_width = DEST_PRELIM_TARGET_WIDTH - comic.trim_amount
-        if new_im.width != dest_final_target_width:
-            raise Exception(
-                f'Width mismatch for page "{srce_page.filename}":'
-                f"{new_im.width} != {dest_final_target_width}"
-            )
-        if new_im.height != DEST_PRELIM_TARGET_HEIGHT:
-            raise Exception(
-                f'Height mismatch for page "{srce_page.filename}":'
-                f"{new_im.height} != {DEST_PRELIM_TARGET_HEIGHT}"
-            )
+    dest_page_image = get_dest_page_image(comic, srce_page_image, srce_page, dest_page)
 
-    new_width, new_height = new_im.size
-    logging.debug(
-        f"Dest: width = {new_width}, height = {new_height}, page number = {dest_page.page_num}"
-    )
-
-    if dest_page.page_type not in [
-        PageType.FRONT,
-        PageType.TITLE,
-        PageType.COVER,
-        PageType.SPLASH,
-    ]:
-        write_page_number(comic, new_im, dest_page, PAGE_NUM_COLOR)
-
-    if srce_page.filename == TITLE_EMPTY_IMAGE_FILEPATH:
-        write_introduction(comic, new_im)
-
-    rgb_im = new_im.convert("RGB")
+    rgb_dest_page_image = dest_page_image.convert("RGB")
 
     if dry_run:
         logging.info(f'{DRY_RUN_STR}: Save changes to image "{dest_page.filename}".')
     else:
-        rgb_im.save(dest_page.filename, optimize=True, compress_level=9)
+        rgb_dest_page_image.save(dest_page.filename, optimize=True, compress_level=9)
         logging.info(f'Saved changes to image "{dest_page.filename}".')
 
     logging.info("")
 
 
+def get_dest_page_image(
+    comic: ComicBook, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
+) -> Image:
+    log_page_info("Srce", srce_page_image, srce_page)
+
+    if dest_page.page_type in FRONT_PAGES:
+        dest_page_image = get_dest_front_page_image(
+            comic, srce_page_image, srce_page, dest_page
+        )
+    else:
+        dest_page_image = get_dest_main_page_image(
+            comic, srce_page_image, srce_page, dest_page
+        )
+
+    log_page_info("Dest", dest_page_image, dest_page)
+
+    return dest_page_image
+
+
+def log_page_info(prefix: str, image: Image, page: CleanPage):
+    logging.debug(
+        f"{prefix}: width = {image.width}, height = {image.height},"
+        f" page_type = {page.page_type.name}, trim_left = {page.trim_left}."
+    )
+
+
+def get_dest_front_page_image(
+    comic: ComicBook, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
+) -> Image:
+    if dest_page.page_type == PageType.SPLASH:
+        return get_dest_splash_page(srce_page_image, srce_page)
+
+    return get_dest_non_splash_front_page_image(
+        comic, srce_page_image, srce_page, dest_page
+    )
+
+
+def get_dest_non_splash_front_page_image(
+    comic: ComicBook, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
+) -> Image:
+    page_width, page_height = srce_page_image.size
+
+    if dest_page.page_type == PageType.COVER:
+        if page_width != DEST_WIDTH:
+            raise Exception(
+                f"Wrong width for cover '{srce_page.filename}':"
+                f" {page_width} != {DEST_WIDTH}."
+            )
+        if page_height != DEST_HEIGHT:
+            raise Exception(
+                f"Wrong width for cover '{srce_page.filename}':"
+                f" {page_height} != {DEST_HEIGHT}."
+            )
+    else:
+        if page_width != DEST_PRELIM_TARGET_WIDTH:
+            raise Exception(
+                f"Wrong width for front page '{srce_page.filename}':"
+                f" {page_width} != {DEST_PRELIM_TARGET_WIDTH}."
+            )
+        if page_height != DEST_PRELIM_TARGET_HEIGHT:
+            raise Exception(
+                f"Wrong width for front page '{srce_page.filename}':"
+                f" {page_height} != {DEST_PRELIM_TARGET_HEIGHT}."
+            )
+
+    dest_image = srce_page_image.resize(
+        size=(DEST_PRELIM_TARGET_WIDTH, DEST_PRELIM_TARGET_HEIGHT),
+        resample=Image.Resampling.BICUBIC,
+    )
+
+    if srce_page.filename == TITLE_EMPTY_IMAGE_FILEPATH:
+        write_introduction(comic, dest_image)
+
+    return dest_image
+
+
+def get_dest_splash_page(splash_image: Image, srce_page: CleanPage) -> Image:
+    splash_width, splash_height = splash_image.size
+    if splash_width != DEST_PRELIM_TARGET_WIDTH:
+        raise Exception(
+            f"Wrong width for splash '{srce_page.filename}':"
+            f" {splash_width} != {DEST_PRELIM_TARGET_WIDTH}."
+        )
+
+    dest_page_image = Image.open(EMPTY_IMAGE_FILEPATH, "r")
+    dest_page_width, dest_page_height = dest_page_image.size
+    if dest_page_width != splash_width:
+        raise Exception(
+            f"Wrong width for empty splash '{EMPTY_IMAGE_FILEPATH}':"
+            f" {dest_page_width} != {splash_width}."
+        )
+    if dest_page_height != DEST_PRELIM_TARGET_HEIGHT:
+        raise Exception(
+            f"Wrong height for empty splash '{EMPTY_IMAGE_FILEPATH}':"
+            f" {dest_page_height} != {DEST_PRELIM_TARGET_HEIGHT}."
+        )
+    if splash_height > dest_page_height:
+        raise Exception(
+            f"Wrong height for splash '{srce_page.filename}':"
+            f" {splash_height} > {dest_page_height}."
+        )
+
+    splash_top = (dest_page_height - splash_height) / 2
+    insert_pos = (0, int(splash_top))
+    dest_page_image.paste(splash_image, insert_pos)
+
+    return dest_page_image
+
+
+def get_dest_main_page_image(
+    comic: ComicBook, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
+) -> Image:
+    dest_page_image = srce_page_image.resize(
+        size=(DEST_WIDTH, DEST_HEIGHT), resample=Image.Resampling.BICUBIC
+    )
+    dest_page_image = dest_page_image.crop(get_crop_box(comic, dest_page))
+
+    dest_final_target_width = DEST_PRELIM_TARGET_WIDTH - comic.trim_amount
+    if dest_page_image.width != dest_final_target_width:
+        raise Exception(
+            f'Width mismatch for page "{srce_page.filename}":'
+            f"{dest_page_image.width} != {dest_final_target_width}"
+        )
+    if dest_page_image.height != DEST_PRELIM_TARGET_HEIGHT:
+        raise Exception(
+            f'Height mismatch for page "{srce_page.filename}":'
+            f"{dest_page_image.height} != {DEST_PRELIM_TARGET_HEIGHT}"
+        )
+
+    write_page_number(comic, dest_page_image, dest_page, PAGE_NUM_COLOR)
+
+    return dest_page_image
+
+
 def get_crop_box(comic: ComicBook, page: CleanPage) -> Tuple[int, int, int, int]:
+    left_trim_amount, right_trim_amount = get_trim_amounts(comic, page)
+
     upper = DEST_Y_MARGINS_TRIM
     lower = DEST_HEIGHT - DEST_Y_MARGINS_TRIM
-    if page.is_odd:
-        # Crop the left
-        left = comic.trim_amount + DEST_X_MARGINS_TRIM
-        right = DEST_WIDTH - DEST_X_MARGINS_TRIM
-    else:
-        # Crop the right
-        left = DEST_X_MARGINS_TRIM
-        right = (DEST_WIDTH - DEST_X_MARGINS_TRIM) - comic.trim_amount
+    left = left_trim_amount + DEST_X_MARGINS_TRIM
+    right = (DEST_WIDTH - DEST_X_MARGINS_TRIM) - right_trim_amount
 
     return left, upper, right, lower
 
 
-def get_splash_page(splash_image: Image, splash_filename: str) -> Image:
-    splash_width, splash_height = splash_image.size
+def get_trim_amounts(comic: ComicBook, page: CleanPage) -> Tuple[int, int]:
+    if page.page_type in FRONT_PAGES:
+        return 0, 0
 
-    new_splash_image = Image.open(EMPTY_IMAGE_FILEPATH, "r")
-    page_width, page_height = new_splash_image.size
-    if page_width != splash_width:
-        raise Exception(
-            f"Wrong width for empty splash '{EMPTY_IMAGE_FILEPATH}':"
-            f" {page_width} != {splash_width}."
-        )
-    if page_height != DEST_PRELIM_TARGET_HEIGHT:
-        raise Exception(
-            f"Wrong height for empty splash '{EMPTY_IMAGE_FILEPATH}':"
-            f" {page_height} != {DEST_PRELIM_TARGET_HEIGHT}."
-        )
-    if splash_height > page_height:
-        raise Exception(
-            f"Wrong height for splash '{splash_filename}':"
-            f" {splash_height} > {page_height}."
-        )
+    if page.trim_left:
+        left_trim_amount = comic.trim_amount
+        right_trim_amount = 0
+    else:
+        left_trim_amount = 0
+        right_trim_amount = comic.trim_amount
 
-    splash_top = (page_height - splash_height) / 2
-    insert_pos = (0, int(splash_top))
-    new_splash_image.paste(splash_image, insert_pos)
-
-    return new_splash_image
+    return left_trim_amount, right_trim_amount
 
 
 def write_introduction(comic: ComicBook, image: Image):
@@ -556,15 +652,15 @@ def draw_centered_multiline_text(
     top: int,
     spacing: int,
 ):
-    textbbox = draw.multiline_textbbox((0, top), text, font)
-    left = (image.width - (textbbox[2] - textbbox[0])) / 2
+    text_bounding_box = draw.multiline_textbbox((0, top), text, font)
+    left = (image.width - (text_bounding_box[2] - text_bounding_box[0])) / 2
     draw.multiline_text(
         (left, top), text, fill=color, font=font, align="center", spacing=spacing
     )
 
 
-def write_page_number(comic: ComicBook, image: Image, page: CleanPage, color):
-    draw = ImageDraw.Draw(image)
+def write_page_number(comic: ComicBook, page_image: Image, page: CleanPage, color):
+    draw = ImageDraw.Draw(page_image)
 
     page_num_x_start = comic.get_trimmed_center() - PAGE_NUM_X_OFFSET_FROM_CENTRE
     page_num_x_end = comic.get_trimmed_center() + PAGE_NUM_X_OFFSET_FROM_CENTRE
@@ -572,7 +668,7 @@ def write_page_number(comic: ComicBook, image: Image, page: CleanPage, color):
     page_num_y_end = page_num_y_start + PAGE_NUM_HEIGHT
 
     # Get the color of a blank part of the page
-    page_blank_color = image.getpixel(
+    page_blank_color = page_image.getpixel(
         (
             page_num_x_start + PAGE_NUM_X_BLANK_PIXEL_OFFSET,
             page_num_y_end,
@@ -593,19 +689,29 @@ def write_page_number(comic: ComicBook, image: Image, page: CleanPage, color):
     draw.rectangle(shape, fill=page_blank_color)
 
     font = ImageFont.truetype(get_font_path(PAGE_NUM_FONT_FILE), PAGE_NUM_FONT_SIZE)
-    text = (
-        str(page.page_num)
-        if page.page_type != PageType.FRONT_MATTER
-        else ROMAN_NUMERALS[page.page_num]
-    )
+    text = get_page_num_str(page)
     draw_centered_text(
         text,
-        image,
+        page_image,
         draw,
         font,
         color,
         page_num_y_start,
     )
+
+
+def get_page_num_str(page: CleanPage) -> str:
+    return get_page_number_str(page, page.page_num)
+
+
+def get_page_number_str(page: CleanPage, page_number: int) -> str:
+    if page.page_type not in FRONT_MATTER_PAGES:
+        return str(page_number)
+    if page.page_type == PageType.FRONT:
+        assert page_number == 0
+        return ""
+
+    return ROMAN_NUMERALS[page_number]
 
 
 def process_additional_files(
@@ -646,7 +752,7 @@ def write_metadata_file(dry_run: bool, comic: ComicBook, dst_pages: List[CleanPa
             orig_page_num = 0
             for page in dst_pages:
                 orig_page_num += 1
-                if page.page_type not in FRONT_PAGES:
+                if page.page_type not in FRONT_MATTER_PAGES:
                     break
                 f.write(f"{orig_page_num} = False" + "\n")
             f.write("\n")
@@ -840,6 +946,6 @@ if __name__ == "__main__":
     process_pages(args.dry_run, comic_book, srce_pages, dest_pages)
     process_additional_files(args.dry_run, comic_book, dest_pages)
 
-    print_comic_book_properties(comic_book)
+    print_comic_book_properties(comic_book, srce_pages, dest_pages)
 
     zip_comic_book(args.dry_run, comic_book)
