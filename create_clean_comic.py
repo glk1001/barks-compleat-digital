@@ -132,6 +132,8 @@ class CleanPage:
     trim_left: bool
     page_type: PageType
     page_num: int = -1
+    left_trim_amount: int = -1
+    right_trim_amount: int = -1
 
 
 @dataclass
@@ -242,16 +244,12 @@ def print_comic_book_properties(
             srce_filename = f'"{os.path.basename(srce_page.filename)}"'
             dest_filename = f'"{os.path.basename(dest_page.filename)}"'
             dest_page_type = f'"{dest_page.page_type.name}"'
-            left_trim_amount, right_trim_amount = -1, -1
-            # left_trim_amount, right_trim_amount = get_trim_amounts(
-            #     comic, srce_page, dest_page
-            # )
             f.write(
                 f"Added srce {srce_filename:17}"
                 f" as dest {dest_filename:6},"
                 f" type {dest_page_type:14}, "
                 f" page {dest_page.page_num:2} ({get_page_num_str(dest_page):>3}),"
-                f" trim ({left_trim_amount:2}, {right_trim_amount:2}).\n"
+                f" trim ({dest_page.left_trim_amount:2}, {dest_page.right_trim_amount:2}).\n"
             )
         f.write("\n")
 
@@ -519,6 +517,17 @@ def get_dest_main_page_image(
     dest_page_image = srce_page_image.resize(
         size=(DEST_WIDTH, DEST_HEIGHT), resample=Image.Resampling.BICUBIC
     )
+    resized_srce_filename = os.path.join(
+        work_dir,
+        os.path.splitext(os.path.basename(srce_page.filename))[0]
+        + f"_{dest_page_image.width}x{dest_page_image.height}.jpg",
+    )
+    dest_page_image.save(resized_srce_filename, optimize=True, compress_level=9)
+
+    dest_page.left_trim_amount, dest_page.right_trim_amount = get_trim_amounts2(
+        resized_srce_filename, dest_page.page_type
+    )
+
     dest_page_image = dest_page_image.crop(get_crop_box(comic, srce_page, dest_page))
 
     dest_final_target_width = DEST_PRELIM_TARGET_WIDTH - comic.trim_amount
@@ -541,7 +550,7 @@ def get_dest_main_page_image(
 def get_crop_box(
     comic: ComicBook, srce_page: CleanPage, dest_page: CleanPage
 ) -> Tuple[int, int, int, int]:
-    left_trim_amount, right_trim_amount = get_trim_amounts(comic, srce_page, dest_page)
+    left_trim_amount, right_trim_amount = get_trim_amounts(comic, dest_page)
 
     upper = DEST_Y_MARGINS_TRIM
     lower = DEST_HEIGHT - DEST_Y_MARGINS_TRIM
@@ -551,13 +560,7 @@ def get_crop_box(
     return left, upper, right, lower
 
 
-def get_trim_amounts(
-    comic: ComicBook, srce_page: CleanPage, dest_page: CleanPage
-) -> Tuple[int, int]:
-    logging.debug(f'Getting segment info for "{srce_page.filename}".')
-
-    segment_info = get_panel_segment_info(srce_page)
-
+def get_trim_amounts(comic: ComicBook, dest_page: CleanPage) -> Tuple[int, int]:
     if dest_page.page_type in FRONT_PAGES:
         return 0, 0
 
@@ -567,6 +570,22 @@ def get_trim_amounts(
     else:
         left_trim_amount = 0
         right_trim_amount = comic.trim_amount
+
+    return left_trim_amount, right_trim_amount
+
+
+def get_trim_amounts2(page_filename: str, page_type: PageType) -> Tuple[int, int]:
+    if page_type in FRONT_PAGES:
+        return 0, 0
+
+    segment_info = get_panel_segment_info(page_filename)
+    dump_segment_info(page_filename, segment_info)
+
+    x_min, y_min, x_max, y_max = get_min_max_panel_values(segment_info["panels"])
+    dump_panel_bounds(page_filename, x_min, y_min, x_max, y_max)
+
+    left_trim_amount = -1
+    right_trim_amount = -1
 
     return left_trim_amount, right_trim_amount
 
@@ -602,34 +621,43 @@ def get_min_max_panel_values(
     return x_min, y_min, x_max, y_max
 
 
-def get_panel_segment_info(srce_page: CleanPage):
-    segment_info = run_kumiko(srce_page.filename)
+def get_panel_segment_info(page_filename: str):
+    logging.debug(f'Getting segment info for "{page_filename}".')
 
-    dump_segment_info(srce_page, segment_info)
+    segment_info = run_kumiko(page_filename)
 
     return segment_info
 
 
-def dump_segment_info(srce_page: CleanPage, segment_info: Dict[str, Any]):
+def dump_segment_info(page_filename: str, segment_info: Dict[str, Any]):
     segment_info_filename = (
-        os.path.splitext(os.path.basename(srce_page.filename))[0] + "_segment.json"
+        os.path.splitext(os.path.basename(page_filename))[0] + "_segment.json"
     )
     with open(os.path.join(work_dir, segment_info_filename), "w") as f:
         f.write(f"{segment_info}\n")
 
-    # Draw panel segments on srce page image.
-    x_min, y_min, x_max, y_max = get_min_max_panel_values(segment_info["panels"])
-    srce_page_image = Image.open(srce_page.filename, "r")
-    draw = ImageDraw.Draw(srce_page_image)
+
+def dump_panel_bounds(
+    page_filename: str, x_min: int, y_min: int, x_max: int, y_max: int
+):
+    bounds_filename = (
+        os.path.splitext(os.path.basename(page_filename))[0] + "_bounds.txt"
+    )
+    with open(os.path.join(work_dir, bounds_filename), "w") as f:
+        f.write(f"{x_min}, {y_min}, {x_max}, {y_max}\n")
+
+    # Draw the panel bounds on page image.
+    page_image = Image.open(page_filename, "r")
+    draw = ImageDraw.Draw(page_image)
     draw.line([(x_min, y_min), (x_max, y_min)], width=3, fill=(256, 0, 0))
     draw.line([(x_max, y_min), (x_max, y_max)], width=3, fill=(256, 0, 0))
     draw.line([(x_max, y_max), (x_min, y_max)], width=3, fill=(256, 0, 0))
     draw.line([(x_min, y_max), (x_min, y_min)], width=3, fill=(256, 0, 0))
 
     marked_srce_filename = (
-        os.path.splitext(os.path.basename(srce_page.filename))[0] + "_marked.jpg"
+        os.path.splitext(os.path.basename(page_filename))[0] + "_marked.jpg"
     )
-    srce_page_image.save(
+    page_image.save(
         os.path.join(work_dir, marked_srce_filename), optimize=True, compress_level=5
     )
 
