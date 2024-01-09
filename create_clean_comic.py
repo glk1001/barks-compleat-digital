@@ -2,13 +2,16 @@ import argparse
 import configparser
 import datetime
 import inspect
+import json
 import logging
 import os
 import shutil
+import subprocess
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 from PIL import Image, ImageFont, ImageDraw
 
@@ -207,44 +210,50 @@ def zip_comic_book(dry_run: bool, comic: ComicBook):
 def print_comic_book_properties(
     comic: ComicBook, srce_page_list: List[CleanPage], dest_page_list: List[CleanPage]
 ):
-    logging.debug("Config Summary:")
-    logging.debug(f'title = "{comic.title}"')
-    logging.debug(f'source_dir = "{comic.source_dir}"')
-    logging.debug(f'target_dir = "{comic.get_target_dir()}"')
-    logging.debug(f'title_font_file = "{get_font_path(comic.title_font_file)}"')
-    logging.debug(f"title_font_size = {comic.title_font_size}")
-    logging.debug(f"author_font_size = {comic.author_font_size}")
-    logging.debug(f"trim_amount = {comic.trim_amount}")
-    logging.debug(f"series = {comic.series_name}")
-    logging.debug(f"series_book_num = {comic.number_in_series}")
-    logging.debug(f'intro_inset_file = "{comic.intro_inset_file}"')
-    logging.debug(f"intro_inset_ratio = {comic.intro_inset_ratio}")
-    logging.debug(f"publication_text = \n{comic.publication_text}")
-    logging.debug("")
+    summary_file = os.path.join(work_dir, "summary.txt")
 
-    logging.debug("Pages Config Summary:")
-    for pg in comic.images_in_order:
-        logging.debug(
-            f"pages = {pg.filenames:11},"
-            f" page_type = {pg.page_type.name:12},"
-            f" oddness = {pg.is_odd_correct}"
-        )
-    logging.debug("")
+    with open(summary_file, "w") as f:
+        f.write("Config Summary:\n")
+        f.write(f'title             = "{comic.title}"\n')
+        f.write(f'source_dir        = "{comic.source_dir}"\n')
+        f.write(f'target_dir        = "{comic.get_target_dir()}"\n')
+        f.write(f'title_font_file   = "{get_font_path(comic.title_font_file)}"\n')
+        f.write(f"title_font_size   = {comic.title_font_size}\n")
+        f.write(f"author_font_size  = {comic.author_font_size}\n")
+        f.write(f"trim_amount       = {comic.trim_amount}\n")
+        f.write(f'series            = "{comic.series_name}"\n')
+        f.write(f"series_book_num   = {comic.number_in_series}\n")
+        f.write(f'intro_inset_file  = "{comic.intro_inset_file}"\n')
+        f.write(f"intro_inset_ratio = {comic.intro_inset_ratio}\n")
+        f.write(f"publication_text  = \n{comic.publication_text}\n")
+        f.write("\n")
 
-    logging.debug("Page List Summary:")
-    for srce_page, dest_page in zip(srce_page_list, dest_page_list):
-        srce_filename = f'"{os.path.basename(srce_page.filename)}"'
-        dest_filename = f'"{os.path.basename(dest_page.filename)}"'
-        dest_page_type = f'"{dest_page.page_type.name}"'
-        left_trim_amount, right_trim_amount = get_trim_amounts(comic, dest_page)
-        logging.debug(
-            f"Added srce {srce_filename:17}"
-            f" as dest {dest_filename:6},"
-            f" type {dest_page_type:14}, "
-            f" page {dest_page.page_num:2} ({get_page_num_str(dest_page):>3}),"
-            f" trim ({left_trim_amount:2}, {right_trim_amount:2})."
-        )
-    logging.debug("")
+        f.write("Pages Config Summary:\n")
+        for pg in comic.images_in_order:
+            f.write(
+                f"pages = {pg.filenames:11},"
+                f" page_type = {pg.page_type.name:12},"
+                f" oddness = {pg.is_odd_correct}\n"
+            )
+        f.write("\n")
+
+        f.write("Page List Summary:\n")
+        for srce_page, dest_page in zip(srce_page_list, dest_page_list):
+            srce_filename = f'"{os.path.basename(srce_page.filename)}"'
+            dest_filename = f'"{os.path.basename(dest_page.filename)}"'
+            dest_page_type = f'"{dest_page.page_type.name}"'
+            left_trim_amount, right_trim_amount = -1, -1
+            # left_trim_amount, right_trim_amount = get_trim_amounts(
+            #     comic, srce_page, dest_page
+            # )
+            f.write(
+                f"Added srce {srce_filename:17}"
+                f" as dest {dest_filename:6},"
+                f" type {dest_page_type:14}, "
+                f" page {dest_page.page_num:2} ({get_page_num_str(dest_page):>3}),"
+                f" trim ({left_trim_amount:2}, {right_trim_amount:2}).\n"
+            )
+        f.write("\n")
 
 
 def get_font_path(font_filename: str) -> str:
@@ -510,7 +519,7 @@ def get_dest_main_page_image(
     dest_page_image = srce_page_image.resize(
         size=(DEST_WIDTH, DEST_HEIGHT), resample=Image.Resampling.BICUBIC
     )
-    dest_page_image = dest_page_image.crop(get_crop_box(comic, dest_page))
+    dest_page_image = dest_page_image.crop(get_crop_box(comic, srce_page, dest_page))
 
     dest_final_target_width = DEST_PRELIM_TARGET_WIDTH - comic.trim_amount
     if dest_page_image.width != dest_final_target_width:
@@ -529,8 +538,10 @@ def get_dest_main_page_image(
     return dest_page_image
 
 
-def get_crop_box(comic: ComicBook, page: CleanPage) -> Tuple[int, int, int, int]:
-    left_trim_amount, right_trim_amount = get_trim_amounts(comic, page)
+def get_crop_box(
+    comic: ComicBook, srce_page: CleanPage, dest_page: CleanPage
+) -> Tuple[int, int, int, int]:
+    left_trim_amount, right_trim_amount = get_trim_amounts(comic, srce_page, dest_page)
 
     upper = DEST_Y_MARGINS_TRIM
     lower = DEST_HEIGHT - DEST_Y_MARGINS_TRIM
@@ -540,11 +551,17 @@ def get_crop_box(comic: ComicBook, page: CleanPage) -> Tuple[int, int, int, int]
     return left, upper, right, lower
 
 
-def get_trim_amounts(comic: ComicBook, page: CleanPage) -> Tuple[int, int]:
-    if page.page_type in FRONT_PAGES:
+def get_trim_amounts(
+    comic: ComicBook, srce_page: CleanPage, dest_page: CleanPage
+) -> Tuple[int, int]:
+    logging.debug(f'Getting segment info for "{srce_page.filename}".')
+
+    segment_info = get_panel_segment_info(srce_page)
+
+    if dest_page.page_type in FRONT_PAGES:
         return 0, 0
 
-    if page.trim_left:
+    if dest_page.trim_left:
         left_trim_amount = comic.trim_amount
         right_trim_amount = 0
     else:
@@ -552,6 +569,88 @@ def get_trim_amounts(comic: ComicBook, page: CleanPage) -> Tuple[int, int]:
         right_trim_amount = comic.trim_amount
 
     return left_trim_amount, right_trim_amount
+
+
+def get_min_max_panel_values(
+    segment_info: List[List[int]],
+) -> Tuple[int, int, int, int]:
+    x_min = DEST_WIDTH
+    y_min = DEST_HEIGHT
+    x_max = 0
+    y_max = 0
+    for segment in segment_info:
+        x0 = segment[0]
+        y0 = segment[1]
+        w = segment[2]
+        h = segment[3]
+        x1 = x0 + (w - 1)
+        y1 = y0 + (h - 1)
+        if x_min > x0:
+            x_min = x0
+        elif x_max < x1:
+            x_max = x1
+        if y_min > y0:
+            y_min = y0
+        elif y_max < y1:
+            y_max = y1
+
+    assert x_min != DEST_WIDTH
+    assert y_min != DEST_HEIGHT
+    assert x_max != 0
+    assert y_max != 0
+
+    return x_min, y_min, x_max, y_max
+
+
+def get_panel_segment_info(srce_page: CleanPage):
+    segment_info = run_kumiko(srce_page.filename)
+
+    dump_segment_info(srce_page, segment_info)
+
+    return segment_info
+
+
+def dump_segment_info(srce_page: CleanPage, segment_info: Dict[str, Any]):
+    segment_info_filename = (
+        os.path.splitext(os.path.basename(srce_page.filename))[0] + "_segment.json"
+    )
+    with open(os.path.join(work_dir, segment_info_filename), "w") as f:
+        f.write(f"{segment_info}\n")
+
+    # Draw panel segments on srce page image.
+    x_min, y_min, x_max, y_max = get_min_max_panel_values(segment_info["panels"])
+    srce_page_image = Image.open(srce_page.filename, "r")
+    draw = ImageDraw.Draw(srce_page_image)
+    draw.line([(x_min, y_min), (x_max, y_min)], width=3, fill=(256, 0, 0))
+    draw.line([(x_max, y_min), (x_max, y_max)], width=3, fill=(256, 0, 0))
+    draw.line([(x_max, y_max), (x_min, y_max)], width=3, fill=(256, 0, 0))
+    draw.line([(x_min, y_max), (x_min, y_min)], width=3, fill=(256, 0, 0))
+
+    marked_srce_filename = (
+        os.path.splitext(os.path.basename(srce_page.filename))[0] + "_marked.jpg"
+    )
+    srce_page_image.save(
+        os.path.join(work_dir, marked_srce_filename), optimize=True, compress_level=5
+    )
+
+
+def run_kumiko(page_filename: str) -> Dict[str, Any]:
+    kumiko_home_dir = "/home/greg/Prj/github/kumiko"
+    kumiko_python_path = os.path.join(kumiko_home_dir, ".venv/bin/python3")
+    kumiko_script_path = os.path.join(kumiko_home_dir, "kumiko")
+    run_args = [kumiko_python_path, kumiko_script_path, "-i", page_filename]
+    logging.debug(f"Running kumiko: {' '.join(run_args)}.")
+    result = subprocess.run(
+        run_args,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    segment_info = json.loads(result.stdout)
+    assert len(segment_info) == 1
+
+    return segment_info[0]
 
 
 def write_introduction(comic: ComicBook, image: Image):
@@ -737,7 +836,7 @@ def write_readme_file(dry_run: bool, comic: ComicBook):
             f.write(f"{comic.title}\n")
             f.write("".ljust(len(comic.title), "-") + "\n")
             f.write("\n")
-            now_str = datetime.datetime.now().strftime("%b %d %Y %H:%M:%S")
+            now_str = datetime.now().strftime("%b %d %Y %H:%M:%S")
             f.write(f"Created:           {now_str}\n")
             f.write(f'Archived ini file: "{os.path.basename(config_file)}"\n')
 
@@ -897,6 +996,7 @@ if __name__ == "__main__":
         "--log-level", action="store", type=str, required=False, default="INFO"
     )
     parser.add_argument("--dry-run", action="store_true", required=False, default=False)
+    parser.add_argument("--work-dir", type=str, required=True)
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -904,6 +1004,12 @@ if __name__ == "__main__":
         datefmt="%m/%d/%Y %H:%M:%S",
         level=args.log_level,
     )
+
+    work_dir = args.work_dir
+    if not os.path.isdir(work_dir):
+        raise Exception(f'Could not find work directory "{work_dir}".')
+    work_dir = os.path.join(work_dir, datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
+    os.makedirs(work_dir)
 
     config_file = args.ini_file
     if not os.path.isfile(config_file):
@@ -926,6 +1032,7 @@ if __name__ == "__main__":
     logging.info(f'Srce comic directory: "{comic_book.source_dir}".')
     logging.info(f'Dest comic directory: "{comic_book.get_target_dir()}".')
     logging.info(f'Dest comic zip:       "{comic_book.get_dest_comic_zip()}".')
+    logging.info(f'Work directory:       "{work_dir}".')
     logging.info(f'Comic book series:    "{comic_book.series_name}".')
     logging.info("")
     logging.info(f"Dest width, height:        {DEST_WIDTH}, {DEST_HEIGHT}.")
