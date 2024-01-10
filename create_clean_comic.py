@@ -35,16 +35,14 @@ PAGE_NUMBERS_SECTION = "page_numbers"
 METADATA_FILENAME = "metadata.txt"
 
 # TODO - Minimize usage
+BIG_NUM = 10000
 DEST_WIDTH = 2216
 DEST_HEIGHT = 3056
-# Trim the width to get more art displayed on 16:10 monitor
-DEST_X_MARGINS_TRIM = 48
-DEST_Y_MARGINS_TRIM = 48
-DEST_PRELIM_TARGET_WIDTH = DEST_WIDTH - (2 * DEST_Y_MARGINS_TRIM)
-DEST_PRELIM_TARGET_HEIGHT = DEST_HEIGHT - (2 * DEST_Y_MARGINS_TRIM)
-DEST_PRELIM_TARGET_ASPECT_RATIO = float(DEST_PRELIM_TARGET_WIDTH) / float(
-    DEST_PRELIM_TARGET_HEIGHT
-)
+DEST_TARGET_WIDTH = 2120
+DEST_TARGET_HEIGHT = 2960
+DEST_TARGET_X_MARGIN = 100
+DEST_TARGET_ASPECT_RATIO = float(DEST_TARGET_HEIGHT) / float(DEST_TARGET_WIDTH)
+# assert DEST_TARGET_ASPECT_RATIO == 16.0 / 10.0
 
 FONT_DIR = os.path.join(str(Path.home()), "Prj", "fonts")
 INTRO_TITLE_DEFAULT_FONT_FILE = os.path.join(FONT_DIR, "Carl Barks Script.ttf")
@@ -75,9 +73,9 @@ PAGE_NUM_FONT_SIZE = 30
 BARKS = "Carl Barks"
 BARKS_ROOT_DIR = os.path.join(str(Path.home()), "Books", BARKS)
 THE_COMICS_DIR = os.path.join(BARKS_ROOT_DIR, "The Comics")
-TITLE_EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "title_empty.png")
-LAST_EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "last_empty.png")
-EMPTY_IMAGE_FILEPATH = TITLE_EMPTY_IMAGE_FILEPATH
+EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "empty_page.png")
+TITLE_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
+LAST_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
 IMAGES_SUBDIR = "images"
 CONFIGS_SUBDIR = "Configs"
 TITLE_EMPTY_FILENAME = "title_empty"
@@ -124,15 +122,18 @@ FRONT_MATTER_PAGES = FRONT_PAGES + [PageType.FRONT_MATTER]
 class OriginalPage:
     filenames: str
     page_type: PageType
-    is_odd_correct: bool = True
+    is_odd_correct: bool = True  # TODO - REMOVE THIS
 
 
 @dataclass
-class Margins:
-    left: int = -1
-    right: int = -1
-    top: int = -1
-    bottom: int = -1
+class BoundingBox:
+    x_min: int = -1
+    y_min: int = -1
+    x_max: int = -1
+    y_max: int = -1
+
+    def get_box(self) -> Tuple[int, int, int, int]:
+        return self.x_min, self.y_min, self.x_max, self.y_max
 
 
 @dataclass
@@ -140,7 +141,7 @@ class CleanPage:
     filename: str
     page_type: PageType
     page_num: int = -1
-    margins: Margins = field(default_factory=Margins)
+    srce_panel_bbox: BoundingBox = field(default_factory=BoundingBox)
 
 
 @dataclass
@@ -158,8 +159,6 @@ class ComicBook:
     intro_inset_ratio: float
     publication_text: str
     images_in_order: List[OriginalPage]
-    min_margins: Margins = field(default_factory=Margins)
-    max_margins: Margins = field(default_factory=Margins)
 
     def __post_init__(self):
         assert self.series_name != ""
@@ -231,15 +230,6 @@ def print_comic_book_properties(
         f.write(f'title_font_file   = "{get_font_path(comic.title_font_file)}"\n')
         f.write(f"title_font_size   = {comic.title_font_size}\n")
         f.write(f"author_font_size  = {comic.author_font_size}\n")
-        f.write(f"min_left_margin   = {comic.min_margins.left}\n")
-        f.write(f"max_left_margin   = {comic.max_margins.left}\n")
-        f.write(f"min_right_margin  = {comic.min_margins.right}\n")
-        f.write(f"max_right_margin  = {comic.max_margins.right}\n")
-        f.write(f"min_top_margin    = {comic.min_margins.top}\n")
-        f.write(f"max_top_margin    = {comic.max_margins.top}\n")
-        f.write(f"min_bottom_margin = {comic.min_margins.bottom}\n")
-        f.write(f"max_bottom_margin = {comic.max_margins.bottom}\n")
-        f.write(f"x margin used     = {min(comic.min_margins.left, comic.min_margins.right)}\n")
         f.write(f'series            = "{comic.series_name}"\n')
         f.write(f"series_book_num   = {comic.number_in_series}\n")
         f.write(f'intro_inset_file  = "{comic.intro_inset_file}"\n')
@@ -250,9 +240,7 @@ def print_comic_book_properties(
         f.write("Pages Config Summary:\n")
         for pg in comic.images_in_order:
             f.write(
-                f"pages = {pg.filenames:11},"
-                f" page_type = {pg.page_type.name:12},"
-                f" oddness = {pg.is_odd_correct}\n"
+                f"pages = {pg.filenames:11}," f" page_type = {pg.page_type.name:12}"
             )
         f.write("\n")
 
@@ -266,25 +254,14 @@ def print_comic_book_properties(
                 f" as dest {dest_filename:6},"
                 f" type {dest_page_type:14}, "
                 f" page {dest_page.page_num:2} ({get_page_num_str(dest_page):>3}),"
-                f" marg ({dest_page.margins.left:3}, {dest_page.margins.right:3},"
-                f" {dest_page.margins.top:3}, {dest_page.margins.bottom:3}).\n"
+                f" bbox ({dest_page.srce_panel_bbox.x_min:3}, {dest_page.srce_panel_bbox.y_min:3},"
+                f" {dest_page.srce_panel_bbox.x_max:3}, {dest_page.srce_panel_bbox.y_max:3}).\n"
             )
         f.write("\n")
 
 
 def get_font_path(font_filename: str) -> str:
     return os.path.join(FONT_DIR, font_filename)
-
-
-def get_trim_left(page_image: OriginalPage, file_num: int) -> bool:
-    if page_image.page_type in FRONT_PAGES:
-        return True
-
-    trim_left = file_num % 2 != 0
-    if not page_image.is_odd_correct:
-        trim_left = not trim_left
-
-    return trim_left
 
 
 def get_required_pages_in_order(
@@ -381,21 +358,22 @@ def process_pages(
     src_pages: List[CleanPage],
     dst_pages: List[CleanPage],
 ):
-    set_margins(src_pages, dst_pages)
-    set_min_max_margins(comic, src_pages)
+    set_panel_bounding_boxes(src_pages, dst_pages)
 
     for srce_page, dest_page in zip(src_pages, dst_pages):
         process_page(dry_run, comic, srce_page, dest_page)
 
 
-def set_margins(src_pages: List[CleanPage], dst_pages: List[CleanPage]):
+def set_panel_bounding_boxes(src_pages: List[CleanPage], dst_pages: List[CleanPage]):
     logging.debug("Setting trim amounts.")
 
     for srce_page, dest_page in zip(src_pages, dst_pages):
+        srce_page_image = Image.open(srce_page.filename, "r")
         if srce_page.page_type in FRONT_PAGES:
-            srce_page.margins = Margins(0, 0, 0, 0)
+            srce_page.srce_panel_bbox = BoundingBox(
+                0, 0, srce_page_image.width - 1, srce_page_image.height - 1
+            )
         else:
-            srce_page_image = Image.open(srce_page.filename, "r")
             srce_page_image = srce_page_image.convert("RGB")
             srce_filename = str(
                 os.path.join(
@@ -406,45 +384,18 @@ def set_margins(src_pages: List[CleanPage], dst_pages: List[CleanPage]):
             )
             srce_page_image.save(srce_filename, optimize=True, compress_level=9)
 
-            srce_page.margins = get_margins(
+            srce_page.srce_panel_bbox = get_panel_bounding_box(
                 srce_filename, srce_page_image, dest_page.page_type
             )
 
-        dest_page.margins = srce_page.margins
+        dest_page.srce_panel_bbox = srce_page.srce_panel_bbox
 
 
-def set_min_max_margins(comic: ComicBook, src_pages: List[CleanPage]):
-    logging.debug("Setting max_trim amounts.")
-
-    min_margins = Margins(DEST_WIDTH, DEST_WIDTH, DEST_HEIGHT, DEST_HEIGHT)
-    max_margins = Margins(0, 0, 0, 0)
-    for srce_page in src_pages:
-        if srce_page.page_type in FRONT_PAGES:
-            continue
-        if min_margins.left > srce_page.margins.left:
-            min_margins.left = srce_page.margins.left
-        if min_margins.right > srce_page.margins.right:
-            min_margins.right = srce_page.margins.right
-        if min_margins.top > srce_page.margins.top:
-            min_margins.top = srce_page.margins.top
-        if min_margins.bottom > srce_page.margins.bottom:
-            min_margins.bottom = srce_page.margins.bottom
-        if max_margins.left < srce_page.margins.left:
-            max_margins.left = srce_page.margins.left
-        if max_margins.right < srce_page.margins.right:
-            max_margins.right = srce_page.margins.right
-        if max_margins.top < srce_page.margins.top:
-            max_margins.top = srce_page.margins.top
-        if max_margins.bottom < srce_page.margins.bottom:
-            max_margins.bottom = srce_page.margins.bottom
-
-    comic.min_margins = min_margins
-    comic.max_margins = max_margins
-
-
-def get_margins(page_filename: str, page_image: Image, page_type: PageType) -> Margins:
+def get_panel_bounding_box(
+    page_filename: str, page_image: Image, page_type: PageType
+) -> BoundingBox:
     if page_type in FRONT_PAGES:
-        return Margins(0, 0, 0, 0)
+        return BoundingBox(0, 0, page_image.width - 1, page_image.height - 1)
 
     segment_info = get_panel_segment_info(page_filename)
     dump_segment_info(page_filename, segment_info)
@@ -452,20 +403,14 @@ def get_margins(page_filename: str, page_image: Image, page_type: PageType) -> M
     x_min, y_min, x_max, y_max = get_min_max_panel_values(segment_info["panels"])
     dump_panel_bounds(page_filename, x_min, y_min, x_max, y_max)
 
-    # TODO CHECK MINUS 1
-    left_margin = x_min
-    right_margin = page_image.width - x_max - 1
-    top_margin = y_min
-    bottom_margin = page_image.height - y_max - 1
-
-    return Margins(left_margin, right_margin, top_margin, bottom_margin)
+    return BoundingBox(x_min, y_min, x_max, y_max)
 
 
 def get_min_max_panel_values(
     segment_info: List[List[int]],
 ) -> Tuple[int, int, int, int]:
-    x_min = DEST_WIDTH
-    y_min = DEST_HEIGHT
+    x_min = BIG_NUM
+    y_min = BIG_NUM
     x_max = 0
     y_max = 0
     for segment in segment_info:
@@ -484,8 +429,8 @@ def get_min_max_panel_values(
         elif y_max < y1:
             y_max = y1
 
-    assert x_min != DEST_WIDTH
-    assert y_min != DEST_HEIGHT
+    assert x_min != BIG_NUM
+    assert y_min != BIG_NUM
     assert x_max != 0
     assert y_max != 0
 
@@ -607,41 +552,23 @@ def get_dest_front_page_image(
     if dest_page.page_type == PageType.SPLASH:
         return get_dest_splash_page(srce_page_image, srce_page)
 
-    return get_dest_non_splash_front_page_image(
-        comic, srce_page_image, srce_page, dest_page
-    )
+    return get_dest_non_splash_front_page_image(comic, srce_page_image, srce_page)
 
 
 def get_dest_non_splash_front_page_image(
-    comic: ComicBook, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
+    comic: ComicBook, srce_page_image: Image, srce_page: CleanPage
 ) -> Image:
     page_width, page_height = srce_page_image.size
 
-    if dest_page.page_type == PageType.COVER:
-        if page_width != DEST_WIDTH:
-            raise Exception(
-                f"Wrong width for cover '{srce_page.filename}':"
-                f" {page_width} != {DEST_WIDTH}."
-            )
-        if page_height != DEST_HEIGHT:
-            raise Exception(
-                f"Wrong width for cover '{srce_page.filename}':"
-                f" {page_height} != {DEST_HEIGHT}."
-            )
-    else:
-        if page_width != DEST_PRELIM_TARGET_WIDTH:
-            raise Exception(
-                f"Wrong width for front page '{srce_page.filename}':"
-                f" {page_width} != {DEST_PRELIM_TARGET_WIDTH}."
-            )
-        if page_height != DEST_PRELIM_TARGET_HEIGHT:
-            raise Exception(
-                f"Wrong width for front page '{srce_page.filename}':"
-                f" {page_height} != {DEST_PRELIM_TARGET_HEIGHT}."
-            )
+    page_aspect_ratio = float(page_height) / float(page_width)
+    if DEST_TARGET_ASPECT_RATIO != page_aspect_ratio:
+        raise Exception(
+            f"Wrong aspect ratio for front page '{srce_page.filename}':"
+            f" {page_aspect_ratio} != {DEST_TARGET_ASPECT_RATIO}."
+        )
 
     dest_image = srce_page_image.resize(
-        size=(DEST_PRELIM_TARGET_WIDTH, DEST_PRELIM_TARGET_HEIGHT),
+        size=(DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT),
         resample=Image.Resampling.BICUBIC,
     )
 
@@ -653,10 +580,10 @@ def get_dest_non_splash_front_page_image(
 
 def get_dest_splash_page(splash_image: Image, srce_page: CleanPage) -> Image:
     splash_width, splash_height = splash_image.size
-    if splash_width != DEST_PRELIM_TARGET_WIDTH:
+    if splash_width != DEST_TARGET_WIDTH:
         raise Exception(
             f"Wrong width for splash '{srce_page.filename}':"
-            f" {splash_width} != {DEST_PRELIM_TARGET_WIDTH}."
+            f" {splash_width} != {DEST_TARGET_WIDTH}."
         )
 
     dest_page_image = Image.open(EMPTY_IMAGE_FILEPATH, "r")
@@ -666,10 +593,10 @@ def get_dest_splash_page(splash_image: Image, srce_page: CleanPage) -> Image:
             f"Wrong width for empty splash '{EMPTY_IMAGE_FILEPATH}':"
             f" {dest_page_width} != {splash_width}."
         )
-    if dest_page_height != DEST_PRELIM_TARGET_HEIGHT:
+    if dest_page_height != DEST_TARGET_HEIGHT:
         raise Exception(
             f"Wrong height for empty splash '{EMPTY_IMAGE_FILEPATH}':"
-            f" {dest_page_height} != {DEST_PRELIM_TARGET_HEIGHT}."
+            f" {dest_page_height} != {DEST_TARGET_HEIGHT}."
         )
     if splash_height > dest_page_height:
         raise Exception(
@@ -694,24 +621,18 @@ def get_dest_main_page_image(
     )
     # srce_page_image.save(srce_filename, optimize=True, compress_level=9)
 
-    dest_page_image = srce_page_image.crop(
-        get_crop_box(comic, srce_page_image, dest_page)
-    )
-    dest_page_image = dest_page_image.resize(
-        size=(DEST_PRELIM_TARGET_WIDTH, DEST_PRELIM_TARGET_HEIGHT),
-        resample=Image.Resampling.BICUBIC,
-    )
+    dest_panels_image = srce_page_image.crop(srce_page.srce_panel_bbox.get_box())
+    dest_page_image = get_centred_dest_page_image(dest_panels_image)
 
-    dest_final_target_width = DEST_PRELIM_TARGET_WIDTH
-    if dest_page_image.width != dest_final_target_width:
+    if dest_page_image.width != DEST_TARGET_WIDTH:
         raise Exception(
             f'Width mismatch for page "{srce_page.filename}":'
-            f"{dest_page_image.width} != {dest_final_target_width}"
+            f"{dest_page_image.width} != {DEST_TARGET_WIDTH}"
         )
-    if dest_page_image.height != DEST_PRELIM_TARGET_HEIGHT:
+    if dest_page_image.height != DEST_TARGET_HEIGHT:
         raise Exception(
             f'Height mismatch for page "{srce_page.filename}":'
-            f"{dest_page_image.height} != {DEST_PRELIM_TARGET_HEIGHT}"
+            f"{dest_page_image.height} != {DEST_TARGET_HEIGHT}"
         )
 
     write_page_number(comic, dest_page_image, dest_page, PAGE_NUM_COLOR)
@@ -719,21 +640,25 @@ def get_dest_main_page_image(
     return dest_page_image
 
 
-def get_crop_box(
-    comic: ComicBook, srce_page_image: Image, dest_page: CleanPage
-) -> Tuple[int, int, int, int]:
-    upper = DEST_Y_MARGINS_TRIM
-    lower = srce_page_image.height - DEST_Y_MARGINS_TRIM
+def get_centred_dest_page_image(dest_panels_image: Image) -> Image:
+    dest_page_image = Image.open(EMPTY_IMAGE_FILEPATH, "r")
 
-    min_margin = min(comic.min_margins.left, comic.min_margins.right)
+    required_panels_width = int(dest_page_image.width - (2 * DEST_TARGET_X_MARGIN))
+    required_panels_height = int(
+        (required_panels_width * dest_page_image.height) / dest_page_image.width
+    )
 
-    left_trim_amount = dest_page.margins.left - min_margin
-    right_trim_amount = dest_page.margins.right - min_margin
+    dest_panels_image = dest_panels_image.resize(
+        size=(required_panels_width, required_panels_height),
+        resample=Image.Resampling.BICUBIC,
+    )
 
-    left = left_trim_amount + DEST_X_MARGINS_TRIM
-    right = srce_page_image.width - DEST_X_MARGINS_TRIM - right_trim_amount
+    # Centre the dest panels image on the empty page.
+    dest_panels_top = int(0.5 * (dest_page_image.height - dest_panels_image.height))
+    dest_panels_pos = (DEST_TARGET_X_MARGIN, dest_panels_top)
+    dest_page_image.paste(dest_panels_image, dest_panels_pos)
 
-    return left, upper, right, lower
+    return dest_page_image
 
 
 def write_introduction(comic: ComicBook, image: Image):
@@ -841,8 +766,8 @@ def draw_centered_multiline_text(
     )
 
 
-def write_page_number(comic: ComicBook, page_image: Image, page: CleanPage, color):
-    draw = ImageDraw.Draw(page_image)
+def write_page_number(comic: ComicBook, dest_page_image: Image, dest_page: CleanPage, color):
+    draw = ImageDraw.Draw(dest_page_image)
 
     page_num_x_start = comic.get_trimmed_center() - PAGE_NUM_X_OFFSET_FROM_CENTRE
     page_num_x_end = comic.get_trimmed_center() + PAGE_NUM_X_OFFSET_FROM_CENTRE
@@ -850,7 +775,7 @@ def write_page_number(comic: ComicBook, page_image: Image, page: CleanPage, colo
     page_num_y_end = page_num_y_start + PAGE_NUM_HEIGHT
 
     # Get the color of a blank part of the page
-    page_blank_color = page_image.getpixel(
+    page_blank_color = dest_page_image.getpixel(
         (
             page_num_x_start + PAGE_NUM_X_BLANK_PIXEL_OFFSET,
             page_num_y_end,
@@ -871,10 +796,10 @@ def write_page_number(comic: ComicBook, page_image: Image, page: CleanPage, colo
     draw.rectangle(shape, fill=page_blank_color)
 
     font = ImageFont.truetype(get_font_path(PAGE_NUM_FONT_FILE), PAGE_NUM_FONT_SIZE)
-    text = get_page_num_str(page)
+    text = get_page_num_str(dest_page)
     draw_centered_text(
         text,
-        page_image,
+        dest_page_image,
         draw,
         font,
         color,
@@ -1054,12 +979,7 @@ def get_comic_book(ini_file: str) -> ComicBook:
         intro_inset_ratio=config["introduction"].getfloat("intro_inset_ratio", 1.0),
         publication_text=publication_text,
         images_in_order=[
-            OriginalPage(
-                key,
-                PageType[config["pages"][key]],
-                config["wrong_oddness"].getboolean(key, True),
-            )
-            for key in config["pages"]
+            OriginalPage(key, PageType[config["pages"][key]]) for key in config["pages"]
         ],
     )
 
@@ -1118,13 +1038,10 @@ if __name__ == "__main__":
     logging.info(f'Work directory:       "{work_dir}".')
     logging.info(f'Comic book series:    "{comic_book.series_name}".')
     logging.info("")
-    logging.info(f"Dest width, height:        {DEST_WIDTH}, {DEST_HEIGHT}.")
     logging.info(
-        f"Dest x, y trim:            {DEST_X_MARGINS_TRIM}, {DEST_Y_MARGINS_TRIM}."
+        f"Dest target width, height: {DEST_TARGET_WIDTH}, {DEST_TARGET_HEIGHT}."
     )
-    logging.info(
-        f"Dest target width, height: {DEST_PRELIM_TARGET_WIDTH}, {DEST_PRELIM_TARGET_HEIGHT}."
-    )
+    logging.info(f"Dest target x margin:      {DEST_TARGET_X_MARGIN}.")
     logging.info("")
 
     required_pages = get_required_pages_in_order(comic_book.images_in_order)
