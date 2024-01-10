@@ -36,8 +36,6 @@ METADATA_FILENAME = "metadata.txt"
 
 # TODO - Minimize usage
 BIG_NUM = 10000
-DEST_WIDTH = 2216
-DEST_HEIGHT = 3056
 DEST_TARGET_WIDTH = 2120
 DEST_TARGET_HEIGHT = 2960
 DEST_TARGET_X_MARGIN = 100
@@ -65,7 +63,8 @@ INTRO_PUB_TEXT_COLOR = (0, 0, 0)
 INTRO_PUB_TEXT_SPACING = 20
 
 PAGE_NUM_X_OFFSET_FROM_CENTRE = 150
-PAGE_NUM_Y_OFFSET_FROM_BOTTOM = 140
+# TODO - Y offset is a bit adhoc. To fix would need dest page y margin.
+PAGE_NUM_Y_OFFSET_FROM_BOTTOM = int(0.5 * DEST_TARGET_X_MARGIN)
 PAGE_NUM_X_BLANK_PIXEL_OFFSET = 250
 PAGE_NUM_HEIGHT = 40
 PAGE_NUM_FONT_SIZE = 30
@@ -180,12 +179,6 @@ class ComicBook:
 
     def get_dest_comic_zip(self):
         return self.get_target_dir() + ".cbz"
-
-    def get_trimmed_width(self):
-        return DEST_WIDTH - self.trim_amount
-
-    def get_trimmed_center(self):
-        return int(self.get_trimmed_width() / 2)
 
 
 def get_safe_title(title: str) -> str:
@@ -365,7 +358,7 @@ def process_pages(
 
 
 def set_panel_bounding_boxes(src_pages: List[CleanPage], dst_pages: List[CleanPage]):
-    logging.debug("Setting trim amounts.")
+    logging.debug("Setting panel bounding boxes.")
 
     for srce_page, dest_page in zip(src_pages, dst_pages):
         srce_page_image = Image.open(srce_page.filename, "r")
@@ -375,33 +368,31 @@ def set_panel_bounding_boxes(src_pages: List[CleanPage], dst_pages: List[CleanPa
             )
         else:
             srce_page_image = srce_page_image.convert("RGB")
-            srce_filename = str(
-                os.path.join(
-                    work_dir,
-                    os.path.splitext(os.path.basename(srce_page.filename))[0]
-                    + f"_{srce_page_image.width}x{srce_page_image.height}.jpg",
-                )
-            )
-            srce_page_image.save(srce_filename, optimize=True, compress_level=9)
-
             srce_page.srce_panel_bbox = get_panel_bounding_box(
-                srce_filename, srce_page_image, dest_page.page_type
+                srce_page_image, srce_page
             )
 
         dest_page.srce_panel_bbox = srce_page.srce_panel_bbox
 
 
-def get_panel_bounding_box(
-    page_filename: str, page_image: Image, page_type: PageType
-) -> BoundingBox:
-    if page_type in FRONT_PAGES:
-        return BoundingBox(0, 0, page_image.width - 1, page_image.height - 1)
+def get_panel_bounding_box(srce_page_image: Image, srce_page: CleanPage) -> BoundingBox:
+    if srce_page.page_type in FRONT_PAGES:
+        return BoundingBox(0, 0, srce_page_image.width - 1, srce_page_image.height - 1)
 
-    segment_info = get_panel_segment_info(page_filename)
-    dump_segment_info(page_filename, segment_info)
+    srce_page_filename = str(
+        os.path.join(
+            work_dir,
+            os.path.splitext(os.path.basename(srce_page.filename))[0]
+            + f"_{srce_page_image.width}x{srce_page_image.height}.jpg",
+        )
+    )
+    srce_page_image.save(srce_page_filename, optimize=True, compress_level=9)
+
+    segment_info = get_panel_segment_info(srce_page_filename)
+    dump_segment_info(srce_page_filename, segment_info)
 
     x_min, y_min, x_max, y_max = get_min_max_panel_values(segment_info["panels"])
-    dump_panel_bounds(page_filename, x_min, y_min, x_max, y_max)
+    dump_panel_bounds(srce_page_filename, x_min, y_min, x_max, y_max)
 
     return BoundingBox(x_min, y_min, x_max, y_max)
 
@@ -531,7 +522,7 @@ def get_dest_page_image(
         )
     else:
         dest_page_image = get_dest_main_page_image(
-            comic, srce_page_image, srce_page, dest_page
+            srce_page_image, srce_page, dest_page
         )
 
     log_page_info("Dest", dest_page_image, dest_page)
@@ -562,10 +553,16 @@ def get_dest_non_splash_front_page_image(
 
     page_aspect_ratio = float(page_height) / float(page_width)
     if DEST_TARGET_ASPECT_RATIO != page_aspect_ratio:
-        raise Exception(
-            f"Wrong aspect ratio for front page '{srce_page.filename}':"
-            f" {page_aspect_ratio} != {DEST_TARGET_ASPECT_RATIO}."
-        )
+        if srce_page.page_type == PageType.COVER:
+            logging.warning(
+                f"Wrong aspect ratio for cover '{srce_page.filename}':"
+                f" {page_aspect_ratio:.2f} != {DEST_TARGET_ASPECT_RATIO:.2f}."
+            )
+        else:
+            raise Exception(
+                f"Wrong aspect ratio for front page '{srce_page.filename}':"
+                f" {page_aspect_ratio:.2f} != {DEST_TARGET_ASPECT_RATIO:.2f}."
+            )
 
     dest_image = srce_page_image.resize(
         size=(DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT),
@@ -612,15 +609,8 @@ def get_dest_splash_page(splash_image: Image, srce_page: CleanPage) -> Image:
 
 
 def get_dest_main_page_image(
-    comic: ComicBook, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
+    srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
 ) -> Image:
-    srce_filename = os.path.join(
-        work_dir,
-        os.path.splitext(os.path.basename(srce_page.filename))[0]
-        + f"_{srce_page_image.width}x{srce_page_image.height}.jpg",
-    )
-    # srce_page_image.save(srce_filename, optimize=True, compress_level=9)
-
     dest_panels_image = srce_page_image.crop(srce_page.srce_panel_bbox.get_box())
     dest_page_image = get_centred_dest_page_image(dest_panels_image)
 
@@ -635,7 +625,7 @@ def get_dest_main_page_image(
             f"{dest_page_image.height} != {DEST_TARGET_HEIGHT}"
         )
 
-    write_page_number(comic, dest_page_image, dest_page, PAGE_NUM_COLOR)
+    write_page_number(dest_page_image, dest_page, PAGE_NUM_COLOR)
 
     return dest_page_image
 
@@ -661,10 +651,10 @@ def get_centred_dest_page_image(dest_panels_image: Image) -> Image:
     return dest_page_image
 
 
-def write_introduction(comic: ComicBook, image: Image):
+def write_introduction(comic: ComicBook, dest_page_image: Image):
     logging.info(f'Writing introduction - using inset file "{comic.intro_inset_file}".')
 
-    draw = ImageDraw.Draw(image)
+    draw = ImageDraw.Draw(dest_page_image)
 
     top = INTRO_TOP
     text = comic.title
@@ -677,7 +667,7 @@ def write_introduction(comic: ComicBook, image: Image):
 
     draw_centered_multiline_text(
         text,
-        image,
+        dest_page_image,
         draw,
         title_font,
         INTRO_TITLE_COLOR,
@@ -693,7 +683,9 @@ def write_introduction(comic: ComicBook, image: Image):
     )
     text_bbox = draw.multiline_textbbox((0, top), text, font=author_font)
     text_height = text_bbox[3] - text_bbox[1]
-    draw_centered_text(text, image, draw, author_font, INTRO_AUTHOR_COLOR, top)
+    draw_centered_text(
+        text, dest_page_image, draw, author_font, INTRO_AUTHOR_COLOR, top
+    )
     top += text_height
 
     top += INTRO_TITLE_AUTHOR_BY_GAP
@@ -701,14 +693,20 @@ def write_introduction(comic: ComicBook, image: Image):
     author_font = ImageFont.truetype(comic.title_font_file, comic.author_font_size)
     text_bbox = draw.multiline_textbbox((0, top), text, font=author_font)
     text_height = text_bbox[3] - text_bbox[1]
-    draw_centered_text(text, image, draw, author_font, INTRO_AUTHOR_COLOR, top)
+    draw_centered_text(
+        text, dest_page_image, draw, author_font, INTRO_AUTHOR_COLOR, top
+    )
     top += text_height + INTRO_AUTHOR_INSET_GAP
 
     #    remaining_height = HEIGHT - BOTTOM_MARGIN - top
 
     inset = Image.open(comic.intro_inset_file, "r")
     inset_width, inset_height = inset.size
-    new_inset_width = int(0.40 * comic.intro_inset_ratio * comic.get_trimmed_width())
+    new_inset_width = int(
+        0.40
+        * comic.intro_inset_ratio
+        * (dest_page_image.width - 2 * DEST_TARGET_X_MARGIN)
+    )
     new_inset_height = int((inset_height / inset_width) * new_inset_width)
     new_inset = inset.resize(
         size=(new_inset_width, new_inset_height), resample=Image.Resampling.BICUBIC
@@ -724,15 +722,16 @@ def write_introduction(comic: ComicBook, image: Image):
         spacing=INTRO_PUB_TEXT_SPACING,
     )
     text_height = text_bbox[3] - text_bbox[1]
-    pub_text_top = DEST_HEIGHT - INTRO_BOTTOM_MARGIN - text_height
+    pub_text_top = dest_page_image.height - INTRO_BOTTOM_MARGIN - text_height
 
+    dest_page_centre = int(dest_page_image.width / 2)
     inset_top = top + int((pub_text_top - top) / 2 - new_inset_height / 2)
-    insert_pos = (int(comic.get_trimmed_center() - new_inset_width / 2), inset_top)
-    image.paste(new_inset, insert_pos)
+    insert_pos = (int(dest_page_centre - (new_inset_width / 2)), inset_top)
+    dest_page_image.paste(new_inset, insert_pos)
 
     draw_centered_multiline_text(
         comic.publication_text,
-        image,
+        dest_page_image,
         draw,
         pub_text_font,
         INTRO_PUB_TEXT_COLOR,
@@ -766,12 +765,15 @@ def draw_centered_multiline_text(
     )
 
 
-def write_page_number(comic: ComicBook, dest_page_image: Image, dest_page: CleanPage, color):
+def write_page_number(dest_page_image: Image, dest_page: CleanPage, color):
     draw = ImageDraw.Draw(dest_page_image)
 
-    page_num_x_start = comic.get_trimmed_center() - PAGE_NUM_X_OFFSET_FROM_CENTRE
-    page_num_x_end = comic.get_trimmed_center() + PAGE_NUM_X_OFFSET_FROM_CENTRE
-    page_num_y_start = (DEST_HEIGHT - PAGE_NUM_Y_OFFSET_FROM_BOTTOM) - PAGE_NUM_HEIGHT
+    dest_page_centre = int(dest_page_image.width / 2)
+    page_num_x_start = dest_page_centre - PAGE_NUM_X_OFFSET_FROM_CENTRE
+    page_num_x_end = dest_page_centre + PAGE_NUM_X_OFFSET_FROM_CENTRE
+    page_num_y_start = (
+        dest_page_image.height - PAGE_NUM_Y_OFFSET_FROM_BOTTOM
+    ) - PAGE_NUM_HEIGHT
     page_num_y_end = page_num_y_start + PAGE_NUM_HEIGHT
 
     # Get the color of a blank part of the page
