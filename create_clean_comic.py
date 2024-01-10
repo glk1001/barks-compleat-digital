@@ -7,7 +7,7 @@ import logging
 import os
 import shutil
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -128,14 +128,19 @@ class OriginalPage:
 
 
 @dataclass
+class Margins:
+    left: int = -1
+    right: int = -1
+    top: int = -1
+    bottom: int = -1
+
+
+@dataclass
 class CleanPage:
     filename: str
     page_type: PageType
     page_num: int = -1
-    left_margin: int = -1
-    right_margin: int = -1
-    top_margin: int = -1
-    bottom_margin: int = -1
+    margins: Margins = field(default_factory=Margins)
 
 
 @dataclass
@@ -153,14 +158,8 @@ class ComicBook:
     intro_inset_ratio: float
     publication_text: str
     images_in_order: List[OriginalPage]
-    min_left_margin: int = -1
-    min_right_margin: int = -1
-    min_top_margin: int = -1
-    min_bottom_margin: int = -1
-    max_left_margin: int = -1
-    max_right_margin: int = -1
-    max_top_margin: int = -1
-    max_bottom_margin: int = -1
+    min_margins: Margins = field(default_factory=Margins)
+    max_margins: Margins = field(default_factory=Margins)
 
     def __post_init__(self):
         assert self.series_name != ""
@@ -232,14 +231,15 @@ def print_comic_book_properties(
         f.write(f'title_font_file   = "{get_font_path(comic.title_font_file)}"\n')
         f.write(f"title_font_size   = {comic.title_font_size}\n")
         f.write(f"author_font_size  = {comic.author_font_size}\n")
-        f.write(f"min_left_margin   = {comic.min_left_margin}\n")
-        f.write(f"max_left_margin   = {comic.max_left_margin}\n")
-        f.write(f"min_right_margin  = {comic.min_top_margin}\n")
-        f.write(f"max_right_margin  = {comic.max_top_margin}\n")
-        f.write(f"min_top_margin    = {comic.min_left_margin}\n")
-        f.write(f"max_top_margin    = {comic.min_left_margin}\n")
-        f.write(f"min_bottom_margin = {comic.min_bottom_margin}\n")
-        f.write(f"max_bottom_margin = {comic.max_bottom_margin}\n")
+        f.write(f"min_left_margin   = {comic.min_margins.left}\n")
+        f.write(f"max_left_margin   = {comic.max_margins.left}\n")
+        f.write(f"min_right_margin  = {comic.min_margins.right}\n")
+        f.write(f"max_right_margin  = {comic.max_margins.right}\n")
+        f.write(f"min_top_margin    = {comic.min_margins.top}\n")
+        f.write(f"max_top_margin    = {comic.max_margins.top}\n")
+        f.write(f"min_bottom_margin = {comic.min_margins.bottom}\n")
+        f.write(f"max_bottom_margin = {comic.max_margins.bottom}\n")
+        f.write(f"x margin used     = {min(comic.min_margins.left, comic.min_margins.right)}\n")
         f.write(f'series            = "{comic.series_name}"\n')
         f.write(f"series_book_num   = {comic.number_in_series}\n")
         f.write(f'intro_inset_file  = "{comic.intro_inset_file}"\n')
@@ -266,8 +266,8 @@ def print_comic_book_properties(
                 f" as dest {dest_filename:6},"
                 f" type {dest_page_type:14}, "
                 f" page {dest_page.page_num:2} ({get_page_num_str(dest_page):>3}),"
-                f" marg ({dest_page.left_margin:2}, {dest_page.right_margin:2}), "
-                f" marg ({dest_page.top_margin:2}, {dest_page.bottom_margin:2}).\n"
+                f" marg ({dest_page.margins.left:3}, {dest_page.margins.right:3},"
+                f" {dest_page.margins.top:3}, {dest_page.margins.bottom:3}).\n"
             )
         f.write("\n")
 
@@ -393,7 +393,7 @@ def set_margins(src_pages: List[CleanPage], dst_pages: List[CleanPage]):
 
     for srce_page, dest_page in zip(src_pages, dst_pages):
         if srce_page.page_type in FRONT_PAGES:
-            srce_page.left_margin, srce_page.right_margin = 0, 0
+            srce_page.margins = Margins(0, 0, 0, 0)
         else:
             srce_page_image = Image.open(srce_page.filename, "r")
             srce_page_image = srce_page_image.convert("RGB")
@@ -406,65 +406,45 @@ def set_margins(src_pages: List[CleanPage], dst_pages: List[CleanPage]):
             )
             srce_page_image.save(srce_filename, optimize=True, compress_level=9)
 
-            (
-                srce_page.left_margin,
-                srce_page.right_margin,
-                srce_page.top_margin,
-                srce_page.bottom_margin,
-            ) = get_margins(srce_filename, srce_page_image, dest_page.page_type)
+            srce_page.margins = get_margins(
+                srce_filename, srce_page_image, dest_page.page_type
+            )
 
-        dest_page.left_margin = srce_page.left_margin
-        dest_page.right_margin = srce_page.right_margin
-        dest_page.top_margin = srce_page.top_margin
-        dest_page.bottom_margin = srce_page.bottom_margin
+        dest_page.margins = srce_page.margins
 
 
 def set_min_max_margins(comic: ComicBook, src_pages: List[CleanPage]):
     logging.debug("Setting max_trim amounts.")
 
-    min_left_margin = DEST_WIDTH
-    min_right_margin = DEST_HEIGHT
-    min_top_margin = DEST_WIDTH
-    min_bottom_margin = DEST_HEIGHT
-    max_left_margin = 0
-    max_right_margin = 0
-    max_top_margin = 0
-    max_bottom_margin = 0
+    min_margins = Margins(DEST_WIDTH, DEST_WIDTH, DEST_HEIGHT, DEST_HEIGHT)
+    max_margins = Margins(0, 0, 0, 0)
     for srce_page in src_pages:
         if srce_page.page_type in FRONT_PAGES:
             continue
-        if min_left_margin > srce_page.left_margin:
-            min_left_margin = srce_page.left_margin
-        if min_right_margin > srce_page.right_margin:
-            min_right_margin = srce_page.right_margin
-        if min_top_margin > srce_page.top_margin:
-            min_top_margin = srce_page.top_margin
-        if min_bottom_margin > srce_page.bottom_margin:
-            min_bottom_margin = srce_page.bottom_margin
-        if max_left_margin < srce_page.left_margin:
-            max_left_margin = srce_page.left_margin
-        if max_right_margin < srce_page.right_margin:
-            max_right_margin = srce_page.right_margin
-        if max_top_margin < srce_page.top_margin:
-            max_top_margin = srce_page.top_margin
-        if max_bottom_margin < srce_page.bottom_margin:
-            max_bottom_margin = srce_page.bottom_margin
+        if min_margins.left > srce_page.margins.left:
+            min_margins.left = srce_page.margins.left
+        if min_margins.right > srce_page.margins.right:
+            min_margins.right = srce_page.margins.right
+        if min_margins.top > srce_page.margins.top:
+            min_margins.top = srce_page.margins.top
+        if min_margins.bottom > srce_page.margins.bottom:
+            min_margins.bottom = srce_page.margins.bottom
+        if max_margins.left < srce_page.margins.left:
+            max_margins.left = srce_page.margins.left
+        if max_margins.right < srce_page.margins.right:
+            max_margins.right = srce_page.margins.right
+        if max_margins.top < srce_page.margins.top:
+            max_margins.top = srce_page.margins.top
+        if max_margins.bottom < srce_page.margins.bottom:
+            max_margins.bottom = srce_page.margins.bottom
 
-    comic.min_left_margin = min_left_margin
-    comic.min_right_margin = min_right_margin
-    comic.min_top_margin = min_top_margin
-    comic.min_bottom_margin = min_bottom_margin
-    comic.max_left_margin = max_left_margin
-    comic.max_right_margin = max_right_margin
-    comic.max_top_margin = max_top_margin
-    comic.max_bottom_margin = max_bottom_margin
+    comic.min_margins = min_margins
+    comic.max_margins = max_margins
 
 
-def get_margins(
-    page_filename: str, page_image: Image, page_type: PageType
-) -> Tuple[int, int, int, int]:
+def get_margins(page_filename: str, page_image: Image, page_type: PageType) -> Margins:
     if page_type in FRONT_PAGES:
-        return 0, 0, 0, 0
+        return Margins(0, 0, 0, 0)
 
     segment_info = get_panel_segment_info(page_filename)
     dump_segment_info(page_filename, segment_info)
@@ -478,7 +458,7 @@ def get_margins(
     top_margin = y_min
     bottom_margin = page_image.height - y_max - 1
 
-    return left_margin, right_margin, top_margin, bottom_margin
+    return Margins(left_margin, right_margin, top_margin, bottom_margin)
 
 
 def get_min_max_panel_values(
@@ -745,10 +725,10 @@ def get_crop_box(
     upper = DEST_Y_MARGINS_TRIM
     lower = srce_page_image.height - DEST_Y_MARGINS_TRIM
 
-    min_margin = min(comic.min_left_margin, comic.min_right_margin)
+    min_margin = min(comic.min_margins.left, comic.min_margins.right)
 
-    left_trim_amount = dest_page.left_margin - min_margin
-    right_trim_amount = dest_page.right_margin - min_margin
+    left_trim_amount = dest_page.margins.left - min_margin
+    right_trim_amount = dest_page.margins.right - min_margin
 
     left = left_trim_amount + DEST_X_MARGINS_TRIM
     right = srce_page_image.width - DEST_X_MARGINS_TRIM - right_trim_amount
