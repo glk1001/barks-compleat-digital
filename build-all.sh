@@ -4,8 +4,15 @@ set -u
 
 declare -r THIS_SCRIPT_PATH="$(cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P)"
 
+if [[ "${1:-}" == "--list-cmds" ]]; then
+    declare -r LIST_ONLY=Y
+else
+    declare -r LIST_ONLY=N	
+fi
+
 declare -r CONFIG_DIR="${THIS_SCRIPT_PATH}/Configs"
-declare -r CUR_DIR=$(pwd)
+declare -r CUR_DIR="$(pwd)"
+declare -r WORK_DIR="/tmp/barks-clean"
 
 if [[ ! -d "${CONFIG_DIR}" ]]; then
     echo "ERROR: Could not find configs directory \"${CONFIG_DIR}\"."
@@ -13,10 +20,14 @@ if [[ ! -d "${CONFIG_DIR}" ]]; then
 fi
 
 for ini_file in ${CONFIG_DIR}/*.ini ; do
-    python3 "${THIS_SCRIPT_PATH}/create_clean_comic.py" --ini-file "${ini_file}" ${1:-}
-    if [[ $? != 0 ]]; then
-        echo "ERROR: Could not process \"${ini_file}\"."
-        exit 1
+    if [[ "${LIST_ONLY}" == "Y" ]]; then
+        echo python3 "${THIS_SCRIPT_PATH}/create_clean_comic.py" --log-level INFO --work-dir ${WORK_DIR} --ini-file \'${ini_file}\'
+    else
+        python3 "${THIS_SCRIPT_PATH}/create_clean_comic.py" --log-level INFO --work-dir ${WORK_DIR} --ini-file "${ini_file}" ${1:-}	    
+        if [[ $? != 0 ]]; then
+            echo "ERROR: Could not process \"${ini_file}\"."
+            exit 1
+        fi
     fi
 done
 
