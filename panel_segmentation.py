@@ -1,10 +1,11 @@
-import os
 import json
 import logging
+import os
 import subprocess
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
 
 from PIL import Image
-from typing import Any, Dict, List, Tuple
 
 
 class KumikoPanelSegmentation:
@@ -21,7 +22,7 @@ class KumikoPanelSegmentation:
         work_filename = str(
             os.path.join(
                 self.__work_dir,
-                os.path.splitext(os.path.basename(srce_filename))[0] + ".jpg",
+                os.path.splitext(os.path.basename(srce_filename))[0] + "_orig.jpg",
             )
         )
         srce_image.save(work_filename, optimize=True, compress_level=9)
@@ -38,7 +39,7 @@ class KumikoPanelSegmentation:
 
     @staticmethod
     def __run_kumiko(page_filename: str) -> Dict[str, Any]:
-        kumiko_home_dir = "/home/greg/Prj/github/kumiko"
+        kumiko_home_dir = os.path.join(str(Path.home()), "Prj/github/kumiko")
         kumiko_python_path = os.path.join(kumiko_home_dir, ".venv/bin/python3")
         kumiko_script_path = os.path.join(kumiko_home_dir, "kumiko")
         run_args = [kumiko_python_path, kumiko_script_path, "-i", page_filename]

@@ -267,7 +267,7 @@ def print_comic_book_properties(
         f.write("Pages Config Summary:\n")
         for pg in comic.images_in_order:
             f.write(
-                f"pages = {pg.filenames:11}," f" page_type = {pg.page_type.name:12}"
+                f"pages = {pg.filenames:11}," f" page_type = {pg.page_type.name:12}\n"
             )
         f.write("\n")
 
@@ -432,6 +432,11 @@ def get_panel_bounding_box(
     if os.path.isfile(srce_page_bounding_box_filename):
         return get_panel_bounding_box_from_file(srce_page_bounding_box_filename)
 
+    logging.info(
+        f'For srce file "{os.path.basename(srce_page.filename)}",'
+        f" getting panel segment info from kumiko."
+    )
+
     if not os.path.isdir(comic.panel_segments_dir):
         if dry_run:
             logging.info(
@@ -506,7 +511,7 @@ def save_segment_info(
 ):
     segment_info_filename = os.path.join(
         output_dir,
-        os.path.splitext(os.path.basename(page_filename))[0] + "_segment.json",
+        os.path.splitext(os.path.basename(page_filename))[0] + "_panel_segments.json",
     )
 
     if output_dir == work_dir:
@@ -524,7 +529,8 @@ def dump_panel_bounds(
     page_filename: str, x_min: int, y_min: int, x_max: int, y_max: int
 ):
     bounds_filename = os.path.join(
-        work_dir, os.path.splitext(os.path.basename(page_filename))[0] + "_bounds.txt"
+        work_dir,
+        os.path.splitext(os.path.basename(page_filename))[0] + "_panel_bounds.txt",
     )
     logging.debug(f'Saving panel bounds to work file "{bounds_filename}".')
     with open(bounds_filename, "w") as f:
@@ -539,7 +545,9 @@ def dump_panel_bounds(
     draw.line([(x_min, y_max), (x_min, y_min)], width=3, fill=(256, 0, 0))
 
     marked_image_filename = os.path.join(
-        work_dir, os.path.splitext(os.path.basename(page_filename))[0] + "_marked.jpg"
+        work_dir,
+        os.path.splitext(os.path.basename(page_filename))[0]
+        + "_panel_bounds_marked.jpg",
     )
     logging.debug(f'Saving panel bounds image to work file "{marked_image_filename}".')
     page_image.save(marked_image_filename, optimize=True, compress_level=5)
