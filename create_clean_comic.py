@@ -2,11 +2,9 @@ import argparse
 import configparser
 import datetime
 import inspect
-import json
 import logging
 import os
 import shutil
-import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -23,6 +21,7 @@ from comics_info import (
     MONTH_AS_LONG_STR,
     SOURCE_COMICS,
 )
+from panel_segmentation import KumikoPanelSegmentation
 
 THIS_SCRIPT_DIR = os.path.dirname(
     os.path.abspath(inspect.getfile(inspect.currentframe()))
@@ -386,14 +385,17 @@ def process_pages(
     src_pages: List[CleanPage],
     dst_pages: List[CleanPage],
 ):
-    set_panel_bounding_boxes(comic, src_pages, dst_pages)
+    set_panel_bounding_boxes(dry_run, comic, src_pages, dst_pages)
 
     for srce_page, dest_page in zip(src_pages, dst_pages):
         process_page(dry_run, comic, srce_page, dest_page)
 
 
 def set_panel_bounding_boxes(
-    comic: ComicBook, src_pages: List[CleanPage], dst_pages: List[CleanPage]
+    dry_run: bool,
+    comic: ComicBook,
+    src_pages: List[CleanPage],
+    dst_pages: List[CleanPage],
 ):
     logging.debug("Setting panel bounding boxes.")
 
@@ -406,7 +408,7 @@ def set_panel_bounding_boxes(
         else:
             srce_page_image = srce_page_image.convert("RGB")
             srce_page.srce_panel_bbox = get_panel_bounding_box(
-                comic, srce_page_image, srce_page
+                dry_run, comic, srce_page_image, srce_page
             )
 
         dest_page.srce_panel_bbox = srce_page.srce_panel_bbox
@@ -415,25 +417,39 @@ def set_panel_bounding_boxes(
 
 
 def get_panel_bounding_box(
-    comic: ComicBook, srce_page_image: Image, srce_page: CleanPage
+    dry_run: bool, comic: ComicBook, srce_page_image: Image, srce_page: CleanPage
 ) -> BoundingBox:
     if srce_page.page_type in FRONT_PAGES:
         return BoundingBox(0, 0, srce_page_image.width - 1, srce_page_image.height - 1)
 
-    srce_page_segment_filename = str(
+    srce_page_bounding_box_filename = str(
         os.path.join(
             comic.panel_segments_dir,
             os.path.splitext(os.path.basename(srce_page.filename))[0]
             + "_panel_bounds.txt",
         )
     )
-    if os.path.isfile(srce_page_segment_filename):
-        return get_panel_bounding_box_from_file(srce_page_segment_filename)
+    if os.path.isfile(srce_page_bounding_box_filename):
+        return get_panel_bounding_box_from_file(srce_page_bounding_box_filename)
 
-    os.makedirs(comic.panel_segments_dir, exist_ok=True)
+    if not os.path.isdir(comic.panel_segments_dir):
+        if dry_run:
+            logging.info(
+                f'{DRY_RUN_STR}: Making panel segments directory "{comic.panel_segments_dir}".'
+            )
+        else:
+            os.makedirs(comic.panel_segments_dir, exist_ok=True)
 
-    bounding_box = get_panel_bounding_box_from_kumiko(comic, srce_page_image, srce_page)
-    save_panel_bounding_box(srce_page_segment_filename, bounding_box)
+    bounding_box = get_panel_bounding_box_from_kumiko(
+        dry_run, comic, srce_page_image, srce_page
+    )
+
+    if dry_run:
+        logging.info(
+            f'{DRY_RUN_STR}: Saving panel bounding box to "{srce_page_bounding_box_filename}".'
+        )
+    else:
+        save_panel_bounding_box(srce_page_bounding_box_filename, bounding_box)
 
     return bounding_box
 
@@ -464,53 +480,54 @@ def save_panel_bounding_box(filename: str, bounding_box: BoundingBox):
 
 
 def get_panel_bounding_box_from_kumiko(
-    comic: ComicBook, srce_page_image: Image, srce_page: CleanPage
+    dry_run: bool, comic: ComicBook, srce_page_image: Image, srce_page: CleanPage
 ) -> BoundingBox:
     logging.debug("Getting panel bounding box from kumiko.")
 
-    srce_page_filename = str(
-        os.path.join(
-            work_dir,
-            os.path.splitext(os.path.basename(srce_page.filename))[0] + ".jpg",
-        )
+    (x_min, y_min, x_max, y_max), segment_info = kumiko.get_panel_bounding_box(
+        srce_page_image, srce_page.filename
     )
-    srce_page_image.save(srce_page_filename, optimize=True, compress_level=9)
 
-    segment_info = get_panel_segment_info(srce_page_filename)
-    dump_segment_info(srce_page_filename, segment_info, work_dir)
-    dump_segment_info(srce_page.filename, segment_info, comic.panel_segments_dir)
+    save_segment_info(work_dir, srce_page.filename, segment_info)
+    if dry_run:
+        logging.info(
+            f'{DRY_RUN_STR}: Saving panel segment info to "{comic.panel_segments_dir}".'
+        )
+    else:
+        save_segment_info(comic.panel_segments_dir, srce_page.filename, segment_info)
 
-    x_min, y_min, x_max, y_max = get_min_max_panel_values(segment_info["panels"])
-    dump_panel_bounds(srce_page_filename, x_min, y_min, x_max, y_max)
+    dump_panel_bounds(srce_page.filename, x_min, y_min, x_max, y_max)
 
     return BoundingBox(x_min, y_min, x_max, y_max)
 
 
-def get_panel_segment_info(page_filename: str):
-    logging.debug(f'Getting segment info for "{page_filename}".')
-
-    segment_info = run_kumiko(page_filename)
-
-    return segment_info
-
-
-def dump_segment_info(
-    page_filename: str, segment_info: Dict[str, Any], output_dir: str
+def save_segment_info(
+    output_dir: str, page_filename: str, segment_info: Dict[str, Any]
 ):
-    segment_info_filename = (
-        os.path.splitext(os.path.basename(page_filename))[0] + "_segment.json"
+    segment_info_filename = os.path.join(
+        output_dir,
+        os.path.splitext(os.path.basename(page_filename))[0] + "_segment.json",
     )
-    with open(os.path.join(output_dir, segment_info_filename), "w") as f:
+
+    if output_dir == work_dir:
+        logging.debug(
+            f'Saving panel segment info to work file "{segment_info_filename}".'
+        )
+    else:
+        logging.debug(f'Saving panel segment info to "{segment_info_filename}".')
+
+    with open(segment_info_filename, "w") as f:
         f.write(f"{segment_info}\n")
 
 
 def dump_panel_bounds(
     page_filename: str, x_min: int, y_min: int, x_max: int, y_max: int
 ):
-    bounds_filename = (
-        os.path.splitext(os.path.basename(page_filename))[0] + "_bounds.txt"
+    bounds_filename = os.path.join(
+        work_dir, os.path.splitext(os.path.basename(page_filename))[0] + "_bounds.txt"
     )
-    with open(os.path.join(work_dir, bounds_filename), "w") as f:
+    logging.debug(f'Saving panel bounds to work file "{bounds_filename}".')
+    with open(bounds_filename, "w") as f:
         f.write(f"{x_min}, {y_min}, {x_max}, {y_max}\n")
 
     # Draw the panel bounds on page image.
@@ -521,62 +538,11 @@ def dump_panel_bounds(
     draw.line([(x_max, y_max), (x_min, y_max)], width=3, fill=(256, 0, 0))
     draw.line([(x_min, y_max), (x_min, y_min)], width=3, fill=(256, 0, 0))
 
-    marked_srce_filename = (
-        os.path.splitext(os.path.basename(page_filename))[0] + "_marked.jpg"
+    marked_image_filename = os.path.join(
+        work_dir, os.path.splitext(os.path.basename(page_filename))[0] + "_marked.jpg"
     )
-    page_image.save(
-        os.path.join(work_dir, marked_srce_filename), optimize=True, compress_level=5
-    )
-
-
-def run_kumiko(page_filename: str) -> Dict[str, Any]:
-    kumiko_home_dir = "/home/greg/Prj/github/kumiko"
-    kumiko_python_path = os.path.join(kumiko_home_dir, ".venv/bin/python3")
-    kumiko_script_path = os.path.join(kumiko_home_dir, "kumiko")
-    run_args = [kumiko_python_path, kumiko_script_path, "-i", page_filename]
-    logging.debug(f"Running kumiko: {' '.join(run_args)}.")
-    result = subprocess.run(
-        run_args,
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-
-    segment_info = json.loads(result.stdout)
-    assert len(segment_info) == 1
-
-    return segment_info[0]
-
-
-def get_min_max_panel_values(
-    segment_info: List[List[int]],
-) -> Tuple[int, int, int, int]:
-    x_min = BIG_NUM
-    y_min = BIG_NUM
-    x_max = 0
-    y_max = 0
-    for segment in segment_info:
-        x0 = segment[0]
-        y0 = segment[1]
-        w = segment[2]
-        h = segment[3]
-        x1 = x0 + (w - 1)
-        y1 = y0 + (h - 1)
-        if x_min > x0:
-            x_min = x0
-        elif x_max < x1:
-            x_max = x1
-        if y_min > y0:
-            y_min = y0
-        elif y_max < y1:
-            y_max = y1
-
-    assert x_min != BIG_NUM
-    assert y_min != BIG_NUM
-    assert x_max != 0
-    assert y_max != 0
-
-    return x_min, y_min, x_max, y_max
+    logging.debug(f'Saving panel bounds image to work file "{marked_image_filename}".')
+    page_image.save(marked_image_filename, optimize=True, compress_level=5)
 
 
 def process_page(
@@ -584,7 +550,8 @@ def process_page(
 ):
     logging.info(
         f'Convert "{os.path.basename(srce_page.filename)}" (page-type {srce_page.page_type.name})'
-        + f' to "{os.path.basename(dest_page.filename)}" (page number = {dest_page.page_num})...'
+        f' to "{os.path.basename(dest_page.filename)}"'
+        f" (page number = {get_page_num_str(dest_page)})..."
     )
 
     srce_page_image = open_image_for_reading(srce_page.filename)
@@ -1079,6 +1046,27 @@ def get_comic_book(ini_file: str) -> ComicBook:
     )
 
 
+def log_comic_book_params(comic: ComicBook):
+    logging.info("")
+
+    logging.info(f'Comic book series:  "{comic.series_name}".')
+    logging.info(f'Comic book title:   "{get_safe_title(comic.title)}".')
+    logging.info(f"Number in series:   {comic.number_in_series}.")
+    logging.info(f'Srce root:          "{comic.get_srce_root_dir()}".')
+    logging.info(f'Srce comic dir:     "ROOT: {comic.get_srce_basename()}".')
+    logging.info(f'Srce segments root: "{comic.get_srce_segments_root_dir()}".')
+    logging.info(f'Srce segments dir:  "ROOT: {comic.get_segments_basename()}".')
+    logging.info(f'Dest root:          "{comic.get_dest_root_dir()}".')
+    logging.info(f'Dest comic dir:     "ROOT: {comic.get_dest_basename()}".')
+    logging.info(f'Dest comic zip:     "ROOT: {comic.get_dest_zip_basename()}".')
+    logging.info(f'Work directory:     "{work_dir}".')
+    logging.info("")
+
+    logging.info(f"Dest width, height:   {DEST_TARGET_WIDTH}, {DEST_TARGET_HEIGHT}.")
+    logging.info(f"Dest target x margin: {DEST_TARGET_X_MARGIN}.")
+    logging.info("")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Create a clean Barks comic from Fantagraphics source."
@@ -1109,6 +1097,8 @@ if __name__ == "__main__":
     work_dir = os.path.join(work_dir, datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
     os.makedirs(work_dir)
 
+    kumiko = KumikoPanelSegmentation(work_dir)
+
     config_file = args.ini_file
     if not os.path.isfile(config_file):
         raise Exception(f'Could not find ini file "{config_file}".')
@@ -1120,29 +1110,12 @@ if __name__ == "__main__":
     main_pages = get_list_of_numbers(args.main_pages)
 
     comic_book = get_comic_book(config_file)
-
     if not os.path.isdir(comic_book.get_srce_image_dir()):
         raise Exception(
             f'Could not find directory "{comic_book.get_srce_image_dir()}".'
         )
 
-    logging.info("")
-    logging.info(f'Comic book series:  "{comic_book.series_name}".')
-    logging.info(f'Comic book title:   "{get_safe_title(comic_book.title)}".')
-    logging.info(f'Number in series:   {comic_book.number_in_series}.')
-    logging.info(f'Srce root:          "{comic_book.get_srce_root_dir()}".')
-    logging.info(f'Srce comic dir:     "ROOT: {comic_book.get_srce_basename()}".')
-    logging.info(f'Srce segments root: "{comic_book.get_srce_segments_root_dir()}".')
-    logging.info(f'Srce segments dir:  "ROOT: {comic_book.get_segments_basename()}".')
-    logging.info(f'Dest root:          "{comic_book.get_dest_root_dir()}".')
-    logging.info(f'Dest comic dir:     "ROOT: {comic_book.get_dest_basename()}".')
-    logging.info(f'Dest comic zip:     "ROOT: {comic_book.get_dest_zip_basename()}".')
-    logging.info(f'Work directory:     "{work_dir}".')
-    logging.info("")
-
-    logging.info(f"Dest width, height:   {DEST_TARGET_WIDTH}, {DEST_TARGET_HEIGHT}.")
-    logging.info(f"Dest target x margin: {DEST_TARGET_X_MARGIN}.")
-    logging.info("")
+    log_comic_book_params(comic_book)
 
     required_pages = get_required_pages_in_order(comic_book.images_in_order)
     srce_pages, dest_pages = get_srce_and_dest_pages_in_order(
