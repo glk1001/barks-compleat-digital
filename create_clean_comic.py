@@ -40,7 +40,7 @@ DEST_TARGET_HEIGHT = 3200
 DEST_TARGET_X_MARGIN = 100
 DEST_TARGET_ASPECT_RATIO = float(DEST_TARGET_HEIGHT) / float(DEST_TARGET_WIDTH)
 # TODO - Y offset is a bit adhoc. To fix would need dest page y margin.
-PAGE_NUM_Y_OFFSET_FROM_BOTTOM = int(0.975 * DEST_TARGET_X_MARGIN)
+PAGE_NUM_Y_OFFSET_FROM_BOTTOM = int(0.86 * DEST_TARGET_X_MARGIN)
 
 FONT_DIR = os.path.join(str(Path.home()), "Prj", "fonts")
 INTRO_TITLE_DEFAULT_FONT_FILE = os.path.join(FONT_DIR, "Carl Barks Script.ttf")
@@ -82,7 +82,11 @@ INSERT_FILE_EXT = ".png"
 EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "empty_page.png")
 TITLE_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
 LAST_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
-EMPTY_IMAGE_FILES = {EMPTY_IMAGE_FILEPATH, TITLE_EMPTY_IMAGE_FILEPATH, LAST_EMPTY_IMAGE_FILEPATH}
+EMPTY_IMAGE_FILES = {
+    EMPTY_IMAGE_FILEPATH,
+    TITLE_EMPTY_IMAGE_FILEPATH,
+    LAST_EMPTY_IMAGE_FILEPATH,
+}
 
 ROMAN_NUMERALS = {
     1: "i",
@@ -150,7 +154,8 @@ class ComicBook:
     title_font_file: str
     title_font_size: int
     author_font_size: int
-    trim_amount: int
+    av_panels_bbox_width: int
+    av_panels_bbox_height: int
     source_dir: str
     panel_segments_dir: str
     series_name: str
@@ -258,17 +263,19 @@ def print_comic_book_properties(
 
     with open(summary_file, "w") as f:
         f.write("Config Summary:\n")
-        f.write(f'title             = "{comic.title}"\n')
-        f.write(f'source_dir        = "{comic.source_dir}"\n')
-        f.write(f'target_dir        = "{comic.get_dest_dir()}"\n')
-        f.write(f'title_font_file   = "{get_font_path(comic.title_font_file)}"\n')
-        f.write(f"title_font_size   = {comic.title_font_size}\n")
-        f.write(f"author_font_size  = {comic.author_font_size}\n")
-        f.write(f'series            = "{comic.series_name}"\n')
-        f.write(f"series_book_num   = {comic.number_in_series}\n")
-        f.write(f'intro_inset_file  = "{comic.intro_inset_file}"\n')
-        f.write(f"intro_inset_ratio = {comic.intro_inset_ratio}\n")
-        f.write(f"publication_text  = \n{comic.publication_text}\n")
+        f.write(f'title                 = "{comic.title}"\n')
+        f.write(f'source_dir            = "{comic.source_dir}"\n')
+        f.write(f'target_dir            = "{comic.get_dest_dir()}"\n')
+        f.write(f'title_font_file       = "{get_font_path(comic.title_font_file)}"\n')
+        f.write(f"title_font_size       = {comic.title_font_size}\n")
+        f.write(f"author_font_size      = {comic.author_font_size}\n")
+        f.write(f'series                = "{comic.series_name}"\n')
+        f.write(f"series_book_num       = {comic.number_in_series}\n")
+        f.write(f"av_panels_bbox_width  = {comic.av_panels_bbox_width}\n")
+        f.write(f"av_panels_bbox_height = {comic.av_panels_bbox_height}\n")
+        f.write(f'intro_inset_file      = "{comic.intro_inset_file}"\n')
+        f.write(f"intro_inset_ratio     = {comic.intro_inset_ratio}\n")
+        f.write(f"publication_text      = \n{comic.publication_text}\n")
         f.write("\n")
 
         f.write("Pages Config Summary:\n")
@@ -393,9 +400,67 @@ def process_pages(
     dst_pages: List[CleanPage],
 ):
     set_panel_bounding_boxes(dry_run, comic, src_pages, dst_pages)
+    set_av_total_panels_width_height(comic, src_pages)
 
     for srce_page, dest_page in zip(src_pages, dst_pages):
         process_page(dry_run, comic, srce_page, dest_page)
+
+
+def set_av_total_panels_width_height(
+    comic: ComicBook,
+    src_pages: List[CleanPage],
+):
+    (
+        comic.av_panels_bbox_width,
+        comic.av_panels_bbox_height,
+    ) = get_av_total_panels_width_height(src_pages)
+    logging.debug(f"Set average total panels width to {comic.av_panels_bbox_width}.")
+    logging.debug(f"Set average total panels height to {comic.av_panels_bbox_height}.")
+
+
+def get_av_total_panels_width_height(src_pages: List[CleanPage]) -> Tuple[int, int]:
+    max_panels_bbox_height = get_max_panels_bbox_height(src_pages)
+
+    sum_panels_bbox_width = 0
+    sum_panels_bbox_height = 0
+    num_pages = 0
+    for srce_page in src_pages:
+        if srce_page.page_type in FRONT_PAGES:
+            continue
+
+        panels_height = (
+            srce_page.srce_panel_bbox.y_max - srce_page.srce_panel_bbox.y_min + 1
+        )
+        if panels_height < 0.9 * max_panels_bbox_height:
+            continue
+
+        panels_width = (
+            srce_page.srce_panel_bbox.x_max - srce_page.srce_panel_bbox.x_min + 1
+        )
+
+        sum_panels_bbox_width += panels_width
+        sum_panels_bbox_height += panels_height
+        num_pages += 1
+
+    assert num_pages > 0
+    return int(round(float(sum_panels_bbox_width) / float(num_pages))), int(
+        round(float(sum_panels_bbox_height) / float(num_pages))
+    )
+
+
+def get_max_panels_bbox_height(src_pages: List[CleanPage]) -> int:
+    max_panels_bbox_height = 0
+    for srce_page in src_pages:
+        if srce_page.page_type in FRONT_PAGES:
+            continue
+
+        panels_bbox_height = (
+            srce_page.srce_panel_bbox.y_max - srce_page.srce_panel_bbox.y_min + 1
+        )
+        if max_panels_bbox_height < panels_bbox_height:
+            max_panels_bbox_height = panels_bbox_height
+
+    return max_panels_bbox_height
 
 
 def set_panel_bounding_boxes(
@@ -594,7 +659,7 @@ def get_dest_page_image(
         )
     else:
         dest_page_image = get_dest_main_page_image(
-            srce_page_image, srce_page, dest_page
+            comic, srce_page_image, srce_page, dest_page
         )
 
     log_page_info("Dest", dest_page_image, dest_page)
@@ -681,10 +746,10 @@ def get_dest_splash_page(splash_image: Image, srce_page: CleanPage) -> Image:
 
 
 def get_dest_main_page_image(
-    srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
+    comic: ComicBook, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
 ) -> Image:
     dest_panels_image = srce_page_image.crop(srce_page.srce_panel_bbox.get_box())
-    dest_page_image = get_centred_dest_page_image(dest_panels_image)
+    dest_page_image = get_centred_dest_page_image(comic, dest_panels_image)
 
     if dest_page_image.width != DEST_TARGET_WIDTH:
         raise Exception(
@@ -702,13 +767,29 @@ def get_dest_main_page_image(
     return dest_page_image
 
 
-def get_centred_dest_page_image(dest_panels_image: Image) -> Image:
+def get_centred_dest_page_image(comic: ComicBook, dest_panels_image: Image) -> Image:
     dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
 
     required_panels_width = int(dest_page_image.width - (2 * DEST_TARGET_X_MARGIN))
-    required_panels_height = int(
-        (dest_panels_image.height * required_panels_width) / dest_panels_image.width
-    )
+
+    print(f"comic.av_panels_bbox_height.height = {comic.av_panels_bbox_height}")
+    print(f"dest_panels_image.height = {dest_panels_image.height}")
+    if dest_panels_image.height < 0.9 * comic.av_panels_bbox_height:
+        required_panels_height = int(
+            round(
+                float(dest_panels_image.height * required_panels_width)
+                / float(dest_panels_image.width)
+            )
+        )
+        print(f"1 required_panels_height = {required_panels_height}")
+    else:
+        required_panels_height = int(
+            round(
+                float(comic.av_panels_bbox_height * required_panels_width)
+                / float(comic.av_panels_bbox_width)
+            )
+        )
+        print(f"2 required_panels_height = {required_panels_height}")
 
     dest_panels_image = dest_panels_image.resize(
         size=(required_panels_width, required_panels_height),
@@ -1048,7 +1129,10 @@ def get_comic_book(ini_file: str) -> ComicBook:
         author_font_size=config["info"].getint(
             "author_font_size", INTRO_AUTHOR_DEFAULT_FONT_SIZE
         ),
-        trim_amount=config["info"].getint("trim_amount"),
+        av_panels_bbox_width=-1,
+        av_panels_bbox_height=-1,
+        # TODO - Remove 'trim_amount' from config files
+        # trim_amount=config["info"].getint("trim_amount"),
         source_dir=source_dir,
         panel_segments_dir=panel_segments_dir,
         series_name=cb_info.series_name,
@@ -1068,6 +1152,8 @@ def log_comic_book_params(comic: ComicBook):
     logging.info(f'Comic book series:  "{comic.series_name}".')
     logging.info(f'Comic book title:   "{get_safe_title(comic.title)}".')
     logging.info(f"Number in series:   {comic.number_in_series}.")
+    logging.info(f"Av panels bbox wid: {comic.av_panels_bbox_width}.")
+    logging.info(f"Av panels bbox hgt: {comic.av_panels_bbox_height}.")
     logging.info(f'Srce root:          "{comic.get_srce_root_dir()}".')
     logging.info(f'Srce comic dir:     "ROOT: {comic.get_srce_basename()}".')
     logging.info(f'Srce segments root: "{comic.get_srce_segments_root_dir()}".')
