@@ -36,10 +36,11 @@ METADATA_FILENAME = "metadata.txt"
 # TODO - Minimize usage
 BIG_NUM = 10000
 DEST_TARGET_WIDTH = 2120
-DEST_TARGET_HEIGHT = 2960
+DEST_TARGET_HEIGHT = 3200
 DEST_TARGET_X_MARGIN = 100
 DEST_TARGET_ASPECT_RATIO = float(DEST_TARGET_HEIGHT) / float(DEST_TARGET_WIDTH)
-# assert DEST_TARGET_ASPECT_RATIO == 16.0 / 10.0
+# TODO - Y offset is a bit adhoc. To fix would need dest page y margin.
+PAGE_NUM_Y_OFFSET_FROM_BOTTOM = int(0.975 * DEST_TARGET_X_MARGIN)
 
 FONT_DIR = os.path.join(str(Path.home()), "Prj", "fonts")
 INTRO_TITLE_DEFAULT_FONT_FILE = os.path.join(FONT_DIR, "Carl Barks Script.ttf")
@@ -62,8 +63,6 @@ INTRO_PUB_TEXT_COLOR = (0, 0, 0)
 INTRO_PUB_TEXT_SPACING = 20
 
 PAGE_NUM_X_OFFSET_FROM_CENTRE = 150
-# TODO - Y offset is a bit adhoc. To fix would need dest page y margin.
-PAGE_NUM_Y_OFFSET_FROM_BOTTOM = int(0.5 * DEST_TARGET_X_MARGIN)
 PAGE_NUM_X_BLANK_PIXEL_OFFSET = 250
 PAGE_NUM_HEIGHT = 40
 PAGE_NUM_FONT_SIZE = 30
@@ -71,9 +70,6 @@ PAGE_NUM_FONT_SIZE = 30
 BARKS = "Carl Barks"
 BARKS_ROOT_DIR = os.path.join(str(Path.home()), "Books", BARKS)
 THE_COMICS_DIR = os.path.join(BARKS_ROOT_DIR, "The Comics")
-EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "empty_page.png")
-TITLE_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
-LAST_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
 IMAGES_SUBDIR = "images"
 CONFIGS_SUBDIR = "Configs"
 TITLE_EMPTY_FILENAME = "title_empty"
@@ -82,6 +78,11 @@ NUMBER_LEN = 3
 SRCE_FILE_EXT = ".jpg"
 DEST_FILE_EXT = ".jpg"
 INSERT_FILE_EXT = ".png"
+
+EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "empty_page.png")
+TITLE_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
+LAST_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
+EMPTY_IMAGE_FILES = {EMPTY_IMAGE_FILEPATH, TITLE_EMPTY_IMAGE_FILEPATH, LAST_EMPTY_IMAGE_FILEPATH}
 
 ROMAN_NUMERALS = {
     1: "i",
@@ -209,6 +210,12 @@ def open_image_for_reading(filename: str) -> Image:
     try:
         logging.getLogger().setLevel(logging.INFO)
         image = Image.open(filename, "r")
+
+        if filename in EMPTY_IMAGE_FILES:
+            image = image.resize(
+                size=(DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT),
+                resample=Image.Resampling.NEAREST,
+            )
     finally:
         logging.getLogger().setLevel(current_log_level)
 
@@ -673,10 +680,18 @@ def get_dest_splash_page(splash_image: Image, srce_page: CleanPage) -> Image:
     return dest_page_image
 
 
+image_num = 1
+
+
 def get_dest_main_page_image(
     srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
 ) -> Image:
     dest_panels_image = srce_page_image.crop(srce_page.srce_panel_bbox.get_box())
+    global image_num
+    print(f"crop box: {srce_page.srce_panel_bbox.get_box()}")
+    dest_panels_image.convert("RGB").save(
+        f"/tmp/{image_num}_panels_after_crop.jpg", optimize=True, compress_level=5
+    )
     dest_page_image = get_centred_dest_page_image(dest_panels_image)
 
     if dest_page_image.width != DEST_TARGET_WIDTH:
@@ -698,20 +713,49 @@ def get_dest_main_page_image(
 def get_centred_dest_page_image(dest_panels_image: Image) -> Image:
     dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
 
+    print(f"page width: {dest_page_image.width}")
     required_panels_width = int(dest_page_image.width - (2 * DEST_TARGET_X_MARGIN))
+    print(f"panels width: {dest_panels_image.width}")
+    print(f"req panels width: {required_panels_width}")
     required_panels_height = int(
         (dest_panels_image.height * required_panels_width) / dest_panels_image.width
     )
+    print(f"page height: {dest_page_image.height}")
+    print(f"panels height: {dest_panels_image.height}")
+    print(f"req panels height: {required_panels_height}")
 
+    global image_num
+    dest_panels_image.convert("RGB").save(
+        f"/tmp/{image_num}_panels_before_resize.jpg", optimize=True, compress_level=5
+    )
     dest_panels_image = dest_panels_image.resize(
         size=(required_panels_width, required_panels_height),
         resample=Image.Resampling.BICUBIC,
     )
+    dest_panels_image.convert("RGB").save(
+        f"/tmp/{image_num}_panels_after_resize.jpg", optimize=True, compress_level=5
+    )
+
+    print(
+        f"dest page border: 0, 0, {dest_page_image.width-1}, {dest_page_image.height-1}"
+    )
+    print(
+        f"dest panels border: 0, 0, {dest_panels_image.width-1}, {dest_panels_image.height-1}"
+    )
 
     # Centre the dest panels image on the empty page.
     dest_panels_top = int(0.5 * (dest_page_image.height - dest_panels_image.height))
+    print(f"dest_panels_top: {dest_panels_top}")
     dest_panels_pos = (DEST_TARGET_X_MARGIN, dest_panels_top)
+    print(
+        f"dest panels border inside: {dest_panels_pos[0]}, {dest_panels_pos[1]}, {dest_panels_pos[0]+dest_panels_image.width-1}, {dest_panels_pos[1]+dest_panels_image.height-1}"
+    )
     dest_page_image.paste(dest_panels_image, dest_panels_pos)
+
+    dest_page_image.convert("RGB").save(
+        f"/tmp/{image_num}_page.jpg", optimize=True, compress_level=5
+    )
+    image_num += 1
 
     return dest_page_image
 
