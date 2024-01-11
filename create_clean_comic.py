@@ -433,8 +433,7 @@ def get_panel_bounding_box(
         return get_panel_bounding_box_from_file(srce_page_bounding_box_filename)
 
     logging.info(
-        f'For srce file "{os.path.basename(srce_page.filename)}",'
-        f" getting panel segment info from kumiko."
+        f'Getting Kumiko panel segment info for srce file "{os.path.basename(srce_page.filename)}".'
     )
 
     if not os.path.isdir(comic.panel_segments_dir):
@@ -460,10 +459,6 @@ def get_panel_bounding_box(
 
 
 def get_panel_bounding_box_from_file(filename: str) -> BoundingBox:
-    logging.debug(
-        f'Getting panel bounding box from file "PANEL_SEGMENTS_DIR: {os.path.basename(filename)}".'
-    )
-
     with open(filename, "r") as f:
         line = f.readline()
         vals = line.split(", ")
@@ -471,6 +466,12 @@ def get_panel_bounding_box_from_file(filename: str) -> BoundingBox:
         y_min = int(vals[1])
         x_max = int(vals[2])
         y_max = int(vals[3])
+
+        logging.debug(
+            f'Got panel bounding box file "PANEL_SEGMENTS_DIR: {os.path.basename(filename)}".'
+            f"Box: {x_min}, {y_min}, {x_max}, {y_max}."
+        )
+
         return BoundingBox(x_min, y_min, x_max, y_max)
 
 
@@ -479,7 +480,7 @@ def save_panel_bounding_box(filename: str, bounding_box: BoundingBox):
 
     with open(filename, "w") as f:
         f.write(
-            f"{bounding_box.y_min}, {bounding_box.y_min}, "
+            f"{bounding_box.x_min}, {bounding_box.y_min}, "
             f"{bounding_box.x_max}, {bounding_box.y_max}\n"
         )
 
@@ -699,7 +700,7 @@ def get_centred_dest_page_image(dest_panels_image: Image) -> Image:
 
     required_panels_width = int(dest_page_image.width - (2 * DEST_TARGET_X_MARGIN))
     required_panels_height = int(
-        (required_panels_width * dest_page_image.height) / dest_page_image.width
+        (dest_panels_image.height * required_panels_width) / dest_panels_image.width
     )
 
     dest_panels_image = dest_panels_image.resize(
