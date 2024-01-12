@@ -33,7 +33,6 @@ DOUBLE_PAGES_SECTION = "double_pages"
 PAGE_NUMBERS_SECTION = "page_numbers"
 METADATA_FILENAME = "metadata.txt"
 
-# TODO - Minimize usage
 DEST_TARGET_WIDTH = 2120
 DEST_TARGET_HEIGHT = 3200
 DEST_TARGET_X_MARGIN = 100
@@ -123,7 +122,6 @@ PAGES_WITHOUT_PANELS = FRONT_PAGES + [PageType.BLANK_PAGE]
 class OriginalPage:
     filenames: str
     page_type: PageType
-    is_odd_correct: bool = True  # TODO - REMOVE THIS
 
 
 @dataclass
@@ -1268,8 +1266,6 @@ def get_comic_book(ini_file: str) -> ComicBook:
         ),
         av_panels_bbox_height=-1,
         required_dim=RequiredDimensions(),
-        # TODO - Remove 'trim_amount' from config files
-        # trim_amount=config["info"].getint("trim_amount"),
         source_dir=source_dir,
         panel_segments_dir=panel_segments_dir,
         series_name=cb_info.series_name,
