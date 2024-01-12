@@ -136,6 +136,12 @@ class BoundingBox:
     def get_box(self) -> Tuple[int, int, int, int]:
         return self.x_min, self.y_min, self.x_max, self.y_max
 
+    def get_width(self) -> int:
+        return (self.x_max - self.x_min) + 1
+
+    def get_height(self) -> int:
+        return (self.y_max - self.y_min) + 1
+
 
 @dataclass
 class RequiredDimensions:
@@ -149,7 +155,7 @@ class CleanPage:
     filename: str
     page_type: PageType
     page_num: int = -1
-    srce_panel_bbox: BoundingBox = field(default_factory=BoundingBox)
+    panel_bbox: BoundingBox = field(default_factory=BoundingBox)
 
 
 @dataclass
@@ -302,8 +308,8 @@ def print_comic_book_properties(
                 f" as dest {dest_filename:6},"
                 f" type {dest_page_type:14}, "
                 f" page {dest_page.page_num:2} ({get_page_num_str(dest_page):>3}),"
-                f" bbox ({dest_page.srce_panel_bbox.x_min:3}, {dest_page.srce_panel_bbox.y_min:3},"
-                f" {dest_page.srce_panel_bbox.x_max:3}, {dest_page.srce_panel_bbox.y_max:3}).\n"
+                f" bbox ({dest_page.panel_bbox.x_min:3}, {dest_page.panel_bbox.y_min:3},"
+                f" {dest_page.panel_bbox.x_max:3}, {dest_page.panel_bbox.y_max:3}).\n"
             )
         f.write("\n")
 
@@ -406,9 +412,6 @@ def process_pages(
     src_pages: List[CleanPage],
     dst_pages: List[CleanPage],
 ):
-    set_panel_bounding_boxes(dry_run, comic, src_pages, dst_pages)
-    set_av_total_panels_width_height(comic, src_pages)
-
     for srce_page, dest_page in zip(src_pages, dst_pages):
         process_page(dry_run, comic, srce_page, dest_page)
 
@@ -484,17 +487,13 @@ def get_average_panels_bbox_width_height(src_pages: List[CleanPage]) -> Tuple[in
         if srce_page.page_type in FRONT_PAGES:
             continue
 
-        panels_height = (
-            srce_page.srce_panel_bbox.y_max - srce_page.srce_panel_bbox.y_min + 1
-        )
+        panels_height = srce_page.panel_bbox.get_height()
         if panels_height < (
             max_panels_bbox_height - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
         ):
             continue
 
-        panels_width = (
-            srce_page.srce_panel_bbox.x_max - srce_page.srce_panel_bbox.x_min + 1
-        )
+        panels_width = srce_page.panel_bbox.get_width()
 
         sum_panels_bbox_width += panels_width
         sum_panels_bbox_height += panels_height
@@ -512,36 +511,31 @@ def get_max_panels_bbox_height(src_pages: List[CleanPage]) -> int:
         if srce_page.page_type in FRONT_PAGES:
             continue
 
-        panels_bbox_height = (
-            srce_page.srce_panel_bbox.y_max - srce_page.srce_panel_bbox.y_min + 1
-        )
+        panels_bbox_height = srce_page.panel_bbox.get_height()
         if max_panels_bbox_height < panels_bbox_height:
             max_panels_bbox_height = panels_bbox_height
 
     return max_panels_bbox_height
 
 
-def set_panel_bounding_boxes(
+def set_srce_panel_bounding_boxes(
     dry_run: bool,
     comic: ComicBook,
     src_pages: List[CleanPage],
-    dst_pages: List[CleanPage],
 ):
-    logging.debug("Setting panel bounding boxes.")
+    logging.debug("Setting srce panel bounding boxes.")
 
-    for srce_page, dest_page in zip(src_pages, dst_pages):
+    for srce_page in src_pages:
         srce_page_image = open_image_for_reading(srce_page.filename)
         if srce_page.page_type in FRONT_PAGES:
-            srce_page.srce_panel_bbox = BoundingBox(
+            srce_page.panel_bbox = BoundingBox(
                 0, 0, srce_page_image.width - 1, srce_page_image.height - 1
             )
         else:
             srce_page_image = srce_page_image.convert("RGB")
-            srce_page.srce_panel_bbox = get_panel_bounding_box(
+            srce_page.panel_bbox = get_panel_bounding_box(
                 dry_run, comic, srce_page_image, srce_page
             )
-
-        dest_page.srce_panel_bbox = srce_page.srce_panel_bbox
 
     logging.debug("")
 
@@ -684,6 +678,56 @@ def dump_panel_bounds(
     page_image.save(marked_image_filename, optimize=True, compress_level=5)
 
 
+def set_dest_panel_bounding_boxes(
+    comic: ComicBook,
+    src_pages: List[CleanPage],
+    dst_pages: List[CleanPage],
+):
+    logging.debug("Setting dest panel bounding boxes.")
+
+    for srce_page, dest_page in zip(src_pages, dst_pages):
+        dest_page.panel_bbox = get_dest_panel_bounding_box(comic, srce_page)
+
+    logging.debug("")
+
+
+def get_dest_panel_bounding_box(comic: ComicBook, srce_page: CleanPage) -> BoundingBox:
+    if srce_page.page_type in PAGES_WITHOUT_PANELS:
+        return BoundingBox(0, 0, DEST_TARGET_WIDTH-1, DEST_TARGET_HEIGHT-1)
+        
+    required_panels_width = int(DEST_TARGET_WIDTH - (2 * DEST_TARGET_X_MARGIN))
+    srce_panels_bbox_width = srce_page.panel_bbox.get_width()
+    srce_panels_bbox_height = srce_page.panel_bbox.get_height()
+
+    if srce_panels_bbox_height >= (
+        comic.av_panels_bbox_height - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
+    ):
+        required_panels_height = comic.required_dim.panels_bbox_height
+    else:
+        required_panels_height = get_scaled_panels_bbox_height(
+            required_panels_width, srce_panels_bbox_width, srce_panels_bbox_height
+        )
+        logging.warning(
+            f'For "{os.path.basename(srce_page.filename)}",'
+            f" panels bbox height {srce_panels_bbox_height}"
+            f" < {comic.av_panels_bbox_height - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN}"
+            f" (average height {comic.av_panels_bbox_height}"
+            f" - error {PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN})."
+            f" So setting required bbox height to {required_panels_height},"
+            f" not {comic.required_dim.panels_bbox_height}."
+        )
+
+    # Centre the dest panels image on an empty page.
+    dest_panels_x_min = DEST_TARGET_X_MARGIN
+    dest_panels_y_min = int(0.5 * (DEST_TARGET_HEIGHT - required_panels_height))
+    dest_panels_x_max = dest_panels_x_min + (required_panels_width - 1)
+    dest_panels_y_max = dest_panels_y_min + (required_panels_height - 1)
+
+    return BoundingBox(
+        dest_panels_x_min, dest_panels_y_min, dest_panels_x_max, dest_panels_y_max
+    )
+
+
 def process_page(
     dry_run: bool, comic: ComicBook, srce_page: CleanPage, dest_page: CleanPage
 ):
@@ -710,6 +754,7 @@ def get_dest_page_image(
     comic: ComicBook, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
 ) -> Image:
     log_page_info("Srce", srce_page_image, srce_page)
+    log_page_info("Dest", None, dest_page)
 
     if dest_page.page_type in FRONT_PAGES:
         dest_page_image = get_dest_front_page_image(
@@ -726,9 +771,13 @@ def get_dest_page_image(
 
 
 def log_page_info(prefix: str, image: Image, page: CleanPage):
+    width = image.width if image else 0
+    height = image.height if image else 0
     logging.debug(
-        f"{prefix}: width = {image.width}, height = {image.height},"
-        f" page_type = {page.page_type.name}."
+        f"{prefix}: width = {width}, height = {height},"
+        f" page_type = {page.page_type.name},"
+        f" panels bbox = {page.panel_bbox.x_min}, {page.panel_bbox.y_min},"
+        f" {page.panel_bbox.x_max}, {page.panel_bbox.y_max}."
     )
 
 
@@ -806,8 +855,8 @@ def get_dest_splash_page(splash_image: Image, srce_page: CleanPage) -> Image:
 def get_dest_main_page_image(
     comic: ComicBook, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
 ) -> Image:
-    dest_panels_image = srce_page_image.crop(srce_page.srce_panel_bbox.get_box())
-    dest_page_image = get_centred_dest_page_image(comic, srce_page, dest_panels_image)
+    dest_panels_image = srce_page_image.crop(srce_page.panel_bbox.get_box())
+    dest_page_image = get_centred_dest_page_image(dest_page, dest_panels_image)
 
     if dest_page_image.width != DEST_TARGET_WIDTH:
         raise Exception(
@@ -826,38 +875,16 @@ def get_dest_main_page_image(
 
 
 def get_centred_dest_page_image(
-    comic: ComicBook, srce_page: CleanPage, dest_panels_image: Image
+    dest_page: CleanPage, dest_panels_image: Image
 ) -> Image:
     dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
 
-    required_panels_width = int(dest_page_image.width - (2 * DEST_TARGET_X_MARGIN))
-
-    if dest_panels_image.height >= (
-        comic.av_panels_bbox_height - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
-    ):
-        required_panels_height = comic.required_dim.panels_bbox_height
-    else:
-        required_panels_height = get_scaled_panels_bbox_height(
-            required_panels_width, dest_panels_image.width, dest_panels_image.height
-        )
-        logging.warning(
-            f'For "{os.path.basename(srce_page.filename)}",'
-            f" panels bbox height {dest_panels_image.height}"
-            f" < {comic.av_panels_bbox_height - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN}"
-            f" (average height {comic.av_panels_bbox_height}"
-            f" - error {PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN})."
-            f" So setting required bbox height to {required_panels_height},"
-            f" not {comic.required_dim.panels_bbox_height}."
-        )
-
     dest_panels_image = dest_panels_image.resize(
-        size=(required_panels_width, required_panels_height),
+        size=(dest_page.panel_bbox.get_width(), dest_page.panel_bbox.get_height()),
         resample=Image.Resampling.BICUBIC,
     )
 
-    # Centre the dest panels image on the empty page.
-    dest_panels_top = int(0.5 * (dest_page_image.height - dest_panels_image.height))
-    dest_panels_pos = (DEST_TARGET_X_MARGIN, dest_panels_top)
+    dest_panels_pos = (dest_page.panel_bbox.x_min, dest_page.panel_bbox.y_min)
     dest_page_image.paste(dest_panels_image, dest_panels_pos)
 
     return dest_page_image
@@ -1280,12 +1307,15 @@ if __name__ == "__main__":
             f'Could not find directory "{comic_book.get_srce_image_dir()}".'
         )
 
-    log_comic_book_params(comic_book)
-
     required_pages = get_required_pages_in_order(comic_book.images_in_order)
     srce_pages, dest_pages = get_srce_and_dest_pages_in_order(
         comic_book, required_pages, front_pages, main_pages
     )
+    set_srce_panel_bounding_boxes(args.dry_run, comic_book, srce_pages)
+    set_av_total_panels_width_height(comic_book, srce_pages)
+    set_dest_panel_bounding_boxes(comic_book, srce_pages, dest_pages)
+
+    log_comic_book_params(comic_book)
 
     create_dest_dirs(args.dry_run, comic_book)
     process_pages(args.dry_run, comic_book, srce_pages, dest_pages)
