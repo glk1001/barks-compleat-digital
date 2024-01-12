@@ -802,6 +802,17 @@ def get_dest_non_body_page_image(
     assert False
 
 
+def get_dest_title_page_image(comic: ComicBook, srce_page_image: Image) -> Image:
+    dest_page_image = srce_page_image.resize(
+        size=(DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT),
+        resample=Image.Resampling.BICUBIC,
+    )
+
+    write_introduction(comic, dest_page_image)
+
+    return dest_page_image
+
+
 def get_dest_front_page_image(srce_page_image: Image, srce_page: CleanPage) -> Image:
     return get_dest_black_bars_page_image(srce_page_image, srce_page)
 
@@ -810,8 +821,23 @@ def get_dest_cover_page_image(srce_page_image: Image, srce_page: CleanPage) -> I
     return get_dest_black_bars_page_image(srce_page_image, srce_page)
 
 
+def get_dest_splash_page_image(splash_image: Image, srce_page: CleanPage) -> Image:
+    dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
+
+    return get_dest_centred_page_image(splash_image, srce_page, dest_page_image)
+
+
 def get_dest_black_bars_page_image(
     srce_page_image: Image, srce_page: CleanPage
+) -> Image:
+    dest_page_image = Image.new(
+        "RGB", (DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT), (0, 0, 0)
+    )
+    return get_dest_centred_page_image(srce_page_image, srce_page, dest_page_image)
+
+
+def get_dest_centred_page_image(
+    srce_page_image: Image, srce_page: CleanPage, dest_page_image: Image
 ) -> Image:
     srce_aspect_ratio = float(srce_page_image.height) / float(srce_page_image.width)
     if abs(srce_aspect_ratio - DEST_TARGET_ASPECT_RATIO) > 0.01:
@@ -837,55 +863,8 @@ def get_dest_black_bars_page_image(
     if required_height == DEST_TARGET_HEIGHT:
         return no_margins_image
 
-    dest_page_image = Image.new(
-        "RGB", (DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT), (0, 0, 0)
-    )
     cover_top = int(round(0.5 * (DEST_TARGET_HEIGHT - required_height)))
     dest_page_image.paste(no_margins_image, (0, cover_top))
-
-    return dest_page_image
-
-
-def get_dest_title_page_image(comic: ComicBook, srce_page_image: Image) -> Image:
-    dest_page_image = srce_page_image.resize(
-        size=(DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT),
-        resample=Image.Resampling.BICUBIC,
-    )
-
-    write_introduction(comic, dest_page_image)
-
-    return dest_page_image
-
-
-def get_dest_splash_page_image(splash_image: Image, srce_page: CleanPage) -> Image:
-    splash_width, splash_height = splash_image.size
-    if splash_width != DEST_TARGET_WIDTH:
-        raise Exception(
-            f"Wrong width for splash '{srce_page.filename}':"
-            f" {splash_width} != {DEST_TARGET_WIDTH}."
-        )
-
-    dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
-    dest_page_width, dest_page_height = dest_page_image.size
-    if dest_page_width != splash_width:
-        raise Exception(
-            f"Wrong width for empty splash '{EMPTY_IMAGE_FILEPATH}':"
-            f" {dest_page_width} != {splash_width}."
-        )
-    if dest_page_height != DEST_TARGET_HEIGHT:
-        raise Exception(
-            f"Wrong height for empty splash '{EMPTY_IMAGE_FILEPATH}':"
-            f" {dest_page_height} != {DEST_TARGET_HEIGHT}."
-        )
-    if splash_height > dest_page_height:
-        raise Exception(
-            f"Wrong height for splash '{srce_page.filename}':"
-            f" {splash_height} > {dest_page_height}."
-        )
-
-    splash_top = (dest_page_height - splash_height) / 2
-    insert_pos = (0, int(splash_top))
-    dest_page_image.paste(splash_image, insert_pos)
 
     return dest_page_image
 
