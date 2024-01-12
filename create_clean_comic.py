@@ -105,7 +105,8 @@ class PageType(Enum):
     FRONT_MATTER = 5
     BODY = 6
     BACK_MATTER = 7
-    BLANK_PAGE = 8
+    BACK_NO_PANELS = 8
+    BLANK_PAGE = 9
 
 
 FRONT_PAGES = [
@@ -115,7 +116,7 @@ FRONT_PAGES = [
     PageType.SPLASH,
 ]
 FRONT_MATTER_PAGES = FRONT_PAGES + [PageType.FRONT_MATTER]
-PAGES_WITHOUT_PANELS = FRONT_PAGES + [PageType.BLANK_PAGE]
+PAGES_WITHOUT_PANELS = FRONT_PAGES + [PageType.BACK_NO_PANELS, PageType.BLANK_PAGE]
 
 
 @dataclass
@@ -795,6 +796,8 @@ def get_dest_non_body_page_image(
         return get_dest_cover_page_image(srce_page_image, srce_page)
     if dest_page.page_type == PageType.SPLASH:
         return get_dest_splash_page_image(srce_page_image, srce_page)
+    if dest_page.page_type == PageType.BACK_NO_PANELS:
+        return get_dest_no_panels_page_image(comic, srce_page_image, srce_page, dest_page)
     if dest_page.page_type == PageType.BLANK_PAGE:
         return get_dest_blank_page_image(srce_page_image)
     if dest_page.page_type == PageType.TITLE:
@@ -825,6 +828,16 @@ def get_dest_splash_page_image(splash_image: Image, srce_page: CleanPage) -> Ima
     dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
 
     return get_dest_centred_page_image(splash_image, srce_page, dest_page_image)
+
+
+def get_dest_no_panels_page_image(comic: ComicBook, no_panels_image: Image, srce_page: CleanPage, dest_page: CleanPage) -> Image:
+    dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
+
+    dest_page_image = get_dest_centred_page_image(no_panels_image, srce_page, dest_page_image)
+
+    write_page_number(comic, dest_page_image, dest_page, PAGE_NUM_COLOR)
+
+    return dest_page_image
 
 
 def get_dest_black_bars_page_image(
