@@ -71,7 +71,7 @@ THE_COMICS_DIR = os.path.join(BARKS_ROOT_DIR, "The Comics")
 IMAGES_SUBDIR = "images"
 CONFIGS_SUBDIR = "Configs"
 TITLE_EMPTY_FILENAME = "title_empty"
-LAST_EMPTY_FILENAME = "last_empty"
+EMPTY_FILENAME = "empty"
 NUMBER_LEN = 3
 SRCE_FILE_EXT = ".jpg"
 DEST_FILE_EXT = ".jpg"
@@ -79,11 +79,9 @@ INSERT_FILE_EXT = ".png"
 
 EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "empty_page.png")
 TITLE_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
-LAST_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
 EMPTY_IMAGE_FILES = {
     EMPTY_IMAGE_FILEPATH,
     TITLE_EMPTY_IMAGE_FILEPATH,
-    LAST_EMPTY_IMAGE_FILEPATH,
 }
 
 ROMAN_NUMERALS = {
@@ -108,6 +106,7 @@ class PageType(Enum):
     FRONT_MATTER = 5
     BODY = 6
     BACK_MATTER = 7
+    BLANK_PAGE = 8
 
 
 FRONT_PAGES = [
@@ -117,6 +116,7 @@ FRONT_PAGES = [
     PageType.SPLASH,
 ]
 FRONT_MATTER_PAGES = FRONT_PAGES + [PageType.FRONT_MATTER]
+PAGES_WITHOUT_PANELS = FRONT_PAGES + [PageType.BLANK_PAGE]
 
 
 @dataclass
@@ -282,6 +282,9 @@ def print_comic_book_properties(
         f.write(f"author_font_size       = {comic.author_font_size}\n")
         f.write(f'series                 = "{comic.series_name}"\n')
         f.write(f"series_book_num        = {comic.number_in_series}\n")
+        f.write(f"DEST_TARGET_X_MARGIN   = {DEST_TARGET_X_MARGIN}\n")
+        f.write(f"DEST_TARGET_WIDTH      = {DEST_TARGET_WIDTH}\n")
+        f.write(f"DEST_TARGET_HEIGHT     = {DEST_TARGET_HEIGHT}\n")
         f.write(f"av_panels_bbox_height  = {comic.av_panels_bbox_height}\n")
         f.write(f"req_panels_bbox_width  = {comic.required_dim.panels_bbox_width}\n")
         f.write(f"req_panels_bbox_height = {comic.required_dim.panels_bbox_height}\n")
@@ -328,8 +331,8 @@ def get_required_pages_in_order(
             assert page_image.page_type == PageType.TITLE
             req_pages.append(CleanPage(page_image.filenames, page_image.page_type))
             continue
-        if page_image.filenames == LAST_EMPTY_FILENAME:
-            assert page_image.page_type == PageType.BACK_MATTER
+        if page_image.filenames == EMPTY_FILENAME:
+            assert page_image.page_type == PageType.BLANK_PAGE
             req_pages.append(CleanPage(page_image.filenames, page_image.page_type))
             continue
 
@@ -395,8 +398,8 @@ def get_srce_and_dest_pages_in_order(
 def get_checked_srce_file(srce_dir: str, page: CleanPage) -> str:
     if page.filename == TITLE_EMPTY_FILENAME:
         srce_file = TITLE_EMPTY_IMAGE_FILEPATH
-    elif page.filename == LAST_EMPTY_FILENAME:
-        srce_file = LAST_EMPTY_IMAGE_FILEPATH
+    elif page.filename == EMPTY_FILENAME:
+        srce_file = EMPTY_IMAGE_FILEPATH
     else:
         srce_file = os.path.join(srce_dir, page.filename + SRCE_FILE_EXT)
 
@@ -416,7 +419,7 @@ def process_pages(
         process_page(dry_run, comic, srce_page, dest_page)
 
 
-def set_av_total_panels_width_height(
+def set_required_dimensions(
     comic: ComicBook,
     src_pages: List[CleanPage],
 ):
@@ -425,6 +428,10 @@ def set_av_total_panels_width_height(
         required_panels_bbox_height,
         av_panels_bbox_height,
     ) = get_required_panels_bbox_width_height(src_pages)
+
+    assert required_panels_bbox_width == int(
+        round((DEST_TARGET_WIDTH - (2 * DEST_TARGET_X_MARGIN)))
+    )
 
     comic.av_panels_bbox_height = av_panels_bbox_height
     comic.required_dim.panels_bbox_width = required_panels_bbox_width
@@ -484,7 +491,7 @@ def get_average_panels_bbox_width_height(src_pages: List[CleanPage]) -> Tuple[in
     sum_panels_bbox_height = 0
     num_pages = 0
     for srce_page in src_pages:
-        if srce_page.page_type in FRONT_PAGES:
+        if srce_page.page_type in PAGES_WITHOUT_PANELS:
             continue
 
         panels_height = srce_page.panel_bbox.get_height()
@@ -508,7 +515,7 @@ def get_average_panels_bbox_width_height(src_pages: List[CleanPage]) -> Tuple[in
 def get_max_panels_bbox_height(src_pages: List[CleanPage]) -> int:
     max_panels_bbox_height = 0
     for srce_page in src_pages:
-        if srce_page.page_type in FRONT_PAGES:
+        if srce_page.page_type in PAGES_WITHOUT_PANELS:
             continue
 
         panels_bbox_height = srce_page.panel_bbox.get_height()
@@ -527,7 +534,7 @@ def set_srce_panel_bounding_boxes(
 
     for srce_page in src_pages:
         srce_page_image = open_image_for_reading(srce_page.filename)
-        if srce_page.page_type in FRONT_PAGES:
+        if srce_page.page_type in PAGES_WITHOUT_PANELS:
             srce_page.panel_bbox = BoundingBox(
                 0, 0, srce_page_image.width - 1, srce_page_image.height - 1
             )
@@ -543,7 +550,7 @@ def set_srce_panel_bounding_boxes(
 def get_panel_bounding_box(
     dry_run: bool, comic: ComicBook, srce_page_image: Image, srce_page: CleanPage
 ) -> BoundingBox:
-    if srce_page.page_type in FRONT_PAGES:
+    if srce_page.page_type in PAGES_WITHOUT_PANELS:
         return BoundingBox(0, 0, srce_page_image.width - 1, srce_page_image.height - 1)
 
     srce_page_bounding_box_filename = str(
@@ -756,8 +763,8 @@ def get_dest_page_image(
     log_page_info("Srce", srce_page_image, srce_page)
     log_page_info("Dest", None, dest_page)
 
-    if dest_page.page_type in FRONT_PAGES:
-        dest_page_image = get_dest_front_page_image(
+    if dest_page.page_type in PAGES_WITHOUT_PANELS:
+        dest_page_image = get_dest_non_body_page_image(
             comic, srce_page_image, srce_page, dest_page
         )
     else:
@@ -774,52 +781,85 @@ def log_page_info(prefix: str, image: Image, page: CleanPage):
     width = image.width if image else 0
     height = image.height if image else 0
     logging.debug(
-        f"{prefix}: width = {width}, height = {height},"
-        f" page_type = {page.page_type.name},"
-        f" panels bbox = {page.panel_bbox.x_min}, {page.panel_bbox.y_min},"
-        f" {page.panel_bbox.x_max}, {page.panel_bbox.y_max}."
+        f"{prefix}: width = {width:4}, height = {height:4},"
+        f" page_type = {page.page_type.name:13},"
+        f" panels bbox = {page.panel_bbox.x_min:4}, {page.panel_bbox.y_min:4},"
+        f" {page.panel_bbox.x_max:4}, {page.panel_bbox.y_max:4}."
     )
 
 
-def get_dest_front_page_image(
+def get_dest_non_body_page_image(
     comic: ComicBook, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
 ) -> Image:
+    if dest_page.page_type == PageType.FRONT:
+        return get_dest_front_page_image(srce_page_image, srce_page)
+    if dest_page.page_type == PageType.COVER:
+        return get_dest_cover_page_image(srce_page_image, srce_page)
     if dest_page.page_type == PageType.SPLASH:
-        return get_dest_splash_page(srce_page_image, srce_page)
+        return get_dest_splash_page_image(srce_page_image, srce_page)
+    if dest_page.page_type == PageType.BLANK_PAGE:
+        return get_dest_blank_page_image(srce_page_image)
+    if dest_page.page_type == PageType.TITLE:
+        return get_dest_title_page_image(comic, srce_page_image)
+    assert False
 
-    return get_dest_non_splash_front_page_image(comic, srce_page_image, srce_page)
+
+def get_dest_front_page_image(srce_page_image: Image, srce_page: CleanPage) -> Image:
+    return get_dest_black_bars_page_image(srce_page_image, srce_page)
 
 
-def get_dest_non_splash_front_page_image(
-    comic: ComicBook, srce_page_image: Image, srce_page: CleanPage
+def get_dest_cover_page_image(srce_page_image: Image, srce_page: CleanPage) -> Image:
+    return get_dest_black_bars_page_image(srce_page_image, srce_page)
+
+
+def get_dest_black_bars_page_image(
+    srce_page_image: Image, srce_page: CleanPage
 ) -> Image:
-    page_width, page_height = srce_page_image.size
+    srce_aspect_ratio = float(srce_page_image.height) / float(srce_page_image.width)
+    if abs(srce_aspect_ratio - DEST_TARGET_ASPECT_RATIO) > 0.01:
+        logging.debug(
+            f"Wrong aspect ratio for page '{srce_page.filename}':"
+            f" {srce_aspect_ratio:.2f} != {DEST_TARGET_ASPECT_RATIO:.2f}."
+            f" Using black bars."
+        )
 
-    page_aspect_ratio = float(page_height) / float(page_width)
-    if DEST_TARGET_ASPECT_RATIO != page_aspect_ratio:
-        if srce_page.page_type == PageType.COVER:
-            logging.warning(
-                f"Wrong aspect ratio for cover '{srce_page.filename}':"
-                f" {page_aspect_ratio:.2f} != {DEST_TARGET_ASPECT_RATIO:.2f}."
-            )
-        else:
-            raise Exception(
-                f"Wrong aspect ratio for front page '{srce_page.filename}':"
-                f" {page_aspect_ratio:.2f} != {DEST_TARGET_ASPECT_RATIO:.2f}."
-            )
+    required_height = get_scaled_panels_bbox_height(
+        DEST_TARGET_WIDTH, srce_page_image.width, srce_page_image.height
+    )
 
-    dest_image = srce_page_image.resize(
+    no_margins_image = srce_page_image.resize(
+        size=(DEST_TARGET_WIDTH, required_height),
+        resample=Image.Resampling.BICUBIC,
+    )
+    no_margins_aspect_ratio = float(no_margins_image.height) / float(
+        no_margins_image.width
+    )
+    assert abs(srce_aspect_ratio - no_margins_aspect_ratio) <= 0.01
+
+    if required_height == DEST_TARGET_HEIGHT:
+        return no_margins_image
+
+    dest_page_image = Image.new(
+        "RGB", (DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT), (0, 0, 0)
+    )
+    cover_top = int(round(0.5 * (DEST_TARGET_HEIGHT - required_height)))
+    dest_page_image.paste(no_margins_image, (0, cover_top))
+
+    return dest_page_image
+
+
+def get_dest_title_page_image(comic: ComicBook, srce_page_image: Image) -> Image:
+    dest_page_image = srce_page_image.resize(
         size=(DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT),
         resample=Image.Resampling.BICUBIC,
     )
 
-    if srce_page.filename == TITLE_EMPTY_IMAGE_FILEPATH:
-        write_introduction(comic, dest_image)
+    write_introduction(comic, dest_page_image)
 
-    return dest_image
+    return dest_page_image
 
 
-def get_dest_splash_page(splash_image: Image, srce_page: CleanPage) -> Image:
+def get_dest_splash_page_image(splash_image: Image, srce_page: CleanPage) -> Image:
     splash_width, splash_height = splash_image.size
     if splash_width != DEST_TARGET_WIDTH:
         raise Exception(
@@ -848,6 +888,15 @@ def get_dest_splash_page(splash_image: Image, srce_page: CleanPage) -> Image:
     splash_top = (dest_page_height - splash_height) / 2
     insert_pos = (0, int(splash_top))
     dest_page_image.paste(splash_image, insert_pos)
+
+    return dest_page_image
+
+
+def get_dest_blank_page_image(srce_page_image: Image) -> Image:
+    dest_page_image = srce_page_image.resize(
+        size=(DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT),
+        resample=Image.Resampling.BICUBIC,
+    )
 
     return dest_page_image
 
@@ -1240,6 +1289,9 @@ def log_comic_book_params(comic: ComicBook):
     logging.info(f'Comic book series:   "{comic.series_name}".')
     logging.info(f'Comic book title:    "{get_safe_title(comic.title)}".')
     logging.info(f"Number in series:    {comic.number_in_series}.")
+    logging.info(f"Dest x margin:       {DEST_TARGET_X_MARGIN}.")
+    logging.info(f"Dest width:          {DEST_TARGET_WIDTH}.")
+    logging.info(f"Dest height:         {DEST_TARGET_HEIGHT}.")
     logging.info(f"Av panels bbox hgt:  {comic.av_panels_bbox_height}.")
     logging.info(f"Req panels bbox wid: {comic.required_dim.panels_bbox_width}.")
     logging.info(f"Req panels bbox hgt: {comic.required_dim.panels_bbox_height}.")
@@ -1252,10 +1304,6 @@ def log_comic_book_params(comic: ComicBook):
     logging.info(f'Dest comic dir:      "ROOT: {comic.get_dest_basename()}".')
     logging.info(f'Dest comic zip:      "ROOT: {comic.get_dest_zip_basename()}".')
     logging.info(f'Work directory:      "{work_dir}".')
-    logging.info("")
-
-    logging.info(f"Dest width, height:   {DEST_TARGET_WIDTH}, {DEST_TARGET_HEIGHT}.")
-    logging.info(f"Dest target x margin: {DEST_TARGET_X_MARGIN}.")
     logging.info("")
 
 
@@ -1312,7 +1360,7 @@ if __name__ == "__main__":
         comic_book, required_pages, front_pages, main_pages
     )
     set_srce_panel_bounding_boxes(args.dry_run, comic_book, srce_pages)
-    set_av_total_panels_width_height(comic_book, srce_pages)
+    set_required_dimensions(comic_book, srce_pages)
     set_dest_panel_bounding_boxes(comic_book, srce_pages, dest_pages)
 
     log_comic_book_params(comic_book)
