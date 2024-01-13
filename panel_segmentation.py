@@ -73,11 +73,11 @@ class KumikoPanelSegmentation:
             y1 = y0 + (h - 1)
             if x_min > x0:
                 x_min = x0
-            elif x_max < x1:
+            if x_max < x1:
                 x_max = x1
             if y_min > y0:
                 y_min = y0
-            elif y_max < y1:
+            if y_max < y1:
                 y_max = y1
 
         assert x_min != self.__BIG_NUM

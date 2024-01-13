@@ -620,9 +620,20 @@ def get_panel_bounding_box_from_kumiko(
 ) -> BoundingBox:
     logging.debug("Getting panel bounding box from kumiko.")
 
-    (x_min, y_min, x_max, y_max), segment_info = kumiko.get_panel_bounding_box(
-        srce_page_image, srce_page.filename
-    )
+    file_basename = os.path.basename(srce_page.filename)
+    file_dirname = os.path.dirname(srce_page.filename)
+    file_with_bbox = os.path.join(file_dirname, "bounded", file_basename)
+    
+	if not os.path.isfile(file_with_bbox):
+        (x_min, y_min, x_max, y_max), segment_info = kumiko.get_panel_bounding_box(
+            srce_page_image, srce_page.filename
+        )
+    else:
+        logging.warning(f'Using bounded srce file "{file_with_bbox}".')
+        srce_bounded_image = open_image_for_reading(file_with_bbox)
+        (x_min, y_min, x_max, y_max), segment_info = kumiko.get_panel_bounding_box(
+            srce_bounded_image, srce_page.filename
+        )
 
     save_segment_info(work_dir, srce_page.filename, segment_info)
     if dry_run:
