@@ -5,7 +5,7 @@ from typing import Any, Dict, Tuple
 
 from PIL import Image, ImageDraw
 
-from consts import DRY_RUN_STR
+from consts import DRY_RUN_STR, PANEL_BOUNDS_FILENAME_SUFFIX
 from panel_segmentation import KumikoPanelSegmentation
 
 
@@ -118,15 +118,18 @@ class BoundingBoxProcessor(object):
         else:
             logging.debug(f'Saving panel segment info to "{segment_info_filename}".')
 
+        segment_info_filtered = {
+            k: v for k, v in segment_info.items() if k != "processing_time"
+        }
         with open(segment_info_filename, "w") as f:
-            f.write(f"{segment_info}\n")
+            f.write(f"{segment_info_filtered}\n")
 
     def __dump_panels_bounding_box(
         self, page_filename: str, x_min: int, y_min: int, x_max: int, y_max: int
     ):
         bounds_filename = os.path.join(
             self.__work_dir,
-            os.path.splitext(os.path.basename(page_filename))[0] + "_panel_bounds.txt",
+            os.path.splitext(os.path.basename(page_filename))[0] + PANEL_BOUNDS_FILENAME_SUFFIX,
         )
         logging.debug(f'Saving panel bounds to work file "{bounds_filename}".')
         with open(bounds_filename, "w") as f:
