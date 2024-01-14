@@ -2,6 +2,7 @@ import argparse
 import configparser
 import datetime
 import inspect
+import json
 import logging
 import os
 import shutil
@@ -21,7 +22,21 @@ from comics_info import (
     MONTH_AS_LONG_STR,
     SOURCE_COMICS,
 )
-from consts import DRY_RUN_STR, ROMAN_NUMERALS
+from consts import (
+    BARKS,
+    BARKS_ROOT_DIR,
+    THE_COMICS_DIR,
+    CONFIGS_SUBDIR,
+    IMAGES_SUBDIR,
+    INSET_FILE_EXT,
+    DEST_FILE_EXT,
+    SRCE_FILE_EXT,
+    EMPTY_FILENAME,
+    TITLE_EMPTY_FILENAME,
+    DRY_RUN_STR,
+    ROMAN_NUMERALS,
+    DEST_SRCE_MAP_FILENAME,
+)
 from panel_bounding_boxes import BoundingBox, BoundingBoxProcessor
 
 THIS_SCRIPT_DIR = os.path.dirname(
@@ -63,18 +78,6 @@ PAGE_NUM_X_OFFSET_FROM_CENTRE = 150
 PAGE_NUM_X_BLANK_PIXEL_OFFSET = 250
 PAGE_NUM_HEIGHT = 40
 PAGE_NUM_FONT_SIZE = 30
-
-BARKS = "Carl Barks"
-BARKS_ROOT_DIR = os.path.join(str(Path.home()), "Books", BARKS)
-THE_COMICS_DIR = os.path.join(BARKS_ROOT_DIR, "The Comics")
-IMAGES_SUBDIR = "images"
-CONFIGS_SUBDIR = "Configs"
-TITLE_EMPTY_FILENAME = "title_empty"
-EMPTY_FILENAME = "empty"
-NUMBER_LEN = 3
-SRCE_FILE_EXT = ".jpg"
-DEST_FILE_EXT = ".jpg"
-INSERT_FILE_EXT = ".png"
 
 EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "empty_page.png")
 TITLE_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
@@ -136,7 +139,8 @@ class ComicBook:
     author_font_size: int
     av_panels_bbox_height: int
     required_dim: RequiredDimensions
-    source_dir: str
+    srce_root_dir: str
+    srce_dir: str
     panel_segments_dir: str
     series_name: str
     number_in_series: int
@@ -149,9 +153,6 @@ class ComicBook:
         assert self.series_name != ""
         assert self.number_in_series > 0
 
-    def get_srce_root_dir(self) -> str:
-        return os.path.dirname(self.source_dir)
-
     def get_srce_segments_root_dir(self) -> str:
         return os.path.dirname(self.panel_segments_dir)
 
@@ -162,7 +163,7 @@ class ComicBook:
         )
 
     def get_srce_basename(self) -> str:
-        return os.path.basename(self.source_dir)
+        return os.path.basename(self.srce_dir)
 
     def get_segments_basename(self) -> str:
         return os.path.basename(self.panel_segments_dir)
@@ -170,15 +171,21 @@ class ComicBook:
     def get_dest_basename(self) -> str:
         return os.path.basename(self.get_dest_dir())
 
-    def get_dest_dir(self) -> str:
+    def get_dest_rel_dirname(self) -> str:
         safe_title = get_safe_title(self.title)
         return os.path.join(
-            self.get_dest_root_dir(),
+            os.path.basename(self.get_dest_root_dir()),
             f"{self.number_in_series:03d} {safe_title}",
         )
 
+    def get_dest_dir(self) -> str:
+        return os.path.join(
+            THE_COMICS_DIR,
+            self.get_dest_rel_dirname(),
+        )
+
     def get_srce_image_dir(self) -> str:
-        return os.path.join(self.source_dir, IMAGES_SUBDIR)
+        return os.path.join(self.srce_dir, IMAGES_SUBDIR)
 
     def get_dest_image_dir(self) -> str:
         return os.path.join(self.get_dest_dir(), IMAGES_SUBDIR)
@@ -236,16 +243,16 @@ def zip_comic_book(dry_run: bool, comic: ComicBook):
             )
 
 
-def print_comic_book_properties(
+def write_summary(
     comic: ComicBook, srce_page_list: List[CleanPage], dest_page_list: List[CleanPage]
 ):
-    summary_file = os.path.join(work_dir, "summary.txt")
+    summary_file = os.path.join(comic.get_dest_dir(), "clean_summary.txt")
 
     with open(summary_file, "w") as f:
         f.write("Config Summary:\n")
         f.write(f'title                  = "{comic.title}"\n')
-        f.write(f'source_dir             = "{comic.source_dir}"\n')
-        f.write(f'target_dir             = "{comic.get_dest_dir()}"\n')
+        f.write(f'srce_dir               = "{comic.srce_dir}"\n')
+        f.write(f'dest_dir               = "{comic.get_dest_dir()}"\n')
         f.write(f'title_font_file        = "{get_font_path(comic.title_font_file)}"\n')
         f.write(f"title_font_size        = {comic.title_font_size}\n")
         f.write(f"author_font_size       = {comic.author_font_size}\n")
@@ -988,7 +995,10 @@ def get_page_number_str(page: CleanPage, page_number: int) -> str:
 
 
 def process_additional_files(
-    dry_run: bool, comic: ComicBook, dst_pages: List[CleanPage]
+    dry_run: bool,
+    comic: ComicBook,
+    src_pages: List[CleanPage],
+    dst_pages: List[CleanPage],
 ):
     if dry_run:
         logging.info(
@@ -999,6 +1009,7 @@ def process_additional_files(
 
     write_readme_file(dry_run, comic)
     write_metadata_file(dry_run, comic, dst_pages)
+    write_srce_dest_map(dry_run, comic, src_pages, dst_pages)
 
 
 def write_readme_file(dry_run: bool, comic: ComicBook):
@@ -1033,6 +1044,33 @@ def write_metadata_file(dry_run: bool, comic: ComicBook, dst_pages: List[CleanPa
             body_start_page_num = orig_page_num
             f.write(f"[{PAGE_NUMBERS_SECTION}]\n")
             f.write(f"body_start = {body_start_page_num}\n")
+
+
+def write_srce_dest_map(
+    dry_run: bool,
+    comic: ComicBook,
+    src_pages: List[CleanPage],
+    dst_pages: List[CleanPage],
+):
+    src_dst_map_file = os.path.join(comic.get_dest_dir(), DEST_SRCE_MAP_FILENAME)
+    if dry_run:
+        logging.info(f'{DRY_RUN_STR}: Write srce dest map to "{src_dst_map_file}".')
+    else:
+        srce_dest_map = dict()
+        srce_dest_map["srce_dirname"] = comic.get_srce_basename()
+        srce_dest_map["dest_dirname"] = comic.get_dest_rel_dirname()
+
+        dest_page_map = dict()
+        for srce_page, dest_page in zip(src_pages, dst_pages):
+            srce_page = {
+                "file": os.path.basename(srce_page.filename),
+                "type": dest_page.page_type.name,
+            }
+            dest_page_map[os.path.basename(dest_page.filename)] = srce_page
+        srce_dest_map["pages"] = dest_page_map
+
+        with open(src_dst_map_file, "w") as f:
+            json.dump(srce_dest_map, f)
 
 
 def create_dest_dirs(dry_run: bool, comic: ComicBook):
@@ -1110,21 +1148,22 @@ def get_comic_book(ini_file: str) -> ComicBook:
     title = config["info"]["title"]
     safe_title = get_safe_title(title)
     intro_inset_file = os.path.join(
-        CONFIGS_SUBDIR, safe_title + " Inset" + INSERT_FILE_EXT
+        CONFIGS_SUBDIR, safe_title + " Inset" + INSET_FILE_EXT
     )
 
     cb_info: ComicBookInfo = all_comic_book_info[safe_title]
-    source_info = SOURCE_COMICS[config["info"]["source_comic"]]
-    source_dir = os.path.join(BARKS_ROOT_DIR, source_info.pub, source_info.title)
+    srce_info = SOURCE_COMICS[config["info"]["source_comic"]]
+    srce_root_dir = os.path.join(BARKS_ROOT_DIR, srce_info.pub)
+    srce_dir = os.path.join(srce_root_dir, srce_info.title)
     panel_segments_dir = os.path.join(
-        BARKS_ROOT_DIR, source_info.pub + "-panel-segments", source_info.title
+        BARKS_ROOT_DIR, srce_info.pub + "-panel-segments", srce_info.title
     )
 
     publication_text = (
         f"First published in {get_formatted_first_published_str(cb_info)}\n"
         + f"Submitted to Western Publishing{get_formatted_submitted_date(cb_info)}\n"
         + f"\n"
-        + f"This edition published by {source_info.pub}, {source_info.year}\n"
+        + f"This edition published by {srce_info.pub}, {srce_info.year}\n"
         + f"Color restoration by {cb_info.colorist}"
     )
 
@@ -1142,7 +1181,8 @@ def get_comic_book(ini_file: str) -> ComicBook:
         ),
         av_panels_bbox_height=-1,
         required_dim=RequiredDimensions(),
-        source_dir=source_dir,
+        srce_root_dir=srce_root_dir,
+        srce_dir=srce_dir,
         panel_segments_dir=panel_segments_dir,
         series_name=cb_info.series_name,
         number_in_series=cb_info.number_in_series,
@@ -1168,7 +1208,7 @@ def log_comic_book_params(comic: ComicBook):
     logging.info(f"Req panels bbox wid: {comic.required_dim.panels_bbox_width}.")
     logging.info(f"Req panels bbox hgt: {comic.required_dim.panels_bbox_height}.")
     logging.info(f"Page num y bottom:   {comic.required_dim.page_num_y_bottom}.")
-    logging.info(f'Srce root:           "{comic.get_srce_root_dir()}".')
+    logging.info(f'Srce root:           "{comic.srce_root_dir}".')
     logging.info(f'Srce comic dir:      "ROOT: {comic.get_srce_basename()}".')
     logging.info(f'Srce segments root:  "{comic.get_srce_segments_root_dir()}".')
     logging.info(f'Srce segments dir:   "ROOT: {comic.get_segments_basename()}".')
@@ -1239,8 +1279,8 @@ if __name__ == "__main__":
 
     create_dest_dirs(args.dry_run, comic_book)
     process_pages(args.dry_run, comic_book, srce_pages, dest_pages)
-    process_additional_files(args.dry_run, comic_book, dest_pages)
+    process_additional_files(args.dry_run, comic_book, srce_pages, dest_pages)
 
-    print_comic_book_properties(comic_book, srce_pages, dest_pages)
+    write_summary(comic_book, srce_pages, dest_pages)
 
     zip_comic_book(args.dry_run, comic_book)
