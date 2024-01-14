@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import List, Tuple
 
 from PIL import Image, ImageFont, ImageDraw
 
@@ -21,13 +21,13 @@ from comics_info import (
     MONTH_AS_LONG_STR,
     SOURCE_COMICS,
 )
-from panel_segmentation import KumikoPanelSegmentation
+from consts import DRY_RUN_STR, ROMAN_NUMERALS
+from panel_bounding_boxes import BoundingBox, BoundingBoxProcessor
 
 THIS_SCRIPT_DIR = os.path.dirname(
     os.path.abspath(inspect.getfile(inspect.currentframe()))
 )
 
-DRY_RUN_STR = "DRY_RUN"
 README_FILENAME = "readme.txt"
 DOUBLE_PAGES_SECTION = "double_pages"
 PAGE_NUMBERS_SECTION = "page_numbers"
@@ -83,19 +83,6 @@ EMPTY_IMAGE_FILES = {
     TITLE_EMPTY_IMAGE_FILEPATH,
 }
 
-ROMAN_NUMERALS = {
-    1: "i",
-    2: "ii",
-    3: "iii",
-    4: "iv",
-    5: "v",
-    6: "vi",
-    7: "vii",
-    8: "viii",
-    9: "ix",
-    10: "x",
-}
-
 
 class PageType(Enum):
     FRONT = 1
@@ -126,23 +113,6 @@ class OriginalPage:
 
 
 @dataclass
-class BoundingBox:
-    x_min: int = -1
-    y_min: int = -1
-    x_max: int = -1
-    y_max: int = -1
-
-    def get_box(self) -> Tuple[int, int, int, int]:
-        return self.x_min, self.y_min, self.x_max, self.y_max
-
-    def get_width(self) -> int:
-        return (self.x_max - self.x_min) + 1
-
-    def get_height(self) -> int:
-        return (self.y_max - self.y_min) + 1
-
-
-@dataclass
 class RequiredDimensions:
     panels_bbox_width: int = -1
     panels_bbox_height: int = -1
@@ -154,7 +124,7 @@ class CleanPage:
     filename: str
     page_type: PageType
     page_num: int = -1
-    panel_bbox: BoundingBox = field(default_factory=BoundingBox)
+    panels_bbox: BoundingBox = field(default_factory=BoundingBox)
 
 
 @dataclass
@@ -310,8 +280,8 @@ def print_comic_book_properties(
                 f" as dest {dest_filename:6},"
                 f" type {dest_page_type:14}, "
                 f" page {dest_page.page_num:2} ({get_page_num_str(dest_page):>3}),"
-                f" bbox ({dest_page.panel_bbox.x_min:3}, {dest_page.panel_bbox.y_min:3},"
-                f" {dest_page.panel_bbox.x_max:3}, {dest_page.panel_bbox.y_max:3}).\n"
+                f" bbox ({dest_page.panels_bbox.x_min:3}, {dest_page.panels_bbox.y_min:3},"
+                f" {dest_page.panels_bbox.x_max:3}, {dest_page.panels_bbox.y_max:3}).\n"
             )
         f.write("\n")
 
@@ -493,13 +463,13 @@ def get_average_panels_bbox_width_height(src_pages: List[CleanPage]) -> Tuple[in
         if srce_page.page_type in PAGES_WITHOUT_PANELS:
             continue
 
-        panels_height = srce_page.panel_bbox.get_height()
+        panels_height = srce_page.panels_bbox.get_height()
         if panels_height < (
             max_panels_bbox_height - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
         ):
             continue
 
-        panels_width = srce_page.panel_bbox.get_width()
+        panels_width = srce_page.panels_bbox.get_width()
 
         sum_panels_bbox_width += panels_width
         sum_panels_bbox_height += panels_height
@@ -517,7 +487,7 @@ def get_max_panels_bbox_height(src_pages: List[CleanPage]) -> int:
         if srce_page.page_type in PAGES_WITHOUT_PANELS:
             continue
 
-        panels_bbox_height = srce_page.panel_bbox.get_height()
+        panels_bbox_height = srce_page.panels_bbox.get_height()
         if max_panels_bbox_height < panels_bbox_height:
             max_panels_bbox_height = panels_bbox_height
 
@@ -534,19 +504,19 @@ def set_srce_panel_bounding_boxes(
     for srce_page in src_pages:
         srce_page_image = open_image_for_reading(srce_page.filename)
         if srce_page.page_type in PAGES_WITHOUT_PANELS:
-            srce_page.panel_bbox = BoundingBox(
+            srce_page.panels_bbox = BoundingBox(
                 0, 0, srce_page_image.width - 1, srce_page_image.height - 1
             )
         else:
             srce_page_image = srce_page_image.convert("RGB")
-            srce_page.panel_bbox = get_panel_bounding_box(
+            srce_page.panels_bbox = get_panels_bounding_box(
                 dry_run, comic, srce_page_image, srce_page
             )
 
     logging.debug("")
 
 
-def get_panel_bounding_box(
+def get_panels_bounding_box(
     dry_run: bool, comic: ComicBook, srce_page_image: Image, srce_page: CleanPage
 ) -> BoundingBox:
     if srce_page.page_type in PAGES_WITHOUT_PANELS:
@@ -560,7 +530,9 @@ def get_panel_bounding_box(
         )
     )
     if os.path.isfile(srce_page_bounding_box_filename):
-        return get_panel_bounding_box_from_file(srce_page_bounding_box_filename)
+        return boundingBoxProcessor.get_panels_bounding_box_from_file(
+            srce_page_bounding_box_filename
+        )
 
     logging.info(
         f'Getting Kumiko panel segment info for srce file "{os.path.basename(srce_page.filename)}".'
@@ -574,8 +546,8 @@ def get_panel_bounding_box(
         else:
             os.makedirs(comic.panel_segments_dir, exist_ok=True)
 
-    bounding_box = get_panel_bounding_box_from_kumiko(
-        dry_run, comic, srce_page_image, srce_page
+    bounding_box = boundingBoxProcessor.get_panels_bounding_box_from_kumiko(
+        dry_run, comic.panel_segments_dir, srce_page_image, srce_page.filename
     )
 
     if dry_run:
@@ -583,116 +555,11 @@ def get_panel_bounding_box(
             f'{DRY_RUN_STR}: Saving panel bounding box to "{srce_page_bounding_box_filename}".'
         )
     else:
-        save_panel_bounding_box(srce_page_bounding_box_filename, bounding_box)
+        boundingBoxProcessor.save_panels_bounding_box(
+            srce_page_bounding_box_filename, bounding_box
+        )
 
     return bounding_box
-
-
-def get_panel_bounding_box_from_file(filename: str) -> BoundingBox:
-    with open(filename, "r") as f:
-        line = f.readline()
-        vals = line.split(", ")
-        x_min = int(vals[0])
-        y_min = int(vals[1])
-        x_max = int(vals[2])
-        y_max = int(vals[3])
-
-        logging.debug(
-            f'Got panel bounding box file "PANEL_SEGMENTS_DIR: {os.path.basename(filename)}".'
-            f"Box: {x_min}, {y_min}, {x_max}, {y_max}."
-        )
-
-        return BoundingBox(x_min, y_min, x_max, y_max)
-
-
-def save_panel_bounding_box(filename: str, bounding_box: BoundingBox):
-    logging.debug(f'Saving panel bounding box to file "{filename}".')
-
-    with open(filename, "w") as f:
-        f.write(
-            f"{bounding_box.x_min}, {bounding_box.y_min}, "
-            f"{bounding_box.x_max}, {bounding_box.y_max}\n"
-        )
-
-
-def get_panel_bounding_box_from_kumiko(
-    dry_run: bool, comic: ComicBook, srce_page_image: Image, srce_page: CleanPage
-) -> BoundingBox:
-    logging.debug("Getting panel bounding box from kumiko.")
-
-    file_basename = os.path.basename(srce_page.filename)
-    file_dirname = os.path.dirname(srce_page.filename)
-    file_with_bbox = os.path.join(file_dirname, "bounded", file_basename)
-    
-	if not os.path.isfile(file_with_bbox):
-        (x_min, y_min, x_max, y_max), segment_info = kumiko.get_panel_bounding_box(
-            srce_page_image, srce_page.filename
-        )
-    else:
-        logging.warning(f'Using bounded srce file "{file_with_bbox}".')
-        srce_bounded_image = open_image_for_reading(file_with_bbox)
-        (x_min, y_min, x_max, y_max), segment_info = kumiko.get_panel_bounding_box(
-            srce_bounded_image, srce_page.filename
-        )
-
-    save_segment_info(work_dir, srce_page.filename, segment_info)
-    if dry_run:
-        logging.info(
-            f'{DRY_RUN_STR}: Saving panel segment info to "{comic.panel_segments_dir}".'
-        )
-    else:
-        save_segment_info(comic.panel_segments_dir, srce_page.filename, segment_info)
-
-    dump_panel_bounds(srce_page.filename, x_min, y_min, x_max, y_max)
-
-    return BoundingBox(x_min, y_min, x_max, y_max)
-
-
-def save_segment_info(
-    output_dir: str, page_filename: str, segment_info: Dict[str, Any]
-):
-    segment_info_filename = os.path.join(
-        output_dir,
-        os.path.splitext(os.path.basename(page_filename))[0] + "_panel_segments.json",
-    )
-
-    if output_dir == work_dir:
-        logging.debug(
-            f'Saving panel segment info to work file "{segment_info_filename}".'
-        )
-    else:
-        logging.debug(f'Saving panel segment info to "{segment_info_filename}".')
-
-    with open(segment_info_filename, "w") as f:
-        f.write(f"{segment_info}\n")
-
-
-def dump_panel_bounds(
-    page_filename: str, x_min: int, y_min: int, x_max: int, y_max: int
-):
-    bounds_filename = os.path.join(
-        work_dir,
-        os.path.splitext(os.path.basename(page_filename))[0] + "_panel_bounds.txt",
-    )
-    logging.debug(f'Saving panel bounds to work file "{bounds_filename}".')
-    with open(bounds_filename, "w") as f:
-        f.write(f"{x_min}, {y_min}, {x_max}, {y_max}\n")
-
-    # Draw the panel bounds on page image.
-    page_image = open_image_for_reading(page_filename)
-    draw = ImageDraw.Draw(page_image)
-    draw.line([(x_min, y_min), (x_max, y_min)], width=3, fill=(256, 0, 0))
-    draw.line([(x_max, y_min), (x_max, y_max)], width=3, fill=(256, 0, 0))
-    draw.line([(x_max, y_max), (x_min, y_max)], width=3, fill=(256, 0, 0))
-    draw.line([(x_min, y_max), (x_min, y_min)], width=3, fill=(256, 0, 0))
-
-    marked_image_filename = os.path.join(
-        work_dir,
-        os.path.splitext(os.path.basename(page_filename))[0]
-        + "_panel_bounds_marked.jpg",
-    )
-    logging.debug(f'Saving panel bounds image to work file "{marked_image_filename}".')
-    page_image.save(marked_image_filename, optimize=True, compress_level=5)
 
 
 def set_dest_panel_bounding_boxes(
@@ -703,18 +570,18 @@ def set_dest_panel_bounding_boxes(
     logging.debug("Setting dest panel bounding boxes.")
 
     for srce_page, dest_page in zip(src_pages, dst_pages):
-        dest_page.panel_bbox = get_dest_panel_bounding_box(comic, srce_page)
+        dest_page.panels_bbox = get_dest_panel_bounding_box(comic, srce_page)
 
     logging.debug("")
 
 
 def get_dest_panel_bounding_box(comic: ComicBook, srce_page: CleanPage) -> BoundingBox:
     if srce_page.page_type in PAGES_WITHOUT_PANELS:
-        return BoundingBox(0, 0, DEST_TARGET_WIDTH-1, DEST_TARGET_HEIGHT-1)
-        
+        return BoundingBox(0, 0, DEST_TARGET_WIDTH - 1, DEST_TARGET_HEIGHT - 1)
+
     required_panels_width = int(DEST_TARGET_WIDTH - (2 * DEST_TARGET_X_MARGIN))
-    srce_panels_bbox_width = srce_page.panel_bbox.get_width()
-    srce_panels_bbox_height = srce_page.panel_bbox.get_height()
+    srce_panels_bbox_width = srce_page.panels_bbox.get_width()
+    srce_panels_bbox_height = srce_page.panels_bbox.get_height()
 
     if srce_panels_bbox_height >= (
         comic.av_panels_bbox_height - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
@@ -793,8 +660,8 @@ def log_page_info(prefix: str, image: Image, page: CleanPage):
     logging.debug(
         f"{prefix}: width = {width:4}, height = {height:4},"
         f" page_type = {page.page_type.name:13},"
-        f" panels bbox = {page.panel_bbox.x_min:4}, {page.panel_bbox.y_min:4},"
-        f" {page.panel_bbox.x_max:4}, {page.panel_bbox.y_max:4}."
+        f" panels bbox = {page.panels_bbox.x_min:4}, {page.panels_bbox.y_min:4},"
+        f" {page.panels_bbox.x_max:4}, {page.panels_bbox.y_max:4}."
     )
 
 
@@ -808,7 +675,9 @@ def get_dest_non_body_page_image(
     if dest_page.page_type == PageType.SPLASH:
         return get_dest_splash_page_image(srce_page_image, srce_page)
     if dest_page.page_type == PageType.BACK_NO_PANELS:
-        return get_dest_no_panels_page_image(comic, srce_page_image, srce_page, dest_page)
+        return get_dest_no_panels_page_image(
+            comic, srce_page_image, srce_page, dest_page
+        )
     if dest_page.page_type == PageType.BLANK_PAGE:
         return get_dest_blank_page_image(srce_page_image)
     if dest_page.page_type == PageType.TITLE:
@@ -841,10 +710,14 @@ def get_dest_splash_page_image(splash_image: Image, srce_page: CleanPage) -> Ima
     return get_dest_centred_page_image(splash_image, srce_page, dest_page_image)
 
 
-def get_dest_no_panels_page_image(comic: ComicBook, no_panels_image: Image, srce_page: CleanPage, dest_page: CleanPage) -> Image:
+def get_dest_no_panels_page_image(
+    comic: ComicBook, no_panels_image: Image, srce_page: CleanPage, dest_page: CleanPage
+) -> Image:
     dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
 
-    dest_page_image = get_dest_centred_page_image(no_panels_image, srce_page, dest_page_image)
+    dest_page_image = get_dest_centred_page_image(
+        no_panels_image, srce_page, dest_page_image
+    )
 
     write_page_number(comic, dest_page_image, dest_page, PAGE_NUM_COLOR)
 
@@ -905,7 +778,7 @@ def get_dest_blank_page_image(srce_page_image: Image) -> Image:
 def get_dest_main_page_image(
     comic: ComicBook, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
 ) -> Image:
-    dest_panels_image = srce_page_image.crop(srce_page.panel_bbox.get_box())
+    dest_panels_image = srce_page_image.crop(srce_page.panels_bbox.get_box())
     dest_page_image = get_centred_dest_page_image(dest_page, dest_panels_image)
 
     if dest_page_image.width != DEST_TARGET_WIDTH:
@@ -930,11 +803,11 @@ def get_centred_dest_page_image(
     dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
 
     dest_panels_image = dest_panels_image.resize(
-        size=(dest_page.panel_bbox.get_width(), dest_page.panel_bbox.get_height()),
+        size=(dest_page.panels_bbox.get_width(), dest_page.panels_bbox.get_height()),
         resample=Image.Resampling.BICUBIC,
     )
 
-    dest_panels_pos = (dest_page.panel_bbox.x_min, dest_page.panel_bbox.y_min)
+    dest_panels_pos = (dest_page.panels_bbox.x_min, dest_page.panels_bbox.y_min)
     dest_page_image.paste(dest_panels_image, dest_panels_pos)
 
     return dest_page_image
@@ -1336,7 +1209,7 @@ if __name__ == "__main__":
     work_dir = os.path.join(work_dir, datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
     os.makedirs(work_dir)
 
-    kumiko = KumikoPanelSegmentation(work_dir)
+    boundingBoxProcessor = BoundingBoxProcessor(work_dir)
 
     config_file = args.ini_file
     if not os.path.isfile(config_file):
