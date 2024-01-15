@@ -7,10 +7,10 @@ from typing import Any, Dict, List, Tuple
 
 from PIL import Image
 
+from consts import BIG_NUM
+
 
 class KumikoPanelSegmentation:
-    __BIG_NUM = 10000
-
     def __init__(self, work_dir: str):
         self.__work_dir = work_dir
 
@@ -60,8 +60,8 @@ class KumikoPanelSegmentation:
         self,
         segment_info: List[List[int]],
     ) -> Tuple[int, int, int, int]:
-        x_min = self.__BIG_NUM
-        y_min = self.__BIG_NUM
+        x_min = BIG_NUM
+        y_min = BIG_NUM
         x_max = 0
         y_max = 0
         for segment in segment_info:
@@ -80,8 +80,8 @@ class KumikoPanelSegmentation:
             if y_max < y1:
                 y_max = y1
 
-        assert x_min != self.__BIG_NUM
-        assert y_min != self.__BIG_NUM
+        assert x_min != BIG_NUM
+        assert y_min != BIG_NUM
         assert x_max != 0
         assert y_max != 0
 

@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 DRY_RUN_STR = "DRY_RUN"
+BIG_NUM = 10000
 
 ROMAN_NUMERALS = {
     1: "i",

@@ -7,6 +7,7 @@ from consts import (
     DEST_SRCE_MAP_FILENAME,
     PANEL_BOUNDS_FILENAME_SUFFIX,
 )
+from panel_bounding_boxes import BoundingBoxProcessor
 
 
 def check_bbox_dir(dir_path: str):
@@ -24,6 +25,13 @@ if __name__ == "__main__":
     srce_comic_dirname = dest_map["srce_dirname"]
     comic_bbox_dir = os.path.join(bbox_dir, srce_comic_dirname)
 
+    print(f'srce_min_panels_bbox_width = {dest_map["srce_min_panels_bbox_width"]}')
+    print(f'srce_max_panels_bbox_width = {dest_map["srce_max_panels_bbox_width"]}')
+    print(f'srce_min_panels_bbox_height = {dest_map["srce_min_panels_bbox_height"]}')
+    print(f'srce_max_panels_bbox_height = {dest_map["srce_max_panels_bbox_height"]}')
+
+    boundingBoxProcessor = BoundingBoxProcessor("/tmp")
+
     #    print(dest_map)
     bbox_file_list = []
     for page in dest_map["pages"]:
@@ -33,7 +41,8 @@ if __name__ == "__main__":
             comic_bbox_dir,
             f'{os.path.splitext(dest_map["pages"][page]["file"])[0]}{PANEL_BOUNDS_FILENAME_SUFFIX}',
         )
-        bbox_file_list.append(bounds_filename)
+        bbox = boundingBoxProcessor.get_panels_bounding_box_from_file(bounds_filename)
+        bbox_file_list.append((os.path.basename(bounds_filename), bbox))
 
     for f in bbox_file_list:
-        print(f)
+        print(f'"{f[0]}": {f[1]}, width = {f[1].get_width()}, height = {f[1].get_height()}')
