@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 from PIL import Image, ImageFont, ImageDraw
 
@@ -47,6 +47,7 @@ README_FILENAME = "readme.txt"
 DOUBLE_PAGES_SECTION = "double_pages"
 PAGE_NUMBERS_SECTION = "page_numbers"
 METADATA_FILENAME = "metadata.txt"
+JSON_METADATA_FILENAME = "comic-metadata.json"
 
 DEST_TARGET_WIDTH = 2120
 DEST_TARGET_HEIGHT = 3200
@@ -146,6 +147,8 @@ class ComicBook:
     number_in_series: int
     intro_inset_file: str
     intro_inset_ratio: float
+    publication_date: str
+    submitted_date: str
     publication_text: str
     images_in_order: List[OriginalPage]
 
@@ -1009,6 +1012,7 @@ def process_additional_files(
 
     write_readme_file(dry_run, comic)
     write_metadata_file(dry_run, comic, dst_pages)
+    write_json_metadata(dry_run, comic, dst_pages)
     write_srce_dest_map(dry_run, comic, src_pages, dst_pages)
 
 
@@ -1044,6 +1048,83 @@ def write_metadata_file(dry_run: bool, comic: ComicBook, dst_pages: List[CleanPa
             body_start_page_num = orig_page_num
             f.write(f"[{PAGE_NUMBERS_SECTION}]\n")
             f.write(f"body_start = {body_start_page_num}\n")
+
+
+def write_json_metadata(dry_run: bool, comic: ComicBook, dst_pages: List[CleanPage]):
+    metadata_file = os.path.join(comic.get_dest_dir(), JSON_METADATA_FILENAME)
+    if dry_run:
+        logging.info(f'{DRY_RUN_STR}: Write json metadata to "{metadata_file}".')
+    else:
+        metadata = dict()
+        metadata["srce_file"] = comic.srce_dir
+        metadata["dest_file"] = comic.get_dest_dir()
+        metadata["publication_date"] = comic.publication_date
+        metadata["submitted_date"] = comic.submitted_date
+        metadata["av_panels_bbox_height"] = comic.av_panels_bbox_height
+        metadata["required_dim"] = [
+            comic.required_dim.panels_bbox_width,
+            comic.required_dim.panels_bbox_height,
+            comic.required_dim.page_num_y_bottom,
+        ]
+        metadata["page_counts"] = get_page_counts(comic, dst_pages)
+        with open(metadata_file, "w") as f:
+            json.dump(metadata, f)
+
+
+def get_page_counts(comic: ComicBook, dst_pages: List[CleanPage]) -> Dict[str, int]:
+    page_counts = dict()
+
+    painting_page_count = len([p for p in dst_pages if p.page_type == PageType.FRONT])
+    assert painting_page_count <= 1
+
+    title_page_count = len([p for p in dst_pages if p.page_type == PageType.TITLE])
+    assert title_page_count == 1
+
+    cover_page_count = len([p for p in dst_pages if p.page_type == PageType.COVER])
+    assert cover_page_count <= 1
+
+    splash_page_count = len([p for p in dst_pages if p.page_type == PageType.SPLASH])
+
+    front_matter_page_count = len(
+        [p for p in dst_pages if p.page_type == PageType.FRONT_MATTER]
+    )
+
+    story_page_count = len([p for p in dst_pages if p.page_type == PageType.BODY])
+
+    back_matter_page_count = len(
+        [
+            p
+            for p in dst_pages
+            if p.page_type in [PageType.BACK_MATTER, PageType.BACK_NO_PANELS]
+        ]
+    )
+
+    blank_page_count = len([p for p in dst_pages if p.page_type == PageType.BLANK_PAGE])
+
+    total_page_count = len(dst_pages)
+    assert total_page_count == (
+        painting_page_count
+        + title_page_count
+        + cover_page_count
+        + splash_page_count
+        + front_matter_page_count
+        + story_page_count
+        + back_matter_page_count
+        + blank_page_count
+    )
+
+    page_counts["painting"] = painting_page_count
+    page_counts["title"] = title_page_count
+    page_counts["cover"] = cover_page_count
+    page_counts["splash"] = splash_page_count
+    page_counts["front_matter"] = front_matter_page_count
+    page_counts["story"] = story_page_count
+    page_counts["back_matter"] = back_matter_page_count
+    page_counts["blank"] = blank_page_count
+
+    page_counts["total"] = total_page_count
+
+    return page_counts
 
 
 def write_srce_dest_map(
@@ -1159,6 +1240,8 @@ def get_comic_book(ini_file: str) -> ComicBook:
         BARKS_ROOT_DIR, srce_info.pub + "-panel-segments", srce_info.title
     )
 
+    publication_date = get_formatted_first_published_str(cb_info)
+    submitted_date = get_formatted_submitted_date(cb_info)
     publication_text = (
         f"First published in {get_formatted_first_published_str(cb_info)}\n"
         + f"Submitted to Western Publishing{get_formatted_submitted_date(cb_info)}\n"
@@ -1188,6 +1271,8 @@ def get_comic_book(ini_file: str) -> ComicBook:
         number_in_series=cb_info.number_in_series,
         intro_inset_file=intro_inset_file,
         intro_inset_ratio=config["introduction"].getfloat("intro_inset_ratio", 1.0),
+        publication_date=publication_date,
+        submitted_date=submitted_date,
         publication_text=publication_text,
         images_in_order=[
             OriginalPage(key, PageType[config["pages"][key]]) for key in config["pages"]
