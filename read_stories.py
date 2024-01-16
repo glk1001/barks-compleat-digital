@@ -1,8 +1,13 @@
+import os.path
 import re
 from dataclasses import dataclass
 from typing import List, Tuple
 
-STORY_INDEX_FILE = "wiki-story-index.txt"
+from consts import THIS_DIR, PUBLICATION_INFO_DIRNAME
+
+STORY_INDEX_FILE = os.path.join(
+    THIS_DIR, PUBLICATION_INFO_DIRNAME, "wiki-story-index.txt"
+)
 
 LONG_MONTHS = {
     "<none>": "<none>",

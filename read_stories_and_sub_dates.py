@@ -1,5 +1,6 @@
 import csv
 import functools
+import os.path
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
@@ -18,6 +19,7 @@ from comics_info import (
     US,
     VP,
 )
+from consts import THIS_DIR, SUBMISSION_DATES_DIRNAME
 from create_clean_comic import MONTH_AS_LONG_STR, get_formatted_day
 from read_stories import get_all_stories, StoryInfo
 from read_sub_dates import get_all_submitted_info, SubmittedInfo, SubmittedInfoDict
@@ -37,6 +39,8 @@ MONTH_AS_INT: Dict[str, int] = {
     "November": comics_info.NOV,
     "December": comics_info.DEC,
 }
+
+SUBMISSION_DATES_DIR = str(os.path.join(THIS_DIR, SUBMISSION_DATES_DIRNAME))
 
 COMICS_AND_STORIES_ISSUE_NAME = "W WDC"
 COMICS_AND_STORIES_FILENAME = "sub-dates-cs-cleaned.txt"
@@ -72,35 +76,43 @@ class ComicBookInfo:
 
 
 all_stories: List[StoryInfo] = get_all_stories()
+
 all_cs_sub_dates: SubmittedInfoDict = get_all_submitted_info(
-    COMICS_AND_STORIES_FILENAME, COMICS_AND_STORIES_ISSUE_NAME
+    os.path.join(SUBMISSION_DATES_DIR, COMICS_AND_STORIES_FILENAME),
+    COMICS_AND_STORIES_ISSUE_NAME,
 )
 all_fc_sub_dates: SubmittedInfoDict = get_all_submitted_info(
-    FOUR_COLOR_FILENAME, FOUR_COLOR_ISSUE_NAME
+    os.path.join(SUBMISSION_DATES_DIR, FOUR_COLOR_FILENAME), FOUR_COLOR_ISSUE_NAME
 )
 all_dd_sub_dates: SubmittedInfoDict = get_all_submitted_info(
-    DONALD_DUCK_FILENAME, DONALD_DUCK_ISSUE_NAME
+    os.path.join(SUBMISSION_DATES_DIR, DONALD_DUCK_FILENAME), DONALD_DUCK_ISSUE_NAME
 )
 all_us_sub_dates: SubmittedInfoDict = get_all_submitted_info(
-    UNCLE_SCROOGE_FILENAME, UNCLE_SCROOGE_ISSUE_NAME
+    os.path.join(SUBMISSION_DATES_DIR, UNCLE_SCROOGE_FILENAME), UNCLE_SCROOGE_ISSUE_NAME
 )
 all_moc_sub_dates: SubmittedInfoDict = get_all_submitted_info(
-    MARCH_OF_COMICS_GIVEAWAYS_FILENAME, MARCH_OF_COMICS_GIVEAWAYS_ISSUE_NAME
+    os.path.join(SUBMISSION_DATES_DIR, MARCH_OF_COMICS_GIVEAWAYS_FILENAME),
+    MARCH_OF_COMICS_GIVEAWAYS_ISSUE_NAME,
 )
 all_cp_sub_dates: SubmittedInfoDict = get_all_submitted_info(
-    CHRISTMAS_PARADE_FILENAME, CHRISTMAS_PARADE_ISSUE_NAME
+    os.path.join(SUBMISSION_DATES_DIR, CHRISTMAS_PARADE_FILENAME),
+    CHRISTMAS_PARADE_ISSUE_NAME,
 )
 all_vp_sub_dates: SubmittedInfoDict = get_all_submitted_info(
-    VACATION_PARADE_FILENAME, VACATION_PARADE_ISSUE_NAME
+    os.path.join(SUBMISSION_DATES_DIR, VACATION_PARADE_FILENAME),
+    VACATION_PARADE_ISSUE_NAME,
 )
 all_fg_sub_dates: SubmittedInfoDict = get_all_submitted_info(
-    FIRESTONE_GIVEAWAYS_FILENAME, FIRESTONE_GIVEAWAYS_ISSUE_NAME
+    os.path.join(SUBMISSION_DATES_DIR, FIRESTONE_GIVEAWAYS_FILENAME),
+    FIRESTONE_GIVEAWAYS_ISSUE_NAME,
 )
 all_ch_sub_dates: SubmittedInfoDict = get_all_submitted_info(
-    CHEERIOS_GIVEAWAYS_FILENAME, CHEERIOS_GIVEAWAYS_ISSUE_NAME
+    os.path.join(SUBMISSION_DATES_DIR, CHEERIOS_GIVEAWAYS_FILENAME),
+    CHEERIOS_GIVEAWAYS_ISSUE_NAME,
 )
 all_ki_sub_dates: SubmittedInfoDict = get_all_submitted_info(
-    KITES_GIVEAWAYS_FILENAME, KITES_GIVEAWAYS_ISSUE_NAME
+    os.path.join(SUBMISSION_DATES_DIR, KITES_GIVEAWAYS_FILENAME),
+    KITES_GIVEAWAYS_ISSUE_NAME,
 )
 
 
@@ -410,7 +422,7 @@ def compare(info1: Tuple[str, ComicBookInfo], info2: Tuple[str, ComicBookInfo]) 
 
 all_comic_book_info = sorted(all_comic_book_info, key=functools.cmp_to_key(compare))
 
-# Now dump the sorted comc book info to a csv.
+# Now dump the sorted comic book info to a csv.
 output_file = "/tmp/barks-stories.csv"
 with open(output_file, "w") as f:
     for info in all_comic_book_info:

@@ -23,6 +23,8 @@ from comics_info import (
     SOURCE_COMICS,
 )
 from consts import (
+    THIS_DIR,
+    PUBLICATION_INFO_DIRNAME,
     BARKS,
     BARKS_ROOT_DIR,
     THE_COMICS_DIR,
@@ -37,6 +39,7 @@ from consts import (
     BIG_NUM,
     ROMAN_NUMERALS,
     DEST_SRCE_MAP_FILENAME,
+    PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN,
 )
 from panel_bounding_boxes import BoundingBox, BoundingBoxProcessor
 
@@ -49,12 +52,12 @@ DOUBLE_PAGES_SECTION = "double_pages"
 PAGE_NUMBERS_SECTION = "page_numbers"
 METADATA_FILENAME = "metadata.txt"
 JSON_METADATA_FILENAME = "comic-metadata.json"
+STORIES_INFO_FILENAME = "the-stories.csv"
 
 DEST_TARGET_WIDTH = 2120
 DEST_TARGET_HEIGHT = 3200
 DEST_TARGET_X_MARGIN = 100
 DEST_TARGET_ASPECT_RATIO = float(DEST_TARGET_HEIGHT) / float(DEST_TARGET_WIDTH)
-PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN = 100
 
 FONT_DIR = os.path.join(str(Path.home()), "Prj", "fonts")
 INTRO_TITLE_DEFAULT_FONT_FILE = os.path.join(FONT_DIR, "Carl Barks Script.ttf")
@@ -1438,7 +1441,9 @@ if __name__ == "__main__":
     if not os.path.isfile(config_file):
         raise Exception(f'Could not find ini file "{config_file}".')
 
-    all_comic_book_info = get_all_comic_book_info("Configs/the-stories.csv")
+    all_comic_book_info = get_all_comic_book_info(
+        os.path.join(THIS_DIR, PUBLICATION_INFO_DIRNAME, STORIES_INFO_FILENAME)
+    )
     check_story_submitted_order(all_comic_book_info)
 
     front_pages = get_list_of_numbers(args.front_pages)

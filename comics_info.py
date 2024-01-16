@@ -107,9 +107,7 @@ def check_story_submitted_order(stories: ComicBookInfoDict):
         if submitted_month_str == "<none>":
             continue
         submitted_day = (
-            1
-            if stories[story].submitted_day == -1
-            else stories[story].submitted_day
+            1 if stories[story].submitted_day == -1 else stories[story].submitted_day
         )
         title = story.title()
         submitted_date = date(
@@ -177,6 +175,16 @@ SERIES_USS = US + " Short Stories"
 SERIES_CS = CS
 SERIES_GG = "Gyro Gearloose"
 SERIES_MISC = "Misc"
+
+ALL_SERIES = [
+    SERIES_DDA,
+    SERIES_USA,
+    SERIES_DDS,
+    SERIES_USS,
+    SERIES_CS,
+    SERIES_GG,
+    SERIES_MISC,
+]
 
 RTOM = "Rich Tommaso"
 GLEA = "Gary Leach"
