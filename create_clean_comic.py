@@ -8,7 +8,6 @@ import os
 import shutil
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -39,7 +38,11 @@ from consts import (
     BIG_NUM,
     ROMAN_NUMERALS,
     DEST_SRCE_MAP_FILENAME,
+    DEST_PANELS_BBOXES_FILENAME,
     PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN,
+    PageType,
+    FRONT_MATTER_PAGES,
+    PAGES_WITHOUT_PANELS,
 )
 from panel_bounding_boxes import BoundingBox, BoundingBoxProcessor
 
@@ -90,28 +93,6 @@ EMPTY_IMAGE_FILES = {
     EMPTY_IMAGE_FILEPATH,
     TITLE_EMPTY_IMAGE_FILEPATH,
 }
-
-
-class PageType(Enum):
-    FRONT = 1
-    TITLE = 2
-    COVER = 3
-    SPLASH = 4
-    FRONT_MATTER = 5
-    BODY = 6
-    BACK_MATTER = 7
-    BACK_NO_PANELS = 8
-    BLANK_PAGE = 9
-
-
-FRONT_PAGES = [
-    PageType.FRONT,
-    PageType.TITLE,
-    PageType.COVER,
-    PageType.SPLASH,
-]
-FRONT_MATTER_PAGES = FRONT_PAGES + [PageType.FRONT_MATTER]
-PAGES_WITHOUT_PANELS = FRONT_PAGES + [PageType.BACK_NO_PANELS, PageType.BLANK_PAGE]
 
 
 @dataclass
@@ -1080,6 +1061,7 @@ def process_additional_files(
     write_metadata_file(dry_run, comic, dst_pages)
     write_json_metadata(dry_run, comic, dst_pages)
     write_srce_dest_map(dry_run, comic, src_pages, dst_pages)
+    write_dest_panels_bboxes(dry_run, comic, dst_pages)
 
 
 def write_readme_file(dry_run: bool, comic: ComicBook):
@@ -1219,6 +1201,10 @@ def write_srce_dest_map(
         srce_dest_map["srce_max_panels_bbox_width"] = comic.srce_max_panels_bbox_width
         srce_dest_map["srce_min_panels_bbox_height"] = comic.srce_min_panels_bbox_height
         srce_dest_map["srce_max_panels_bbox_height"] = comic.srce_max_panels_bbox_height
+        srce_dest_map["dest_required_bbox_width"] = comic.required_dim.panels_bbox_width
+        srce_dest_map[
+            "dest_required_bbox_height"
+        ] = comic.required_dim.panels_bbox_height
 
         dest_page_map = dict()
         for srce_page, dest_page in zip(src_pages, dst_pages):
@@ -1231,6 +1217,24 @@ def write_srce_dest_map(
 
         with open(src_dst_map_file, "w") as f:
             json.dump(srce_dest_map, f)
+
+
+def write_dest_panels_bboxes(
+    dry_run: bool,
+    comic: ComicBook,
+    dst_pages: List[CleanPage],
+):
+    dst_bboxes_file = os.path.join(comic.get_dest_dir(), DEST_PANELS_BBOXES_FILENAME)
+    if dry_run:
+        logging.info(f'{DRY_RUN_STR}: Write dest panels bboxes to "{dst_bboxes_file}".')
+    else:
+        bboxes_dict = dict()
+        for dest_page in dst_pages:
+            bbox_key = os.path.basename(dest_page.filename)
+            bboxes_dict[bbox_key] = dest_page.panels_bbox.get_box()
+
+        with open(dst_bboxes_file, "w") as f:
+            json.dump(bboxes_dict, f)
 
 
 def create_dest_dirs(dry_run: bool, comic: ComicBook):
@@ -1440,9 +1444,10 @@ if __name__ == "__main__":
     config_file = args.ini_file
     if not os.path.isfile(config_file):
         raise Exception(f'Could not find ini file "{config_file}".')
+    logging.info(f'Processing config file "{config_file}".')
 
     all_comic_book_info = get_all_comic_book_info(
-        os.path.join(THIS_DIR, PUBLICATION_INFO_DIRNAME, STORIES_INFO_FILENAME)
+        str(os.path.join(THIS_DIR, PUBLICATION_INFO_DIRNAME, STORIES_INFO_FILENAME))
     )
     check_story_submitted_order(all_comic_book_info)
 

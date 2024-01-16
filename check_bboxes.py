@@ -1,56 +1,109 @@
 import json
 import os
-
-from typing import Dict
+from dataclasses import dataclass
+from typing import Dict, List, Tuple
 
 from comics_info import ALL_SERIES
 from consts import (
     BARKS_ROOT_DIR,
     THE_COMICS_DIR,
+    DEST_PANELS_BBOXES_FILENAME,
     DEST_SRCE_MAP_FILENAME,
-    PANEL_BOUNDS_FILENAME_SUFFIX,
+    PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN,
+    PageType,
 )
-from panel_bounding_boxes import BoundingBox, BoundingBoxProcessor
+from panel_bounding_boxes import BoundingBox
 
 
-def get_panels_bounding_boxes(comic_dir: str) -> Dict[str, BoundingBox]:
+@dataclass
+class PanelsBoundingBoxesDimensions:
+    dest_required_bbox_width: int
+    dest_required_bbox_height: int
+
+
+def get_panels_bounding_boxes(
+    comic_dir: str,
+) -> Tuple[Dict[str, Tuple[PageType, BoundingBox]], PanelsBoundingBoxesDimensions]:
     with open(os.path.join(comic_dir, DEST_SRCE_MAP_FILENAME), "r") as f:
         dest_map = json.load(f)
-    srce_comic_dirname = dest_map["srce_dirname"]
-    comic_bbox_dir = os.path.join(bbox_dir, srce_comic_dirname)
 
-    print(f'srce_min_panels_bbox_width = {dest_map["srce_min_panels_bbox_width"]}')
-    print(f'srce_max_panels_bbox_width = {dest_map["srce_max_panels_bbox_width"]}')
-    print(f'srce_min_panels_bbox_height = {dest_map["srce_min_panels_bbox_height"]}')
-    print(f'srce_max_panels_bbox_height = {dest_map["srce_max_panels_bbox_height"]}')
+    bounding_boxes_dim = PanelsBoundingBoxesDimensions(
+        dest_map["dest_required_bbox_width"],
+        dest_map["dest_required_bbox_height"],
+    )
 
-    boundingBoxProcessor = BoundingBoxProcessor("/tmp")
+    with open(os.path.join(comic_dir, DEST_PANELS_BBOXES_FILENAME), "r") as f:
+        panels_bboxes = json.load(f)
 
-    #    print(dest_map)
-    bbox_dict = dict()
-    for page in dest_map["pages"]:
-        if dest_map["pages"][page]["type"] != "BODY":
+    def get_bbox(vals: List[int]):
+        return BoundingBox(vals[0], vals[1], vals[2], vals[3])
+
+    panels_bbox_dict = {
+        key: (
+            PageType[dest_map["pages"][key]["type"].upper()],
+            get_bbox(panels_bboxes[key]),
+        )
+        for key in panels_bboxes
+    }
+
+    return panels_bbox_dict, bounding_boxes_dim
+
+
+def check_comic_bboxes(
+    bbox_dict: Dict[str, Tuple[PageType, BoundingBox]],
+    bounding_boxes_dim: PanelsBoundingBoxesDimensions,
+):
+    min_bbox_width = (
+        bounding_boxes_dim.dest_required_bbox_width
+        - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
+    )
+    max_bbox_width = (
+        bounding_boxes_dim.dest_required_bbox_width
+        + PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
+    )
+    min_bbox_height = (
+        bounding_boxes_dim.dest_required_bbox_height
+        - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
+    )
+    max_bbox_height = (
+        bounding_boxes_dim.dest_required_bbox_height
+        + PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
+    )
+
+    for page in bbox_dict:
+        page_type = bbox_dict[page][0]
+        if page_type not in [
+            PageType.FRONT_MATTER,
+            PageType.BODY,
+            PageType.BACK_MATTER,
+        ]:
             continue
 
-        bbox_key = os.path.splitext(dest_map["pages"][page]["file"])[0]
-        panel_bounds_file = os.path.join(
-            comic_bbox_dir,
-            f"{bbox_key}{PANEL_BOUNDS_FILENAME_SUFFIX}",
-        )
-        panels_bbox = boundingBoxProcessor.get_panels_bounding_box_from_file(
-            panel_bounds_file
-        )
-        bbox_dict[bbox_key] = panels_bbox
-
-    return bbox_dict
-
-
-def check_comic_bboxes(bbox_dict: Dict[str, BoundingBox]):
-    for page in bbox_dict:
-        bbox = bbox_dict[page]
-        print(
-            f'"{page}": {bbox}, width = {bbox.get_width()}, height = {bbox.get_height()}'
-        )
+        bbox = bbox_dict[page][1]
+        if bbox.get_width() < min_bbox_width:
+            print(
+                f"Too small width {bbox.get_width()} < {min_bbox_width}: "
+                f'"{page}": "{page_type.name}", {bbox}'
+                f", width = {bbox.get_width()}, height = {bbox.get_height()}"
+            )
+        if bbox.get_width() > max_bbox_width:
+            print(
+                f"Too big width {bbox.get_width()} > {max_bbox_width}: "
+                f'"{page}": "{page_type.name}", {bbox}'
+                f", width = {bbox.get_width()}, height = {bbox.get_height()}"
+            )
+        if bbox.get_height() < min_bbox_height:
+            print(
+                f"Too small height {bbox.get_height()} < {min_bbox_height}: "
+                f'"{page}": "{page_type.name}", {bbox}'
+                f", width = {bbox.get_width()}, height = {bbox.get_height()}"
+            )
+        if bbox.get_height() > max_bbox_height:
+            print(
+                f"Too big height {bbox.get_height()} > {max_bbox_height}: "
+                f'"{page}": "{page_type.name}", {bbox}'
+                f", width = {bbox.get_width()}, height = {bbox.get_height()}"
+            )
 
 
 if __name__ == "__main__":
@@ -65,5 +118,5 @@ if __name__ == "__main__":
                 continue
 
             print(the_comic_dir)
-            bboxes = get_panels_bounding_boxes(the_comic_dir)
-            check_comic_bboxes(bboxes)
+            bboxes, bboxes_dim = get_panels_bounding_boxes(the_comic_dir)
+            check_comic_bboxes(bboxes, bboxes_dim)
