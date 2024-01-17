@@ -43,6 +43,7 @@ from consts import (
     PageType,
     FRONT_MATTER_PAGES,
     PAGES_WITHOUT_PANELS,
+    MIN_HD_SRCE_HEIGHT,
 )
 from panel_bounding_boxes import BoundingBox, BoundingBoxProcessor
 
@@ -679,6 +680,15 @@ def process_page(
     )
 
     srce_page_image = open_image_for_reading(srce_page.filename)
+    if (
+        srce_page.page_type == PageType.BODY
+        and srce_page_image.height < MIN_HD_SRCE_HEIGHT
+    ):
+        raise Exception(
+            f"Srce image error: min required height {MIN_HD_SRCE_HEIGHT}."
+            f' Poor srce file resolution for "{srce_page.filename}":'
+            f" {srce_page_image.width} x {srce_page_image.height}."
+        )
     dest_page_image = get_dest_page_image(comic, srce_page_image, srce_page, dest_page)
     rgb_dest_page_image = dest_page_image.convert("RGB")
 

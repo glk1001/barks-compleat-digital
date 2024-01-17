@@ -33,6 +33,7 @@ NUMBER_LEN = 3
 SRCE_FILE_EXT = ".jpg"
 DEST_FILE_EXT = ".jpg"
 INSET_FILE_EXT = ".png"
+MIN_HD_SRCE_HEIGHT = 3000
 
 DEST_SRCE_MAP_FILENAME = "srce-dest-map.json"
 DEST_PANELS_BBOXES_FILENAME = "dest-panels-bboxes.json"
