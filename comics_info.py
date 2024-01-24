@@ -189,6 +189,7 @@ ALL_SERIES = [
 RTOM = "Rich Tommaso"
 GLEA = "Gary Leach"
 SLEA = "Susan Daigle-Leach"
+DIGI = "Digikore Studios"
 
 
 @dataclass
@@ -203,7 +204,7 @@ SERIES_INFO_START_NUMBERS: Dict[str, int] = {
     SERIES_USA: 1,
     SERIES_DDS: 1,
     SERIES_USS: 1,
-    SERIES_CS: 74,
+    SERIES_CS: 73, # wrong
     SERIES_GG: 1,
     SERIES_MISC: 1,
 }
@@ -268,6 +269,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Back to Long Ago!": SeriesInfo(RTOM, SERIES_USA),
     "A Cold Bargain": SeriesInfo(RTOM, SERIES_USA),
 
+    "The Bill Collectors": SeriesInfo(DIGI, SERIES_CS),
     "Managing the Echo System": SeriesInfo(RTOM, SERIES_CS),
     "Plenty of Pets": SeriesInfo(RTOM, SERIES_CS),
 
