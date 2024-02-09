@@ -45,6 +45,7 @@ from consts import (
     PageType,
     FRONT_MATTER_PAGES,
     PAGES_WITHOUT_PANELS,
+    SPLASH_PAGES,
     MIN_HD_SRCE_HEIGHT,
 )
 from panel_bounding_boxes import BoundingBox, BoundingBoxProcessor
@@ -96,6 +97,9 @@ EMPTY_IMAGE_FILES = {
     EMPTY_IMAGE_FILEPATH,
     TITLE_EMPTY_IMAGE_FILEPATH,
 }
+
+SPLASH_BORDER_COLOR = (128, 0, 0)
+SPLASH_BORDER_WIDTH = 10
 
 
 @dataclass
@@ -778,7 +782,7 @@ def get_dest_non_body_page_image(
         return get_dest_front_page_image(srce_page_image, srce_page)
     if dest_page.page_type == PageType.COVER:
         return get_dest_cover_page_image(srce_page_image, srce_page)
-    if dest_page.page_type == PageType.SPLASH:
+    if dest_page.page_type in SPLASH_PAGES:
         return get_dest_splash_page_image(srce_page_image, srce_page)
     if dest_page.page_type == PageType.BACK_NO_PANELS:
         return get_dest_no_panels_page_image(
@@ -811,6 +815,19 @@ def get_dest_cover_page_image(srce_page_image: Image, srce_page: CleanPage) -> I
 
 
 def get_dest_splash_page_image(splash_image: Image, srce_page: CleanPage) -> Image:
+    if srce_page.page_type == PageType.SPLASH:
+        splash_x_max = splash_image.width - 1
+        splash_y_max = splash_image.height - 1
+        border = [
+            (0, 0),
+            (splash_x_max, 0),
+            (splash_x_max, splash_y_max),
+            (0, splash_y_max),
+            (0, 0),
+        ]
+        draw = ImageDraw.Draw(splash_image)
+        draw.line(border, fill=SPLASH_BORDER_COLOR, width=SPLASH_BORDER_WIDTH)
+
     dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
 
     return get_dest_centred_page_image(splash_image, srce_page, dest_page_image)
@@ -1285,7 +1302,7 @@ def get_page_counts(comic: ComicBook, dst_pages: List[CleanPage]) -> Dict[str, i
     cover_page_count = len([p for p in dst_pages if p.page_type == PageType.COVER])
     assert cover_page_count <= 1
 
-    splash_page_count = len([p for p in dst_pages if p.page_type == PageType.SPLASH])
+    splash_page_count = len([p for p in dst_pages if p.page_type in SPLASH_PAGES])
 
     front_matter_page_count = len(
         [p for p in dst_pages if p.page_type == PageType.FRONT_MATTER]

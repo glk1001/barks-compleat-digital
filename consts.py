@@ -46,11 +46,12 @@ class PageType(Enum):
     TITLE = 2
     COVER = 3
     SPLASH = 4
-    FRONT_MATTER = 5
-    BODY = 6
-    BACK_MATTER = 7
-    BACK_NO_PANELS = 8
-    BLANK_PAGE = 9
+    SPLASH_NO_BORDER = 5
+    FRONT_MATTER = 6
+    BODY = 7
+    BACK_MATTER = 8
+    BACK_NO_PANELS = 9
+    BLANK_PAGE = 10
 
 
 FRONT_PAGES = [
@@ -58,6 +59,11 @@ FRONT_PAGES = [
     PageType.TITLE,
     PageType.COVER,
     PageType.SPLASH,
+    PageType.SPLASH_NO_BORDER,
 ]
 FRONT_MATTER_PAGES = FRONT_PAGES + [PageType.FRONT_MATTER]
 PAGES_WITHOUT_PANELS = FRONT_PAGES + [PageType.BACK_NO_PANELS, PageType.BLANK_PAGE]
+SPLASH_PAGES = [
+    PageType.SPLASH,
+    PageType.SPLASH_NO_BORDER,
+]
