@@ -197,7 +197,9 @@ class ComicBook:
         if self.title != "":
             return self.title
 
-        return f"{self.comic_book_info.series_name}\n{self.comic_book_info.issue_number}"
+        return (
+            f"{self.comic_book_info.series_name}\n{self.comic_book_info.issue_number}"
+        )
 
 
 def open_image_for_reading(filename: str) -> Image:
@@ -912,7 +914,7 @@ def write_introduction(comic: ComicBook, dest_page_image: Image):
     top = INTRO_TOP
 
     title, title_fonts, text_height = get_title_and_fonts(
-        draw, top, comic.get_comic_title(), comic.title_font_file, comic.title_font_size
+        draw, comic.get_comic_title(), comic.title_font_file, comic.title_font_size
     )
 
     draw_centered_multiline_multi_font_text(
@@ -931,8 +933,7 @@ def write_introduction(comic: ComicBook, dest_page_image: Image):
     author_font = ImageFont.truetype(
         comic.title_font_file, int(0.6 * comic.author_font_size)
     )
-    text_bbox = draw.multiline_textbbox((0, top), text, font=author_font)
-    text_height = text_bbox[3] - text_bbox[1]
+    text_height = get_intro_text_height(draw, text, author_font)
     draw_centered_text(
         text, dest_page_image, draw, author_font, INTRO_AUTHOR_COLOR, top
     )
@@ -941,8 +942,7 @@ def write_introduction(comic: ComicBook, dest_page_image: Image):
     top += INTRO_TITLE_AUTHOR_BY_GAP
     text = f"{BARKS}"
     author_font = ImageFont.truetype(comic.title_font_file, comic.author_font_size)
-    text_bbox = draw.multiline_textbbox((0, top), text, font=author_font)
-    text_height = text_bbox[3] - text_bbox[1]
+    text_height = get_intro_text_height(draw, text, author_font)
     draw_centered_text(
         text, dest_page_image, draw, author_font, INTRO_AUTHOR_COLOR, top
     )
@@ -965,13 +965,7 @@ def write_introduction(comic: ComicBook, dest_page_image: Image):
     pub_text_font = ImageFont.truetype(
         get_font_path(INTRO_TEXT_FONT_FILE), INTRO_PUB_TEXT_FONT_SIZE
     )
-    text_bbox = draw.multiline_textbbox(
-        (0, top),
-        comic.publication_text,
-        font=pub_text_font,
-        spacing=INTRO_PUB_TEXT_SPACING,
-    )
-    text_height = text_bbox[3] - text_bbox[1]
+    text_height = get_intro_text_height(draw, comic.publication_text, pub_text_font)
     pub_text_top = dest_page_image.height - INTRO_BOTTOM_MARGIN - text_height
 
     dest_page_centre = int(dest_page_image.width / 2)
@@ -988,6 +982,50 @@ def write_introduction(comic: ComicBook, dest_page_image: Image):
         pub_text_top,
         INTRO_PUB_TEXT_SPACING,
     )
+
+
+def get_intro_text_height(draw: ImageDraw.Draw, text: str, font: ImageFont) -> int:
+    text_bbox = draw.multiline_textbbox(
+        (0, 0), text, font=font, spacing=INTRO_TITLE_SPACING
+    )
+    return text_bbox[3] - text_bbox[1]
+
+
+def get_intro_text_width(draw: ImageDraw.Draw, text: str, font: ImageFont) -> int:
+    text_bbox = draw.multiline_textbbox(
+        (0, 0), text, font=font, spacing=INTRO_TITLE_SPACING
+    )
+    return text_bbox[2] - text_bbox[0]
+
+
+def get_title_and_fonts(
+    draw: ImageDraw.Draw, title: str, font_file: str, font_size: int
+) -> Tuple[List[str], List[ImageFont.truetype], int]:
+    if title.startswith(CS):
+        return get_comics_and_stories_title_and_fonts(draw, title, font_file, font_size)
+
+    title_font = ImageFont.truetype(font_file, font_size)
+    text_height = get_intro_text_height(draw, title, title_font)
+    return [title], [title_font], text_height
+
+
+def get_comics_and_stories_title_and_fonts(
+    draw: ImageDraw.Draw, title: str, font_file: str, font_size: int
+) -> Tuple[List[str], List[ImageFont.truetype], int]:
+    assert title.startswith(CS)
+
+    comic_num = title[len(CS) :]
+
+    title_split = ["Comics", "and Stories", comic_num]
+    title_fonts = [
+        ImageFont.truetype(font_file, font_size),
+        ImageFont.truetype(font_file, int(0.5 * font_size)),
+        ImageFont.truetype(font_file, font_size),
+    ]
+
+    text_height = get_intro_text_height(draw, title, title_fonts[0])
+
+    return title_split, title_fonts, text_height
 
 
 def draw_centered_text(
@@ -1008,37 +1046,11 @@ def draw_centered_multiline_text(
     top: int,
     spacing: int,
 ):
-    text_bounding_box = draw.multiline_textbbox((0, top), text, font)
-    left = (image.width - (text_bounding_box[2] - text_bounding_box[0])) / 2
+    text_width = get_intro_text_width(draw, text, font)
+    left = (image.width - text_width) / 2
     draw.multiline_text(
         (left, top), text, fill=color, font=font, align="center", spacing=spacing
     )
-
-
-def get_title_and_fonts(
-    draw: ImageDraw.Draw, top: int, title: str, font_file: str, font_size: int
-) -> Tuple[List[str], List[ImageFont.truetype], int]:
-    if not title.startswith(CS):
-        title_font = ImageFont.truetype(font_file, font_size)
-        text_bbox = draw.multiline_textbbox(
-            (0, top), title, font=title_font, spacing=INTRO_TITLE_SPACING
-        )
-        text_height = text_bbox[3] - text_bbox[1]
-        return [title], [title_font], text_height
-
-    title_split = ["Comics", "and Stories", "\n74"]
-    title_fonts = [
-        ImageFont.truetype(font_file, font_size),
-        ImageFont.truetype(font_file, int(font_size / 2)),
-        ImageFont.truetype(font_file, font_size),
-    ]
-
-    text_bbox = draw.multiline_textbbox(
-        (0, top), title, font=title_fonts[0], spacing=INTRO_TITLE_SPACING
-    )
-    text_height = text_bbox[3] - text_bbox[1]
-
-    return title_split, title_fonts, text_height
 
 
 def draw_centered_multiline_multi_font_text(
@@ -1066,22 +1078,29 @@ def draw_centered_multiline_multi_font_text(
         line_width = 0
         text_line = []
         for text, font in line:
-            text_bounding_box = draw.multiline_textbbox((0, top), text, font)
-            text_width = text_bounding_box[2] - text_bounding_box[0]
+            text_width = get_intro_text_width(draw, text, font)
             line_width += text_width
             text_line.append((text, font, text_width))
         line_widths.append(line_width)
         text_lines.append(text_line)
 
-    text_bounding_box = draw.textbbox((0, top), text_vals[0], fonts[0])
-    max_font_height = text_bounding_box[3] - text_bounding_box[1]
+    max_font_height = get_intro_text_height(draw, text_vals[0], fonts[0])
     line_top = top
     for text_line, line_width in zip(text_lines, line_widths):
         left = (image.width - line_width) / 2
+        line_start = True
         for text, font, text_width in text_line:
-            text_bounding_box = draw.textbbox((0, top), text, font)
-            font_height = text_bounding_box[3] - text_bounding_box[1]
-            line_top_extra = 10 if font_height < max_font_height else 0
+            font_height = get_intro_text_height(draw, text, font)
+            assert font_height <= max_font_height
+
+            if line_start or font_height == max_font_height:
+                line_top_extra = 0
+                width_spacing = 0
+            else:
+                line_top_extra = 10
+                width_spacing = int(1.1 * ((font_height * spacing) / max_font_height))
+            left += width_spacing
+
             draw.multiline_text(
                 (left, line_top + line_top_extra),
                 text,
@@ -1090,7 +1109,8 @@ def draw_centered_multiline_multi_font_text(
                 align="center",
                 spacing=spacing,
             )
-            left += spacing + text_width
+            left += text_width
+            line_start = False
         line_top += int(1.5 * max_font_height)
 
 
