@@ -20,6 +20,7 @@ from comics_info import (
     get_all_comic_book_info,
     MONTH_AS_LONG_STR,
     SOURCE_COMICS,
+    CS,
 )
 from consts import (
     THIS_DIR,
@@ -123,6 +124,7 @@ class ComicBook:
     title: str
     title_font_file: str
     title_font_size: int
+    file_title: str
     author_font_size: int
     srce_min_panels_bbox_width: int
     srce_max_panels_bbox_width: int
@@ -141,6 +143,7 @@ class ComicBook:
     publication_date: str
     submitted_date: str
     publication_text: str
+    comic_book_info: ComicBookInfo
     images_in_order: List[OriginalPage]
 
     def __post_init__(self):
@@ -166,10 +169,10 @@ class ComicBook:
         return os.path.basename(self.get_dest_dir())
 
     def get_dest_rel_dirname(self) -> str:
-        safe_title = get_safe_title(self.title)
+        file_title = get_lookup_title(self.title, self.file_title)
         return os.path.join(
             os.path.basename(self.get_dest_root_dir()),
-            f"{self.number_in_series:03d} {safe_title}",
+            f"{self.number_in_series:03d} {file_title}",
         )
 
     def get_dest_dir(self) -> str:
@@ -189,6 +192,12 @@ class ComicBook:
 
     def get_dest_zip_basename(self) -> str:
         return os.path.basename(self.get_dest_comic_zip())
+
+    def get_comic_title(self) -> str:
+        if self.title != "":
+            return self.title
+
+        return f"{self.comic_book_info.series_name}\n{self.comic_book_info.issue_number}"
 
 
 def open_image_for_reading(filename: str) -> Image:
@@ -213,6 +222,20 @@ def get_safe_title(title: str) -> str:
     safe_title = safe_title.replace("- ", "-")
     safe_title = safe_title.replace('"', "")
     return safe_title
+
+
+def get_lookup_title(title: str, file_title: str) -> str:
+    if title != "":
+        return get_safe_title(title)
+
+    assert file_title != ""
+    return file_title
+
+
+def get_inset_filename(ini_file: str) -> str:
+    ini_filename = os.path.splitext(os.path.basename(ini_file))[0]
+
+    return ini_filename + " Inset" + INSET_FILE_EXT
 
 
 def zip_comic_book(dry_run: bool, comic: ComicBook):
@@ -255,6 +278,7 @@ def write_summary(
     with open(summary_file, "w") as f:
         f.write("Config Summary:\n")
         f.write(f'title                    = "{comic.title}"\n')
+        f.write(f'file_title               = "{comic.file_title}"\n')
         f.write(f'srce_dir                 = "{comic.srce_dir}"\n')
         f.write(f'dest_dir                 = "{comic.get_dest_dir()}"\n')
         f.write(
@@ -886,24 +910,21 @@ def write_introduction(comic: ComicBook, dest_page_image: Image):
     draw = ImageDraw.Draw(dest_page_image)
 
     top = INTRO_TOP
-    text = comic.title
-    title_font = ImageFont.truetype(comic.title_font_file, comic.title_font_size)
-    text_bbox = draw.multiline_textbbox(
-        (0, top), text, font=title_font, spacing=INTRO_TITLE_SPACING
-    )
-    # text_width = text_bbox[2] - text_bbox[0]
-    text_height = text_bbox[3] - text_bbox[1]
 
-    draw_centered_multiline_text(
-        text,
+    title, title_fonts, text_height = get_title_and_fonts(
+        draw, top, comic.get_comic_title(), comic.title_font_file, comic.title_font_size
+    )
+
+    draw_centered_multiline_multi_font_text(
+        title,
         dest_page_image,
         draw,
-        title_font,
+        title_fonts,
         INTRO_TITLE_COLOR,
         top,
         spacing=INTRO_TITLE_SPACING,
     )
-    top += text_height
+    top += text_height + INTRO_TITLE_SPACING
 
     top += INTRO_TITLE_AUTHOR_GAP
     text = "by"
@@ -992,6 +1013,85 @@ def draw_centered_multiline_text(
     draw.multiline_text(
         (left, top), text, fill=color, font=font, align="center", spacing=spacing
     )
+
+
+def get_title_and_fonts(
+    draw: ImageDraw.Draw, top: int, title: str, font_file: str, font_size: int
+) -> Tuple[List[str], List[ImageFont.truetype], int]:
+    if not title.startswith(CS):
+        title_font = ImageFont.truetype(font_file, font_size)
+        text_bbox = draw.multiline_textbbox(
+            (0, top), title, font=title_font, spacing=INTRO_TITLE_SPACING
+        )
+        text_height = text_bbox[3] - text_bbox[1]
+        return [title], [title_font], text_height
+
+    title_split = ["Comics", "and Stories", "\n74"]
+    title_fonts = [
+        ImageFont.truetype(font_file, font_size),
+        ImageFont.truetype(font_file, int(font_size / 2)),
+        ImageFont.truetype(font_file, font_size),
+    ]
+
+    text_bbox = draw.multiline_textbbox(
+        (0, top), title, font=title_fonts[0], spacing=INTRO_TITLE_SPACING
+    )
+    text_height = text_bbox[3] - text_bbox[1]
+
+    return title_split, title_fonts, text_height
+
+
+def draw_centered_multiline_multi_font_text(
+    text_vals: List[str],
+    image: Image,
+    draw: ImageDraw,
+    fonts: List[ImageFont],
+    color,
+    top: int,
+    spacing: int,
+):
+    lines = []
+    line = []
+    for text, font in zip(text_vals, fonts):
+        if not text.startswith("\n"):
+            line.append((text, font))
+        else:
+            lines.append(line)
+            line = [(text[1:], font)]
+    lines.append(line)
+
+    line_widths = []
+    text_lines = []
+    for line in lines:
+        line_width = 0
+        text_line = []
+        for text, font in line:
+            text_bounding_box = draw.multiline_textbbox((0, top), text, font)
+            text_width = text_bounding_box[2] - text_bounding_box[0]
+            line_width += text_width
+            text_line.append((text, font, text_width))
+        line_widths.append(line_width)
+        text_lines.append(text_line)
+
+    text_bounding_box = draw.textbbox((0, top), text_vals[0], fonts[0])
+    max_font_height = text_bounding_box[3] - text_bounding_box[1]
+    line_top = top
+    for text_line, line_width in zip(text_lines, line_widths):
+        left = (image.width - line_width) / 2
+        for text, font, text_width in text_line:
+            text_bounding_box = draw.textbbox((0, top), text, font)
+            font_height = text_bounding_box[3] - text_bounding_box[1]
+            line_top_extra = 10 if font_height < max_font_height else 0
+            draw.multiline_text(
+                (left, line_top + line_top_extra),
+                text,
+                fill=color,
+                font=font,
+                align="center",
+                spacing=spacing,
+            )
+            left += spacing + text_width
+        line_top += int(1.5 * max_font_height)
 
 
 def write_page_number(
@@ -1320,12 +1420,11 @@ def get_comic_book(ini_file: str) -> ComicBook:
     config.read(ini_file)
 
     title = config["info"]["title"]
-    safe_title = get_safe_title(title)
-    intro_inset_file = str(
-        os.path.join(CONFIGS_SUBDIR, safe_title + " Inset" + INSET_FILE_EXT)
-    )
+    file_title = config["info"]["file_title"]
+    lookup_title = get_lookup_title(title, file_title)
+    intro_inset_file = str(os.path.join(CONFIGS_SUBDIR, get_inset_filename(ini_file)))
 
-    cb_info: ComicBookInfo = all_comic_book_info[safe_title]
+    cb_info: ComicBookInfo = all_comic_book_info[lookup_title]
     srce_info = SOURCE_COMICS[config["info"]["source_comic"]]
     srce_root_dir = str(os.path.join(BARKS_ROOT_DIR, srce_info.pub))
     srce_dir = os.path.join(srce_root_dir, srce_info.title)
@@ -1352,6 +1451,7 @@ def get_comic_book(ini_file: str) -> ComicBook:
         title_font_size=config["info"].getint(
             "title_font_size", INTRO_TITLE_DEFAULT_FONT_SIZE
         ),
+        file_title=file_title,
         author_font_size=config["info"].getint(
             "author_font_size", INTRO_AUTHOR_DEFAULT_FONT_SIZE
         ),
@@ -1372,6 +1472,7 @@ def get_comic_book(ini_file: str) -> ComicBook:
         publication_date=publication_date,
         submitted_date=submitted_date,
         publication_text=publication_text,
+        comic_book_info=cb_info,
         images_in_order=[
             OriginalPage(key, PageType[config["pages"][key]]) for key in config["pages"]
         ],
