@@ -21,6 +21,7 @@ from comics_info import (
     MONTH_AS_LONG_STR,
     SOURCE_COMICS,
     CS,
+    ISSUE_NAME_AS_TITLE,
 )
 from consts import (
     THIS_DIR,
@@ -79,7 +80,7 @@ INTRO_TITLE_AUTHOR_GAP = 130
 INTRO_TITLE_AUTHOR_BY_GAP = INTRO_TITLE_AUTHOR_GAP
 INTRO_AUTHOR_DEFAULT_FONT_SIZE = 90
 INTRO_AUTHOR_COLOR = (0, 0, 0)
-INTRO_AUTHOR_INSET_GAP = 0
+INTRO_AUTHOR_INSET_GAP = 8
 INTRO_PUB_TEXT_FONT_SIZE = 35
 INTRO_PUB_TEXT_COLOR = (0, 0, 0)
 INTRO_PUB_TEXT_SPACING = 20
@@ -124,6 +125,7 @@ class ComicBook:
     title: str
     title_font_file: str
     title_font_size: int
+    issue_title: str
     file_title: str
     author_font_size: int
     srce_min_panels_bbox_width: int
@@ -196,10 +198,19 @@ class ComicBook:
     def get_comic_title(self) -> str:
         if self.title != "":
             return self.title
+        if self.issue_title != "":
+            return self.issue_title
 
-        return (
-            f"{self.comic_book_info.series_name}\n{self.comic_book_info.issue_number}"
-        )
+        return self.__get_comic_title_from_issue_name()
+
+    def __get_comic_title_from_issue_name(self) -> str:
+        issue_name = self.comic_book_info.issue_name
+        if issue_name not in ISSUE_NAME_AS_TITLE:
+            issue_name += "\n"
+        else:
+            issue_name = ISSUE_NAME_AS_TITLE[issue_name] + " #"
+
+        return f"{issue_name}{self.comic_book_info.issue_number}"
 
 
 def open_image_for_reading(filename: str) -> Image:
@@ -281,6 +292,8 @@ def write_summary(
         f.write("Config Summary:\n")
         f.write(f'title                    = "{comic.title}"\n')
         f.write(f'file_title               = "{comic.file_title}"\n')
+        f.write(f'issue_title              = "{comic.issue_title}"\n')
+        f.write(f'comic title              = "{comic.get_comic_title()}"\n')
         f.write(f'srce_dir                 = "{comic.srce_dir}"\n')
         f.write(f'dest_dir                 = "{comic.get_dest_dir()}"\n')
         f.write(
@@ -968,9 +981,9 @@ def write_introduction(comic: ComicBook, dest_page_image: Image):
     text_height = get_intro_text_height(draw, comic.publication_text, pub_text_font)
     pub_text_top = dest_page_image.height - INTRO_BOTTOM_MARGIN - text_height
 
-    dest_page_centre = int(dest_page_image.width / 2)
+    dest_page_width_centre = int(dest_page_image.width / 2)
     inset_top = top + int((pub_text_top - top) / 2 - new_inset_height / 2)
-    insert_pos = (int(dest_page_centre - (new_inset_width / 2)), inset_top)
+    insert_pos = (int(dest_page_width_centre - (new_inset_width / 2)), inset_top)
     dest_page_image.paste(new_inset, insert_pos)
 
     draw_centered_multiline_text(
@@ -1235,6 +1248,9 @@ def write_json_metadata(dry_run: bool, comic: ComicBook, dst_pages: List[CleanPa
     else:
         metadata = dict()
         metadata["title"] = get_safe_title(comic.title)
+        metadata["file_title"] = comic.file_title
+        metadata["issue_title"] = get_safe_title(comic.issue_title)
+        metadata["comic_title"] = get_safe_title(comic.get_comic_title())
         metadata["series_name"] = comic.series_name
         metadata["number_in_series"] = comic.number_in_series
         metadata["srce_file"] = comic.srce_dir
@@ -1440,6 +1456,9 @@ def get_comic_book(ini_file: str) -> ComicBook:
     config.read(ini_file)
 
     title = config["info"]["title"]
+    issue_title = (
+        "" if "issue_title" not in config["info"] else config["info"]["issue_title"]
+    )
     file_title = config["info"]["file_title"]
     lookup_title = get_lookup_title(title, file_title)
     intro_inset_file = str(os.path.join(CONFIGS_SUBDIR, get_inset_filename(ini_file)))
@@ -1472,6 +1491,7 @@ def get_comic_book(ini_file: str) -> ComicBook:
             "title_font_size", INTRO_TITLE_DEFAULT_FONT_SIZE
         ),
         file_title=file_title,
+        issue_title=issue_title,
         author_font_size=config["info"].getint(
             "author_font_size", INTRO_AUTHOR_DEFAULT_FONT_SIZE
         ),
@@ -1513,7 +1533,7 @@ def log_comic_book_params(comic: ComicBook):
     )
 
     logging.info(f'Comic book series:   "{comic.series_name}".')
-    logging.info(f'Comic book title:    "{get_safe_title(comic.title)}".')
+    logging.info(f'Comic book title:    "{get_safe_title(comic.get_comic_title())}".')
     logging.info(f"Number in series:    {comic.number_in_series}.")
     logging.info(f"Dest x margin:       {DEST_TARGET_X_MARGIN}.")
     logging.info(f"Dest width:          {DEST_TARGET_WIDTH}.")

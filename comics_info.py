@@ -146,6 +146,10 @@ FG = "Firestone Giveaway"
 CH = "Cheerios Giveaway"
 KI = "Kites Giveaway"
 
+ISSUE_NAME_AS_TITLE = {
+        US: "Uncle\nScrooge"
+}
+
 # fmt: off
 SOURCE_COMICS = {
         'FANTA_04': SourceBook( f"{CB} Vol. 4 - {DD} - Maharajah Donald (Lil Salem-Empire)", FAN, 2023),
