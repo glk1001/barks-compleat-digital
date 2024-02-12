@@ -273,7 +273,17 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Back to Long Ago!": SeriesInfo(RTOM, SERIES_USA),
     "A Cold Bargain": SeriesInfo(RTOM, SERIES_USA),
 
+    "Biceps Blues": SeriesInfo(GLEA, SERIES_CS),
+    "The Smugsnorkle Squattie": SeriesInfo(SLEA, SERIES_CS),
+    "Swimming Swindlers": SeriesInfo(GLEA, SERIES_CS),
+    "Playin' Hookey": SeriesInfo(DIGI, SERIES_CS),
+    "The Gold-Finder": SeriesInfo(DIGI, SERIES_CS),
+    "Turkey Raffle": SeriesInfo(GLEA, SERIES_CS),
     "The Bill Collectors": SeriesInfo(DIGI, SERIES_CS),
+    "The Cantankerous Cat": SeriesInfo(DIGI, SERIES_CS),
+    "Going Buggy": SeriesInfo(DIGI, SERIES_CS),
+    "Jam Robbers": SeriesInfo(DIGI, SERIES_CS),
+    "Picnic Tricks": SeriesInfo(DIGI, SERIES_CS),
     "Managing the Echo System": SeriesInfo(RTOM, SERIES_CS),
     "Plenty of Pets": SeriesInfo(RTOM, SERIES_CS),
 
