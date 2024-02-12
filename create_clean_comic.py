@@ -1498,6 +1498,9 @@ def get_comic_book(ini_file: str) -> ComicBook:
         + f"Color restoration by {cb_info.colorist}"
     )
 
+    if "extra_pub_info" in config["info"]:
+        publication_text += "\n" + config["info"]["extra_pub_info"]
+
     return ComicBook(
         config_file=ini_file,
         title=title,
