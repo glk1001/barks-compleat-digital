@@ -209,7 +209,7 @@ SERIES_INFO_START_NUMBERS: Dict[str, int] = {
     SERIES_USA: 1,
     SERIES_DDS: 1,
     SERIES_USS: 1,
-    SERIES_CS: 73,  # wrong 69 - 31 = 37 - Barks missed WDCS 37
+    SERIES_CS: 37, # Barks missed WDCS 37
     SERIES_GG: 1,
     SERIES_MISC: 1,
 }
@@ -218,7 +218,6 @@ SERIES_INFO_START_NUMBERS: Dict[str, int] = {
 SERIES_INFO: Dict[str, SeriesInfo] = {
     "Donald Duck Finds Pirate Gold": SeriesInfo("?", SERIES_DDA),
     "Donald Duck and the Mummy's Ring": SeriesInfo("?", SERIES_DDA),
-    "The Hard Loser": SeriesInfo("?", SERIES_DDA),
     "Too Many Pets": SeriesInfo("?", SERIES_DDA),
     "Frozen Gold": SeriesInfo("?", SERIES_DDA),
     "Mystery of the Swamp": SeriesInfo("?", SERIES_DDA),
@@ -313,6 +312,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Managing the Echo System": SeriesInfo(RTOM, SERIES_CS),
     "Plenty of Pets": SeriesInfo(RTOM, SERIES_CS),
 
+    "The Hard Loser": SeriesInfo("?", SERIES_DDS),
     "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_DDS),
     "The Peaceful Hills": SeriesInfo(SLEA, SERIES_DDS),
     "Santa's Stormy Visit": SeriesInfo(SLEA, SERIES_DDS),
