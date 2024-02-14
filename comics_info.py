@@ -311,6 +311,13 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "The Sunken Yacht": SeriesInfo(RTOM, SERIES_CS),
     "Managing the Echo System": SeriesInfo(RTOM, SERIES_CS),
     "Plenty of Pets": SeriesInfo(RTOM, SERIES_CS),
+    "Super Snooper": SeriesInfo(RTOM, SERIES_CS),
+    "The Great Duckburg Frog-Jumping Contest": SeriesInfo(RTOM, SERIES_CS),
+    "Dowsing Ducks": SeriesInfo(RTOM, SERIES_CS),
+    "The Goldilocks Gambit": SeriesInfo(RTOM, SERIES_CS),
+    "Donald's Love Letters": SeriesInfo(RTOM, SERIES_CS),
+    "Rip Van Donald": SeriesInfo(RTOM, SERIES_CS),
+    "Serum to Codfish Cove": SeriesInfo(RTOM, SERIES_CS),
 
     "The Hard Loser": SeriesInfo("?", SERIES_DDS),
     "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_DDS),
@@ -319,6 +326,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Donald Duck's Atom Bomb": SeriesInfo(SLEA, SERIES_DDS),
     "Three Good Little Ducks": SeriesInfo(RTOM, SERIES_DDS),
     "Toyland": SeriesInfo(RTOM, SERIES_DDS),
+    "New Toys": SeriesInfo(RTOM, SERIES_DDS),
 
     "Somethin' Fishy Here": SeriesInfo(RTOM, SERIES_USS),
 }
