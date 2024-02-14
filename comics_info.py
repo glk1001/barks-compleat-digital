@@ -147,7 +147,8 @@ CH = "Cheerios Giveaway"
 KI = "Kites Giveaway"
 
 ISSUE_NAME_AS_TITLE = {
-        US: "Uncle\nScrooge"
+    US: "Uncle\nScrooge",
+    FG: "Firestone\nGiveaway",
 }
 
 # fmt: off
@@ -208,7 +209,7 @@ SERIES_INFO_START_NUMBERS: Dict[str, int] = {
     SERIES_USA: 1,
     SERIES_DDS: 1,
     SERIES_USS: 1,
-    SERIES_CS: 73, # wrong
+    SERIES_CS: 73,  # wrong 69 - 31 = 37 - Barks missed WDCS 37
     SERIES_GG: 1,
     SERIES_MISC: 1,
 }
@@ -284,11 +285,40 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Going Buggy": SeriesInfo(DIGI, SERIES_CS),
     "Jam Robbers": SeriesInfo(DIGI, SERIES_CS),
     "Picnic Tricks": SeriesInfo(DIGI, SERIES_CS),
+    "Donald's Posy Patch": SeriesInfo(RTOM, SERIES_CS),
+    "Donald Mines His Own Business": SeriesInfo(RTOM, SERIES_CS),
+    "Magical Misery": SeriesInfo(RTOM, SERIES_CS),
+    "Vacation Misery": SeriesInfo(RTOM, SERIES_CS),
+    "The Waltz King": SeriesInfo(RTOM, SERIES_CS),
+    "The Masters of Melody": SeriesInfo(RTOM, SERIES_CS),
+    "Fireman Donald": SeriesInfo(RTOM, SERIES_CS),
+    "The Terrible Turkey": SeriesInfo(RTOM, SERIES_CS),
+    "Wintertime Wager": SeriesInfo(RTOM, SERIES_CS),
+    "Watching the Watchman": SeriesInfo(RTOM, SERIES_CS),
+    "Wired": SeriesInfo(RTOM, SERIES_CS),
+    "Going Ape": SeriesInfo(RTOM, SERIES_CS),
+    "Spoil the Rod": SeriesInfo(RTOM, SERIES_CS),
+    "Rocket Race to the Moon": SeriesInfo(RTOM, SERIES_CS),
+    "Donald of the Coast Guard": SeriesInfo(RTOM, SERIES_CS),
+    "Gladstone Returns": SeriesInfo(RTOM, SERIES_CS),
+    "Links Hijinks": SeriesInfo(RTOM, SERIES_CS),
+    "Pearls of Wisdom": SeriesInfo(RTOM, SERIES_CS),
+    "Foxy Relations": SeriesInfo(RTOM, SERIES_CS),
+    "The Crazy Quiz Show": SeriesInfo(RTOM, SERIES_CS),
+    "Truant Officer Donald": SeriesInfo(RTOM, SERIES_CS),
+    "Donald Duck's Worst Nightmare": SeriesInfo(RTOM, SERIES_CS),
+    "Pizen Spring Dude Ranch": SeriesInfo(RTOM, SERIES_CS),
+    "Rival Beachcombers": SeriesInfo(RTOM, SERIES_CS),
+    "The Sunken Yacht": SeriesInfo(RTOM, SERIES_CS),
     "Managing the Echo System": SeriesInfo(RTOM, SERIES_CS),
     "Plenty of Pets": SeriesInfo(RTOM, SERIES_CS),
 
     "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_DDS),
     "The Peaceful Hills": SeriesInfo(SLEA, SERIES_DDS),
+    "Santa's Stormy Visit": SeriesInfo(SLEA, SERIES_DDS),
+    "Donald Duck's Atom Bomb": SeriesInfo(SLEA, SERIES_DDS),
+    "Three Good Little Ducks": SeriesInfo(RTOM, SERIES_DDS),
+    "Toyland": SeriesInfo(RTOM, SERIES_DDS),
 
     "Somethin' Fishy Here": SeriesInfo(RTOM, SERIES_USS),
 }
