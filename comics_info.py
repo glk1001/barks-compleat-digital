@@ -318,6 +318,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Donald's Love Letters": SeriesInfo(RTOM, SERIES_CS),
     "Rip Van Donald": SeriesInfo(RTOM, SERIES_CS),
     "Serum to Codfish Cove": SeriesInfo(RTOM, SERIES_CS),
+    "Wild about Flowers": SeriesInfo(RTOM, SERIES_CS),
 
     "The Hard Loser": SeriesInfo("?", SERIES_DDS),
     "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_DDS),
