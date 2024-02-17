@@ -319,6 +319,11 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Rip Van Donald": SeriesInfo(RTOM, SERIES_CS),
     "Serum to Codfish Cove": SeriesInfo(RTOM, SERIES_CS),
     "Wild about Flowers": SeriesInfo(RTOM, SERIES_CS),
+    "Billions to Sneeze At": SeriesInfo(RTOM, SERIES_CS),
+    "Operation St. Bernard": SeriesInfo(RTOM, SERIES_CS),
+    "A Financial Fable": SeriesInfo(RTOM, SERIES_CS),
+    "Terror of the Beagle Boys": SeriesInfo(RTOM, SERIES_CS),
+    "The April Foolers": SeriesInfo(RTOM, SERIES_CS),
 
     "The Hard Loser": SeriesInfo("?", SERIES_DDS),
     "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_DDS),
