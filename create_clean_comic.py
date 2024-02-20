@@ -82,6 +82,8 @@ INTRO_TITLE_AUTHOR_BY_GAP = INTRO_TITLE_AUTHOR_GAP
 INTRO_AUTHOR_DEFAULT_FONT_SIZE = 90
 INTRO_AUTHOR_COLOR = (0, 0, 0)
 INTRO_AUTHOR_INSET_GAP = 8
+INTRO_MAX_WIDTH_INSET_MARGIN_FRAC = 0.05
+INTRO_MAX_HEIGHT_INSET_MARGIN_FRAC = 0.15
 INTRO_PUB_TEXT_FONT_SIZE = 35
 INTRO_PUB_TEXT_COLOR = (0, 0, 0)
 INTRO_PUB_TEXT_SPACING = 20
@@ -978,30 +980,19 @@ def write_introduction(comic: ComicBook, dest_page_image: Image):
     )
     top += text_height + INTRO_AUTHOR_INSET_GAP
 
-    #    remaining_height = HEIGHT - BOTTOM_MARGIN - top
-
-    inset = open_image_for_reading(comic.intro_inset_file)
-    inset_width, inset_height = inset.size
-    new_inset_width = int(
-        0.40
-        * comic.intro_inset_ratio
-        * (dest_page_image.width - 2 * DEST_TARGET_X_MARGIN)
-    )
-    new_inset_height = int((inset_height / inset_width) * new_inset_width)
-    new_inset = inset.resize(
-        size=(new_inset_width, new_inset_height), resample=Image.Resampling.BICUBIC
-    )
-
     pub_text_font = ImageFont.truetype(
         get_font_path(INTRO_TEXT_FONT_FILE), INTRO_PUB_TEXT_FONT_SIZE
     )
     text_height = get_intro_text_height(draw, comic.publication_text, pub_text_font)
     pub_text_top = dest_page_image.height - INTRO_BOTTOM_MARGIN - text_height
 
-    dest_page_width_centre = int(dest_page_image.width / 2)
-    inset_top = top + int((pub_text_top - top) / 2 - new_inset_height / 2)
-    insert_pos = (int(dest_page_width_centre - (new_inset_width / 2)), inset_top)
-    dest_page_image.paste(new_inset, insert_pos)
+    inset_pos, new_inset = get_resized_inset(
+        comic.intro_inset_file,
+        top,
+        pub_text_top,
+        dest_page_image.width,
+    )
+    dest_page_image.paste(new_inset, inset_pos)
 
     draw_centered_multiline_text(
         comic.publication_text,
@@ -1012,6 +1003,36 @@ def write_introduction(comic: ComicBook, dest_page_image: Image):
         pub_text_top,
         INTRO_PUB_TEXT_SPACING,
     )
+
+
+def get_resized_inset(
+    inset_file: str, top: int, bottom: int, page_width: int
+) -> Tuple[Tuple[int, int], Image]:
+    inset = open_image_for_reading(inset_file)
+    inset_width, inset_height = inset.size
+
+    usable_width = page_width - (2 * DEST_TARGET_X_MARGIN)
+    usable_height = bottom - top
+
+    width_margin = int(INTRO_MAX_WIDTH_INSET_MARGIN_FRAC * usable_width)
+    height_margin = int(INTRO_MAX_HEIGHT_INSET_MARGIN_FRAC * usable_height)
+
+    new_inset_width = usable_width - (2 * width_margin)
+    new_inset_height = int((inset_height / inset_width) * new_inset_width)
+
+    max_inset_height = usable_height - (2 * height_margin)
+    if new_inset_height > max_inset_height:
+        new_inset_height = max_inset_height
+        new_inset_width = int((inset_width / inset_height) * new_inset_height)
+
+    new_inset = inset.resize(
+        size=(new_inset_width, new_inset_height), resample=Image.Resampling.BICUBIC
+    )
+
+    inset_left = int((page_width - new_inset_width) / 2)
+    inset_top = top + int(((bottom - top) - new_inset_height) / 2)
+
+    return (inset_left, inset_top), new_inset
 
 
 def get_intro_text_height(draw: ImageDraw.Draw, text: str, font: ImageFont) -> int:
