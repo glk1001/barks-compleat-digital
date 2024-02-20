@@ -147,7 +147,6 @@ class ComicBook:
     series_name: str
     number_in_series: int
     intro_inset_file: str
-    intro_inset_ratio: float
     publication_date: str
     submitted_date: str
     publication_text: str
@@ -324,7 +323,6 @@ def write_summary(
         f.write(f"calc_panels_bbox_height  = {calc_panels_bbox_height}\n")
         f.write(f"page_num_y_bottom        = {comic.required_dim.page_num_y_bottom}\n")
         f.write(f'intro_inset_file         = "{comic.intro_inset_file}"\n')
-        f.write(f"intro_inset_ratio        = {comic.intro_inset_ratio}\n")
         f.write(f"publication_text         = \n{comic.publication_text}\n")
         f.write("\n")
 
@@ -1549,7 +1547,6 @@ def get_comic_book(ini_file: str) -> ComicBook:
         series_name=cb_info.series_name,
         number_in_series=cb_info.number_in_series,
         intro_inset_file=intro_inset_file,
-        intro_inset_ratio=config["introduction"].getfloat("intro_inset_ratio", 1.0),
         publication_date=publication_date,
         submitted_date=submitted_date,
         publication_text=publication_text,
