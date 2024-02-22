@@ -195,6 +195,7 @@ RTOM = "Rich Tommaso"
 GLEA = "Gary Leach"
 SLEA = "Susan Daigle-Leach"
 DIGI = "Digikore Studios"
+JRC = "Joseph Robert Cowles"
 
 
 @dataclass
@@ -246,7 +247,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Big-Top Bedlam": SeriesInfo(RTOM, SERIES_DDA),
     "Dangerous Disguise": SeriesInfo(RTOM, SERIES_DDA),
     "No Such Varmint": SeriesInfo(RTOM, SERIES_DDA),
-    "In Old California!": SeriesInfo(RTOM, SERIES_DDA),
+    "In Old California!": SeriesInfo(JRC, SERIES_DDA),
     "A Christmas for Shacktown": SeriesInfo(RTOM, SERIES_DDA),
     "The Golden Helmet": SeriesInfo(RTOM, SERIES_DDA),
     "The Gilded Man": SeriesInfo(RTOM, SERIES_DDA),
