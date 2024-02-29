@@ -1513,7 +1513,8 @@ def get_comic_book(ini_file: str) -> ComicBook:
         f"First published in {get_formatted_first_published_str(cb_info)}\n"
         + f"Submitted to Western Publishing{get_formatted_submitted_date(cb_info)}\n"
         + f"\n"
-        + f"This edition published by {srce_info.pub}, {srce_info.year}\n"
+        + f"This edition published in {srce_info.pub} CCBDL,"
+        + f" Volume {srce_info.volume}, {srce_info.year}\n"
         + f"Color restoration by {cb_info.colorist}"
     )
 

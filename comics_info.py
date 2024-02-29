@@ -128,6 +128,7 @@ def check_story_submitted_order(stories: ComicBookInfoDict):
 class SourceBook:
     title: str
     pub: str
+    volume: int
     year: int
 
 
@@ -146,6 +147,10 @@ FG = "Firestone Giveaway"
 CH = "Cheerios Giveaway"
 KI = "Kites Giveaway"
 
+SRC_SALEM = "(Lil Salem-Empire)"
+SRC_DIGI = "(Digital-Empire)"
+SRC_BEAN = "(Bean-Empire)"
+
 ISSUE_NAME_AS_TITLE = {
     US: "Uncle\nScrooge",
     FG: "Firestone\nGiveaway",
@@ -153,23 +158,23 @@ ISSUE_NAME_AS_TITLE = {
 
 # fmt: off
 SOURCE_COMICS = {
-        'FANTA_04': SourceBook( f"{CB} Vol. 4 - {DD} - Maharajah Donald (Lil Salem-Empire)", FAN, 2023),
-        'FANTA_05': SourceBook( f"{CB} Vol. 5 - {DD} - Christmas on Bear Mountain (Digital-Empire)", FAN, 2013),
-        'FANTA_06': SourceBook( f"{CB} Vol. 6 - {DD} - The Old Castle's Secret (Digital-Empire)", FAN, 2013),
-        'FANTA_07': SourceBook( f"{CB} Vol. 7 - {DD} - Lost in the Andes (Digital-Empire)", FAN, 2011),
-        'FANTA_08': SourceBook( f"{CB} Vol. 8 - {DD} - Trail of the Unicorn (Digital-Empire)", FAN, 2014),
-        'FANTA_09': SourceBook( f"{CB} Vol. 9 - {DD} - The Pixilated Parrot (Digital-Empire)", FAN, 2015),
-        'FANTA_10': SourceBook(f"{CB} Vol. 10 - {DD} - Terror of the Beagle Boys (Digital-Empire)", FAN, 2016),
-        'FANTA_11': SourceBook(f"{CB} Vol. 11 - {DD} - A Christmas for Shacktown (Digital-Empire)", FAN, 2012),
-        'FANTA_12': SourceBook(f"{CB} Vol. 12 - {US} - Only a Poor Old Man (Digital-Empire)", FAN, 2012),
-        'FANTA_13': SourceBook(f"{CB} Vol. 13 - {DD} - Trick or Treat (Digital-Empire)", FAN, 2015),
-        'FANTA_14': SourceBook(f"{CB} Vol. 14 - {US} - The Seven Cities of Gold (Digital-Empire)", FAN, 2014),
-        'FANTA_15': SourceBook(f"{CB} Vol. 15 - {DD} - The Ghost Sheriff of Last Gasp (Digital-Empire)", FAN, 2016),
-        'FANTA_16': SourceBook(f"{CB} Vol. 16 - {US} - The Lost Crown of Genghis Khan (Digital-Empire)", FAN, 2017),
-        'FANTA_17': SourceBook(f"{CB} Vol. 17 - {DD} - The Secret of Hondorica (Digital-Empire)", FAN, 2017),
-        'FANTA_18': SourceBook(f"{CB} Vol. 18 - {DD} - The Lost Peg Leg Mine (Digital-Empire)", FAN, 2018),
-        'FANTA_19': SourceBook(f"{CB} Vol. 19 - {DD} - The Black Pearls of Tabu Yama (Bean-Empire)", FAN, 2018),
-        'FANTA_20': SourceBook(f"{CB} Vol. 20 - {US} - The Mines of King Solomon (Bean-Empire)", FAN, 2019),
+    'FANTA_04': SourceBook( f"{CB} Vol. 4 - {DD} - Maharajah Donald {SRC_SALEM}", FAN, 4, 2023),
+    'FANTA_05': SourceBook( f"{CB} Vol. 5 - {DD} - Christmas on Bear Mountain {SRC_DIGI}", FAN, 5, 2013),
+    'FANTA_06': SourceBook( f"{CB} Vol. 6 - {DD} - The Old Castle's Secret {SRC_DIGI}", FAN, 6, 2013),
+    'FANTA_07': SourceBook( f"{CB} Vol. 7 - {DD} - Lost in the Andes {SRC_DIGI}", FAN, 7, 2011),
+    'FANTA_08': SourceBook( f"{CB} Vol. 8 - {DD} - Trail of the Unicorn {SRC_DIGI}", FAN, 8, 2014),
+    'FANTA_09': SourceBook( f"{CB} Vol. 9 - {DD} - The Pixilated Parrot {SRC_DIGI}", FAN, 9, 2015),
+    'FANTA_10': SourceBook(f"{CB} Vol. 10 - {DD} - Terror of the Beagle Boys {SRC_DIGI}", FAN, 10, 2016),
+    'FANTA_11': SourceBook(f"{CB} Vol. 11 - {DD} - A Christmas for Shacktown {SRC_DIGI}", FAN, 11, 2012),
+    'FANTA_12': SourceBook(f"{CB} Vol. 12 - {US} - Only a Poor Old Man {SRC_DIGI}", FAN, 12, 2012),
+    'FANTA_13': SourceBook(f"{CB} Vol. 13 - {DD} - Trick or Treat {SRC_DIGI}", FAN, 13, 2015),
+    'FANTA_14': SourceBook(f"{CB} Vol. 14 - {US} - The Seven Cities of Gold {SRC_DIGI}", FAN, 14, 2014),
+    'FANTA_15': SourceBook(f"{CB} Vol. 15 - {DD} - The Ghost Sheriff of Last Gasp {SRC_DIGI}", FAN, 15, 2016),
+    'FANTA_16': SourceBook(f"{CB} Vol. 16 - {US} - The Lost Crown of Genghis Khan {SRC_DIGI}", FAN, 16, 2017),
+    'FANTA_17': SourceBook(f"{CB} Vol. 17 - {DD} - The Secret of Hondorica {SRC_DIGI}", FAN, 17, 2017),
+    'FANTA_18': SourceBook(f"{CB} Vol. 18 - {DD} - The Lost Peg Leg Mine ({SRC_DIGI}", FAN, 18, 2018),
+    'FANTA_19': SourceBook(f"{CB} Vol. 19 - {DD} - The Black Pearls of Tabu Yama {SRC_BEAN}", FAN, 19, 2018),
+    'FANTA_20': SourceBook(f"{CB} Vol. 20 - {US} - The Mines of King Solomon {SRC_BEAN}", FAN, 20, 2019),
 }
 # fmt: on
 
