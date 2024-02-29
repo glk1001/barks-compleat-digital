@@ -7,11 +7,39 @@ import numpy as np
 DEBUG = True
 DEBUG_OUTPUT_DIR = "/tmp"
 
-IN_PAINT_RADIUS = 5
+IN_PAINT_RADIUS = 3
 IN_PAINT_CUTOUT_FILL_COLOR = (128, 128, 128)
 MEDIAN_BLUR_APERTURE_SIZE = 7
 ADAPTIVE_THRESHOLD_BLOCK_SIZE = 21
 ADAPTIVE_THRESHOLD_CONST_SUBTRACT = 10
+
+
+def median_filter3(original_image, mask, kernel_size: int):
+    filtered_image = np.zeros_like(original_image)
+    image_h, image_w = original_image.shape[0], original_image.shape[1]
+    w = kernel_size // 2
+
+    wrapped_image = cv.copyMakeBorder(original_image, w, w, w, w, cv.BORDER_CONSTANT, None,
+                                  value=(255, 255, 255))
+    wrapped_mask = cv.copyMakeBorder(mask, w, w, w, w, cv.BORDER_CONSTANT, None,
+                                  value=(255, 255, 255))
+
+    for i in range(w, image_h - w):  ## traverse image row
+        for j in range(w, image_w - w):  ## traverse image col
+            neighbours = []
+            for x in range(i - w, i + w + 1):
+                for y in range(j - w, j + w + 1):
+                    if wrapped_mask[x, y] > 0:
+                        continue
+                    pixel = wrapped_image[x, y]
+                    neighbours.append(pixel)
+            if len(neighbours) == 0:
+                filtered_image[i-w,j-w] = (0,0,0)
+            else:
+                overlap_image = np.array(neighbours)
+                filtered_image[i-w,j-w] = np.median(overlap_image.reshape(-1, 3), axis=0)  # Filtering
+
+    return filtered_image
 
 
 def get_larger_mask(mask):
@@ -46,12 +74,13 @@ def remove_alias_artifacts(image):
             enlarged_black_ink_mask,
         )
 
-    black_ink_cutout_image = get_cutout_image(image, enlarged_black_ink_mask)
-    if DEBUG:
-        cv.imwrite(
-            os.path.join(DEBUG_OUTPUT_DIR, "black-ink-cutout-image.jpg"),
-            black_ink_cutout_image,
-        )
+    # black_ink_cutout_image = get_cutout_image(image, enlarged_black_ink_mask)
+    # if DEBUG:
+    #     cv.imwrite(
+    #         os.path.join(DEBUG_OUTPUT_DIR, "black-ink-cutout-image.jpg"),
+    #         black_ink_cutout_image,
+    #     )
+    black_ink_cutout_image = cv.imread(os.path.join(DEBUG_OUTPUT_DIR, "black-ink-cutout-image.jpg"))
 
     in_painted_image = cv.inpaint(
         black_ink_cutout_image, enlarged_black_ink_mask, IN_PAINT_RADIUS, cv.INPAINT_NS
@@ -61,7 +90,8 @@ def remove_alias_artifacts(image):
             os.path.join(DEBUG_OUTPUT_DIR, "in-painted-image.jpg"), in_painted_image
         )
 
-    blurred_image = cv.medianBlur(in_painted_image, MEDIAN_BLUR_APERTURE_SIZE)
+    #blurred_image = cv.medianBlur(in_painted_image, MEDIAN_BLUR_APERTURE_SIZE)
+    blurred_image = median_filter3(image, enlarged_black_ink_mask, MEDIAN_BLUR_APERTURE_SIZE)
     if DEBUG:
         cv.imwrite(os.path.join(DEBUG_OUTPUT_DIR, "blurred-image.jpg"), blurred_image)
 
@@ -74,11 +104,11 @@ def remove_alias_artifacts(image):
 
 start_time = time.time()
 
-image_file = (
-    "/home/greg/Books/Carl Barks/The Comics/"
-    "Comics and Stories/055 The Terrible Turkey/images/05.jpg"
-)
-# image_file = "restore-tests/test-image.jpg"
+# image_file = (
+#     "/home/greg/Books/Carl Barks/The Comics/"
+#     "Comics and Stories/055 The Terrible Turkey/images/05.jpg"
+# )
+image_file = "restore-tests/test-image.jpg"
 # image_file = "restore-tests/simple-test-image.jpg"
 
 input_image = cv.imread(image_file)
