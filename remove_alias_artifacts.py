@@ -19,14 +19,16 @@ def median_filter3(original_image, mask, kernel_size: int):
     filtered_image = np.zeros_like(original_image)
     w = kernel_size // 2
 
-    wrapped_image = cv.copyMakeBorder(original_image, w, w, w, w, cv.BORDER_CONSTANT, None,
-                                  value=(255, 255, 255))
-    wrapped_mask = cv.copyMakeBorder(mask, w, w, w, w, cv.BORDER_CONSTANT, None,
-                                  value=(255, 255, 255))
+    wrapped_image = cv.copyMakeBorder(
+        original_image, w, w, w, w, cv.BORDER_CONSTANT, None, value=(255, 255, 255)
+    )
+    wrapped_mask = cv.copyMakeBorder(
+        mask, w, w, w, w, cv.BORDER_CONSTANT, None, value=(255, 255, 255)
+    )
 
     median_filter_core(wrapped_image, wrapped_mask, kernel_size, filtered_image)
 
-#    median_filter_core.parallel_diagnostics(level=4)
+    #    median_filter_core.parallel_diagnostics(level=4)
 
     return filtered_image
 
@@ -34,36 +36,36 @@ def median_filter3(original_image, mask, kernel_size: int):
 @jit(nopython=True, parallel=False)
 def median_filter_core(wrapped_image, wrapped_mask, kernel_size: int, filtered_image):
     image_h, image_w = filtered_image.shape[0], filtered_image.shape[1]
-    w = kernel_size // 2
+    w: int = kernel_size // 2
 
-    nbrs0 = np.empty((kernel_size * kernel_size, 1), dtype=filtered_image.dtype)
-    nbrs1 = np.empty((kernel_size * kernel_size, 1), dtype=filtered_image.dtype)
-    nbrs2 = np.empty((kernel_size * kernel_size, 1), dtype=filtered_image.dtype)
+    nbrs = np.empty((kernel_size * kernel_size, 3), dtype=filtered_image.dtype)
 
-    for i in range(w, image_h + w):  ## traverse image row
-        for j in range(w, image_w + w):  ## traverse image col
-            num_nbrs = 0
+    for i in range(w, image_h + w):
+        for j in range(w, image_w + w):
+            num_nbrs: int = 0
             for x in range(i - w, i + w + 1):
                 for y in range(j - w, j + w + 1):
                     if wrapped_mask[x, y] > 0:
                         continue
-                    pixel = wrapped_image[x, y]
-                    nbrs0[num_nbrs] = pixel[0]
-                    nbrs1[num_nbrs] = pixel[1]
-                    nbrs2[num_nbrs] = pixel[2]
+                    nbrs[num_nbrs] = wrapped_image[x, y]
                     num_nbrs += 1
-            filtered_image[i-w, j-w] = get_median(num_nbrs, nbrs0, nbrs1, nbrs2)
+            filtered_image[i - w, j - w] = get_median(num_nbrs, nbrs)
 
 
 @jit(nopython=True, parallel=False)
-def get_median(num_nbrs, nbrs0, nbrs1, nbrs2):
+def get_median(num_nbrs: int, nbrs):
     if num_nbrs == 0:
         return 0, 0, 0
 
-    if num_nbrs == nbrs0.size:
-        return np.median(nbrs0), np.median(nbrs1), np.median(nbrs2)
+    if num_nbrs == nbrs.size:
+        return np.median(nbrs[:, 0]), np.median(nbrs[:, 1]), np.median(nbrs[:, 2])
 
-    return np.median(nbrs0[:num_nbrs]), np.median(nbrs1[:num_nbrs]), np.median(nbrs2[:num_nbrs])
+    actual_nbrs = nbrs[:num_nbrs]
+    return (
+        np.median(actual_nbrs[:, 0]),
+        np.median(actual_nbrs[:, 1]),
+        np.median(actual_nbrs[:, 2]),
+    )
 
 
 def get_larger_mask(mask):
@@ -104,7 +106,7 @@ def remove_alias_artifacts(image):
             os.path.join(DEBUG_OUTPUT_DIR, "black-ink-cutout-image.jpg"),
             black_ink_cutout_image,
         )
-    #black_ink_cutout_image = cv.imread(os.path.join(DEBUG_OUTPUT_DIR, "black-ink-cutout-image.jpg"))
+    # black_ink_cutout_image = cv.imread(os.path.join(DEBUG_OUTPUT_DIR, "black-ink-cutout-image.jpg"))
 
     # in_painted_image = cv.inpaint(
     #     black_ink_cutout_image, enlarged_black_ink_mask, IN_PAINT_RADIUS, cv.INPAINT_NS
@@ -114,8 +116,11 @@ def remove_alias_artifacts(image):
     #         os.path.join(DEBUG_OUTPUT_DIR, "in-painted-image.jpg"), in_painted_image
     #     )
 
-    #blurred_image = cv.medianBlur(in_painted_image, MEDIAN_BLUR_APERTURE_SIZE)
-    blurred_image = median_filter3(image, enlarged_black_ink_mask, MEDIAN_BLUR_APERTURE_SIZE)
+    # blurred_image = cv.medianBlur(in_painted_image, MEDIAN_BLUR_APERTURE_SIZE)
+    # blurred_image = cv.medianBlur(image, MEDIAN_BLUR_APERTURE_SIZE)
+    blurred_image = median_filter3(
+        image, enlarged_black_ink_mask, MEDIAN_BLUR_APERTURE_SIZE
+    )
     if DEBUG:
         cv.imwrite(os.path.join(DEBUG_OUTPUT_DIR, "blurred-image.jpg"), blurred_image)
 
@@ -132,7 +137,7 @@ image_file = (
     "/home/greg/Books/Carl Barks/The Comics/"
     "Comics and Stories/055 The Terrible Turkey/images/05.jpg"
 )
-#image_file = "restore-tests/test-image.jpg"
+# image_file = "restore-tests/test-image.jpg"
 # image_file = "restore-tests/simple-test-image.jpg"
 
 input_image = cv.imread(image_file)
