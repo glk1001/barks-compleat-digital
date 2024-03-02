@@ -443,12 +443,32 @@ def get_checked_srce_file(srce_dir: str, page: CleanPage) -> str:
 
 def process_pages(
     dry_run: bool,
+    cache_body_pages: bool,
     comic: ComicBook,
     src_pages: List[CleanPage],
     dst_pages: List[CleanPage],
 ):
+    delete_all_files_in_directory(dry_run, comic.get_dest_dir())
+    if not cache_body_pages:
+        delete_all_files_in_directory(dry_run, comic.get_dest_image_dir())
+
     for srce_page, dest_page in zip(src_pages, dst_pages):
-        process_page(dry_run, comic, srce_page, dest_page)
+        process_page(dry_run, cache_body_pages, comic, srce_page, dest_page)
+
+
+def delete_all_files_in_directory(dry_run: bool, directory_path: str):
+    if dry_run:
+        logging.info(
+            f'{DRY_RUN_STR}: Deleting all files in directory "{directory_path}".'
+        )
+        return
+
+    logging.debug(f'Deleting all files in directory "{directory_path}".')
+
+    with os.scandir(directory_path) as files:
+        for file in files:
+            if file.is_file():
+                os.unlink(file.path)
 
 
 def set_required_dimensions(
@@ -597,6 +617,7 @@ def get_min_max_panels_bbox_width_height(
 
 def set_srce_panel_bounding_boxes(
     dry_run: bool,
+    use_cached_bboxes: bool,
     comic: ComicBook,
     src_pages: List[CleanPage],
 ):
@@ -611,17 +632,20 @@ def set_srce_panel_bounding_boxes(
         else:
             srce_page_image = srce_page_image.convert("RGB")
             srce_page.panels_bbox = get_panels_bounding_box(
-                dry_run, comic, srce_page_image, srce_page
+                dry_run, use_cached_bboxes, comic, srce_page_image, srce_page
             )
 
     logging.debug("")
 
 
 def get_panels_bounding_box(
-    dry_run: bool, comic: ComicBook, srce_page_image: Image, srce_page: CleanPage
+    dry_run: bool,
+    use_cached_bboxes: bool,
+    comic: ComicBook,
+    srce_page_image: Image,
+    srce_page: CleanPage,
 ) -> BoundingBox:
-    if srce_page.page_type in PAGES_WITHOUT_PANELS:
-        return BoundingBox(0, 0, srce_page_image.width - 1, srce_page_image.height - 1)
+    assert srce_page.page_type not in PAGES_WITHOUT_PANELS
 
     srce_page_bounding_box_filename = str(
         os.path.join(
@@ -630,6 +654,20 @@ def get_panels_bounding_box(
             + "_panel_bounds.txt",
         )
     )
+
+    if not use_cached_bboxes and os.path.isfile(srce_page_bounding_box_filename):
+        if dry_run:
+            logging.info(
+                f"{DRY_RUN_STR}: "
+                f'Caching off - deleting panel bbox file "{srce_page_bounding_box_filename}".'
+            )
+        else:
+            logging.debug(
+                f'Caching off - deleting panel bbox file "{srce_page_bounding_box_filename}".'
+            )
+            os.remove(srce_page_bounding_box_filename)
+            assert not os.path.isfile(srce_page_bounding_box_filename)
+
     if os.path.isfile(srce_page_bounding_box_filename):
         return boundingBoxProcessor.get_panels_bounding_box_from_file(
             srce_page_bounding_box_filename
@@ -714,7 +752,11 @@ def get_dest_panel_bounding_box(comic: ComicBook, srce_page: CleanPage) -> Bound
 
 
 def process_page(
-    dry_run: bool, comic: ComicBook, srce_page: CleanPage, dest_page: CleanPage
+    dry_run: bool,
+    cache_body_pages: bool,
+    comic: ComicBook,
+    srce_page: CleanPage,
+    dest_page: CleanPage,
 ):
     logging.info(
         f'Convert "{os.path.basename(srce_page.filename)}" (page-type {srce_page.page_type.name})'
@@ -732,6 +774,15 @@ def process_page(
             f' Poor srce file resolution for "{srce_page.filename}":'
             f" {srce_page_image.width} x {srce_page_image.height}."
         )
+
+    if (
+        srce_page.page_type == PageType.BODY
+        and cache_body_pages
+        and os.path.exists(dest_page.filename)
+    ):
+        logging.info(f'Caching on - using existing body file "{dest_page.filename}".')
+        return
+
     dest_page_image = get_dest_page_image(comic, srce_page_image, srce_page, dest_page)
     rgb_dest_page_image = dest_page_image.convert("RGB")
 
@@ -1615,6 +1666,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("--dry-run", action="store_true", required=False, default=False)
     parser.add_argument("--work-dir", type=str, required=True)
+    parser.add_argument(
+        "--no-cache", action="store_true", required=False, default=False
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -1654,14 +1708,16 @@ if __name__ == "__main__":
     srce_pages, dest_pages = get_srce_and_dest_pages_in_order(
         comic_book, required_pages, front_pages, main_pages
     )
-    set_srce_panel_bounding_boxes(args.dry_run, comic_book, srce_pages)
+    set_srce_panel_bounding_boxes(
+        args.dry_run, not args.no_cache, comic_book, srce_pages
+    )
     set_required_dimensions(comic_book, srce_pages)
     set_dest_panel_bounding_boxes(comic_book, srce_pages, dest_pages)
 
     log_comic_book_params(comic_book)
 
     create_dest_dirs(args.dry_run, comic_book)
-    process_pages(args.dry_run, comic_book, srce_pages, dest_pages)
+    process_pages(args.dry_run, not args.no_cache, comic_book, srce_pages, dest_pages)
     process_additional_files(args.dry_run, comic_book, srce_pages, dest_pages)
 
     write_summary(comic_book, srce_pages, dest_pages)
