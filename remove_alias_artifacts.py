@@ -1,5 +1,4 @@
 import os
-import subprocess
 import time
 
 import cv2 as cv
@@ -8,35 +7,10 @@ from numba import jit
 
 DEBUG = False
 DEBUG_OUTPUT_DIR = "/tmp"
-TEMP_DIR = "/tmp"
 
-IN_PAINT_RADIUS = 3
-IN_PAINT_CUTOUT_FILL_COLOR = (128, 128, 128)
 MEDIAN_BLUR_APERTURE_SIZE = 7
 ADAPTIVE_THRESHOLD_BLOCK_SIZE = 21
 ADAPTIVE_THRESHOLD_CONST_SUBTRACT = 10
-
-
-def median_filter_external(src_file: str, mask_file: str, kernel_size: int):
-    masked_filter_exe = "/home/greg/Prj/github/opencv/test/build/MaskedMedian"
-    dest_file = os.path.join(TEMP_DIR, "dest.jpg")
-    run_args = [masked_filter_exe, src_file, mask_file, str(kernel_size), dest_file]
-    # print(run_args)
-
-    result = subprocess.run(
-        run_args,
-        shell=False,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    # print(result.stdout)
-    print(result.stderr)
-
-    if result.returncode != 0:
-        raise Exception("Could not run masked median filter.")
-
-    return cv.imread(dest_file)
 
 
 def median_filter(original_image, mask, kernel_size: int):
@@ -101,16 +75,7 @@ def get_larger_mask(mask):
     return cv.dilate(mask, kernel, iterations=1)
 
 
-def get_cutout_image(image, mask):
-    cutout_image = np.full_like(image, IN_PAINT_CUTOUT_FILL_COLOR)
-    cutout_image[mask == 0] = image[mask == 0]
-    return cutout_image
-
-
-def remove_alias_artifacts(input_image_file):
-    input_image = cv.imread(input_image_file)
-    print(f"Input image shape: {input_image.shape}")
-
+def remove_alias_artifacts(input_image):
     gray_image = cv.cvtColor(input_image, cv.COLOR_BGR2GRAY)
 
     black_ink_mask = cv.adaptiveThreshold(
@@ -131,19 +96,14 @@ def remove_alias_artifacts(input_image_file):
             enlarged_black_ink_mask,
         )
 
-    blurred_image = median_filter(
+    filtered_image = median_filter(
         input_image, enlarged_black_ink_mask, MEDIAN_BLUR_APERTURE_SIZE
     )
-    # enlarged_mask_file = os.path.join(TEMP_DIR, "enlarged-black-ink-mask.jpg")
-    # cv.imwrite(enlarged_mask_file, enlarged_black_ink_mask)
-    # blurred_image = median_filter_external(
-    #     input_image_file, enlarged_mask_file, MEDIAN_BLUR_APERTURE_SIZE
-    # )
     if DEBUG:
-        cv.imwrite(os.path.join(DEBUG_OUTPUT_DIR, "blurred-image.jpg"), blurred_image)
+        cv.imwrite(os.path.join(DEBUG_OUTPUT_DIR, "filtered-image.jpg"), filtered_image)
 
     output_image = input_image.copy()
-    output_image[black_ink_mask == 0] = blurred_image[black_ink_mask == 0]
+    output_image[black_ink_mask == 0] = filtered_image[black_ink_mask == 0]
     output_image[enlarged_black_ink_mask != 0] = input_image[
         enlarged_black_ink_mask != 0
     ]
@@ -154,14 +114,17 @@ def remove_alias_artifacts(input_image_file):
 if __name__ == "__main__":
     start_time = time.time()
 
-    image_file = (
+    src_image_file = (
         "/home/greg/Books/Carl Barks/The Comics/"
         "Comics and Stories/055 The Terrible Turkey/images/05.jpg"
     )
-    # image_file = "restore-tests/test-image.jpg"
-    # image_file = "restore-tests/simple-test-image.jpg"
+    # src_image_file = "restore-tests/test-image.jpg"
+    # src_image_file = "restore-tests/simple-test-image.jpg"
 
-    improved_image = remove_alias_artifacts(image_file)
+    src_image = cv.imread(src_image_file)
+    print(f"Src image shape: {src_image.shape}")
+
+    improved_image = remove_alias_artifacts(src_image)
 
     cv.imwrite("/tmp/improved-image.jpg", improved_image)
 
