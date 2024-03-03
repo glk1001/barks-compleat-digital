@@ -1,12 +1,14 @@
 import os
+import subprocess
 import time
 
 import cv2 as cv
 import numpy as np
 from numba import jit
 
-DEBUG = True
+DEBUG = False
 DEBUG_OUTPUT_DIR = "/tmp"
+TEMP_DIR = "/tmp"
 
 IN_PAINT_RADIUS = 3
 IN_PAINT_CUTOUT_FILL_COLOR = (128, 128, 128)
@@ -15,7 +17,29 @@ ADAPTIVE_THRESHOLD_BLOCK_SIZE = 21
 ADAPTIVE_THRESHOLD_CONST_SUBTRACT = 10
 
 
-def median_filter3(original_image, mask, kernel_size: int):
+def median_filter_external(src_file: str, mask_file: str, kernel_size: int):
+    masked_filter_exe = "/home/greg/Prj/github/opencv/test/build/MaskedMedian"
+    dest_file = os.path.join(TEMP_DIR, "dest.jpg")
+    run_args = [masked_filter_exe, src_file, mask_file, str(kernel_size), dest_file]
+    # print(run_args)
+
+    result = subprocess.run(
+        run_args,
+        shell=False,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    # print(result.stdout)
+    print(result.stderr)
+
+    if result.returncode != 0:
+        raise Exception("Could not run masked median filter.")
+
+    return cv.imread(dest_file)
+
+
+def median_filter(original_image, mask, kernel_size: int):
     filtered_image = np.zeros_like(original_image)
     w = kernel_size // 2
 
@@ -38,33 +62,37 @@ def median_filter_core(wrapped_image, wrapped_mask, kernel_size: int, filtered_i
     image_h, image_w = filtered_image.shape[0], filtered_image.shape[1]
     w: int = kernel_size // 2
 
-    nbrs = np.empty((kernel_size * kernel_size, 3), dtype=filtered_image.dtype)
+    nbrs0 = np.empty((kernel_size * kernel_size, 1), dtype=filtered_image.dtype)
+    nbrs1 = np.empty((kernel_size * kernel_size, 1), dtype=filtered_image.dtype)
+    nbrs2 = np.empty((kernel_size * kernel_size, 1), dtype=filtered_image.dtype)
 
     for i in range(w, image_h + w):
         for j in range(w, image_w + w):
-            num_nbrs: int = 0
+            num_nbrs = 0
             for x in range(i - w, i + w + 1):
                 for y in range(j - w, j + w + 1):
                     if wrapped_mask[x, y] > 0:
                         continue
-                    nbrs[num_nbrs] = wrapped_image[x, y]
+                    pixel = wrapped_image[x, y]
+                    nbrs0[num_nbrs] = pixel[0]
+                    nbrs1[num_nbrs] = pixel[1]
+                    nbrs2[num_nbrs] = pixel[2]
                     num_nbrs += 1
-            filtered_image[i - w, j - w] = get_median(num_nbrs, nbrs)
+            filtered_image[i - w, j - w] = get_median(num_nbrs, nbrs0, nbrs1, nbrs2)
 
 
 @jit(nopython=True, parallel=False)
-def get_median(num_nbrs: int, nbrs):
+def get_median(num_nbrs: int, nbrs0, nbrs1, nbrs2):
     if num_nbrs == 0:
         return 0, 0, 0
 
-    if num_nbrs == nbrs.size:
-        return np.median(nbrs[:, 0]), np.median(nbrs[:, 1]), np.median(nbrs[:, 2])
+    if num_nbrs == nbrs0.size:
+        return np.median(nbrs0), np.median(nbrs1), np.median(nbrs2)
 
-    actual_nbrs = nbrs[:num_nbrs]
     return (
-        np.median(actual_nbrs[:, 0]),
-        np.median(actual_nbrs[:, 1]),
-        np.median(actual_nbrs[:, 2]),
+        np.median(nbrs0[:num_nbrs]),
+        np.median(nbrs1[:num_nbrs]),
+        np.median(nbrs2[:num_nbrs]),
     )
 
 
@@ -79,8 +107,11 @@ def get_cutout_image(image, mask):
     return cutout_image
 
 
-def remove_alias_artifacts(image):
-    gray_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+def remove_alias_artifacts(input_image_file):
+    input_image = cv.imread(input_image_file)
+    print(f"Input image shape: {input_image.shape}")
+
+    gray_image = cv.cvtColor(input_image, cv.COLOR_BGR2GRAY)
 
     black_ink_mask = cv.adaptiveThreshold(
         gray_image,
@@ -100,54 +131,40 @@ def remove_alias_artifacts(image):
             enlarged_black_ink_mask,
         )
 
-    black_ink_cutout_image = get_cutout_image(image, enlarged_black_ink_mask)
-    if DEBUG:
-        cv.imwrite(
-            os.path.join(DEBUG_OUTPUT_DIR, "black-ink-cutout-image.jpg"),
-            black_ink_cutout_image,
-        )
-    # black_ink_cutout_image = cv.imread(os.path.join(DEBUG_OUTPUT_DIR, "black-ink-cutout-image.jpg"))
-
-    # in_painted_image = cv.inpaint(
-    #     black_ink_cutout_image, enlarged_black_ink_mask, IN_PAINT_RADIUS, cv.INPAINT_NS
-    # )
-    # if DEBUG:
-    #     cv.imwrite(
-    #         os.path.join(DEBUG_OUTPUT_DIR, "in-painted-image.jpg"), in_painted_image
-    #     )
-
-    # blurred_image = cv.medianBlur(in_painted_image, MEDIAN_BLUR_APERTURE_SIZE)
-    # blurred_image = cv.medianBlur(image, MEDIAN_BLUR_APERTURE_SIZE)
-    blurred_image = median_filter3(
-        image, enlarged_black_ink_mask, MEDIAN_BLUR_APERTURE_SIZE
+    blurred_image = median_filter(
+        input_image, enlarged_black_ink_mask, MEDIAN_BLUR_APERTURE_SIZE
     )
+    # enlarged_mask_file = os.path.join(TEMP_DIR, "enlarged-black-ink-mask.jpg")
+    # cv.imwrite(enlarged_mask_file, enlarged_black_ink_mask)
+    # blurred_image = median_filter_external(
+    #     input_image_file, enlarged_mask_file, MEDIAN_BLUR_APERTURE_SIZE
+    # )
     if DEBUG:
         cv.imwrite(os.path.join(DEBUG_OUTPUT_DIR, "blurred-image.jpg"), blurred_image)
 
-    out_image = image.copy()
-    out_image[black_ink_mask == 0] = blurred_image[black_ink_mask == 0]
-    out_image[enlarged_black_ink_mask != 0] = image[enlarged_black_ink_mask != 0]
+    output_image = input_image.copy()
+    output_image[black_ink_mask == 0] = blurred_image[black_ink_mask == 0]
+    output_image[enlarged_black_ink_mask != 0] = input_image[
+        enlarged_black_ink_mask != 0
+    ]
 
-    return out_image
+    return output_image
 
 
-start_time = time.time()
+if __name__ == "__main__":
+    start_time = time.time()
 
-image_file = (
-    "/home/greg/Books/Carl Barks/The Comics/"
-    "Comics and Stories/055 The Terrible Turkey/images/05.jpg"
-)
-# image_file = "restore-tests/test-image.jpg"
-# image_file = "restore-tests/simple-test-image.jpg"
+    image_file = (
+        "/home/greg/Books/Carl Barks/The Comics/"
+        "Comics and Stories/055 The Terrible Turkey/images/05.jpg"
+    )
+    # image_file = "restore-tests/test-image.jpg"
+    # image_file = "restore-tests/simple-test-image.jpg"
 
-input_image = cv.imread(image_file)
-height, width, num_channels = input_image.shape
-print(f"width: {width}, height: {height}, channels: {num_channels}")
+    improved_image = remove_alias_artifacts(image_file)
 
-improved_image = remove_alias_artifacts(input_image)
+    cv.imwrite("/tmp/improved-image.jpg", improved_image)
 
-cv.imwrite("/tmp/improved-image.jpg", improved_image)
-
-end_time = time.time()
-elapsed_time = round(end_time - start_time, 2)
-print(f"Execution time: {elapsed_time} seconds")
+    end_time = time.time()
+    elapsed_time = round(end_time - start_time, 2)
+    print(f"Execution time: {elapsed_time} seconds")
