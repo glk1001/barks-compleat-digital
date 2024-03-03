@@ -386,43 +386,39 @@ def get_required_pages_in_order(
 def get_srce_and_dest_pages_in_order(
     comic: ComicBook,
     req_pages: List[CleanPage],
-    these_front_pages: List[int],
-    these_main_pages: List[int],
 ) -> Tuple[List[CleanPage], List[CleanPage]]:
     srce_page_list = []
     dest_page_list = []
 
-    img_num = 1
+    file_section_num = 1
+    file_page_num = 0
+    start_front_matter = True
+    start_body = False
     page_num = 0
-    done_front_matter = False
     for page in req_pages:
-        srce_file = get_checked_srce_file(comic.get_srce_image_dir(), page)
-        num_str = f"{img_num:02d}"
-        dest_file = os.path.join(comic.get_dest_image_dir(), num_str + DEST_FILE_EXT)
-
-        if not done_front_matter and page.page_type == PageType.BODY:
-            done_front_matter = True
+        if start_front_matter and page.page_type == PageType.BODY:
+            start_front_matter = False
+            start_body = True
+            file_section_num += 1
+            file_page_num = 1
             page_num = 1
+        elif start_body and page.page_type != PageType.BODY:
+            start_body = False
+            file_section_num += 1
+            file_page_num = 1
+            page_num += 1
         elif page.page_type != PageType.FRONT:
+            file_page_num += 1
             page_num += 1
 
-        if len(these_front_pages) == 0 and len(these_main_pages) == 0:
-            add_page = True
-        elif page.page_type in FRONT_MATTER_PAGES and page_num in these_front_pages:
-            add_page = True
-        elif (
-            page.page_type in [PageType.BODY, PageType.BACK_MATTER]
-            and page_num in these_main_pages
-        ):
-            add_page = True
-        else:
-            add_page = False
+        srce_file = get_checked_srce_file(comic.get_srce_image_dir(), page)
+        file_num_str = f"{file_section_num}-{file_page_num:02d}"
+        dest_file = os.path.join(
+            comic.get_dest_image_dir(), file_num_str + DEST_FILE_EXT
+        )
 
-        if add_page:
-            srce_page_list.append(CleanPage(srce_file, page.page_type))
-            dest_page_list.append(CleanPage(dest_file, page.page_type, page_num))
-
-        img_num += 1
+        srce_page_list.append(CleanPage(srce_file, page.page_type))
+        dest_page_list.append(CleanPage(dest_file, page.page_type, page_num))
 
     return srce_page_list, dest_page_list
 
@@ -1656,12 +1652,6 @@ if __name__ == "__main__":
     )
     parser.add_argument("--ini-file", action="store", type=str, required=True)
     parser.add_argument(
-        "--front-pages", action="store", type=str, required=False, default=""
-    )
-    parser.add_argument(
-        "--main-pages", action="store", type=str, required=False, default=""
-    )
-    parser.add_argument(
         "--log-level", action="store", type=str, required=False, default="INFO"
     )
     parser.add_argument("--dry-run", action="store_true", required=False, default=False)
@@ -1695,9 +1685,6 @@ if __name__ == "__main__":
     )
     check_story_submitted_order(all_comic_book_info)
 
-    front_pages = get_list_of_numbers(args.front_pages)
-    main_pages = get_list_of_numbers(args.main_pages)
-
     comic_book = get_comic_book(config_file)
     if not os.path.isdir(comic_book.get_srce_image_dir()):
         raise Exception(
@@ -1706,7 +1693,7 @@ if __name__ == "__main__":
 
     required_pages = get_required_pages_in_order(comic_book.images_in_order)
     srce_pages, dest_pages = get_srce_and_dest_pages_in_order(
-        comic_book, required_pages, front_pages, main_pages
+        comic_book, required_pages
     )
     set_srce_panel_bounding_boxes(
         args.dry_run, not args.no_cache, comic_book, srce_pages
