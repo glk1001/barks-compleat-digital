@@ -312,6 +312,9 @@ def zip_comic_book(dry_run: bool, comic: ComicBook):
 
 
 def symlink_comic_book_zip(dry_run: bool, comic: ComicBook):
+    if not os.path.exists(comic.get_dest_comic_zip()):
+        raise Exception(f'Could not find zip file "{comic.get_dest_comic_zip()}".')
+
     if dry_run:
         logging.info(
             f'{DRY_RUN_STR}: Symlinking zip file "{comic.get_dest_comic_zip()}"'
@@ -323,6 +326,8 @@ def symlink_comic_book_zip(dry_run: bool, comic: ComicBook):
             f' to "{comic.get_dest_series_comic_zip_symlink()}".'
         )
 
+        if not os.path.exists(comic.get_dest_series_zip_dir()):
+            os.makedirs(comic.get_dest_series_zip_dir())
         if os.path.islink(comic.get_dest_series_comic_zip_symlink()):
             os.remove(comic.get_dest_series_comic_zip_symlink())
 
@@ -1799,6 +1804,9 @@ if __name__ == "__main__":
         "--log-level", action="store", type=str, required=False, default="INFO"
     )
     parser.add_argument("--dry-run", action="store_true", required=False, default=False)
+    parser.add_argument(
+        "--just-symlinks", action="store_true", required=False, default=False
+    )
     parser.add_argument("--work-dir", type=str, required=True)
     parser.add_argument(
         "--no-cache", action="store_true", required=False, default=False
@@ -1831,14 +1839,17 @@ if __name__ == "__main__":
 
     comic_book = get_comic_book(all_comic_book_info, config_file)
 
-    srce_and_dest_pages = process_comic_book(comic_book)
+    if args.just_symlinks:
+        symlink_comic_book_zip(args.dry_run, comic_book)
+    else:
+        srce_and_dest_pages = process_comic_book(comic_book)
 
-    zip_comic_book(args.dry_run, comic_book)
-    symlink_comic_book_zip(args.dry_run, comic_book)
+        zip_comic_book(args.dry_run, comic_book)
+        symlink_comic_book_zip(args.dry_run, comic_book)
 
-    process_timing.end_time = datetime.now()
-    logging.info(
-        f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds"
-    )
+        process_timing.end_time = datetime.now()
+        logging.info(
+            f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds"
+        )
 
-    write_summary(comic_book, srce_and_dest_pages, process_timing)
+        write_summary(comic_book, srce_and_dest_pages, process_timing)
