@@ -67,3 +67,10 @@ SPLASH_PAGES = [
     PageType.SPLASH,
     PageType.SPLASH_NO_BORDER,
 ]
+CACHEABLE_PAGES = [
+    PageType.SPLASH,
+    PageType.SPLASH_NO_BORDER,
+    PageType.FRONT_MATTER,
+    PageType.BODY,
+    PageType.BACK_MATTER,
+]

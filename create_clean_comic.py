@@ -46,6 +46,7 @@ from consts import (
     FRONT_MATTER_PAGES,
     PAGES_WITHOUT_PANELS,
     SPLASH_PAGES,
+    CACHEABLE_PAGES,
     MIN_HD_SRCE_HEIGHT,
 )
 from panel_bounding_boxes import BoundingBox, BoundingBoxProcessor
@@ -439,17 +440,17 @@ def get_checked_srce_file(srce_dir: str, page: CleanPage) -> str:
 
 def process_pages(
     dry_run: bool,
-    cache_body_pages: bool,
+    cache_pages: bool,
     comic: ComicBook,
     src_pages: List[CleanPage],
     dst_pages: List[CleanPage],
 ):
     delete_all_files_in_directory(dry_run, comic.get_dest_dir())
-    if not cache_body_pages:
+    if not cache_pages:
         delete_all_files_in_directory(dry_run, comic.get_dest_image_dir())
 
     for srce_page, dest_page in zip(src_pages, dst_pages):
-        process_page(dry_run, cache_body_pages, comic, srce_page, dest_page)
+        process_page(dry_run, cache_pages, comic, srce_page, dest_page)
 
 
 def delete_all_files_in_directory(dry_run: bool, directory_path: str):
@@ -749,7 +750,7 @@ def get_dest_panel_bounding_box(comic: ComicBook, srce_page: CleanPage) -> Bound
 
 def process_page(
     dry_run: bool,
-    cache_body_pages: bool,
+    cache_pages: bool,
     comic: ComicBook,
     srce_page: CleanPage,
     dest_page: CleanPage,
@@ -757,7 +758,8 @@ def process_page(
     logging.info(
         f'Convert "{os.path.basename(srce_page.filename)}" (page-type {srce_page.page_type.name})'
         f' to "{os.path.basename(dest_page.filename)}"'
-        f" (page number = {get_page_num_str(dest_page)})..."
+        f" (page number = {get_page_num_str(dest_page)},"
+        f" cache pages = {cache_pages})..."
     )
 
     srce_page_image = open_image_for_reading(srce_page.filename)
@@ -772,11 +774,11 @@ def process_page(
         )
 
     if (
-        srce_page.page_type == PageType.BODY
-        and cache_body_pages
+        srce_page.page_type in CACHEABLE_PAGES
+        and cache_pages
         and os.path.exists(dest_page.filename)
     ):
-        logging.info(f'Caching on - using existing body file "{dest_page.filename}".')
+        logging.debug(f'Caching on - using existing page file "{dest_page.filename}".')
         return
 
     dest_page_image = get_dest_page_image(comic, srce_page_image, srce_page, dest_page)
