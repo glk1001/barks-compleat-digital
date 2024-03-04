@@ -1467,8 +1467,8 @@ def write_json_metadata(dry_run: bool, comic: ComicBook, dst_pages: List[CleanPa
 def get_page_counts(comic: ComicBook, dst_pages: List[CleanPage]) -> Dict[str, int]:
     page_counts = dict()
 
-    painting_page_count = len([p for p in dst_pages if p.page_type == PageType.FRONT])
-    assert painting_page_count <= 1
+    front_page_count = len([p for p in dst_pages if p.page_type == PageType.FRONT])
+    assert front_page_count <= 1
 
     title_page_count = len([p for p in dst_pages if p.page_type == PageType.TITLE])
     assert title_page_count == 1
@@ -1498,7 +1498,7 @@ def get_page_counts(comic: ComicBook, dst_pages: List[CleanPage]) -> Dict[str, i
 
     total_page_count = len(dst_pages)
     assert total_page_count == (
-        painting_page_count
+        front_page_count
         + title_page_count
         + cover_page_count
         + painting_page_count
