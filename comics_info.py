@@ -100,6 +100,8 @@ def get_all_comic_book_info(stories_filename: str) -> ComicBookInfoDict:
             current_number_in_series[series_name] += 1
             chronological_number += 1
 
+    check_story_submitted_order(all_info)
+
     return all_info
 
 
