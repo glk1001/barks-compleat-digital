@@ -11,6 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 
 from comics_info import (
@@ -36,6 +37,8 @@ from consts import (
     INSET_FILE_EXT,
     DEST_FILE_EXT,
     SRCE_FILE_EXT,
+    DEST_JPG_QUALITY,
+    DEST_JPG_COMPRESS_LEVEL,
     EMPTY_FILENAME,
     TITLE_EMPTY_FILENAME,
     DRY_RUN_STR,
@@ -47,11 +50,14 @@ from consts import (
     PageType,
     FRONT_MATTER_PAGES,
     PAGES_WITHOUT_PANELS,
+    PAINTING_PAGES,
     SPLASH_PAGES,
     CACHEABLE_PAGES,
+    MEDIAN_FILTERABLE_PAGES,
     MIN_HD_SRCE_HEIGHT,
 )
 from panel_bounding_boxes import BoundingBox, BoundingBoxProcessor
+from remove_alias_artifacts import remove_alias_artifacts
 
 THIS_SCRIPT_DIR = os.path.dirname(
     os.path.abspath(inspect.getfile(inspect.currentframe()))
@@ -304,12 +310,12 @@ def zip_comic_book(dry_run: bool, comic: ComicBook):
 def symlink_comic_book_zip(dry_run: bool, comic: ComicBook):
     if dry_run:
         logging.info(
-            f'{DRY_RUN_STR}: Symlink zip file "{comic.get_dest_comic_zip()}"'
+            f'{DRY_RUN_STR}: Symlinking zip file "{comic.get_dest_comic_zip()}"'
             f' to "{comic.get_dest_series_comic_zip_symlink()}".'
         )
     else:
         logging.info(
-            f'Symlink the zip file "{comic.get_dest_comic_zip()}"'
+            f'Symlinking the zip file "{comic.get_dest_comic_zip()}"'
             f' to "{comic.get_dest_series_comic_zip_symlink()}".'
         )
 
@@ -326,7 +332,11 @@ def symlink_comic_book_zip(dry_run: bool, comic: ComicBook):
 
 
 def write_summary(
-    comic: ComicBook, srce_page_list: List[CleanPage], dest_page_list: List[CleanPage]
+    comic: ComicBook,
+    srce_page_list: List[CleanPage],
+    dest_page_list: List[CleanPage],
+    time_of_run: datetime,
+    time_taken_in_seconds: int,
 ):
     summary_file = os.path.join(comic.get_dest_dir(), "clean_summary.txt")
 
@@ -341,24 +351,33 @@ def write_summary(
     )
 
     with open(summary_file, "w") as f:
-        f.write("Config Summary:\n")
+        f.write("Run Summary:\n")
+        f.write(f"Time of run              = {time_of_run}\n")
+        f.write(f"Time taken               = {time_taken_in_seconds} seconds\n")
         f.write(f'title                    = "{comic.title}"\n')
         f.write(f'file_title               = "{comic.file_title}"\n')
         f.write(f'issue_title              = "{comic.issue_title}"\n')
         f.write(f'comic title              = "{comic.get_comic_title()}"\n')
         f.write(f'srce_dir                 = "{comic.srce_dir}"\n')
         f.write(f'dest_dir                 = "{comic.get_dest_dir()}"\n')
+        f.write(f'dest_zip_dir             = "{comic.get_dest_zip_dir()}"\n')
+        f.write(
+            f'dest_series_zip_symlink  = "{comic.get_dest_series_comic_zip_symlink()}"\n'
+        )
         f.write(
             f'title_font_file          = "{get_font_path(comic.title_font_file)}"\n'
         )
         f.write(f"title_font_size          = {comic.title_font_size}\n")
         f.write(f"author_font_size         = {comic.author_font_size}\n")
+        f.write(f"chronological_number     = {comic.chronological_number}\n")
         f.write(f'series                   = "{comic.series_name}"\n')
         f.write(f"series_book_num          = {comic.number_in_series}\n")
         f.write(f"DEST_TARGET_X_MARGIN     = {DEST_TARGET_X_MARGIN}\n")
         f.write(f"DEST_TARGET_WIDTH        = {DEST_TARGET_WIDTH}\n")
         f.write(f"DEST_TARGET_HEIGHT       = {DEST_TARGET_HEIGHT}\n")
         f.write(f"DEST_TARGET_ASPECT_RATIO = {DEST_TARGET_ASPECT_RATIO:.2f}\n")
+        f.write(f"DEST_JPG_QUALITY         = {DEST_JPG_QUALITY}\n")
+        f.write(f"DEST_JPG_COMPRESS_LEVEL  = {DEST_JPG_COMPRESS_LEVEL}\n")
         f.write(f"srce_min_panels_bbox_wid = {comic.srce_min_panels_bbox_width}\n")
         f.write(f"srce_max_panels_bbox_wid = {comic.srce_max_panels_bbox_width}\n")
         f.write(f"srce_av_panels_bbox_wid  = {comic.srce_av_panels_bbox_width}\n")
@@ -492,7 +511,12 @@ def process_pages(
     dst_pages: List[CleanPage],
 ):
     delete_all_files_in_directory(dry_run, comic.get_dest_dir())
-    if not cache_pages:
+    if cache_pages:
+        logging.debug(
+            f"Caching on - not deleting cached files"
+            f' in images directory "{comic.get_dest_image_dir()}".'
+        )
+    else:
         delete_all_files_in_directory(dry_run, comic.get_dest_image_dir())
 
     for srce_page, dest_page in zip(src_pages, dst_pages):
@@ -828,12 +852,16 @@ def process_page(
         return
 
     dest_page_image = get_dest_page_image(comic, srce_page_image, srce_page, dest_page)
-    rgb_dest_page_image = dest_page_image.convert("RGB")
 
     if dry_run:
         logging.info(f'{DRY_RUN_STR}: Save changes to image "{dest_page.filename}".')
     else:
-        rgb_dest_page_image.save(dest_page.filename, optimize=True, compress_level=9)
+        dest_page_image.save(
+            dest_page.filename,
+            optimize=True,
+            compress_level=DEST_JPG_COMPRESS_LEVEL,
+            quality=DEST_JPG_QUALITY,
+        )
         logging.info(f'Saved changes to image "{dest_page.filename}".')
 
     logging.info("")
@@ -854,9 +882,26 @@ def get_dest_page_image(
             comic, srce_page_image, srce_page, dest_page
         )
 
-    log_page_info("Dest", dest_page_image, dest_page)
+    rgb_dest_page_image = dest_page_image.convert("RGB")
 
-    return dest_page_image
+    if dest_page.page_type in MEDIAN_FILTERABLE_PAGES:
+        logging.debug(f'Starting median filter of "{dest_page.filename}"...')
+        rgb_dest_page_image = get_median_filtered_image(rgb_dest_page_image)
+
+    log_page_info("Dest", rgb_dest_page_image, dest_page)
+
+    return rgb_dest_page_image
+
+
+def get_median_filtered_image(image: Image) -> Image:
+    current_log_level = logging.getLogger().level
+    try:
+        logging.getLogger().setLevel(logging.INFO)
+
+        image = remove_alias_artifacts(np.asarray(image))
+        return Image.fromarray(image)
+    finally:
+        logging.getLogger().setLevel(current_log_level)
 
 
 def log_page_info(prefix: str, image: Image, page: CleanPage):
@@ -877,6 +922,8 @@ def get_dest_non_body_page_image(
         return get_dest_front_page_image(srce_page_image, srce_page)
     if dest_page.page_type == PageType.COVER:
         return get_dest_cover_page_image(srce_page_image, srce_page)
+    if dest_page.page_type in PAINTING_PAGES:
+        return get_dest_painting_page_image(srce_page_image, srce_page)
     if dest_page.page_type in SPLASH_PAGES:
         return get_dest_splash_page_image(srce_page_image, srce_page)
     if dest_page.page_type == PageType.BACK_NO_PANELS:
@@ -909,23 +956,36 @@ def get_dest_cover_page_image(srce_page_image: Image, srce_page: CleanPage) -> I
     return get_dest_black_bars_page_image(srce_page_image, srce_page)
 
 
+def get_dest_painting_page_image(painting_image: Image, srce_page: CleanPage) -> Image:
+    if srce_page.page_type == PageType.PAINTING:
+        draw_border_around_image(painting_image)
+
+    dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
+
+    return get_dest_centred_page_image(painting_image, srce_page, dest_page_image)
+
+
 def get_dest_splash_page_image(splash_image: Image, srce_page: CleanPage) -> Image:
     if srce_page.page_type == PageType.SPLASH:
-        splash_x_max = splash_image.width - 1
-        splash_y_max = splash_image.height - 1
-        border = [
-            (0, 0),
-            (splash_x_max, 0),
-            (splash_x_max, splash_y_max),
-            (0, splash_y_max),
-            (0, 0),
-        ]
-        draw = ImageDraw.Draw(splash_image)
-        draw.line(border, fill=SPLASH_BORDER_COLOR, width=SPLASH_BORDER_WIDTH)
+        draw_border_around_image(splash_image)
 
     dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
 
     return get_dest_centred_page_image(splash_image, srce_page, dest_page_image)
+
+
+def draw_border_around_image(image: Image):
+    x_max = image.width - 1
+    y_max = image.height - 1
+    border = [
+        (0, 0),
+        (x_max, 0),
+        (x_max, y_max),
+        (0, y_max),
+        (0, 0),
+    ]
+    draw = ImageDraw.Draw(image)
+    draw.line(border, fill=SPLASH_BORDER_COLOR, width=SPLASH_BORDER_WIDTH)
 
 
 def get_dest_no_panels_page_image(
@@ -1416,6 +1476,8 @@ def get_page_counts(comic: ComicBook, dst_pages: List[CleanPage]) -> Dict[str, i
     cover_page_count = len([p for p in dst_pages if p.page_type == PageType.COVER])
     assert cover_page_count <= 1
 
+    painting_page_count = len([p for p in dst_pages if p.page_type in PAINTING_PAGES])
+
     splash_page_count = len([p for p in dst_pages if p.page_type in SPLASH_PAGES])
 
     front_matter_page_count = len(
@@ -1439,6 +1501,7 @@ def get_page_counts(comic: ComicBook, dst_pages: List[CleanPage]) -> Dict[str, i
         painting_page_count
         + title_page_count
         + cover_page_count
+        + painting_page_count
         + splash_page_count
         + front_matter_page_count
         + story_page_count
@@ -1654,7 +1717,7 @@ def get_comic_book(ini_file: str) -> ComicBook:
     )
 
 
-def log_comic_book_params(comic: ComicBook):
+def log_comic_book_params(comic: ComicBook, time_of_run: datetime):
     logging.info("")
 
     calc_panels_bbox_height = int(
@@ -1667,13 +1730,17 @@ def log_comic_book_params(comic: ComicBook):
         )
     )
 
+    logging.info(f"Time of run:         {time_of_run}.")
     logging.info(f'Comic book series:   "{comic.series_name}".')
     logging.info(f'Comic book title:    "{get_safe_title(comic.get_comic_title())}".')
     logging.info(f"Number in series:    {comic.number_in_series}.")
+    logging.info(f"Chronological number {comic.chronological_number}.")
     logging.info(f"Dest x margin:       {DEST_TARGET_X_MARGIN}.")
     logging.info(f"Dest width:          {DEST_TARGET_WIDTH}.")
     logging.info(f"Dest height:         {DEST_TARGET_HEIGHT}.")
     logging.info(f"Dest aspect ratio:   {DEST_TARGET_ASPECT_RATIO:.2f}.")
+    logging.info(f"Dest jpeg quality:   {DEST_JPG_QUALITY}.")
+    logging.info(f"Dest compress level: {DEST_JPG_COMPRESS_LEVEL}.")
     logging.info(f"Srce min bbox wid:   {comic.srce_min_panels_bbox_width}.")
     logging.info(f"Srce max bbox wid:   {comic.srce_max_panels_bbox_width}.")
     logging.info(f"Srce min bbox hgt:   {comic.srce_min_panels_bbox_height}.")
@@ -1687,10 +1754,14 @@ def log_comic_book_params(comic: ComicBook):
     logging.info(f'Srce root:           "{comic.srce_root_dir}".')
     logging.info(f'Srce comic dir:      "ROOT: {comic.get_srce_basename()}".')
     logging.info(f'Srce segments root:  "{comic.get_srce_segments_root_dir()}".')
-    logging.info(f'Srce segments dir:   "ROOT: {comic.get_segments_basename()}".')
+    logging.info(
+        f'Srce segments dir:   "SEGMENTS ROOT: {comic.get_segments_basename()}".'
+    )
     logging.info(f'Dest root:           "{comic.get_dest_root_dir()}".')
     logging.info(f'Dest comic dir:      "ROOT: {comic.get_dest_basename()}".')
-    logging.info(f'Dest comic zip:      "ROOT: {comic.get_dest_zip_basename()}".')
+    logging.info(f'Dest zip root:       "{comic.get_dest_zip_root_dir()}".')
+    logging.info(f'Dest comic zip:      "ZIP ROOT: {comic.get_dest_zip_basename()}".')
+    logging.info(f'Dest zip symlink:    "{comic.get_dest_series_comic_zip_symlink()}".')
     logging.info(f'Work directory:      "{work_dir}".')
     logging.info("")
 
@@ -1709,6 +1780,8 @@ if __name__ == "__main__":
         "--no-cache", action="store_true", required=False, default=False
     )
     args = parser.parse_args()
+
+    start_time = datetime.now()
 
     logging.basicConfig(
         format="%(asctime)s %(levelname)s: %(message)s",
@@ -1750,13 +1823,18 @@ if __name__ == "__main__":
     set_required_dimensions(comic_book, srce_pages)
     set_dest_panel_bounding_boxes(comic_book, srce_pages, dest_pages)
 
-    log_comic_book_params(comic_book)
+    log_comic_book_params(comic_book, start_time)
 
     create_dest_dirs(args.dry_run, comic_book)
     process_pages(args.dry_run, not args.no_cache, comic_book, srce_pages, dest_pages)
     process_additional_files(args.dry_run, comic_book, srce_pages, dest_pages)
 
-    write_summary(comic_book, srce_pages, dest_pages)
-
     zip_comic_book(args.dry_run, comic_book)
     symlink_comic_book_zip(args.dry_run, comic_book)
+
+    end_time = datetime.now()
+    elapsed_time = end_time - start_time
+    elapsed_time = int(round(elapsed_time.total_seconds(), 1))
+    logging.info(f"Time taken to complete comic book: {elapsed_time} seconds")
+
+    write_summary(comic_book, srce_pages, dest_pages, start_time, elapsed_time)

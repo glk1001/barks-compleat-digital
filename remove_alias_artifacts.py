@@ -76,6 +76,8 @@ def get_larger_mask(mask):
 
 
 def remove_alias_artifacts(input_image):
+    # print(f"Src image shape: {input_image.shape}")
+
     gray_image = cv.cvtColor(input_image, cv.COLOR_BGR2GRAY)
 
     black_ink_mask = cv.adaptiveThreshold(
