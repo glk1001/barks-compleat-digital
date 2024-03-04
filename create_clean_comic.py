@@ -29,6 +29,8 @@ from consts import (
     BARKS,
     BARKS_ROOT_DIR,
     THE_COMICS_DIR,
+    THE_CHRONOLOGICAL_DIRS_DIR,
+    THE_CHRONOLOGICAL_DIR,
     CONFIGS_SUBDIR,
     IMAGES_SUBDIR,
     INSET_FILE_EXT,
@@ -147,6 +149,7 @@ class ComicBook:
     panel_segments_dir: str
     series_name: str
     number_in_series: int
+    chronological_number: int
     intro_inset_file: str
     publication_date: str
     submitted_date: str
@@ -161,12 +164,6 @@ class ComicBook:
     def get_srce_segments_root_dir(self) -> str:
         return os.path.dirname(self.panel_segments_dir)
 
-    def get_dest_root_dir(self) -> str:
-        return os.path.join(
-            THE_COMICS_DIR,
-            f"{self.series_name}",
-        )
-
     def get_srce_basename(self) -> str:
         return os.path.basename(self.srce_dir)
 
@@ -176,17 +173,39 @@ class ComicBook:
     def get_dest_basename(self) -> str:
         return os.path.basename(self.get_dest_dir())
 
-    def get_dest_rel_dirname(self) -> str:
-        file_title = get_lookup_title(self.title, self.file_title)
-        return os.path.join(
-            os.path.basename(self.get_dest_root_dir()),
-            f"{self.number_in_series:03d} {file_title}",
-        )
+    def get_dest_root_dir(self) -> str:
+        return THE_CHRONOLOGICAL_DIRS_DIR
+
+    def get_dest_zip_root_dir(self) -> str:
+        return THE_CHRONOLOGICAL_DIR
 
     def get_dest_dir(self) -> str:
         return os.path.join(
-            THE_COMICS_DIR,
+            self.get_dest_root_dir(),
             self.get_dest_rel_dirname(),
+        )
+
+    def get_dest_zip_dir(self) -> str:
+        return os.path.join(
+            self.get_dest_zip_root_dir(),
+            self.get_dest_rel_dirname(),
+        )
+
+    def get_dest_rel_dirname(self) -> str:
+        file_title = get_lookup_title(self.title, self.file_title)
+        return f"{self.chronological_number:03d} {file_title}"
+
+    def get_dest_series_dir(self) -> str:
+        return os.path.join(
+            THE_COMICS_DIR,
+            self.get_dest_series_rel_dirname(),
+        )
+
+    def get_dest_series_rel_dirname(self) -> str:
+        file_title = get_lookup_title(self.title, self.file_title)
+        return os.path.join(
+            f"{self.series_name}",
+            f"{self.number_in_series:03d} {file_title}",
         )
 
     def get_srce_image_dir(self) -> str:
@@ -196,7 +215,10 @@ class ComicBook:
         return os.path.join(self.get_dest_dir(), IMAGES_SUBDIR)
 
     def get_dest_comic_zip(self) -> str:
-        return self.get_dest_dir() + ".cbz"
+        return self.get_dest_zip_dir() + ".cbz"
+
+    def get_dest_series_comic_zip_symlink(self) -> str:
+        return self.get_dest_series_dir() + ".cbz"
 
     def get_dest_zip_basename(self) -> str:
         return os.path.basename(self.get_dest_comic_zip())
@@ -276,6 +298,30 @@ def zip_comic_book(dry_run: bool, comic: ComicBook):
         if not os.path.isfile(comic.get_dest_comic_zip()):
             raise Exception(
                 f'Could not create final comic zip "{comic.get_dest_comic_zip()}".'
+            )
+
+
+def symlink_comic_book_zip(dry_run: bool, comic: ComicBook):
+    if dry_run:
+        logging.info(
+            f'{DRY_RUN_STR}: Symlink zip file "{comic.get_dest_comic_zip()}"'
+            f' to "{comic.get_dest_series_comic_zip_symlink()}".'
+        )
+    else:
+        logging.info(
+            f'Symlink the zip file "{comic.get_dest_comic_zip()}"'
+            f' to "{comic.get_dest_series_comic_zip_symlink()}".'
+        )
+
+        if os.path.islink(comic.get_dest_series_comic_zip_symlink()):
+            os.remove(comic.get_dest_series_comic_zip_symlink())
+
+        os.symlink(
+            comic.get_dest_comic_zip(), comic.get_dest_series_comic_zip_symlink()
+        )
+        if not os.path.islink(comic.get_dest_series_comic_zip_symlink()):
+            raise Exception(
+                f'Could not create symlink "{comic.get_dest_series_comic_zip_symlink()}".'
             )
 
 
@@ -1596,6 +1642,7 @@ def get_comic_book(ini_file: str) -> ComicBook:
         panel_segments_dir=panel_segments_dir,
         series_name=cb_info.series_name,
         number_in_series=cb_info.number_in_series,
+        chronological_number=cb_info.chronological_number,
         intro_inset_file=intro_inset_file,
         publication_date=publication_date,
         submitted_date=submitted_date,
@@ -1712,3 +1759,4 @@ if __name__ == "__main__":
     write_summary(comic_book, srce_pages, dest_pages)
 
     zip_comic_book(args.dry_run, comic_book)
+    symlink_comic_book_zip(args.dry_run, comic_book)

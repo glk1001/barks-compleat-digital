@@ -60,6 +60,7 @@ class ComicBookInfo:
     colorist: str
     series_name: str = ""
     number_in_series: int = -1
+    chronological_number: int = -1
 
 
 ComicBookInfoDict = OrderedDict[str, ComicBookInfo]
@@ -69,6 +70,7 @@ def get_all_comic_book_info(stories_filename: str) -> ComicBookInfoDict:
     current_number_in_series = SERIES_INFO_START_NUMBERS.copy()
     all_info: ComicBookInfoDict = collections.OrderedDict()
 
+    chronological_number = 1
     with open(stories_filename, "r") as csv_file:
         reader = csv.reader(csv_file, delimiter=",", quotechar='"')
         for row in reader:
@@ -90,26 +92,30 @@ def get_all_comic_book_info(stories_filename: str) -> ComicBookInfoDict:
                 colorist,
                 series_name,
                 current_number_in_series[series_name],
+                chronological_number,
             )
 
             all_info[title] = comic_book_info
 
             current_number_in_series[series_name] += 1
+            chronological_number += 1
 
     return all_info
 
 
 def check_story_submitted_order(stories: ComicBookInfoDict):
+    prev_chronological_number = -1
     prev_title = ""
     prev_submitted_date = date(1940, 1, 1)
     for story in stories:
-        submitted_month_str = stories[story].submitted_month
-        if submitted_month_str == "<none>":
-            continue
+        title = story.title()
+        if not 1 <= stories[story].submitted_month <= 12:
+            raise Exception(
+                f'"{title}": Invalid submission month: {stories[story].submitted_month}.'
+            )
         submitted_day = (
             1 if stories[story].submitted_day == -1 else stories[story].submitted_day
         )
-        title = story.title()
         submitted_date = date(
             stories[story].submitted_year,
             stories[story].submitted_month,
@@ -119,6 +125,12 @@ def check_story_submitted_order(stories: ComicBookInfoDict):
             raise Exception(
                 f'"{title}": Out of order submitted date {submitted_date}.'
                 f' Previous entry: "{prev_title}" - {prev_submitted_date}.'
+            )
+        chronological_number = stories[story].chronological_number
+        if prev_chronological_number > chronological_number:
+            raise Exception(
+                f'"{title}": Out of order chronological number {chronological_number}.'
+                f' Previous entry: "{prev_title}" - {prev_chronological_number}.'
             )
         prev_title = title
         prev_submitted_date = submitted_date
@@ -158,6 +170,9 @@ ISSUE_NAME_AS_TITLE = {
 
 # fmt: off
 SOURCE_COMICS = {
+    'FANTA_01': SourceBook( f"{CB} Vol. 1 - {DD} - Pirate Gold {SRC_SALEM}", FAN, 1, 2025),
+    'FANTA_02': SourceBook( f"{CB} Vol. 2 - {DD} - Frozen Gold {SRC_SALEM}", FAN, 2, 2024),
+    'FANTA_03': SourceBook( f"{CB} Vol. 3 - {DD} - Mystery of the Swamp {SRC_SALEM}", FAN, 3, 2024),
     'FANTA_04': SourceBook( f"{CB} Vol. 4 - {DD} - Maharajah Donald {SRC_SALEM}", FAN, 4, 2023),
     'FANTA_05': SourceBook( f"{CB} Vol. 5 - {DD} - Christmas on Bear Mountain {SRC_DIGI}", FAN, 5, 2013),
     'FANTA_06': SourceBook( f"{CB} Vol. 6 - {DD} - The Old Castle's Secret {SRC_DIGI}", FAN, 6, 2013),
@@ -215,7 +230,7 @@ SERIES_INFO_START_NUMBERS: Dict[str, int] = {
     SERIES_USA: 1,
     SERIES_DDS: 1,
     SERIES_USS: 1,
-    SERIES_CS: 37, # Barks missed WDCS 37
+    SERIES_CS: 1,
     SERIES_GG: 1,
     SERIES_MISC: 1,
 }
@@ -279,6 +294,43 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Back to Long Ago!": SeriesInfo(RTOM, SERIES_USA),
     "A Cold Bargain": SeriesInfo(RTOM, SERIES_USA),
 
+    "The Victory Garden": SeriesInfo("?", SERIES_CS),
+    "The Rabbit's Foot": SeriesInfo("?", SERIES_CS),
+    "Lifeguard Daze": SeriesInfo("?", SERIES_CS),
+    "Good Deeds": SeriesInfo("?", SERIES_CS),
+    "The Limber W. Guest Ranch": SeriesInfo("?", SERIES_CS),
+    "The Mighty Trapper": SeriesInfo("?", SERIES_CS),
+    "Good Neighbors": SeriesInfo("?", SERIES_CS),
+    "Salesman Donald": SeriesInfo("?", SERIES_CS),
+    "Snow Fun": SeriesInfo("?", SERIES_CS),
+    "The Duck in the Iron Pants": SeriesInfo("?", SERIES_CS),
+    "Kite Weather": SeriesInfo("?", SERIES_CS),
+    "Three Dirty Little Ducks": SeriesInfo("?", SERIES_CS),
+    "The Mad Chemist": SeriesInfo("?", SERIES_CS),
+    "Rival Boatmen": SeriesInfo("?", SERIES_CS),
+    "Camera Crazy": SeriesInfo("?", SERIES_CS),
+    "Farragut the Falcon": SeriesInfo("?", SERIES_CS),
+    "The Purloined Putty": SeriesInfo("?", SERIES_CS),
+    "High-wire Daredevils": SeriesInfo("?", SERIES_CS),
+    "Ten Cents' Worth of Trouble": SeriesInfo("?", SERIES_CS),
+    "Donald's Bay Lot": SeriesInfo("?", SERIES_CS),
+    "Thievery Afoot": SeriesInfo("?", SERIES_CS),
+    "The Tramp Steamer": SeriesInfo("?", SERIES_CS),
+    "The Long Race to Pumpkinburg": SeriesInfo("?", SERIES_CS),
+    "Webfooted Wrangler": SeriesInfo("?", SERIES_CS),
+    "The Icebox Robber": SeriesInfo("?", SERIES_CS),
+    "Pecking Order": SeriesInfo("?", SERIES_CS),
+    "Taming the Rapids": SeriesInfo("?", SERIES_CS),
+    "Eyes in the Dark": SeriesInfo("?", SERIES_CS),
+    "Days at the Laming": SeriesInfo("?", SERIES_CS),
+    "Thug Busters": SeriesInfo("?", SERIES_CS),
+    "The Great Ski Race": SeriesInfo("?", SERIES_CS),
+    "Ten-Dollar Dither": SeriesInfo("?", SERIES_CS),
+    "Donald Tames His Temper": SeriesInfo("?", SERIES_CS),
+    "Singapore Joe": SeriesInfo("?", SERIES_CS),
+    "Master Ice-Fisher": SeriesInfo("?", SERIES_CS),
+    "Jet Rescue": SeriesInfo("?", SERIES_CS),
+    "Donald's Monster Kite": SeriesInfo("?", SERIES_CS),
     "Biceps Blues": SeriesInfo(GLEA, SERIES_CS),
     "The Smugsnorkle Squattie": SeriesInfo(SLEA, SERIES_CS),
     "Swimming Swindlers": SeriesInfo(GLEA, SERIES_CS),
@@ -350,12 +402,26 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "The Hard Loser": SeriesInfo("?", SERIES_DDS),
     "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_DDS),
     "The Peaceful Hills": SeriesInfo(SLEA, SERIES_DDS),
+    "Best Christmas": SeriesInfo("?", SERIES_DDS),
     "Santa's Stormy Visit": SeriesInfo(SLEA, SERIES_DDS),
     "Donald Duck's Atom Bomb": SeriesInfo(SLEA, SERIES_DDS),
     "Three Good Little Ducks": SeriesInfo(RTOM, SERIES_DDS),
     "Toyland": SeriesInfo(RTOM, SERIES_DDS),
     "New Toys": SeriesInfo(RTOM, SERIES_DDS),
+    "Hobblin' Goblins": SeriesInfo(RTOM, SERIES_DDS),
 
     "Somethin' Fishy Here": SeriesInfo(RTOM, SERIES_USS),
+    "The Round Money Bin": SeriesInfo(RTOM, SERIES_USS),
+    "Outfoxed Fox": SeriesInfo(RTOM, SERIES_USS),
+    "Billion Dollar Pigeon": SeriesInfo(RTOM, SERIES_USS),
+    "A Campaign of Note": SeriesInfo(RTOM, SERIES_USS),
+    "The Tuckered Tiger": SeriesInfo(RTOM, SERIES_USS),
+    "Heirloom Watch": SeriesInfo(RTOM, SERIES_USS),
+    "Faulty Fortune": SeriesInfo(RTOM, SERIES_USS),
+
+    "Trapped Lightning": SeriesInfo(RTOM, SERIES_GG),
+    "Inventor of Anything": SeriesInfo(RTOM, SERIES_GG),
+
+    "The Riddle of the Red Hat": SeriesInfo("?", SERIES_MISC),
 }
 # fmt: on

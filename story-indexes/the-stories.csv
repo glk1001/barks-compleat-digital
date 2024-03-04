@@ -1,9 +1,4 @@
-"News from Afar","Uncle Scrooge",25,1959,3,-1,-1,-1
-"Rainbow's End","Donald Duck",71,1960,5,-1,-1,-1
-"The Homey Touch","Uncle Scrooge",32,1960,12,-1,-1,-1
-"Turnabout","Uncle Scrooge",32,1960,12,-1,-1,-1
-"Pawns of the Loup Garou","Donald Duck",117,1968,1,-1,-1,-1
-"Donald Duck Finds Pirate Gold","Four Color",9,1942,10,1942,5,21
+"Donald Duck Finds Pirate Gold","Four Color",9,1942,10,1942,5,-1
 "The Victory Garden","Comics and Stories",31,1943,4,1942,12,-1
 "The Rabbit's Foot","Comics and Stories",32,1943,5,1942,12,23
 "Lifeguard Daze","Comics and Stories",33,1943,6,1943,1,29
@@ -20,7 +15,7 @@
 "Kite Weather","Comics and Stories",42,1944,3,1943,10,20
 "Three Dirty Little Ducks","Comics and Stories",43,1944,4,1943,11,27
 "The Mad Chemist","Comics and Stories",44,1944,5,1943,12,30
-"Rival Boatmen","Comics and Stories",45,1944,6,1944,-1,-1
+"Rival Boatmen","Comics and Stories",45,1944,6,1944,1,19
 "Camera Crazy","Comics and Stories",46,1944,7,1944,2,29
 "Farragut the Falcon","Comics and Stories",47,1944,8,1944,4,1
 "The Purloined Putty","Comics and Stories",48,1944,9,1944,4,26
@@ -592,3 +587,8 @@
 "The Doom Diamond","Uncle Scrooge",70,1967,7,1966,5,19
 "The Cattle King","Uncle Scrooge",69,1967,5,1966,5,27
 "King Scrooge the First","Uncle Scrooge",71,1967,10,1966,6,22
+"News from Afar","Uncle Scrooge",25,1959,3,-1,-1,-1
+"Rainbow's End","Donald Duck",71,1960,5,-1,-1,-1
+"The Homey Touch","Uncle Scrooge",32,1960,12,-1,-1,-1
+"Turnabout","Uncle Scrooge",32,1960,12,-1,-1,-1
+"Pawns of the Loup Garou","Donald Duck",117,1968,1,-1,-1,-1
