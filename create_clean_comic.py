@@ -9,7 +9,7 @@ import shutil
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 from PIL import Image, ImageFont, ImageDraw
@@ -317,12 +317,12 @@ def symlink_comic_book_zip(dry_run: bool, comic: ComicBook):
 
     if dry_run:
         logging.info(
-            f'{DRY_RUN_STR}: Symlinking zip file "{comic.get_dest_comic_zip()}"'
+            f'{DRY_RUN_STR}: Symlinking (relative) zip file "{comic.get_dest_comic_zip()}"'
             f' to "{comic.get_dest_series_comic_zip_symlink()}".'
         )
     else:
         logging.info(
-            f'Symlinking the zip file "{comic.get_dest_comic_zip()}"'
+            f'Symlinking (relative) the zip file "{comic.get_dest_comic_zip()}"'
             f' to "{comic.get_dest_series_comic_zip_symlink()}".'
         )
 
@@ -331,7 +331,7 @@ def symlink_comic_book_zip(dry_run: bool, comic: ComicBook):
         if os.path.islink(comic.get_dest_series_comic_zip_symlink()):
             os.remove(comic.get_dest_series_comic_zip_symlink())
 
-        os.symlink(
+        relative_symlink(
             comic.get_dest_comic_zip(), comic.get_dest_series_comic_zip_symlink()
         )
         if not os.path.islink(comic.get_dest_series_comic_zip_symlink()):
@@ -340,10 +340,33 @@ def symlink_comic_book_zip(dry_run: bool, comic: ComicBook):
             )
 
 
+def relative_symlink(target: Union[Path, str], destination: Union[Path, str]):
+    """Create a symlink pointing to ``target`` from ``location``.
+    Args:
+        target: The target of the symlink (the file/directory that is pointed to)
+        destination: The location of the symlink itself.
+    """
+    target = Path(target)
+    destination = Path(destination)
+
+    target_dir = destination.parent
+    target_dir.mkdir(exist_ok=True, parents=True)
+
+    relative_source = os.path.relpath(target, target_dir)
+
+    logging.debug(f"{relative_source} -> {destination.name} in {target_dir}")
+    target_dir_fd = os.open(str(target_dir.absolute()), os.O_RDONLY)
+    try:
+        os.symlink(relative_source, destination.name, dir_fd=target_dir_fd)
+    finally:
+        os.close(target_dir_fd)
+
+
 def write_summary(
     comic: ComicBook,
     pages: SrceAndDestPages,
     timing: Timing,
+    caching: bool,
 ):
     summary_file = os.path.join(comic.get_dest_dir(), "clean_summary.txt")
 
@@ -378,6 +401,7 @@ def write_summary(
         f.write(f"chronological_number     = {comic.chronological_number}\n")
         f.write(f'series                   = "{comic.series_name}"\n')
         f.write(f"series_book_num          = {comic.number_in_series}\n")
+        f.write(f"Caching                  = {caching}\n")
         f.write(f"DEST_TARGET_X_MARGIN     = {DEST_TARGET_X_MARGIN}\n")
         f.write(f"DEST_TARGET_WIDTH        = {DEST_TARGET_WIDTH}\n")
         f.write(f"DEST_TARGET_HEIGHT       = {DEST_TARGET_HEIGHT}\n")
@@ -1731,7 +1755,7 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
     return comic
 
 
-def log_comic_book_params(comic: ComicBook):
+def log_comic_book_params(comic: ComicBook, caching: bool):
     logging.info("")
 
     calc_panels_bbox_height = int(
@@ -1749,6 +1773,7 @@ def log_comic_book_params(comic: ComicBook):
     logging.info(f'Comic book title:    "{get_safe_title(comic.get_comic_title())}".')
     logging.info(f"Number in series:    {comic.number_in_series}.")
     logging.info(f"Chronological number {comic.chronological_number}.")
+    logging.info(f"Caching:             {caching}.")
     logging.info(f"Dest x margin:       {DEST_TARGET_X_MARGIN}.")
     logging.info(f"Dest width:          {DEST_TARGET_WIDTH}.")
     logging.info(f"Dest height:         {DEST_TARGET_HEIGHT}.")
@@ -1778,19 +1803,20 @@ def log_comic_book_params(comic: ComicBook):
     logging.info("")
 
 
-def process_comic_book(comic: ComicBook) -> SrceAndDestPages:
+def process_comic_book(
+    comic: ComicBook, dry_run: bool, caching: bool
+) -> SrceAndDestPages:
     pages = get_srce_and_dest_pages_in_order(comic)
-    set_srce_panel_bounding_boxes(
-        args.dry_run, not args.no_cache, comic, pages.srce_pages
-    )
+
+    set_srce_panel_bounding_boxes(dry_run, caching, comic, pages.srce_pages)
     set_required_dimensions(comic, pages.srce_pages)
     set_dest_panel_bounding_boxes(comic, pages)
 
-    log_comic_book_params(comic)
+    log_comic_book_params(comic, caching)
 
-    create_dest_dirs(args.dry_run, comic)
-    process_pages(args.dry_run, not args.no_cache, comic, pages)
-    process_additional_files(args.dry_run, comic, pages)
+    create_dest_dirs(dry_run, comic)
+    process_pages(dry_run, caching, comic, pages)
+    process_additional_files(dry_run, comic, pages)
 
     return pages
 
@@ -1824,7 +1850,7 @@ if __name__ == "__main__":
     work_dir = args.work_dir
     if not os.path.isdir(work_dir):
         raise Exception(f'Could not find work directory "{work_dir}".')
-    work_dir = os.path.join(work_dir, datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
+    work_dir = os.path.join(work_dir, datetime.now().strftime("%Y_%m_%d-%H_%M_%S.%f"))
     os.makedirs(work_dir)
 
     bounding_box_processor = BoundingBoxProcessor(work_dir)
@@ -1842,7 +1868,9 @@ if __name__ == "__main__":
     if args.just_symlinks:
         symlink_comic_book_zip(args.dry_run, comic_book)
     else:
-        srce_and_dest_pages = process_comic_book(comic_book)
+        srce_and_dest_pages = process_comic_book(
+            comic_book, args.dry_run, not args.no_cache
+        )
 
         zip_comic_book(args.dry_run, comic_book)
         symlink_comic_book_zip(args.dry_run, comic_book)
@@ -1852,4 +1880,6 @@ if __name__ == "__main__":
             f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds"
         )
 
-        write_summary(comic_book, srce_and_dest_pages, process_timing)
+        write_summary(
+            comic_book, srce_and_dest_pages, process_timing, not args.no_cache
+        )
