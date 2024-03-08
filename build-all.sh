@@ -19,7 +19,8 @@ if [[ ! -d "${CONFIG_DIR}" ]]; then
     exit 1
 fi
 
-declare -r ARGS="--log-level INFO --work-dir ${WORK_DIR} --no-cache"
+# declare -r ARGS="--log-level INFO --work-dir ${WORK_DIR} --no-cache"
+declare -r ARGS="--log-level INFO --work-dir ${WORK_DIR}"
 
 if [[ "${LIST_ONLY}" == "Y" ]]; then
     echo declare -r THIS_SCRIPT_PATH=\"${THIS_SCRIPT_PATH}\"
