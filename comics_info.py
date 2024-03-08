@@ -400,6 +400,13 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Houseboat Holiday": SeriesInfo(RTOM, SERIES_CS),
     "Gemstone Hunters": SeriesInfo(RTOM, SERIES_CS),
     "Spending Money": SeriesInfo(RTOM, SERIES_CS),
+    "The Easter Election": SeriesInfo(RTOM, SERIES_CS),
+    "The Talking Dog": SeriesInfo(RTOM, SERIES_CS),
+    "Worm Weary": SeriesInfo(RTOM, SERIES_CS),
+    "Much Ado about Quackly Hall": SeriesInfo(RTOM, SERIES_CS),
+    "Some Heir Over the Rainbow": SeriesInfo(RTOM, SERIES_CS),
+    "The Master Rainmaker": SeriesInfo(RTOM, SERIES_CS),
+    "The Money Stairs": SeriesInfo(RTOM, SERIES_CS),
 
     "The Hard Loser": SeriesInfo("?", SERIES_DDS),
     "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_DDS),
@@ -414,8 +421,8 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
 
     "Somethin' Fishy Here": SeriesInfo(RTOM, SERIES_USS),
     "The Round Money Bin": SeriesInfo(RTOM, SERIES_USS),
-    "Outfoxed Fox": SeriesInfo(RTOM, SERIES_USS),
     "Billion Dollar Pigeon": SeriesInfo(RTOM, SERIES_USS),
+    "Outfoxed Fox": SeriesInfo(RTOM, SERIES_USS),
     "A Campaign of Note": SeriesInfo(RTOM, SERIES_USS),
     "The Tuckered Tiger": SeriesInfo(RTOM, SERIES_USS),
     "Heirloom Watch": SeriesInfo(RTOM, SERIES_USS),
