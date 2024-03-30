@@ -6,7 +6,7 @@ import json
 import logging
 import os
 import shutil
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
@@ -56,7 +56,11 @@ from consts import (
     MIN_HD_SRCE_HEIGHT,
 )
 from panel_bounding_boxes import BoundingBox, BoundingBoxProcessor
-from remove_alias_artifacts import remove_alias_artifacts
+from remove_alias_artifacts import (
+    get_median_filter,
+    get_thickened_black_lines,
+    SMALL_FLOAT,
+)
 
 THIS_SCRIPT_DIR = os.path.dirname(
     os.path.abspath(inspect.getfile(inspect.currentframe()))
@@ -136,12 +140,19 @@ class RequiredDimensions:
     page_num_y_bottom: int = -1
 
 
-@dataclass
 class CleanPage:
-    filename: str
-    page_type: PageType
-    page_num: int = -1
-    panels_bbox: BoundingBox = field(default_factory=BoundingBox)
+    def __init__(
+        self,
+        filename: str,
+        page_type: PageType,
+        page_num: int = -1,
+        page_thicken_lines_alpha=0.0,
+    ):
+        self.filename = filename
+        self.page_type = page_type
+        self.page_num: int = page_num
+        self.page_thicken_lines_alpha = page_thicken_lines_alpha
+        self.panels_bbox: BoundingBox = BoundingBox()
 
 
 @dataclass
@@ -178,6 +189,7 @@ class ComicBook:
     publication_text: str
     comic_book_info: ComicBookInfo
     images_in_order: List[OriginalPage]
+    thicken_line_alphas: Dict[int, float]
 
     def __post_init__(self):
         assert self.series_name != ""
@@ -408,6 +420,7 @@ def write_summary(
         f.write(f"DEST_TARGET_ASPECT_RATIO = {DEST_TARGET_ASPECT_RATIO:.2f}\n")
         f.write(f"DEST_JPG_QUALITY         = {DEST_JPG_QUALITY}\n")
         f.write(f"DEST_JPG_COMPRESS_LEVEL  = {DEST_JPG_COMPRESS_LEVEL}\n")
+        f.write(f"Thicken line alpha       = {len(comic.thicken_line_alphas) > 0}\n")
         f.write(f"srce_min_panels_bbox_wid = {comic.srce_min_panels_bbox_width}\n")
         f.write(f"srce_max_panels_bbox_wid = {comic.srce_max_panels_bbox_width}\n")
         f.write(f"srce_av_panels_bbox_wid  = {comic.srce_av_panels_bbox_width}\n")
@@ -513,9 +526,12 @@ def get_srce_and_dest_pages_in_order(
         dest_file = os.path.join(
             comic.get_dest_image_dir(), file_num_str + DEST_FILE_EXT
         )
+        dest_thicken_line_alpha = comic.thicken_line_alphas.get(page.page_num, 0.0)
 
-        srce_page_list.append(CleanPage(srce_file, page.page_type))
-        dest_page_list.append(CleanPage(dest_file, page.page_type, page_num))
+        srce_page_list.append(CleanPage(srce_file, page.page_type, page.page_num))
+        dest_page_list.append(
+            CleanPage(dest_file, page.page_type, page_num, dest_thicken_line_alpha)
+        )
 
     return SrceAndDestPages(srce_page_list, dest_page_list)
 
@@ -890,10 +906,26 @@ def process_page(
             optimize=True,
             compress_level=DEST_JPG_COMPRESS_LEVEL,
             quality=DEST_JPG_QUALITY,
+            comment="\n".join(get_dest_jpg_comments(srce_page, dest_page)),
         )
         logging.info(f'Saved changes to image "{dest_page.filename}".')
 
     logging.info("")
+
+
+def get_dest_jpg_comments(srce_page: CleanPage, dest_page: CleanPage) -> List[str]:
+    indent = "      "
+    comments = [
+        indent,
+        f"{indent}Srce page num: {srce_page.page_num}",
+        f"{indent}Srce page type: {srce_page.page_type.name}",
+        f"{indent}Srce panels bbox: {dest_page.panels_bbox.x_min}, {dest_page.panels_bbox.y_min},"
+        + f" {dest_page.panels_bbox.x_max}, {dest_page.panels_bbox.y_max}",
+        f"{indent}Dest page num: {dest_page.page_num}",
+        f"{indent}Dest thicken alpha: {dest_page.page_thicken_lines_alpha}",
+    ]
+
+    return comments
 
 
 def get_dest_page_image(
@@ -915,20 +947,28 @@ def get_dest_page_image(
 
     if dest_page.page_type in MEDIAN_FILTERABLE_PAGES:
         logging.debug(f'Starting median filter of "{dest_page.filename}"...')
-        rgb_dest_page_image = get_median_filtered_image(rgb_dest_page_image)
+        rgb_dest_page_image = get_improved_image(
+            rgb_dest_page_image, dest_page.page_thicken_lines_alpha
+        )
 
     log_page_info("Dest", rgb_dest_page_image, dest_page)
 
     return rgb_dest_page_image
 
 
-def get_median_filtered_image(image: Image) -> Image:
+def get_improved_image(image: Image, thicken_lines_alpha: float) -> Image:
     current_log_level = logging.getLogger().level
     try:
         logging.getLogger().setLevel(logging.INFO)
 
-        image = remove_alias_artifacts(np.asarray(image))
+        image = get_median_filter(np.asarray(image))
+        if thicken_lines_alpha < SMALL_FLOAT:
+            return Image.fromarray(image)
+
+        logging.info(f"Doing black line thickening with alpha = {thicken_lines_alpha}.")
+        image = get_thickened_black_lines(image, thicken_lines_alpha)
         return Image.fromarray(image)
+
     finally:
         logging.getLogger().setLevel(current_log_level)
 
@@ -1710,6 +1750,12 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
     if "extra_pub_info" in config["info"]:
         publication_text += "\n" + config["info"]["extra_pub_info"]
 
+    thicken_line_alphas: Dict[int, float] = {}
+    if "black_line_thickening" in config:
+        thicken_line_alphas = get_thicken_line_alphas(
+            config._sections["black_line_thickening"]
+        )
+
     comic = ComicBook(
         config_file=ini_file,
         title=title,
@@ -1745,6 +1791,7 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
         images_in_order=[
             OriginalPage(key, PageType[config["pages"][key]]) for key in config["pages"]
         ],
+        thicken_line_alphas=thicken_line_alphas,
     )
 
     if not os.path.isdir(comic.srce_dir):
@@ -1753,6 +1800,24 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
         raise Exception(f'Could not find directory "{comic.get_srce_image_dir()}".')
 
     return comic
+
+
+def get_thicken_line_alphas(page_alphas: Dict[str, str]) -> Dict[int, float]:
+    thicken_line_alphas: Dict[int, float] = {}
+
+    for key in page_alphas:
+        alpha = float(page_alphas[key])
+        if "-" not in key:
+            page_num = int(key)
+            thicken_line_alphas[page_num] = alpha
+        else:
+            start, end = key.split("-")
+            start_num = int(start)
+            end_num = int(end)
+            for page_num in range(start_num, end_num + 1):
+                thicken_line_alphas[page_num] = alpha
+
+    return thicken_line_alphas
 
 
 def log_comic_book_params(comic: ComicBook, caching: bool):
@@ -1780,6 +1845,7 @@ def log_comic_book_params(comic: ComicBook, caching: bool):
     logging.info(f"Dest aspect ratio:   {DEST_TARGET_ASPECT_RATIO:.2f}.")
     logging.info(f"Dest jpeg quality:   {DEST_JPG_QUALITY}.")
     logging.info(f"Dest compress level: {DEST_JPG_COMPRESS_LEVEL}.")
+    logging.info(f"Thicken line alpha:  {len(comic.thicken_line_alphas) > 0}.")
     logging.info(f"Srce min bbox wid:   {comic.srce_min_panels_bbox_width}.")
     logging.info(f"Srce max bbox wid:   {comic.srce_max_panels_bbox_width}.")
     logging.info(f"Srce min bbox hgt:   {comic.srce_min_panels_bbox_height}.")
