@@ -62,12 +62,12 @@ class BoundingBoxProcessor(object):
         panel_segments_dir: str,
         srce_page_image: Image,
         srce_filename: str,
+        srce_bounded_dir: str,
     ) -> BoundingBox:
         logging.debug("Getting panel bounding box from kumiko.")
 
         file_basename = os.path.basename(srce_filename)
-        file_dirname = os.path.dirname(srce_filename)
-        file_with_bbox = os.path.join(file_dirname, "bounded", file_basename)
+        file_with_bbox = os.path.join(srce_bounded_dir, file_basename)
 
         if not os.path.isfile(file_with_bbox):
             (

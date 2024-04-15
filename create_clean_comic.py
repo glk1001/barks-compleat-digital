@@ -179,6 +179,7 @@ class ComicBook:
     required_dim: RequiredDimensions
     srce_root_dir: str
     srce_dir: str
+    srce_fixes_dir: str
     panel_segments_dir: str
     series_name: str
     number_in_series: int
@@ -195,8 +196,14 @@ class ComicBook:
         assert self.series_name != ""
         assert self.number_in_series > 0
 
+    def get_srce_fixes_root_dir(self) -> str:
+        return os.path.dirname(self.srce_fixes_dir)
+
     def get_srce_image_dir(self) -> str:
         return os.path.join(self.srce_dir, IMAGES_SUBDIR)
+
+    def get_srce_fixes_image_dir(self) -> str:
+        return os.path.join(self.srce_fixes_dir, IMAGES_SUBDIR)
 
     def get_srce_segments_root_dir(self) -> str:
         return os.path.dirname(self.panel_segments_dir)
@@ -312,11 +319,14 @@ def zip_comic_book(dry_run: bool, comic: ComicBook):
             f'Zipping directory "{comic.get_dest_dir()}" to "{comic.get_dest_comic_zip()}".'
         )
 
+        os.makedirs(comic.get_dest_zip_root_dir(), exist_ok=True)
         temp_zip_file = comic.get_dest_dir() + ".zip"
 
         shutil.make_archive(comic.get_dest_dir(), "zip", comic.get_dest_dir())
+        if not os.path.isfile(temp_zip_file):
+            raise Exception(f'Could not create temporary zip file "{temp_zip_file}".')
 
-        shutil.move(temp_zip_file, comic.get_dest_comic_zip())
+        os.replace(temp_zip_file, comic.get_dest_comic_zip())
         if not os.path.isfile(comic.get_dest_comic_zip()):
             raise Exception(
                 f'Could not create final comic zip "{comic.get_dest_comic_zip()}".'
@@ -400,6 +410,7 @@ def write_summary(
         f.write(f'issue_title              = "{comic.issue_title}"\n')
         f.write(f'comic title              = "{comic.get_comic_title()}"\n')
         f.write(f'srce_dir                 = "{comic.srce_dir}"\n')
+        f.write(f'srce_fixes_dir           = "{comic.srce_fixes_dir}"\n')
         f.write(f'dest_dir                 = "{comic.get_dest_dir()}"\n')
         f.write(f'dest_zip_dir             = "{comic.get_dest_zip_dir()}"\n')
         f.write(
@@ -521,7 +532,7 @@ def get_srce_and_dest_pages_in_order(
             file_page_num += 1
             page_num += 1
 
-        srce_file = get_checked_srce_file(comic.get_srce_image_dir(), page)
+        srce_file = get_checked_srce_file(comic, page)
         file_num_str = f"{file_section_num}-{file_page_num:02d}"
         dest_file = os.path.join(
             comic.get_dest_image_dir(), file_num_str + DEST_FILE_EXT
@@ -536,18 +547,65 @@ def get_srce_and_dest_pages_in_order(
     return SrceAndDestPages(srce_page_list, dest_page_list)
 
 
-def get_checked_srce_file(srce_dir: str, page: CleanPage) -> str:
+def get_checked_srce_file(comic: ComicBook, page: CleanPage) -> str:
     if page.filename == TITLE_EMPTY_FILENAME:
         srce_file = TITLE_EMPTY_IMAGE_FILEPATH
     elif page.filename == EMPTY_FILENAME:
         srce_file = EMPTY_IMAGE_FILEPATH
     else:
-        srce_file = os.path.join(srce_dir, page.filename + SRCE_FILE_EXT)
+        srce_file = get_srce_file(comic, page)
 
     if not os.path.isfile(srce_file):
         raise Exception(f'Could not find source file "{srce_file}".')
 
     return srce_file
+
+
+def get_srce_file(comic: ComicBook, page: CleanPage) -> str:
+    srce_file = os.path.join(comic.get_srce_image_dir(), page.filename + SRCE_FILE_EXT)
+    srce_fixes_file = os.path.join(
+        comic.get_srce_fixes_image_dir(), page.filename + SRCE_FILE_EXT
+    )
+    if not os.path.isfile(srce_fixes_file):
+        return srce_file
+
+    if os.path.isfile(srce_file):
+        if is_fixes_special_case(comic, page):
+            logging.info(
+                f"NOTE: Special case - using {page.page_type.name} fixes srce file:"
+                f' "{srce_fixes_file}".'
+            )
+        else:
+            logging.info(f'NOTE: Using fixes srce file: "{srce_fixes_file}".')
+            if page.page_type not in [PageType.COVER, PageType.BODY]:
+                raise Exception(
+                    f"Expected fixes page to be COVER or BODY: '{page.filename}'."
+                )
+    elif is_fixes_special_case(comic, page):
+        logging.info(
+            f"NOTE: Special case - using ADDED fixes srce file for {page.page_type.name} page:"
+            f' "{srce_fixes_file}".'
+        )
+    else:
+        logging.info(
+            f"NOTE: Using added srce file of type {page.page_type.name}:"
+            f' "{srce_fixes_file}".'
+        )
+        if page.page_type in [PageType.COVER, PageType.BODY]:
+            raise Exception(
+                f"Expected added page to be NOT COVER OR BODY: '{page.filename}'."
+            )
+
+    return srce_fixes_file
+
+
+def is_fixes_special_case(comic: ComicBook, page: CleanPage) -> bool:
+    if get_safe_title(comic.title) == "Back to Long Ago!" and page.filename == "209":
+        return page.page_type == PageType.BACK_NO_PANELS
+    if comic.file_title == "The Bill Collectors" and page.filename == "227":
+        return page.page_type == PageType.BODY
+
+    return False
 
 
 def process_pages(
@@ -798,8 +856,14 @@ def get_panels_bounding_box(
         else:
             os.makedirs(comic.panel_segments_dir, exist_ok=True)
 
+    srce_bounded_dir = os.path.join(comic.get_srce_fixes_image_dir(), "bounded")
+
     bounding_box = bounding_box_processor.get_panels_bounding_box_from_kumiko(
-        dry_run, comic.panel_segments_dir, srce_page_image, srce_page.filename
+        dry_run,
+        comic.panel_segments_dir,
+        srce_page_image,
+        srce_page.filename,
+        srce_bounded_dir,
     )
 
     if dry_run:
@@ -1472,8 +1536,9 @@ def write_readme_file(dry_run: bool, comic: ComicBook):
         logging.info(f'{DRY_RUN_STR}: Write info to "{readme_file}".')
     else:
         with open(readme_file, "w") as f:
-            f.write(f"{comic.title}\n")
-            f.write("".ljust(len(comic.title), "-") + "\n")
+            title = get_safe_title(comic.title)
+            f.write(f"{title}\n")
+            f.write("".ljust(len(title), "-") + "\n")
             f.write("\n")
             now_str = datetime.now().strftime("%b %d %Y %H:%M:%S")
             f.write(f"Created:           {now_str}\n")
@@ -1732,6 +1797,9 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
     srce_info = SOURCE_COMICS[config["info"]["source_comic"]]
     srce_root_dir = str(os.path.join(BARKS_ROOT_DIR, srce_info.pub))
     srce_dir = os.path.join(srce_root_dir, srce_info.title)
+    srce_fixup_dir = os.path.join(
+        srce_root_dir + "-fixes-and-additions", srce_info.title
+    )
     panel_segments_dir = str(
         os.path.join(BARKS_ROOT_DIR, srce_info.pub + "-panel-segments", srce_info.title)
     )
@@ -1779,6 +1847,7 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
         required_dim=RequiredDimensions(),
         srce_root_dir=srce_root_dir,
         srce_dir=srce_dir,
+        srce_fixes_dir=srce_fixup_dir,
         panel_segments_dir=panel_segments_dir,
         series_name=cb_info.series_name,
         number_in_series=cb_info.number_in_series,
@@ -1795,9 +1864,19 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
     )
 
     if not os.path.isdir(comic.srce_dir):
-        raise Exception(f'Could not find directory "{comic.srce_dir}".')
+        raise Exception(f'Could not find srce directory "{comic.srce_dir}".')
     if not os.path.isdir(comic.get_srce_image_dir()):
-        raise Exception(f'Could not find directory "{comic.get_srce_image_dir()}".')
+        raise Exception(
+            f'Could not find srce image directory "{comic.get_srce_image_dir()}".'
+        )
+    if not os.path.isdir(comic.srce_fixes_dir):
+        raise Exception(
+            f'Could not find srce fixup directory "{comic.srce_fixes_dir}".'
+        )
+    if not os.path.isdir(comic.get_srce_fixes_image_dir()):
+        raise Exception(
+            f'Could not find srce fixup image directory "{comic.get_srce_fixes_image_dir()}".'
+        )
 
     return comic
 
@@ -1830,6 +1909,7 @@ def log_comic_book_params(comic: ComicBook, caching: bool):
         )
     )
 
+    fixes_basename = os.path.basename(comic.srce_fixes_dir)
     panel_segments_basename = os.path.basename(comic.panel_segments_dir)
     dest_basename = os.path.basename(comic.get_dest_dir())
     dest_comic_zip_basename = os.path.basename(comic.get_dest_comic_zip())
@@ -1857,13 +1937,17 @@ def log_comic_book_params(comic: ComicBook, caching: bool):
     logging.info(f"Calc panels bbox ht: {calc_panels_bbox_height}.")
     logging.info(f"Page num y bottom:   {comic.required_dim.page_num_y_bottom}.")
     logging.info(f'Srce root:           "{comic.srce_root_dir}".')
-    logging.info(f'Srce comic dir:      "ROOT: {os.path.basename(comic.srce_dir)}".')
+    logging.info(
+        f'Srce comic dir:      "SRCE ROOT/{os.path.basename(comic.srce_dir)}".'
+    )
+    logging.info(f'Srce fixes root:     "{comic.get_srce_fixes_root_dir()}".')
+    logging.info(f'Srce fixes dir:      "FIXES ROOT/{fixes_basename}".')
     logging.info(f'Srce segments root:  "{comic.get_srce_segments_root_dir()}".')
-    logging.info(f'Srce segments dir:   "SEGMENTS ROOT: {panel_segments_basename}".')
+    logging.info(f'Srce segments dir:   "SEGMENTS ROOT/{panel_segments_basename}".')
     logging.info(f'Dest root:           "{comic.get_dest_root_dir()}".')
-    logging.info(f'Dest comic dir:      "ROOT: {dest_basename}".')
+    logging.info(f'Dest comic dir:      "DEST ROOT/{dest_basename}".')
     logging.info(f'Dest zip root:       "{comic.get_dest_zip_root_dir()}".')
-    logging.info(f'Dest comic zip:      "ZIP ROOT: {dest_comic_zip_basename}".')
+    logging.info(f'Dest comic zip:      "ZIP ROOT/{dest_comic_zip_basename}".')
     logging.info(f'Dest zip symlink:    "{comic.get_dest_series_comic_zip_symlink()}".')
     logging.info(f'Work directory:      "{work_dir}".')
     logging.info("")

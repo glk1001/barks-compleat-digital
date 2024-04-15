@@ -161,7 +161,7 @@ FG = "Firestone Giveaway"
 CH = "Cheerios Giveaway"
 KI = "Kites Giveaway"
 
-SRC_SALEM = "(Lil Salem-Empire)"
+SRC_SALEM = "(Salem-Empire)"
 SRC_DIGI = "(Digital-Empire)"
 SRC_BEAN = "(Bean-Empire)"
 
