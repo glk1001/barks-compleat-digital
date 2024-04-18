@@ -24,7 +24,7 @@ if ! [[ ${FILE_NUM_START} =~ ${RE} ]] ; then
     exit 1
 fi
 
-pushd ${TARGET_DIR}
+pushd "${TARGET_DIR}"
 
 for FILE in *; do
     num="${FILE: -7}"
