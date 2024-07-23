@@ -11,7 +11,7 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Set, Tuple, Union
 
 import numpy as np
 from PIL import Image, ImageFont, ImageDraw
@@ -24,6 +24,7 @@ from comics_info import (
     SOURCE_COMICS,
     CS,
     ISSUE_NAME_AS_TITLE,
+    SHORT_ISSUE_NAME,
 )
 from consts import (
     THIS_DIR,
@@ -223,17 +224,14 @@ class ComicBook:
         file_title = get_lookup_title(self.title, self.file_title)
         return f"{self.chronological_number:03d} {file_title}"
 
+    def get_series_comic_title(self) -> str:
+        return f"{self.series_name} {self.number_in_series}"
+
     def get_dest_image_dir(self) -> str:
         return os.path.join(self.get_dest_dir(), IMAGES_SUBDIR)
 
     def get_dest_zip_root_dir(self) -> str:
         return THE_CHRONOLOGICAL_DIR
-
-    def get_dest_zip_dir(self) -> str:
-        return os.path.join(
-            self.get_dest_zip_root_dir(),
-            self.get_dest_rel_dirname(),
-        )
 
     def get_dest_series_zip_dir(self) -> str:
         return os.path.join(
@@ -241,15 +239,20 @@ class ComicBook:
             self.series_name,
         )
 
+    def get_dest_zip_dir(self) -> str:
+        title = f"{self.get_dest_rel_dirname()} [{self.get_comic_issue_title()}]"
+        return os.path.join(self.get_dest_zip_root_dir(), title)
+
     def get_dest_comic_zip(self) -> str:
         return self.get_dest_zip_dir() + ".cbz"
 
     def get_dest_series_comic_zip_symlink(self) -> str:
         file_title = get_lookup_title(self.title, self.file_title)
+        full_title = f"{file_title} [{self.get_comic_issue_title()}]"
         return (
             os.path.join(
                 f"{self.get_dest_series_zip_dir()}",
-                f"{self.number_in_series:03d} {file_title}",
+                f"{self.number_in_series:03d} {full_title}",
             )
             + ".cbz"
         )
@@ -270,6 +273,10 @@ class ComicBook:
             issue_name = ISSUE_NAME_AS_TITLE[issue_name] + " #"
 
         return f"{issue_name}{self.comic_book_info.issue_number}"
+
+    def get_comic_issue_title(self) -> str:
+        issue_name = SHORT_ISSUE_NAME[self.comic_book_info.issue_name]
+        return f"{issue_name} {self.comic_book_info.issue_number}"
 
 
 def open_image_for_reading(filename: str) -> Image:
@@ -961,6 +968,7 @@ def process_page(
         srce_page.page_type in CACHEABLE_PAGES
         and cache_pages
         and os.path.exists(dest_page.filename)
+        and not is_dest_file_out_of_date(srce_page.filename, dest_page.filename)
     ):
         logging.debug(f'Caching on - using existing page file "{dest_page.filename}".')
         return
@@ -980,6 +988,32 @@ def process_page(
         logging.info(f'Saved changes to image "{dest_page.filename}".')
 
     logging.info("")
+
+
+def is_dest_file_out_of_date(srce_file: str, dest_file: str) -> bool:
+    srce_timestamp = os.path.getmtime(srce_file)
+    dest_timestamp = os.path.getmtime(dest_file)
+
+    if srce_timestamp > dest_timestamp:
+        logging.debug(get_out_of_date_file_msg(srce_file, dest_file))
+        return True
+
+    return False
+
+
+def get_out_of_date_file_msg(srce_file: str, dest_file: str) -> str:
+    srce_timestamp = os.path.getmtime(srce_file)
+    dest_timestamp = os.path.getmtime(dest_file)
+    assert srce_timestamp > dest_timestamp
+
+    srce_date = datetime.fromtimestamp(srce_timestamp)
+    dest_date = datetime.fromtimestamp(dest_timestamp)
+
+    return (
+        f'Dest file "{dest_file}" ({dest_date.strftime("%Y_%m_%d-%H_%M_%S.%f")})'
+        f" is out of date WRT"
+        f' srce file "{srce_file}" ({srce_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}).'
+    )
 
 
 def get_dest_jpg_comments(srce_page: CleanPage, dest_page: CleanPage) -> List[str]:
@@ -1921,6 +1955,7 @@ def log_comic_book_params(comic: ComicBook, caching: bool):
 
     logging.info(f'Comic book series:   "{comic.series_name}".')
     logging.info(f'Comic book title:    "{get_safe_title(comic.get_comic_title())}".')
+    logging.info(f'Comic issue title:   "{comic.get_comic_issue_title()}".')
     logging.info(f"Number in series:    {comic.number_in_series}.")
     logging.info(f"Chronological number {comic.chronological_number}.")
     logging.info(f"Caching:             {caching}.")
@@ -2006,36 +2041,69 @@ def get_config_file(ini_file: str) -> str:
     return real_cfg_file
 
 
-def get_work_dir(work_dir_root: str) -> str:
-    if not os.path.isdir(work_dir_root):
-        raise Exception(f'Could not find work root directory "{work_dir_root}".')
+def get_work_dir(wrk_dir_root: str) -> str:
+    if not os.path.isdir(wrk_dir_root):
+        raise Exception(f'Could not find work root directory "{wrk_dir_root}".')
 
     wrk_dir = os.path.join(
-        work_dir_root, datetime.now().strftime("%Y_%m_%d-%H_%M_%S.%f")
+        wrk_dir_root, datetime.now().strftime("%Y_%m_%d-%H_%M_%S.%f")
     )
     os.makedirs(wrk_dir)
 
     return wrk_dir
 
 
-def process_all_comic_books(
-    dry_run: bool,
-    cfg_dir: str,
-    just_symlinks: bool,
-    no_cache: bool,
-    list_cmds: bool,
-    comic_book_info: ComicBookInfoDict,
-) -> None:
-    if not list_cmds:
-        logging.info(f'Processing all ini files in "{cfg_dir}".')
+@dataclass
+class CmdOptions:
+    dry_run: bool = False
+    just_symlinks: bool = False
+    no_cache: bool = False
+    list_cmds: bool = False
+    check_integrity: bool = False
 
-    for ini_file in get_ini_files(cfg_dir):
-        if list_cmds:
-            print_cmd(dry_run, ini_file, just_symlinks, no_cache)
-        else:
-            process_comic_book(
-                dry_run, ini_file, just_symlinks, no_cache, comic_book_info
-            )
+
+def process_all_comic_books(
+    options: CmdOptions,
+    cfg_dir: str,
+    comic_book_info: ComicBookInfoDict,
+) -> int:
+    ini_files = get_ini_files(cfg_dir)
+
+    if options.check_integrity:
+        ret_code = check_comics_integrity(options, ini_files, comic_book_info)
+    elif options.list_cmds:
+        ret_code = print_all_cmds(options, ini_files)
+    else:
+        ret_code = process_comic_books(options, cfg_dir, ini_files, comic_book_info)
+
+    return ret_code
+
+
+def process_comic_books(
+    options: CmdOptions,
+    cfg_dir: str,
+    ini_files: List[str],
+    comic_book_info: ComicBookInfoDict,
+) -> int:
+    logging.info(f'Processing all ini files in "{cfg_dir}".')
+
+    ret_code = 0
+    for ini_file in ini_files:
+        comic = get_comic_book(comic_book_info, ini_file)
+        if 0 != process_comic_book(options, ini_file, comic):
+            ret_code = 1
+
+    return ret_code
+
+
+def print_all_cmds(options: CmdOptions, ini_files: List[str]) -> int:
+    assert options.list_cmds
+
+    for ini_file in ini_files:
+        if 0 != print_cmd(options, ini_file):
+            return 1
+
+    return 0
 
 
 def get_ini_files(cfg_dir: str) -> List[str]:
@@ -2052,53 +2120,447 @@ def get_ini_files(cfg_dir: str) -> List[str]:
     return sorted(ini_files)
 
 
-def print_cmd(
-    dry_run: bool,
+def process_single_comic_book(
+    options: CmdOptions,
     ini_file: str,
-    just_symlinks: bool,
-    no_cache: bool,
-) -> None:
-    dry_run_arg = "" if not dry_run else f" {DRY_RUN_ARG}"
-    just_symlinks_arg = "" if not just_symlinks else f" {JUST_SYMLINKS_ARG}"
-    no_cache_arg = "" if not no_cache else f" {NO_CACHE_ARG}"
-    print(
-        f"python3 {__file__}{dry_run_arg}{just_symlinks_arg}{no_cache_arg}"
-        f' {WORK_DIR_ARG} "{work_dir_root}" {INI_FILE_ARG} {shlex.quote(ini_file)}'
-    )
+    comic_book_info: ComicBookInfoDict,
+) -> int:
+    comic = get_comic_book(comic_book_info, ini_file)
+    return process_comic_book(options, ini_file, comic)
 
 
 def process_comic_book(
-    dry_run: bool,
-    cfg_file: str,
-    just_symlinks: bool,
-    no_cache: bool,
-    comic_book_info: ComicBookInfoDict,
-) -> None:
+    options: CmdOptions,
+    ini_file: str,
+    comic: ComicBook,
+) -> int:
     process_timing = Timing(datetime.now())
 
-    comic_book = get_comic_book(comic_book_info, cfg_file)
+    if options.just_symlinks:
+        symlink_comic_book_zip(options.dry_run, comic)
+        return 0
 
-    if just_symlinks:
-        symlink_comic_book_zip(dry_run, comic_book)
-        return
-
-    srce_and_dest_pages = build_comic_book(dry_run, cfg_file, no_cache, comic_book)
+    srce_and_dest_pages = build_comic_book(
+        options.dry_run, ini_file, options.no_cache, comic
+    )
 
     process_timing.end_time = datetime.now()
     logging.info(
         f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds"
     )
 
-    write_summary(comic_book, srce_and_dest_pages, process_timing, not no_cache)
+    write_summary(comic, srce_and_dest_pages, process_timing, not options.no_cache)
+
+    return 0
+
+
+def check_comics_integrity(
+    options: CmdOptions,
+    ini_files: List[str],
+    comic_book_info: ComicBookInfoDict,
+) -> int:
+    assert options.check_integrity
+
+    print()
+
+    dest_dirs = []
+    zip_files = []
+    zip_symlink_dirs = set()
+    zip_symlinks = []
+    ret_code = 0
+    for ini_file in ini_files:
+        comic = get_comic_book(comic_book_info, ini_file)
+
+        dest_dirs.append((ini_file, comic.get_dest_dir()))
+        zip_files.append(comic.get_dest_comic_zip())
+        zip_symlink_dirs.add(comic.get_dest_series_zip_dir())
+        zip_symlinks.append(comic.get_dest_series_comic_zip_symlink())
+
+        if 0 != check_out_of_date_files(options, ini_file, comic):
+            ret_code = 1
+
+    if 0 != check_unexpected_files(
+        dest_dirs, zip_files, zip_symlink_dirs, zip_symlinks
+    ):
+        ret_code = 1
+
+    return ret_code
+
+
+@dataclass
+class OutOfDateErrors:
+    srce_and_dest_files_missing: List[Tuple[str, str]]
+    srce_and_dest_files_out_of_date: List[Tuple[str, str]]
+    unexpected_dest_files: List[str]
+    unexpected_zip_files: List[str]
+    unexpected_zip_symlinks: List[str]
+    ini_file: str = ""
+    is_error: bool = False
+    max_srce_timestamp: float = 0.0
+    max_dest_timestamp: float = 0.0
+    ini_timestamp: float = 0.0
+    zip_missing: bool = False
+    zip_file: str = ""
+    zip_out_of_date_wrt_ini: bool = False
+    zip_out_of_date_wrt_srce: bool = False
+    zip_out_of_date_wrt_dest: bool = False
+    zip_timestamp: float = 0.0
+    zip_symlink: str = ""
+    zip_symlink_missing: bool = False
+    zip_symlink_out_of_date_wrt_ini: bool = False
+    zip_symlink_out_of_date_wrt_zip: bool = False
+    zip_symlink_timestamp: float = 0.0
+
+
+def check_out_of_date_files(
+    options: CmdOptions,
+    ini_file: str,
+    comic: ComicBook,
+) -> int:
+    out_of_date_errors = OutOfDateErrors(
+        ini_file=ini_file,
+        srce_and_dest_files_out_of_date=[],
+        srce_and_dest_files_missing=[],
+        unexpected_dest_files=[],
+        unexpected_zip_files=[],
+        unexpected_zip_symlinks=[],
+    )
+
+    check_srce_and_dest_files(comic, out_of_date_errors)
+    check_zip_files(comic, out_of_date_errors)
+
+    out_of_date_errors.is_error = (
+        len(out_of_date_errors.srce_and_dest_files_missing) > 0
+        or len(out_of_date_errors.srce_and_dest_files_out_of_date) > 0
+        or len(out_of_date_errors.unexpected_dest_files) > 0
+        or len(out_of_date_errors.unexpected_zip_files) > 0
+        or len(out_of_date_errors.unexpected_zip_symlinks) > 0
+        or out_of_date_errors.zip_missing
+        or out_of_date_errors.zip_symlink_missing
+        or out_of_date_errors.zip_out_of_date_wrt_srce
+        or out_of_date_errors.zip_out_of_date_wrt_dest
+        or out_of_date_errors.zip_symlink_out_of_date_wrt_zip
+    )
+
+    print_check_errors(out_of_date_errors)
+
+    return 1 if out_of_date_errors.is_error else 0
+
+
+def check_srce_and_dest_files(
+    comic: ComicBook, out_of_date_errors: OutOfDateErrors
+) -> None:
+    out_of_date_errors.max_srce_timestamp = 0.0
+    out_of_date_errors.max_dest_timestamp = 0.0
+    out_of_date_errors.num_missing_dest_files = 0
+    out_of_date_errors.num_out_of_date_dest_files = 0
+    out_of_date_errors.srce_and_dest_files_missing = []
+    out_of_date_errors.srce_and_dest_files_out_of_date = []
+
+    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
+
+    check_missing_or_out_of_date_dest_files(srce_and_dest_pages, out_of_date_errors)
+    check_unexpected_dest_files(comic, srce_and_dest_pages, out_of_date_errors)
+
+
+def check_missing_or_out_of_date_dest_files(
+    srce_and_dest_pages: SrceAndDestPages,
+    out_of_date_errors: OutOfDateErrors,
+) -> None:
+    for pages in zip(srce_and_dest_pages.srce_pages, srce_and_dest_pages.dest_pages):
+        srce_page = pages[0]
+        dest_page = pages[1]
+        if not os.path.isfile(dest_page.filename):
+            out_of_date_errors.srce_and_dest_files_missing.append(
+                (srce_page.filename, dest_page.filename)
+            )
+        else:
+            srce_timestamp = os.path.getmtime(srce_page.filename)
+            if out_of_date_errors.max_srce_timestamp < srce_timestamp:
+                out_of_date_errors.max_srce_timestamp = srce_timestamp
+
+            dest_timestamp = os.path.getmtime(dest_page.filename)
+            if out_of_date_errors.max_dest_timestamp < dest_timestamp:
+                out_of_date_errors.max_dest_timestamp = dest_timestamp
+
+            if srce_timestamp > dest_timestamp:
+                out_of_date_errors.srce_and_dest_files_out_of_date.append(
+                    (srce_page.filename, dest_page.filename)
+                )
+
+
+def check_unexpected_dest_files(
+    comic: ComicBook,
+    srce_and_dest_pages: SrceAndDestPages,
+    out_of_date_errors: OutOfDateErrors,
+) -> None:
+    allowed_dest_files = [f.filename for f in srce_and_dest_pages.dest_pages]
+    dest_dir = comic.get_dest_image_dir()
+    for file in os.listdir(dest_dir):
+        dest_file = os.path.join(dest_dir, file)
+        if dest_file not in allowed_dest_files:
+            out_of_date_errors.unexpected_dest_files.append(dest_file)
+
+
+def check_unexpected_files(
+    dest_dirs_info_list: List[Tuple[str, str]],
+    zip_files: List[str],
+    zip_symlink_dirs: Set[str],
+    zip_symlinks: List[str],
+) -> int:
+    ret_code = 0
+
+    print()
+
+    allowed_dest_non_image_files = {
+        "clean_summary.txt",
+        "comic-metadata.json",
+        "dest-panels-bboxes.json",
+        "metadata.txt",
+        "readme.txt",
+        "srce-dest-map.json",
+    }
+    for dest_dir_info in dest_dirs_info_list:
+        ini_file = os.path.basename(dest_dir_info[0])
+        dest_dir = dest_dir_info[1]
+
+        for file in os.listdir(dest_dir):
+            if file in ["images", ini_file]:
+                continue
+            if file not in allowed_dest_non_image_files:
+                print(f'ERROR: The dest file "{file}" was unexpected.')
+                ret_code = 1
+
+    if dest_dirs_info_list:
+        dest_dirs = [d[1] for d in dest_dirs_info_list]
+        dest_dir = os.path.dirname(dest_dirs[0])
+        for file in os.listdir(dest_dir):
+            dest_file = os.path.join(dest_dir, file)
+            if dest_file not in dest_dirs:
+                print(f'ERROR: The dest file "{dest_file}" was unexpected.')
+                ret_code = 1
+
+    if zip_files:
+        dest_dir = os.path.dirname(zip_files[0])
+        for file in os.listdir(dest_dir):
+            dest_file = os.path.join(dest_dir, file)
+            if dest_file not in zip_files:
+                print(f'ERROR: The zip file "{dest_file}" was unexpected.')
+                ret_code = 1
+
+    if zip_symlinks:
+        for dest_dir in zip_symlink_dirs:
+            for file in os.listdir(dest_dir):
+                dest_file = os.path.join(dest_dir, file)
+                if dest_file not in zip_symlinks:
+                    print(f'ERROR: The zip symlink "{dest_file}" was unexpected.')
+                    ret_code = 1
+
+    if ret_code != 0:
+        print()
+
+    return ret_code
+
+
+def check_zip_files(comic: ComicBook, out_of_date_errors: OutOfDateErrors) -> None:
+    if not os.path.exists(comic.get_dest_comic_zip()):
+        out_of_date_errors.zip_missing = True
+        out_of_date_errors.zip_file = comic.get_dest_comic_zip()
+        return
+
+    zip_timestamp = os.path.getmtime(comic.get_dest_comic_zip())
+    if zip_timestamp < out_of_date_errors.max_srce_timestamp:
+        out_of_date_errors.zip_out_of_date_wrt_srce = True
+        out_of_date_errors.zip_timestamp = zip_timestamp
+        out_of_date_errors.zip_file = comic.get_dest_comic_zip()
+
+    if zip_timestamp < out_of_date_errors.max_dest_timestamp:
+        out_of_date_errors.zip_out_of_date_wrt_dest = True
+        out_of_date_errors.zip_timestamp = zip_timestamp
+        out_of_date_errors.zip_file = comic.get_dest_comic_zip()
+
+    ini_timestamp = os.path.getmtime(out_of_date_errors.ini_file)
+    if zip_timestamp < ini_timestamp:
+        out_of_date_errors.zip_out_of_date_wrt_ini = True
+        out_of_date_errors.zip_timestamp = zip_timestamp
+        out_of_date_errors.zip_file = comic.get_dest_comic_zip()
+        out_of_date_errors.ini_timestamp = ini_timestamp
+
+    if not os.path.exists(comic.get_dest_series_comic_zip_symlink()):
+        out_of_date_errors.zip_symlink_missing = True
+        out_of_date_errors.zip_symlink = comic.get_dest_series_comic_zip_symlink()
+        return
+
+    zip_symlink_timestamp = os.lstat(comic.get_dest_series_comic_zip_symlink()).st_mtime
+    if zip_symlink_timestamp < zip_timestamp:
+        out_of_date_errors.zip_symlink_out_of_date_wrt_zip = True
+        out_of_date_errors.zip_symlink_timestamp = zip_symlink_timestamp
+        out_of_date_errors.zip_symlink = comic.get_dest_series_comic_zip_symlink()
+        out_of_date_errors.zip_timestamp = zip_timestamp
+        out_of_date_errors.zip_file = comic.get_dest_comic_zip()
+
+    if zip_symlink_timestamp < ini_timestamp:
+        out_of_date_errors.zip_symlink_out_of_date_wrt_ini = True
+        out_of_date_errors.zip_symlink_timestamp = zip_symlink_timestamp
+        out_of_date_errors.zip_symlink = comic.get_dest_series_comic_zip_symlink()
+        out_of_date_errors.ini_timestamp = ini_timestamp
+
+
+def print_check_errors(out_of_date_errors: OutOfDateErrors) -> None:
+    if (
+        len(out_of_date_errors.srce_and_dest_files_missing) > 0
+        or len(out_of_date_errors.srce_and_dest_files_out_of_date) > 0
+    ):
+        print_out_of_date_or_missing_errors(out_of_date_errors)
+
+    if out_of_date_errors.zip_missing:
+        print(
+            f'ERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
+            f' the zip file "{out_of_date_errors.zip_file}" is missing.'
+        )
+
+    if out_of_date_errors.zip_symlink_missing:
+        print(
+            f'ERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
+            f' the zip symlink "{out_of_date_errors.zip_symlink}" is missing.'
+        )
+
+    if out_of_date_errors.zip_out_of_date_wrt_srce:
+        max_srce_date = datetime.fromtimestamp(out_of_date_errors.max_srce_timestamp)
+        file_date = datetime.fromtimestamp(out_of_date_errors.zip_timestamp)
+        print(
+            f'ERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
+            f' the zip file "{out_of_date_errors.zip_file}" timestamp'
+            f' {file_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the max srce'
+            f' file timestamp {max_srce_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
+        )
+
+    if out_of_date_errors.zip_out_of_date_wrt_dest:
+        max_dest_date = datetime.fromtimestamp(out_of_date_errors.max_dest_timestamp)
+        file_date = datetime.fromtimestamp(out_of_date_errors.zip_timestamp)
+        print(
+            f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
+            f' the zip file "{out_of_date_errors.zip_file}" timestamp'
+            f' {file_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the max dest'
+            f' file timestamp {max_dest_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
+        )
+
+    if out_of_date_errors.zip_out_of_date_wrt_ini:
+        ini_date = datetime.fromtimestamp(out_of_date_errors.ini_timestamp)
+        file_date = datetime.fromtimestamp(out_of_date_errors.zip_timestamp)
+        print(
+            f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
+            f' the zip file "{out_of_date_errors.zip_file}" timestamp'
+            f' {file_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the ini'
+            f' file timestamp {ini_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
+        )
+
+    if out_of_date_errors.zip_symlink_out_of_date_wrt_zip:
+        symlink_date = datetime.fromtimestamp(out_of_date_errors.zip_symlink_timestamp)
+        zip_date = datetime.fromtimestamp(out_of_date_errors.zip_timestamp)
+        print(
+            f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
+            f' the zip symlink "{out_of_date_errors.zip_symlink}" timestamp'
+            f' {symlink_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the zip'
+            f' file "{out_of_date_errors.zip_file}" timestamp'
+            f' {zip_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
+        )
+
+    if out_of_date_errors.zip_symlink_out_of_date_wrt_ini:
+        ini_date = datetime.fromtimestamp(out_of_date_errors.ini_timestamp)
+        symlink_date = datetime.fromtimestamp(out_of_date_errors.zip_symlink_timestamp)
+        print(
+            f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
+            f' the zip symlink "{out_of_date_errors.zip_symlink}" timestamp'
+            f' {symlink_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the ini'
+            f' file timestamp {ini_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
+        )
+
+    if (
+        len(out_of_date_errors.unexpected_dest_files) > 0
+        or len(out_of_date_errors.unexpected_zip_files) > 0
+        or len(out_of_date_errors.unexpected_zip_symlinks) > 0
+    ):
+        print_unexpected_dest_files_errors(out_of_date_errors)
+
+
+def print_unexpected_dest_files_errors(out_of_date_errors: OutOfDateErrors) -> None:
+    for file in out_of_date_errors.unexpected_dest_files:
+        print(f'ERROR: The dest file "{file}" was unexpected.')
+    for file in out_of_date_errors.unexpected_zip_files:
+        print(f'ERROR: The zip file "{file}" was unexpected.')
+    for file in out_of_date_errors.unexpected_zip_symlinks:
+        print(f'ERROR: The zip symlink "{file}" was unexpected.')
+
+
+def print_out_of_date_or_missing_errors(out_of_date_errors: OutOfDateErrors) -> None:
+    for srce_dest in out_of_date_errors.srce_and_dest_files_missing:
+        srce_file = srce_dest[0]
+        dest_file = srce_dest[1]
+        print(
+            f'ERROR: There is no dest file "{dest_file}"'
+            f' matching srce file "{srce_file}".'
+        )
+    for srce_dest in out_of_date_errors.srce_and_dest_files_out_of_date:
+        srce_file = srce_dest[0]
+        dest_file = srce_dest[1]
+        print(f"ERROR: {get_out_of_date_file_msg(srce_file, dest_file)}")
+
+    if (
+        len(out_of_date_errors.srce_and_dest_files_missing) > 0
+        or len(out_of_date_errors.srce_and_dest_files_out_of_date) > 0
+    ):
+        print()
+
+    if (
+        len(out_of_date_errors.srce_and_dest_files_missing) > 0
+        and len(out_of_date_errors.srce_and_dest_files_out_of_date) > 0
+    ):
+        print(
+            f'ERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
+            f" there are {len(out_of_date_errors.srce_and_dest_files_missing)} missing dest files"
+            f" and {len(out_of_date_errors.srce_and_dest_files_out_of_date)} out of date"
+            f" dest files.\n"
+        )
+    else:
+        if len(out_of_date_errors.srce_and_dest_files_missing) > 0:
+            print(
+                f'ERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
+                f" there are {len(out_of_date_errors.srce_and_dest_files_missing)} missing"
+                f" dest files.\n"
+            )
+
+        if len(out_of_date_errors.srce_and_dest_files_out_of_date) > 0:
+            print(
+                f'ERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
+                f" there are {len(out_of_date_errors.srce_and_dest_files_out_of_date)} out of"
+                f" date dest files.\n"
+            )
+
+
+def get_shorter_ini_filename(ini_file: str) -> str:
+    return os.path.basename(ini_file)
+
+
+def print_cmd(options: CmdOptions, ini_file: str) -> int:
+    dry_run_arg = "" if not options.dry_run else f" {DRY_RUN_ARG}"
+    just_symlinks_arg = "" if not options.just_symlinks else f" {JUST_SYMLINKS_ARG}"
+    no_cache_arg = "" if not options.no_cache else f" {NO_CACHE_ARG}"
+    print(
+        f"python3 {__file__}{dry_run_arg}{just_symlinks_arg}{no_cache_arg}"
+        f' {WORK_DIR_ARG} "{work_dir_root}" {INI_FILE_ARG} {shlex.quote(ini_file)}'
+    )
+
+    return 0
 
 
 def build_comic_book(
-    dry_run: bool, cfg_file: str, no_cache: bool, comic_book: ComicBook
+    dry_run: bool, cfg_file: str, no_cache: bool, comic: ComicBook
 ) -> SrceAndDestPages:
-    srce_and_dest_pages = create_comic_book(dry_run, cfg_file, comic_book, not no_cache)
+    srce_and_dest_pages = create_comic_book(dry_run, cfg_file, comic, not no_cache)
 
-    zip_comic_book(dry_run, comic_book)
-    symlink_comic_book_zip(dry_run, comic_book)
+    zip_comic_book(dry_run, comic)
+    symlink_comic_book_zip(dry_run, comic)
 
     return srce_and_dest_pages
 
@@ -2111,6 +2573,7 @@ JUST_SYMLINKS_ARG = "--just-symlinks"
 WORK_DIR_ARG = "--work-dir"
 NO_CACHE_ARG = "--no-cache"
 LIST_CMDS_ARG = "--list-cmds"
+CHECK_INTEGRITY = "--check-integrity"
 
 
 def get_args():
@@ -2132,6 +2595,9 @@ def get_args():
     )
     parser.add_argument(
         LIST_CMDS_ARG, action="store_true", required=False, default=False
+    )
+    parser.add_argument(
+        CHECK_INTEGRITY, action="store_true", required=False, default=False
     )
 
     args = parser.parse_args()
@@ -2164,20 +2630,27 @@ if __name__ == "__main__":
         str(os.path.join(THIS_DIR, PUBLICATION_INFO_DIRNAME, STORIES_INFO_FILENAME))
     )
 
+    cmd_options = CmdOptions(
+        dry_run=cmd_args.dry_run,
+        just_symlinks=cmd_args.just_symlinks,
+        no_cache=cmd_args.no_cache,
+        list_cmds=cmd_args.list_cmds,
+        check_integrity=cmd_args.check_integrity,
+    )
+
     if cmd_args.config_dir:
-        process_all_comic_books(
-            cmd_args.dry_run,
+        exit_code = process_all_comic_books(
+            cmd_options,
             get_config_dir(cmd_args.config_dir),
-            cmd_args.just_symlinks,
-            cmd_args.no_cache,
-            cmd_args.list_cmds,
             all_comic_book_info,
         )
     else:
-        process_comic_book(
-            cmd_args.dry_run,
+        exit_code = process_single_comic_book(
+            cmd_options,
             get_config_file(cmd_args.ini_file),
-            cmd_args.just_symlinks,
-            cmd_args.no_cache,
             all_comic_book_info,
         )
+
+    if exit_code != 0:
+        print(f"\nThere were errors: exit code = {exit_code}.")
+        sys.exit(exit_code)

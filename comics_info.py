@@ -169,6 +169,18 @@ ISSUE_NAME_AS_TITLE = {
     US: "Uncle\nScrooge",
     FG: "Firestone\nGiveaway",
 }
+SHORT_ISSUE_NAME = {
+    DD: "DD",
+    US: "US",
+    CS: "WDCS",
+    FC: "FC",
+    CP: "CP",
+    VP: "VP",
+    MC: "MOC",
+    FG: "FG",
+    CH: "CG",
+    KI: "KG",
+}
 
 # fmt: off
 SOURCE_COMICS = {
