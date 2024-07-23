@@ -5,7 +5,9 @@ import inspect
 import json
 import logging
 import os
+import shlex
 import shutil
+import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -302,7 +304,10 @@ def get_lookup_title(title: str, file_title: str) -> str:
     return file_title
 
 
-def get_inset_filename(ini_file: str) -> str:
+def get_inset_filename(ini_file: str, file_title: str) -> str:
+    if file_title:
+        return file_title + " Inset" + INSET_FILE_EXT
+
     ini_filename = os.path.splitext(os.path.basename(ini_file))[0]
 
     return ini_filename + " Inset" + INSET_FILE_EXT
@@ -1512,25 +1517,23 @@ def get_page_number_str(page: CleanPage, page_number: int) -> str:
 
 
 def process_additional_files(
-    dry_run: bool,
-    comic: ComicBook,
-    pages: SrceAndDestPages,
+    dry_run: bool, cfg_file: str, comic: ComicBook, pages: SrceAndDestPages
 ):
     if dry_run:
         logging.info(
-            f'{DRY_RUN_STR}: shutil.copy2("{config_file}", "{comic.get_dest_dir()}")'
+            f'{DRY_RUN_STR}: shutil.copy2("{cfg_file}", "{comic.get_dest_dir()}")'
         )
     else:
-        shutil.copy2(config_file, comic.get_dest_dir())
+        shutil.copy2(cfg_file, comic.get_dest_dir())
 
-    write_readme_file(dry_run, comic)
+    write_readme_file(dry_run, cfg_file, comic)
     write_metadata_file(dry_run, comic, pages.dest_pages)
     write_json_metadata(dry_run, comic, pages.dest_pages)
     write_srce_dest_map(dry_run, comic, pages)
     write_dest_panels_bboxes(dry_run, comic, pages.dest_pages)
 
 
-def write_readme_file(dry_run: bool, comic: ComicBook):
+def write_readme_file(dry_run: bool, cfg_file: str, comic: ComicBook):
     readme_file = os.path.join(comic.get_dest_dir(), README_FILENAME)
     if dry_run:
         logging.info(f'{DRY_RUN_STR}: Write info to "{readme_file}".')
@@ -1542,7 +1545,7 @@ def write_readme_file(dry_run: bool, comic: ComicBook):
             f.write("\n")
             now_str = datetime.now().strftime("%b %d %Y %H:%M:%S")
             f.write(f"Created:           {now_str}\n")
-            f.write(f'Archived ini file: "{os.path.basename(config_file)}"\n')
+            f.write(f'Archived ini file: "{os.path.basename(cfg_file)}"\n')
 
 
 def write_metadata_file(dry_run: bool, comic: ComicBook, dest_pages: List[CleanPage]):
@@ -1676,9 +1679,9 @@ def write_srce_dest_map(
         srce_dest_map["srce_min_panels_bbox_height"] = comic.srce_min_panels_bbox_height
         srce_dest_map["srce_max_panels_bbox_height"] = comic.srce_max_panels_bbox_height
         srce_dest_map["dest_required_bbox_width"] = comic.required_dim.panels_bbox_width
-        srce_dest_map[
-            "dest_required_bbox_height"
-        ] = comic.required_dim.panels_bbox_height
+        srce_dest_map["dest_required_bbox_height"] = (
+            comic.required_dim.panels_bbox_height
+        )
 
         dest_page_map = dict()
         for srce_page, dest_page in zip(pages.srce_pages, pages.dest_pages):
@@ -1791,7 +1794,9 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
     )
     file_title = config["info"]["file_title"]
     lookup_title = get_lookup_title(title, file_title)
-    intro_inset_file = str(os.path.join(CONFIGS_SUBDIR, get_inset_filename(ini_file)))
+    intro_inset_file = str(
+        os.path.join(CONFIGS_SUBDIR, get_inset_filename(ini_file, file_title))
+    )
 
     cb_info: ComicBookInfo = stories[lookup_title]
     srce_info = SOURCE_COMICS[config["info"]["source_comic"]]
@@ -1953,8 +1958,8 @@ def log_comic_book_params(comic: ComicBook, caching: bool):
     logging.info("")
 
 
-def process_comic_book(
-    comic: ComicBook, dry_run: bool, caching: bool
+def create_comic_book(
+    dry_run: bool, cfg_file: str, comic: ComicBook, caching: bool
 ) -> SrceAndDestPages:
     pages = get_srce_and_dest_pages_in_order(comic)
 
@@ -1966,70 +1971,213 @@ def process_comic_book(
 
     create_dest_dirs(dry_run, comic)
     process_pages(dry_run, caching, comic, pages)
-    process_additional_files(dry_run, comic, pages)
+    process_additional_files(dry_run, cfg_file, comic, pages)
 
     return pages
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Create a clean Barks comic from Fantagraphics source."
-    )
-    parser.add_argument("--ini-file", action="store", type=str, required=True)
-    parser.add_argument(
-        "--log-level", action="store", type=str, required=False, default="INFO"
-    )
-    parser.add_argument("--dry-run", action="store_true", required=False, default=False)
-    parser.add_argument(
-        "--just-symlinks", action="store_true", required=False, default=False
-    )
-    parser.add_argument("--work-dir", type=str, required=True)
-    parser.add_argument(
-        "--no-cache", action="store_true", required=False, default=False
-    )
-    args = parser.parse_args()
-
-    process_timing = Timing(datetime.now())
-
+def setup_logging(log_level) -> None:
     logging.basicConfig(
         format="%(asctime)s %(levelname)s: %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
-        level=args.log_level,
+        level=log_level,
     )
 
-    work_dir = args.work_dir
-    if not os.path.isdir(work_dir):
-        raise Exception(f'Could not find work directory "{work_dir}".')
-    work_dir = os.path.join(work_dir, datetime.now().strftime("%Y_%m_%d-%H_%M_%S.%f"))
-    os.makedirs(work_dir)
 
+def get_config_dir(config_dir_arg: str) -> str:
+    config_dir = os.path.realpath(config_dir_arg)
+
+    if not os.path.isdir(config_dir):
+        raise Exception(f'Could not find config directory "{config_dir}".')
+
+    return config_dir
+
+
+def get_config_file(ini_file: str) -> str:
+    cfg_file = ini_file
+    real_cfg_file = os.path.realpath(cfg_file)
+
+    if os.path.islink(cfg_file):
+        logging.debug(f'Converted config symlink "{cfg_file}" to "{real_cfg_file}".')
+
+    if not os.path.isfile(real_cfg_file):
+        raise Exception(f'Could not find ini file "{real_cfg_file}".')
+
+    return real_cfg_file
+
+
+def get_work_dir(work_dir_root: str) -> str:
+    if not os.path.isdir(work_dir_root):
+        raise Exception(f'Could not find work root directory "{work_dir_root}".')
+
+    wrk_dir = os.path.join(
+        work_dir_root, datetime.now().strftime("%Y_%m_%d-%H_%M_%S.%f")
+    )
+    os.makedirs(wrk_dir)
+
+    return wrk_dir
+
+
+def process_all_comic_books(
+    dry_run: bool,
+    cfg_dir: str,
+    just_symlinks: bool,
+    no_cache: bool,
+    list_cmds: bool,
+    comic_book_info: ComicBookInfoDict,
+) -> None:
+    if not list_cmds:
+        logging.info(f'Processing all ini files in "{cfg_dir}".')
+
+    for ini_file in get_ini_files(cfg_dir):
+        if list_cmds:
+            print_cmd(dry_run, ini_file, just_symlinks, no_cache)
+        else:
+            process_comic_book(
+                dry_run, ini_file, just_symlinks, no_cache, comic_book_info
+            )
+
+
+def get_ini_files(cfg_dir: str) -> List[str]:
+    possible_ini_files = [f for f in os.listdir(cfg_dir) if f.endswith(".ini")]
+
+    ini_files = []
+    for file in possible_ini_files:
+        ini_file = os.path.join(cfg_dir, file)
+        if os.path.islink(ini_file):
+            logging.debug(f'Skipping ini file symlink in "{ini_file}".')
+            continue
+        ini_files.append(ini_file)
+
+    return sorted(ini_files)
+
+
+def print_cmd(
+    dry_run: bool,
+    ini_file: str,
+    just_symlinks: bool,
+    no_cache: bool,
+) -> None:
+    dry_run_arg = "" if not dry_run else f" {DRY_RUN_ARG}"
+    just_symlinks_arg = "" if not just_symlinks else f" {JUST_SYMLINKS_ARG}"
+    no_cache_arg = "" if not no_cache else f" {NO_CACHE_ARG}"
+    print(
+        f"python3 {__file__}{dry_run_arg}{just_symlinks_arg}{no_cache_arg}"
+        f' {WORK_DIR_ARG} "{work_dir_root}" {INI_FILE_ARG} {shlex.quote(ini_file)}'
+    )
+
+
+def process_comic_book(
+    dry_run: bool,
+    cfg_file: str,
+    just_symlinks: bool,
+    no_cache: bool,
+    comic_book_info: ComicBookInfoDict,
+) -> None:
+    process_timing = Timing(datetime.now())
+
+    comic_book = get_comic_book(comic_book_info, cfg_file)
+
+    if just_symlinks:
+        symlink_comic_book_zip(dry_run, comic_book)
+        return
+
+    srce_and_dest_pages = build_comic_book(dry_run, cfg_file, no_cache, comic_book)
+
+    process_timing.end_time = datetime.now()
+    logging.info(
+        f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds"
+    )
+
+    write_summary(comic_book, srce_and_dest_pages, process_timing, not no_cache)
+
+
+def build_comic_book(
+    dry_run: bool, cfg_file: str, no_cache: bool, comic_book: ComicBook
+) -> SrceAndDestPages:
+    srce_and_dest_pages = create_comic_book(dry_run, cfg_file, comic_book, not no_cache)
+
+    zip_comic_book(dry_run, comic_book)
+    symlink_comic_book_zip(dry_run, comic_book)
+
+    return srce_and_dest_pages
+
+
+CONFIG_DIR_ARG = "--config-dir"
+INI_FILE_ARG = "--ini-file"
+LOG_LEVEL_ARG = "--log-level"
+DRY_RUN_ARG = "--dry-run"
+JUST_SYMLINKS_ARG = "--just-symlinks"
+WORK_DIR_ARG = "--work-dir"
+NO_CACHE_ARG = "--no-cache"
+LIST_CMDS_ARG = "--list-cmds"
+
+
+def get_args():
+    parser = argparse.ArgumentParser(
+        description="Create a clean Barks comic from Fantagraphics source."
+    )
+    parser.add_argument(CONFIG_DIR_ARG, action="store", type=str, required=False)
+    parser.add_argument(INI_FILE_ARG, action="store", type=str, required=False)
+    parser.add_argument(
+        LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
+    )
+    parser.add_argument(DRY_RUN_ARG, action="store_true", required=False, default=False)
+    parser.add_argument(
+        JUST_SYMLINKS_ARG, action="store_true", required=False, default=False
+    )
+    parser.add_argument(WORK_DIR_ARG, type=str, required=True)
+    parser.add_argument(
+        NO_CACHE_ARG, action="store_true", required=False, default=False
+    )
+    parser.add_argument(
+        LIST_CMDS_ARG, action="store_true", required=False, default=False
+    )
+
+    args = parser.parse_args()
+
+    if args.config_dir and args.ini_file:
+        print(
+            f"Argument error: Cannot have both '{CONFIG_DIR_ARG}' and '{INI_FILE_ARG}'."
+        )
+        return None
+    if not args.config_dir and not args.ini_file:
+        print(
+            f"Argument error: You need to specify one of '{CONFIG_DIR_ARG}' or '{INI_FILE_ARG}'."
+        )
+        return None
+
+    return args
+
+
+if __name__ == "__main__":
+    cmd_args = get_args()
+    if not cmd_args:
+        sys.exit(1)
+
+    setup_logging(cmd_args.log_level)
+
+    work_dir_root = cmd_args.work_dir
+    work_dir = get_work_dir(work_dir_root)
     bounding_box_processor = BoundingBoxProcessor(work_dir)
-
-    config_file = args.ini_file
-    if not os.path.isfile(config_file):
-        raise Exception(f'Could not find ini file "{config_file}".')
-
     all_comic_book_info = get_all_comic_book_info(
         str(os.path.join(THIS_DIR, PUBLICATION_INFO_DIRNAME, STORIES_INFO_FILENAME))
     )
 
-    comic_book = get_comic_book(all_comic_book_info, config_file)
-
-    if args.just_symlinks:
-        symlink_comic_book_zip(args.dry_run, comic_book)
+    if cmd_args.config_dir:
+        process_all_comic_books(
+            cmd_args.dry_run,
+            get_config_dir(cmd_args.config_dir),
+            cmd_args.just_symlinks,
+            cmd_args.no_cache,
+            cmd_args.list_cmds,
+            all_comic_book_info,
+        )
     else:
-        srce_and_dest_pages = process_comic_book(
-            comic_book, args.dry_run, not args.no_cache
-        )
-
-        zip_comic_book(args.dry_run, comic_book)
-        symlink_comic_book_zip(args.dry_run, comic_book)
-
-        process_timing.end_time = datetime.now()
-        logging.info(
-            f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds"
-        )
-
-        write_summary(
-            comic_book, srce_and_dest_pages, process_timing, not args.no_cache
+        process_comic_book(
+            cmd_args.dry_run,
+            get_config_file(cmd_args.ini_file),
+            cmd_args.just_symlinks,
+            cmd_args.no_cache,
+            all_comic_book_info,
         )
