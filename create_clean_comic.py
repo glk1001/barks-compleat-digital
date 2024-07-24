@@ -34,6 +34,7 @@ from consts import (
     THE_COMICS_DIR,
     THE_CHRONOLOGICAL_DIRS_DIR,
     THE_CHRONOLOGICAL_DIR,
+    THE_YEARS_COMICS_DIR,
     CONFIGS_SUBDIR,
     IMAGES_SUBDIR,
     INSET_FILE_EXT,
@@ -191,6 +192,7 @@ class ComicBook:
     intro_inset_file: str
     publication_date: str
     submitted_date: str
+    submitted_year: int
     publication_text: str
     comic_book_info: ComicBookInfo
     images_in_order: List[OriginalPage]
@@ -243,19 +245,35 @@ class ComicBook:
             self.series_name,
         )
 
-    def get_dest_comic_zip(self) -> str:
-        title = f"{self.get_dest_rel_dirname()} [{self.get_comic_issue_title()}]"
-        return os.path.join(self.get_dest_zip_root_dir(), title) + ".cbz"
+    def get_dest_year_zip_symlink_dir(self) -> str:
+        return os.path.join(
+            THE_YEARS_COMICS_DIR,
+            str(self.submitted_year),
+        )
 
-    def get_dest_series_comic_zip_symlink(self) -> str:
+    def get_dest_comic_zip_filename(self) -> str:
+        return f"{self.get_dest_rel_dirname()} [{self.get_comic_issue_title()}].cbz"
+
+    def get_dest_comic_zip(self) -> str:
+        return os.path.join(
+            self.get_dest_zip_root_dir(), self.get_dest_comic_zip_filename()
+        )
+
+    def get_dest_series_comic_zip_symlink_filename(self) -> str:
         file_title = get_lookup_title(self.title, self.file_title)
         full_title = f"{file_title} [{self.get_comic_issue_title()}]"
-        return (
-            os.path.join(
-                f"{self.get_dest_series_zip_symlink_dir()}",
-                f"{self.number_in_series:03d} {full_title}",
-            )
-            + ".cbz"
+        return f"{self.number_in_series:03d} {full_title}.cbz"
+
+    def get_dest_series_comic_zip_symlink(self) -> str:
+        return os.path.join(
+            f"{self.get_dest_series_zip_symlink_dir()}",
+            f"{self.get_dest_series_comic_zip_symlink_filename()}",
+        )
+
+    def get_dest_year_comic_zip_symlink(self) -> str:
+        return os.path.join(
+            f"{self.get_dest_year_zip_symlink_dir()}",
+            f"{self.get_dest_comic_zip_filename()}",
         )
 
     def get_comic_title(self) -> str:
@@ -346,33 +364,47 @@ def zip_comic_book(dry_run: bool, comic: ComicBook):
             )
 
 
-def symlink_comic_book_zip(dry_run: bool, comic: ComicBook):
+def create_symlinks_to_comic_zip(dry_run: bool, comic: ComicBook):
     if not os.path.exists(comic.get_dest_comic_zip()):
-        raise Exception(f'Could not find zip file "{comic.get_dest_comic_zip()}".')
+        raise Exception(
+            f'Could not find comic zip file "{comic.get_dest_comic_zip()}".'
+        )
 
+    create_symlink_zip(
+        dry_run,
+        comic.get_dest_comic_zip(),
+        comic.get_dest_series_zip_symlink_dir(),
+        comic.get_dest_series_comic_zip_symlink(),
+    )
+
+    create_symlink_zip(
+        dry_run,
+        comic.get_dest_comic_zip(),
+        comic.get_dest_year_zip_symlink_dir(),
+        comic.get_dest_year_comic_zip_symlink(),
+    )
+
+
+def create_symlink_zip(
+    dry_run: bool, zip_file: str, symlink_dir: str, symlink: str
+) -> None:
     if dry_run:
         logging.info(
-            f'{DRY_RUN_STR}: Symlinking (relative) zip file "{comic.get_dest_comic_zip()}"'
-            f' to "{comic.get_dest_series_comic_zip_symlink()}".'
+            f'{DRY_RUN_STR}: Symlinking (relative) comic zip file "{zip_file}" to "{symlink}".'
         )
     else:
         logging.info(
-            f'Symlinking (relative) the zip file "{comic.get_dest_comic_zip()}"'
-            f' to "{comic.get_dest_series_comic_zip_symlink()}".'
+            f'Symlinking (relative) the comic zip file "{zip_file}" to "{symlink}".'
         )
 
-        if not os.path.exists(comic.get_dest_series_zip_symlink_dir()):
-            os.makedirs(comic.get_dest_series_zip_symlink_dir())
-        if os.path.islink(comic.get_dest_series_comic_zip_symlink()):
-            os.remove(comic.get_dest_series_comic_zip_symlink())
+        if not os.path.exists(symlink_dir):
+            os.makedirs(symlink_dir)
+        if os.path.islink(symlink):
+            os.remove(symlink)
 
-        relative_symlink(
-            comic.get_dest_comic_zip(), comic.get_dest_series_comic_zip_symlink()
-        )
-        if not os.path.islink(comic.get_dest_series_comic_zip_symlink()):
-            raise Exception(
-                f'Could not create symlink "{comic.get_dest_series_comic_zip_symlink()}".'
-            )
+        relative_symlink(zip_file, symlink)
+        if not os.path.islink(symlink):
+            raise Exception(f'Could not create symlink "{symlink}".')
 
 
 def relative_symlink(target: Union[Path, str], destination: Union[Path, str]):
@@ -431,6 +463,9 @@ def write_summary(
             f'dest_series_zip_symlink  = "{comic.get_dest_series_comic_zip_symlink()}"\n'
         )
         f.write(
+            f'dest_year_zip_symlink    = "{comic.get_dest_year_comic_zip_symlink()}"\n'
+        )
+        f.write(
             f'title_font_file          = "{get_font_path(comic.title_font_file)}"\n'
         )
         f.write(f"title_font_size          = {comic.title_font_size}\n")
@@ -457,6 +492,9 @@ def write_summary(
         f.write(f"calc_panels_bbox_height  = {calc_panels_bbox_height}\n")
         f.write(f"page_num_y_bottom        = {comic.required_dim.page_num_y_bottom}\n")
         f.write(f'intro_inset_file         = "{comic.intro_inset_file}"\n')
+        f.write(f"submitted_date           = {comic.submitted_date}\n")
+        f.write(f"submitted_year           = {comic.submitted_year}\n")
+        f.write(f"publication_date         = {comic.publication_date}\n")
         f.write(f"publication_text         = \n{comic.publication_text}\n")
         f.write("\n")
 
@@ -1587,9 +1625,9 @@ def write_readme_file(dry_run: bool, comic: ComicBook):
         logging.info(f'{DRY_RUN_STR}: Write info to "{readme_file}".')
     else:
         with open(readme_file, "w") as f:
-            title = get_safe_title(comic.title)
-            f.write(f"{title}\n")
-            f.write("".ljust(len(title), "-") + "\n")
+            f.write(f'Title:       "{get_safe_title(comic.title)}"\n')
+            f.write(f'File Title:  "{comic.file_title}"\n')
+            f.write(f'Issue Title: "{get_safe_title(comic.issue_title)}"\n')
             f.write("\n")
             now_str = datetime.now().strftime("%b %d %Y %H:%M:%S")
             f.write(f"Created:           {now_str}\n")
@@ -1632,6 +1670,7 @@ def write_json_metadata(dry_run: bool, comic: ComicBook, dest_pages: List[CleanP
         metadata["dest_file"] = comic.get_dest_dir()
         metadata["publication_date"] = comic.publication_date
         metadata["submitted_date"] = comic.submitted_date
+        metadata["submitted_year"] = comic.submitted_year
         metadata["srce_min_panels_bbox_width"] = comic.srce_min_panels_bbox_width
         metadata["srce_max_panels_bbox_width"] = comic.srce_max_panels_bbox_width
         metadata["srce_av_panels_bbox_width"] = comic.srce_av_panels_bbox_width
@@ -1907,6 +1946,7 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
         intro_inset_file=intro_inset_file,
         publication_date=publication_date,
         submitted_date=submitted_date,
+        submitted_year=cb_info.submitted_year,
         publication_text=publication_text,
         comic_book_info=cb_info,
         images_in_order=[
@@ -2002,7 +2042,8 @@ def log_comic_book_params(comic: ComicBook, caching: bool):
     logging.info(f'Dest comic dir:      "DEST ROOT/{dest_basename}".')
     logging.info(f'Dest zip root:       "{comic.get_dest_zip_root_dir()}".')
     logging.info(f'Dest comic zip:      "ZIP ROOT/{dest_comic_zip_basename}".')
-    logging.info(f'Dest zip symlink:    "{comic.get_dest_series_comic_zip_symlink()}".')
+    logging.info(f'Dest series symlink: "{comic.get_dest_series_comic_zip_symlink()}".')
+    logging.info(f'Dest year symlink:   "{comic.get_dest_year_comic_zip_symlink()}".')
     logging.info(f'Work directory:      "{work_dir}".')
     logging.info("")
 
@@ -2149,7 +2190,7 @@ def process_comic_book(
     process_timing = Timing(datetime.now())
 
     if options.just_symlinks:
-        symlink_comic_book_zip(options.dry_run, comic)
+        create_symlinks_to_comic_zip(options.dry_run, comic)
         return 0
 
     srce_and_dest_pages = build_comic_book(options.dry_run, options.no_cache, comic)
@@ -2215,11 +2256,16 @@ class OutOfDateErrors:
     zip_out_of_date_wrt_srce: bool = False
     zip_out_of_date_wrt_dest: bool = False
     zip_timestamp: float = 0.0
-    zip_symlink: str = ""
-    zip_symlink_missing: bool = False
-    zip_symlink_out_of_date_wrt_ini: bool = False
-    zip_symlink_out_of_date_wrt_zip: bool = False
-    zip_symlink_timestamp: float = 0.0
+    series_zip_symlink: str = ""
+    series_zip_symlink_missing: bool = False
+    series_zip_symlink_out_of_date_wrt_ini: bool = False
+    series_zip_symlink_out_of_date_wrt_zip: bool = False
+    series_zip_symlink_timestamp: float = 0.0
+    year_zip_symlink: str = ""
+    year_zip_symlink_missing: bool = False
+    year_zip_symlink_out_of_date_wrt_ini: bool = False
+    year_zip_symlink_out_of_date_wrt_zip: bool = False
+    year_zip_symlink_timestamp: float = 0.0
 
 
 def make_out_of_date_errors(ini_file: str) -> OutOfDateErrors:
@@ -2246,10 +2292,14 @@ def check_out_of_date_files(comic: ComicBook) -> int:
         or len(out_of_date_errors.unexpected_zip_files) > 0
         or len(out_of_date_errors.unexpected_zip_symlinks) > 0
         or out_of_date_errors.zip_missing
-        or out_of_date_errors.zip_symlink_missing
+        or out_of_date_errors.series_zip_symlink_missing
+        or out_of_date_errors.year_zip_symlink_missing
         or out_of_date_errors.zip_out_of_date_wrt_srce
         or out_of_date_errors.zip_out_of_date_wrt_dest
-        or out_of_date_errors.zip_symlink_out_of_date_wrt_zip
+        or out_of_date_errors.series_zip_symlink_out_of_date_wrt_zip
+        or out_of_date_errors.year_zip_symlink_out_of_date_wrt_zip
+        or out_of_date_errors.series_zip_symlink_out_of_date_wrt_ini
+        or out_of_date_errors.year_zip_symlink_out_of_date_wrt_ini
     )
 
     print_check_errors(out_of_date_errors)
@@ -2397,22 +2447,40 @@ def check_zip_files(comic: ComicBook, out_of_date_errors: OutOfDateErrors) -> No
         out_of_date_errors.ini_timestamp = ini_timestamp
 
     if not os.path.exists(comic.get_dest_series_comic_zip_symlink()):
-        out_of_date_errors.zip_symlink_missing = True
-        out_of_date_errors.zip_symlink = comic.get_dest_series_comic_zip_symlink()
+        out_of_date_errors.series_zip_symlink_missing = True
+        out_of_date_errors.series_zip_symlink = comic.get_dest_series_comic_zip_symlink()
         return
 
-    zip_symlink_timestamp = os.lstat(comic.get_dest_series_comic_zip_symlink()).st_mtime
-    if zip_symlink_timestamp < zip_timestamp:
-        out_of_date_errors.zip_symlink_out_of_date_wrt_zip = True
-        out_of_date_errors.zip_symlink_timestamp = zip_symlink_timestamp
-        out_of_date_errors.zip_symlink = comic.get_dest_series_comic_zip_symlink()
+    series_zip_symlink_timestamp = os.lstat(comic.get_dest_series_comic_zip_symlink()).st_mtime
+    if series_zip_symlink_timestamp < zip_timestamp:
+        out_of_date_errors.series_zip_symlink_out_of_date_wrt_zip = True
+        out_of_date_errors.series_zip_symlink_timestamp = series_zip_symlink_timestamp
+        out_of_date_errors.series_zip_symlink = comic.get_dest_series_comic_zip_symlink()
         out_of_date_errors.zip_timestamp = zip_timestamp
         out_of_date_errors.zip_file = comic.get_dest_comic_zip()
 
-    if zip_symlink_timestamp < ini_timestamp:
-        out_of_date_errors.zip_symlink_out_of_date_wrt_ini = True
-        out_of_date_errors.zip_symlink_timestamp = zip_symlink_timestamp
-        out_of_date_errors.zip_symlink = comic.get_dest_series_comic_zip_symlink()
+    if series_zip_symlink_timestamp < ini_timestamp:
+        out_of_date_errors.series_zip_symlink_out_of_date_wrt_ini = True
+        out_of_date_errors.series_zip_symlink_timestamp = series_zip_symlink_timestamp
+        out_of_date_errors.series_zip_symlink = comic.get_dest_series_comic_zip_symlink()
+        out_of_date_errors.ini_timestamp = ini_timestamp
+
+    if not os.path.exists(comic.get_dest_year_comic_zip_symlink()):
+        out_of_date_errors.year_zip_symlink_missing = True
+        out_of_date_errors.year_zip_symlink = comic.get_dest_year_comic_zip_symlink()
+        return
+
+    year_zip_symlink_timestamp = os.lstat(comic.get_dest_year_comic_zip_symlink()).st_mtime
+    if year_zip_symlink_timestamp < ini_timestamp:
+        out_of_date_errors.year_zip_symlink_out_of_date_wrt_ini = True
+        out_of_date_errors.year_zip_symlink_timestamp = year_zip_symlink_timestamp
+        out_of_date_errors.year_zip_symlink = comic.get_dest_year_comic_zip_symlink()
+        out_of_date_errors.ini_timestamp = ini_timestamp
+
+    if year_zip_symlink_timestamp < ini_timestamp:
+        out_of_date_errors.year_zip_symlink_out_of_date_wrt_ini = True
+        out_of_date_errors.year_zip_symlink_timestamp = year_zip_symlink_timestamp
+        out_of_date_errors.year_zip_symlink = comic.get_dest_year_comic_zip_symlink()
         out_of_date_errors.ini_timestamp = ini_timestamp
 
 
@@ -2429,10 +2497,16 @@ def print_check_errors(out_of_date_errors: OutOfDateErrors) -> None:
             f' the zip file "{out_of_date_errors.zip_file}" is missing.'
         )
 
-    if out_of_date_errors.zip_symlink_missing:
+    if out_of_date_errors.series_zip_symlink_missing:
         print(
             f'ERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
-            f' the zip symlink "{out_of_date_errors.zip_symlink}" is missing.'
+            f' the zip symlink "{out_of_date_errors.series_zip_symlink}" is missing.'
+        )
+
+    if out_of_date_errors.year_zip_symlink_missing:
+        print(
+            f'ERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
+            f' the zip symlink "{out_of_date_errors.year_zip_symlink}" is missing.'
         )
 
     if out_of_date_errors.zip_out_of_date_wrt_srce:
@@ -2465,23 +2539,44 @@ def print_check_errors(out_of_date_errors: OutOfDateErrors) -> None:
             f' file timestamp {ini_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
         )
 
-    if out_of_date_errors.zip_symlink_out_of_date_wrt_zip:
-        symlink_date = datetime.fromtimestamp(out_of_date_errors.zip_symlink_timestamp)
+    if out_of_date_errors.series_zip_symlink_out_of_date_wrt_zip:
+        symlink_date = datetime.fromtimestamp(out_of_date_errors.series_zip_symlink_timestamp)
         zip_date = datetime.fromtimestamp(out_of_date_errors.zip_timestamp)
         print(
             f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
-            f' the zip symlink "{out_of_date_errors.zip_symlink}" timestamp'
+            f' the zip symlink "{out_of_date_errors.series_zip_symlink}" timestamp'
             f' {symlink_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the zip'
             f' file "{out_of_date_errors.zip_file}" timestamp'
             f' {zip_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
         )
 
-    if out_of_date_errors.zip_symlink_out_of_date_wrt_ini:
+    if out_of_date_errors.series_zip_symlink_out_of_date_wrt_ini:
         ini_date = datetime.fromtimestamp(out_of_date_errors.ini_timestamp)
-        symlink_date = datetime.fromtimestamp(out_of_date_errors.zip_symlink_timestamp)
+        symlink_date = datetime.fromtimestamp(out_of_date_errors.series_zip_symlink_timestamp)
         print(
             f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
-            f' the zip symlink "{out_of_date_errors.zip_symlink}" timestamp'
+            f' the zip symlink "{out_of_date_errors.series_zip_symlink}" timestamp'
+            f' {symlink_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the ini'
+            f' file timestamp {ini_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
+        )
+
+    if out_of_date_errors.year_zip_symlink_out_of_date_wrt_zip:
+        symlink_date = datetime.fromtimestamp(out_of_date_errors.year_zip_symlink_timestamp)
+        zip_date = datetime.fromtimestamp(out_of_date_errors.zip_timestamp)
+        print(
+            f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
+            f' the zip symlink "{out_of_date_errors.year_zip_symlink}" timestamp'
+            f' {symlink_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the zip'
+            f' file "{out_of_date_errors.zip_file}" timestamp'
+            f' {zip_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
+        )
+
+    if out_of_date_errors.year_zip_symlink_out_of_date_wrt_ini:
+        ini_date = datetime.fromtimestamp(out_of_date_errors.ini_timestamp)
+        symlink_date = datetime.fromtimestamp(out_of_date_errors.year_zip_symlink_timestamp)
+        print(
+            f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
+            f' the zip symlink "{out_of_date_errors.year_zip_symlink}" timestamp'
             f' {symlink_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the ini'
             f' file timestamp {ini_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
         )
@@ -2570,7 +2665,7 @@ def build_comic_book(
     srce_and_dest_pages = create_comic_book(dry_run, comic, not no_cache)
 
     zip_comic_book(dry_run, comic)
-    symlink_comic_book_zip(dry_run, comic)
+    create_symlinks_to_comic_zip(dry_run, comic)
 
     return srce_and_dest_pages
 
