@@ -55,7 +55,6 @@ from consts import (
     PAGES_WITHOUT_PANELS,
     PAINTING_PAGES,
     SPLASH_PAGES,
-    CACHEABLE_PAGES,
     MEDIAN_FILTERABLE_PAGES,
     MIN_HD_SRCE_HEIGHT,
 )
@@ -339,7 +338,19 @@ def get_inset_filename(ini_file: str, file_title: str) -> str:
     return ini_filename + " Inset" + INSET_FILE_EXT
 
 
-def zip_comic_book(dry_run: bool, comic: ComicBook):
+def zip_comic_book(
+    dry_run: bool, no_cache: bool, comic: ComicBook, max_dest_timestamp: float
+):
+    if (
+        not no_cache
+        and os.path.isfile(comic.get_dest_comic_zip())
+        and not is_zip_file_out_of_date(comic.get_dest_comic_zip(), max_dest_timestamp)
+    ):
+        logging.debug(
+            f'Caching on - keeping existing zip file "{comic.get_dest_comic_zip()}".'
+        )
+        return
+
     if dry_run:
         logging.info(
             f'{DRY_RUN_STR}: Zipping directory "{comic.get_dest_dir()}"'
@@ -364,7 +375,7 @@ def zip_comic_book(dry_run: bool, comic: ComicBook):
             )
 
 
-def create_symlinks_to_comic_zip(dry_run: bool, comic: ComicBook):
+def create_symlinks_to_comic_zip(dry_run: bool, no_cache: bool, comic: ComicBook):
     if not os.path.exists(comic.get_dest_comic_zip()):
         raise Exception(
             f'Could not find comic zip file "{comic.get_dest_comic_zip()}".'
@@ -372,6 +383,7 @@ def create_symlinks_to_comic_zip(dry_run: bool, comic: ComicBook):
 
     create_symlink_zip(
         dry_run,
+        no_cache,
         comic.get_dest_comic_zip(),
         comic.get_dest_series_zip_symlink_dir(),
         comic.get_dest_series_comic_zip_symlink(),
@@ -379,6 +391,7 @@ def create_symlinks_to_comic_zip(dry_run: bool, comic: ComicBook):
 
     create_symlink_zip(
         dry_run,
+        no_cache,
         comic.get_dest_comic_zip(),
         comic.get_dest_year_zip_symlink_dir(),
         comic.get_dest_year_comic_zip_symlink(),
@@ -386,8 +399,16 @@ def create_symlinks_to_comic_zip(dry_run: bool, comic: ComicBook):
 
 
 def create_symlink_zip(
-    dry_run: bool, zip_file: str, symlink_dir: str, symlink: str
+    dry_run: bool, no_cache: bool, zip_file: str, symlink_dir: str, symlink: str
 ) -> None:
+    if (
+        not no_cache
+        and os.path.islink(symlink)
+        and not is_symlink_out_of_date_wrt_zip(symlink, zip_file)
+    ):
+        logging.debug(f'Caching on - keeping existing symlink file "{symlink}".')
+        return
+
     if dry_run:
         logging.info(
             f'{DRY_RUN_STR}: Symlinking (relative) comic zip file "{zip_file}" to "{symlink}".'
@@ -1013,8 +1034,7 @@ def process_page(
         )
 
     if (
-        srce_page.page_type in CACHEABLE_PAGES
-        and cache_pages
+        cache_pages
         and os.path.exists(dest_page.page_filename)
         and not is_dest_file_out_of_date(
             srce_page.page_filename, dest_page.page_filename
@@ -1049,13 +1069,41 @@ def is_dest_file_out_of_date(srce_file: str, dest_file: str) -> bool:
     dest_timestamp = os.path.getmtime(dest_file)
 
     if srce_timestamp > dest_timestamp:
-        logging.debug(get_out_of_date_file_msg(srce_file, dest_file))
+        logging.debug(get_dest_file_out_of_date_msg(srce_file, dest_file))
         return True
 
     return False
 
 
-def get_out_of_date_file_msg(srce_file: str, dest_file: str) -> str:
+def is_zip_file_out_of_date(zip_file: str, max_dest_timestamp: float) -> bool:
+    zip_timestamp = os.path.getmtime(zip_file)
+    if zip_timestamp < max_dest_timestamp:
+        logging.debug(get_zip_file_out_of_date_msg(zip_file, max_dest_timestamp))
+        return True
+
+    return False
+
+
+def is_symlink_out_of_date_wrt_zip(symlink: str, zip_file: str) -> bool:
+    symlink_timestamp = os.lstat(symlink).st_mtime
+    zip_timestamp = os.path.getmtime(zip_file)
+    if symlink_timestamp < zip_timestamp:
+        logging.debug(get_symlink_out_of_date_wrt_zip_msg(symlink, zip_timestamp))
+        return True
+
+    return False
+
+
+def is_symlink_out_of_date_wrt_dest(symlink: str, max_dest_timestamp: float) -> bool:
+    symlink_timestamp = os.lstat(symlink).st_mtime
+    if symlink_timestamp < max_dest_timestamp:
+        logging.debug(get_symlink_out_of_date_wrt_dest_msg(symlink, max_dest_timestamp))
+        return True
+
+    return False
+
+
+def get_dest_file_out_of_date_msg(srce_file: str, dest_file: str) -> str:
     srce_timestamp = os.path.getmtime(srce_file)
     dest_timestamp = os.path.getmtime(dest_file)
     assert srce_timestamp > dest_timestamp
@@ -1067,6 +1115,50 @@ def get_out_of_date_file_msg(srce_file: str, dest_file: str) -> str:
         f'Dest file "{dest_file}" ({dest_date.strftime("%Y_%m_%d-%H_%M_%S.%f")})'
         f" is out of date WRT"
         f' srce file "{srce_file}" ({srce_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}).'
+    )
+
+
+def get_zip_file_out_of_date_msg(zip_file: str, max_dest_timestamp: float) -> str:
+    zip_timestamp = os.path.getmtime(zip_file)
+    assert zip_timestamp < max_dest_timestamp
+
+    zip_date = datetime.fromtimestamp(zip_timestamp)
+    max_dest_date = datetime.fromtimestamp(max_dest_timestamp)
+
+    return (
+        f'Zip file "{zip_file}" timestamp {zip_date.strftime("%Y_%m_%d-%H_%M_%S.%f")},'
+        f" is out of date WRT"
+        f' max dest page timestamp {max_dest_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
+    )
+
+
+def get_symlink_out_of_date_wrt_zip_msg(symlink: str, zip_timestamp: float) -> str:
+    symlink_timestamp = os.lstat(symlink).st_mtime
+    assert symlink_timestamp < zip_timestamp
+
+    symlink_date = datetime.fromtimestamp(symlink_timestamp)
+    zip_date = datetime.fromtimestamp(zip_timestamp)
+
+    return (
+        f'Symlink "{symlink}" timestamp {symlink_date.strftime("%Y_%m_%d-%H_%M_%S.%f")},'
+        f" is out of date WRT"
+        f' zip file timestamp {zip_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
+    )
+
+
+def get_symlink_out_of_date_wrt_dest_msg(
+    symlink: str, max_dest_timestamp: float
+) -> str:
+    symlink_timestamp = os.lstat(symlink).st_mtime
+    assert symlink_timestamp < max_dest_timestamp
+
+    symlink_date = datetime.fromtimestamp(symlink_timestamp)
+    max_dest_date = datetime.fromtimestamp(max_dest_timestamp)
+
+    return (
+        f'Symlink "{symlink}" timestamp {symlink_date.strftime("%Y_%m_%d-%H_%M_%S.%f")},'
+        f" is out of date WRT"
+        f' max dest timestamp {max_dest_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
     )
 
 
@@ -2190,7 +2282,7 @@ def process_comic_book(
     process_timing = Timing(datetime.now())
 
     if options.just_symlinks:
-        create_symlinks_to_comic_zip(options.dry_run, comic)
+        create_symlinks_to_comic_zip(options.dry_run, options.no_cache, comic)
         return 0
 
     srce_and_dest_pages = build_comic_book(options.dry_run, options.no_cache, comic)
@@ -2239,33 +2331,40 @@ def check_comics_integrity(
 
 
 @dataclass
+class ZipOutOfDateErrors:
+    file: str = ""
+    missing: bool = False
+    out_of_date_wrt_ini: bool = False
+    out_of_date_wrt_srce: bool = False
+    out_of_date_wrt_dest: bool = False
+    timestamp: float = 0.0
+
+
+@dataclass
+class ZipSymlinkOutOfDateErrors:
+    symlink: str = ""
+    missing: bool = False
+    out_of_date_wrt_ini: bool = False
+    out_of_date_wrt_zip: bool = False
+    out_of_date_wrt_dest: bool = False
+    timestamp: float = 0.0
+
+
+@dataclass
 class OutOfDateErrors:
+    ini_file: str
     srce_and_dest_files_missing: List[Tuple[str, str]]
     srce_and_dest_files_out_of_date: List[Tuple[str, str]]
     unexpected_dest_files: List[str]
     unexpected_zip_files: List[str]
     unexpected_zip_symlinks: List[str]
-    ini_file: str = ""
+    zip_errors: ZipOutOfDateErrors
+    series_zip_symlink_errors: ZipSymlinkOutOfDateErrors
+    year_zip_symlink_errors: ZipSymlinkOutOfDateErrors
     is_error: bool = False
     max_srce_timestamp: float = 0.0
     max_dest_timestamp: float = 0.0
     ini_timestamp: float = 0.0
-    zip_missing: bool = False
-    zip_file: str = ""
-    zip_out_of_date_wrt_ini: bool = False
-    zip_out_of_date_wrt_srce: bool = False
-    zip_out_of_date_wrt_dest: bool = False
-    zip_timestamp: float = 0.0
-    series_zip_symlink: str = ""
-    series_zip_symlink_missing: bool = False
-    series_zip_symlink_out_of_date_wrt_ini: bool = False
-    series_zip_symlink_out_of_date_wrt_zip: bool = False
-    series_zip_symlink_timestamp: float = 0.0
-    year_zip_symlink: str = ""
-    year_zip_symlink_missing: bool = False
-    year_zip_symlink_out_of_date_wrt_ini: bool = False
-    year_zip_symlink_out_of_date_wrt_zip: bool = False
-    year_zip_symlink_timestamp: float = 0.0
 
 
 def make_out_of_date_errors(ini_file: str) -> OutOfDateErrors:
@@ -2276,6 +2375,9 @@ def make_out_of_date_errors(ini_file: str) -> OutOfDateErrors:
         unexpected_dest_files=[],
         unexpected_zip_files=[],
         unexpected_zip_symlinks=[],
+        zip_errors=ZipOutOfDateErrors(),
+        series_zip_symlink_errors=ZipSymlinkOutOfDateErrors(),
+        year_zip_symlink_errors=ZipSymlinkOutOfDateErrors(),
     )
 
 
@@ -2291,15 +2393,15 @@ def check_out_of_date_files(comic: ComicBook) -> int:
         or len(out_of_date_errors.unexpected_dest_files) > 0
         or len(out_of_date_errors.unexpected_zip_files) > 0
         or len(out_of_date_errors.unexpected_zip_symlinks) > 0
-        or out_of_date_errors.zip_missing
-        or out_of_date_errors.series_zip_symlink_missing
-        or out_of_date_errors.year_zip_symlink_missing
-        or out_of_date_errors.zip_out_of_date_wrt_srce
-        or out_of_date_errors.zip_out_of_date_wrt_dest
-        or out_of_date_errors.series_zip_symlink_out_of_date_wrt_zip
-        or out_of_date_errors.year_zip_symlink_out_of_date_wrt_zip
-        or out_of_date_errors.series_zip_symlink_out_of_date_wrt_ini
-        or out_of_date_errors.year_zip_symlink_out_of_date_wrt_ini
+        or out_of_date_errors.zip_errors.missing
+        or out_of_date_errors.series_zip_symlink_errors.missing
+        or out_of_date_errors.year_zip_symlink_errors.missing
+        or out_of_date_errors.zip_errors.out_of_date_wrt_srce
+        or out_of_date_errors.zip_errors.out_of_date_wrt_dest
+        or out_of_date_errors.series_zip_symlink_errors.out_of_date_wrt_zip
+        or out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_zip
+        or out_of_date_errors.series_zip_symlink_errors.out_of_date_wrt_ini
+        or out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_ini
     )
 
     print_check_errors(out_of_date_errors)
@@ -2424,64 +2526,107 @@ def check_unexpected_files(
 
 def check_zip_files(comic: ComicBook, out_of_date_errors: OutOfDateErrors) -> None:
     if not os.path.exists(comic.get_dest_comic_zip()):
-        out_of_date_errors.zip_missing = True
-        out_of_date_errors.zip_file = comic.get_dest_comic_zip()
+        out_of_date_errors.zip_errors.missing = True
+        out_of_date_errors.zip_errors.file = comic.get_dest_comic_zip()
         return
 
     zip_timestamp = os.path.getmtime(comic.get_dest_comic_zip())
     if zip_timestamp < out_of_date_errors.max_srce_timestamp:
-        out_of_date_errors.zip_out_of_date_wrt_srce = True
-        out_of_date_errors.zip_timestamp = zip_timestamp
-        out_of_date_errors.zip_file = comic.get_dest_comic_zip()
+        out_of_date_errors.zip_errors.out_of_date_wrt_srce = True
+        out_of_date_errors.zip_errors.timestamp = zip_timestamp
+        out_of_date_errors.zip_errors.file = comic.get_dest_comic_zip()
 
     if zip_timestamp < out_of_date_errors.max_dest_timestamp:
-        out_of_date_errors.zip_out_of_date_wrt_dest = True
-        out_of_date_errors.zip_timestamp = zip_timestamp
-        out_of_date_errors.zip_file = comic.get_dest_comic_zip()
+        out_of_date_errors.zip_errors.out_of_date_wrt_dest = True
+        out_of_date_errors.zip_errors.timestamp = zip_timestamp
+        out_of_date_errors.zip_errors.file = comic.get_dest_comic_zip()
 
     ini_timestamp = os.path.getmtime(out_of_date_errors.ini_file)
     if zip_timestamp < ini_timestamp:
-        out_of_date_errors.zip_out_of_date_wrt_ini = True
-        out_of_date_errors.zip_timestamp = zip_timestamp
-        out_of_date_errors.zip_file = comic.get_dest_comic_zip()
+        out_of_date_errors.zip_errors.out_of_date_wrt_ini = True
+        out_of_date_errors.zip_errors.timestamp = zip_timestamp
+        out_of_date_errors.zip_errors.file = comic.get_dest_comic_zip()
         out_of_date_errors.ini_timestamp = ini_timestamp
 
     if not os.path.exists(comic.get_dest_series_comic_zip_symlink()):
-        out_of_date_errors.series_zip_symlink_missing = True
-        out_of_date_errors.series_zip_symlink = comic.get_dest_series_comic_zip_symlink()
+        out_of_date_errors.series_zip_symlink_errors.missing = True
+        out_of_date_errors.series_zip_symlink_errors.symlink = (
+            comic.get_dest_series_comic_zip_symlink()
+        )
         return
 
-    series_zip_symlink_timestamp = os.lstat(comic.get_dest_series_comic_zip_symlink()).st_mtime
+    series_zip_symlink_timestamp = os.lstat(
+        comic.get_dest_series_comic_zip_symlink()
+    ).st_mtime
     if series_zip_symlink_timestamp < zip_timestamp:
-        out_of_date_errors.series_zip_symlink_out_of_date_wrt_zip = True
-        out_of_date_errors.series_zip_symlink_timestamp = series_zip_symlink_timestamp
-        out_of_date_errors.series_zip_symlink = comic.get_dest_series_comic_zip_symlink()
-        out_of_date_errors.zip_timestamp = zip_timestamp
-        out_of_date_errors.zip_file = comic.get_dest_comic_zip()
+        out_of_date_errors.series_zip_symlink_errors.symlink_out_of_date_wrt_zip = True
+        out_of_date_errors.series_zip_symlink_errors.timestamp = (
+            series_zip_symlink_timestamp
+        )
+        out_of_date_errors.series_zip_symlink_errors.symlink = (
+            comic.get_dest_series_comic_zip_symlink()
+        )
+        out_of_date_errors.zip_errors.timestamp = zip_timestamp
+        out_of_date_errors.zip_errors.file = comic.get_dest_comic_zip()
 
     if series_zip_symlink_timestamp < ini_timestamp:
-        out_of_date_errors.series_zip_symlink_out_of_date_wrt_ini = True
-        out_of_date_errors.series_zip_symlink_timestamp = series_zip_symlink_timestamp
-        out_of_date_errors.series_zip_symlink = comic.get_dest_series_comic_zip_symlink()
+        out_of_date_errors.series_zip_symlink_errors.out_of_date_wrt_ini = True
+        out_of_date_errors.series_zip_symlink_errors.timestamp = (
+            series_zip_symlink_timestamp
+        )
+        out_of_date_errors.series_zip_symlink_errors.symlink = (
+            comic.get_dest_series_comic_zip_symlink()
+        )
         out_of_date_errors.ini_timestamp = ini_timestamp
+
+    if series_zip_symlink_timestamp < out_of_date_errors.max_dest_timestamp:
+        out_of_date_errors.series_zip_symlink_errors.out_of_date_wrt_dest = True
+        out_of_date_errors.series_zip_symlink_errors.timestamp = (
+            series_zip_symlink_timestamp
+        )
+        out_of_date_errors.series_zip_symlink_errors.symlink = (
+            comic.get_dest_series_comic_zip_symlink()
+        )
 
     if not os.path.exists(comic.get_dest_year_comic_zip_symlink()):
-        out_of_date_errors.year_zip_symlink_missing = True
-        out_of_date_errors.year_zip_symlink = comic.get_dest_year_comic_zip_symlink()
+        out_of_date_errors.year_zip_symlink_errors.missing = True
+        out_of_date_errors.year_zip_symlink_errors.symlink = (
+            comic.get_dest_year_comic_zip_symlink()
+        )
         return
 
-    year_zip_symlink_timestamp = os.lstat(comic.get_dest_year_comic_zip_symlink()).st_mtime
-    if year_zip_symlink_timestamp < ini_timestamp:
-        out_of_date_errors.year_zip_symlink_out_of_date_wrt_ini = True
-        out_of_date_errors.year_zip_symlink_timestamp = year_zip_symlink_timestamp
-        out_of_date_errors.year_zip_symlink = comic.get_dest_year_comic_zip_symlink()
-        out_of_date_errors.ini_timestamp = ini_timestamp
+    year_zip_symlink_timestamp = os.lstat(
+        comic.get_dest_year_comic_zip_symlink()
+    ).st_mtime
+    if year_zip_symlink_timestamp < zip_timestamp:
+        out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_zip = True
+        out_of_date_errors.year_zip_symlink_errors.timestamp = (
+            year_zip_symlink_timestamp
+        )
+        out_of_date_errors.year_zip_symlink_errors.symlink = (
+            comic.get_dest_year_comic_zip_symlink()
+        )
+        out_of_date_errors.zip_errors.timestamp = zip_timestamp
+        out_of_date_errors.zip_errors.file = comic.get_dest_comic_zip()
 
     if year_zip_symlink_timestamp < ini_timestamp:
-        out_of_date_errors.year_zip_symlink_out_of_date_wrt_ini = True
-        out_of_date_errors.year_zip_symlink_timestamp = year_zip_symlink_timestamp
-        out_of_date_errors.year_zip_symlink = comic.get_dest_year_comic_zip_symlink()
+        out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_ini = True
+        out_of_date_errors.year_zip_symlink_errors.timestamp = (
+            year_zip_symlink_timestamp
+        )
+        out_of_date_errors.year_zip_symlink_errors.symlink = (
+            comic.get_dest_year_comic_zip_symlink()
+        )
         out_of_date_errors.ini_timestamp = ini_timestamp
+
+    if year_zip_symlink_timestamp < out_of_date_errors.max_dest_timestamp:
+        out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_dest = True
+        out_of_date_errors.year_zip_symlink_errors.timestamp = (
+            year_zip_symlink_timestamp
+        )
+        out_of_date_errors.year_zip_symlink_errors.symlink = (
+            comic.get_dest_year_comic_zip_symlink()
+        )
 
 
 def print_check_errors(out_of_date_errors: OutOfDateErrors) -> None:
@@ -2491,94 +2636,126 @@ def print_check_errors(out_of_date_errors: OutOfDateErrors) -> None:
     ):
         print_out_of_date_or_missing_errors(out_of_date_errors)
 
-    if out_of_date_errors.zip_missing:
+    if out_of_date_errors.zip_errors.missing:
         print(
             f'ERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
-            f' the zip file "{out_of_date_errors.zip_file}" is missing.'
+            f' the zip file "{out_of_date_errors.zip_errors.file}" is missing.'
         )
 
-    if out_of_date_errors.series_zip_symlink_missing:
+    if out_of_date_errors.series_zip_symlink_errors.missing:
         print(
             f'ERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
-            f' the zip symlink "{out_of_date_errors.series_zip_symlink}" is missing.'
+            f' the zip symlink "{out_of_date_errors.series_zip_symlink_errors.symlink}" is missing.'
         )
 
-    if out_of_date_errors.year_zip_symlink_missing:
+    if out_of_date_errors.year_zip_symlink_errors.missing:
         print(
             f'ERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
-            f' the zip symlink "{out_of_date_errors.year_zip_symlink}" is missing.'
+            f' the zip symlink "{out_of_date_errors.year_zip_symlink_errors.symlink}" is missing.'
         )
 
-    if out_of_date_errors.zip_out_of_date_wrt_srce:
+    if out_of_date_errors.zip_errors.out_of_date_wrt_srce:
         max_srce_date = datetime.fromtimestamp(out_of_date_errors.max_srce_timestamp)
-        file_date = datetime.fromtimestamp(out_of_date_errors.zip_timestamp)
+        file_date = datetime.fromtimestamp(out_of_date_errors.zip_errors.timestamp)
         print(
             f'ERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
-            f' the zip file "{out_of_date_errors.zip_file}" timestamp'
+            f' the zip file "{out_of_date_errors.zip_errors.file}" timestamp'
             f' {file_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the max srce'
             f' file timestamp {max_srce_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
         )
 
-    if out_of_date_errors.zip_out_of_date_wrt_dest:
+    if out_of_date_errors.zip_errors.out_of_date_wrt_dest:
         max_dest_date = datetime.fromtimestamp(out_of_date_errors.max_dest_timestamp)
-        file_date = datetime.fromtimestamp(out_of_date_errors.zip_timestamp)
+        file_date = datetime.fromtimestamp(out_of_date_errors.zip_errors.timestamp)
         print(
             f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
-            f' the zip file "{out_of_date_errors.zip_file}" timestamp'
+            f' the zip file "{out_of_date_errors.zip_errors.file}" timestamp'
             f' {file_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the max dest'
             f' file timestamp {max_dest_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
         )
 
-    if out_of_date_errors.zip_out_of_date_wrt_ini:
+    if out_of_date_errors.zip_errors.out_of_date_wrt_ini:
         ini_date = datetime.fromtimestamp(out_of_date_errors.ini_timestamp)
-        file_date = datetime.fromtimestamp(out_of_date_errors.zip_timestamp)
+        file_date = datetime.fromtimestamp(out_of_date_errors.zip_errors.timestamp)
         print(
             f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
-            f' the zip file "{out_of_date_errors.zip_file}" timestamp'
+            f' the zip file "{out_of_date_errors.zip_errors.file}" timestamp'
             f' {file_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the ini'
             f' file timestamp {ini_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
         )
 
-    if out_of_date_errors.series_zip_symlink_out_of_date_wrt_zip:
-        symlink_date = datetime.fromtimestamp(out_of_date_errors.series_zip_symlink_timestamp)
-        zip_date = datetime.fromtimestamp(out_of_date_errors.zip_timestamp)
+    if out_of_date_errors.series_zip_symlink_errors.out_of_date_wrt_zip:
+        symlink_date = datetime.fromtimestamp(
+            out_of_date_errors.series_zip_symlink_errors.timestamp
+        )
+        zip_date = datetime.fromtimestamp(out_of_date_errors.zip_errors.timestamp)
         print(
             f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
-            f' the zip symlink "{out_of_date_errors.series_zip_symlink}" timestamp'
+            f' the zip symlink "{out_of_date_errors.series_zip_symlink_errors.symlink}" timestamp'
             f' {symlink_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the zip'
-            f' file "{out_of_date_errors.zip_file}" timestamp'
+            f' file "{out_of_date_errors.zip_errors.file}" timestamp'
             f' {zip_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
         )
 
-    if out_of_date_errors.series_zip_symlink_out_of_date_wrt_ini:
+    if out_of_date_errors.series_zip_symlink_errors.out_of_date_wrt_ini:
         ini_date = datetime.fromtimestamp(out_of_date_errors.ini_timestamp)
-        symlink_date = datetime.fromtimestamp(out_of_date_errors.series_zip_symlink_timestamp)
+        symlink_date = datetime.fromtimestamp(
+            out_of_date_errors.series_zip_symlink_errors.timestamp
+        )
         print(
             f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
-            f' the zip symlink "{out_of_date_errors.series_zip_symlink}" timestamp'
+            f' the zip symlink "{out_of_date_errors.series_zip_symlink_errors.symlink}" timestamp'
             f' {symlink_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the ini'
             f' file timestamp {ini_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
         )
 
-    if out_of_date_errors.year_zip_symlink_out_of_date_wrt_zip:
-        symlink_date = datetime.fromtimestamp(out_of_date_errors.year_zip_symlink_timestamp)
-        zip_date = datetime.fromtimestamp(out_of_date_errors.zip_timestamp)
+    if out_of_date_errors.series_zip_symlink_errors.out_of_date_wrt_dest:
+        max_dest_date = datetime.fromtimestamp(out_of_date_errors.max_dest_timestamp)
+        symlink_date = datetime.fromtimestamp(
+            out_of_date_errors.series_zip_symlink_errors.timestamp
+        )
         print(
             f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
-            f' the zip symlink "{out_of_date_errors.year_zip_symlink}" timestamp'
+            f' the zip symlink "{out_of_date_errors.series_zip_symlink_errors.symlink}" timestamp'
+            f' {symlink_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the max'
+            f' dest timestamp {max_dest_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
+        )
+
+    if out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_zip:
+        symlink_date = datetime.fromtimestamp(
+            out_of_date_errors.year_zip_symlink_errors.timestamp
+        )
+        zip_date = datetime.fromtimestamp(out_of_date_errors.zip_errors.timestamp)
+        print(
+            f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
+            f' the zip symlink "{out_of_date_errors.year_zip_symlink_errors.symlink}" timestamp'
             f' {symlink_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the zip'
-            f' file "{out_of_date_errors.zip_file}" timestamp'
+            f' file "{out_of_date_errors.zip_errors.file}" timestamp'
             f' {zip_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
         )
 
-    if out_of_date_errors.year_zip_symlink_out_of_date_wrt_ini:
+    if out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_ini:
         ini_date = datetime.fromtimestamp(out_of_date_errors.ini_timestamp)
-        symlink_date = datetime.fromtimestamp(out_of_date_errors.year_zip_symlink_timestamp)
+        symlink_date = datetime.fromtimestamp(
+            out_of_date_errors.year_zip_symlink_errors.timestamp
+        )
         print(
             f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
-            f' the zip symlink "{out_of_date_errors.year_zip_symlink}" timestamp'
+            f' the zip symlink "{out_of_date_errors.year_zip_symlink_errors.symlink}" timestamp'
             f' {symlink_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the ini'
             f' file timestamp {ini_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
+        )
+
+    if out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_dest:
+        max_dest_date = datetime.fromtimestamp(out_of_date_errors.max_dest_timestamp)
+        symlink_date = datetime.fromtimestamp(
+            out_of_date_errors.year_zip_symlink_errors.timestamp
+        )
+        print(
+            f'\nERROR: For "{get_shorter_ini_filename(out_of_date_errors.ini_file)}",'
+            f' the zip symlink "{out_of_date_errors.year_zip_symlink_errors.symlink}" timestamp'
+            f' {symlink_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}, is less than the max'
+            f' dest timestamp {max_dest_date.strftime("%Y_%m_%d-%H_%M_%S.%f")}.'
         )
 
     if (
@@ -2609,7 +2786,7 @@ def print_out_of_date_or_missing_errors(out_of_date_errors: OutOfDateErrors) -> 
     for srce_dest in out_of_date_errors.srce_and_dest_files_out_of_date:
         srce_file = srce_dest[0]
         dest_file = srce_dest[1]
-        print(f"ERROR: {get_out_of_date_file_msg(srce_file, dest_file)}")
+        print(f"ERROR: {get_dest_file_out_of_date_msg(srce_file, dest_file)}")
 
     if (
         len(out_of_date_errors.srce_and_dest_files_missing) > 0
@@ -2663,11 +2840,16 @@ def build_comic_book(
     dry_run: bool, no_cache: bool, comic: ComicBook
 ) -> SrceAndDestPages:
     srce_and_dest_pages = create_comic_book(dry_run, comic, not no_cache)
+    max_dest_timestamp = get_max_timestamp(srce_and_dest_pages.dest_pages)
 
-    zip_comic_book(dry_run, comic)
-    create_symlinks_to_comic_zip(dry_run, comic)
+    zip_comic_book(dry_run, no_cache, comic, max_dest_timestamp)
+    create_symlinks_to_comic_zip(dry_run, no_cache, comic)
 
     return srce_and_dest_pages
+
+
+def get_max_timestamp(pages: List[CleanPage]) -> float:
+    return max(os.path.getmtime(p.page_filename) for p in pages)
 
 
 CONFIG_DIR_ARG = "--config-dir"
