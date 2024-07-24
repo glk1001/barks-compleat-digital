@@ -132,7 +132,7 @@ class Timing:
 
 @dataclass
 class OriginalPage:
-    filenames: str
+    page_filenames: str
     page_type: PageType
 
 
@@ -146,12 +146,12 @@ class RequiredDimensions:
 class CleanPage:
     def __init__(
         self,
-        filename: str,
+        page_filename: str,
         page_type: PageType,
         page_num: int = -1,
         page_thicken_lines_alpha=0.0,
     ):
-        self.filename = filename
+        self.page_filename = page_filename
         self.page_type = page_type
         self.page_num: int = page_num
         self.page_thicken_lines_alpha = page_thicken_lines_alpha
@@ -166,10 +166,12 @@ class SrceAndDestPages:
 
 @dataclass
 class ComicBook:
-    config_file: str
+    ini_file: str
     title: str
     title_font_file: str
     title_font_size: int
+    # NOTE: Need 'issue_title' to force a series title that has
+    #       changed from another title. E.g., FC 495 == Uncle Scrooge #3
     issue_title: str
     file_title: str
     author_font_size: int
@@ -180,7 +182,6 @@ class ComicBook:
     srce_av_panels_bbox_width: int
     srce_av_panels_bbox_height: int
     required_dim: RequiredDimensions
-    srce_root_dir: str
     srce_dir: str
     srce_fixes_dir: str
     panel_segments_dir: str
@@ -198,6 +199,9 @@ class ComicBook:
     def __post_init__(self):
         assert self.series_name != ""
         assert self.number_in_series > 0
+
+    def get_srce_root_dir(self) -> str:
+        return os.path.dirname(self.srce_dir)
 
     def get_srce_fixes_root_dir(self) -> str:
         return os.path.dirname(self.srce_fixes_dir)
@@ -233,25 +237,22 @@ class ComicBook:
     def get_dest_zip_root_dir(self) -> str:
         return THE_CHRONOLOGICAL_DIR
 
-    def get_dest_series_zip_dir(self) -> str:
+    def get_dest_series_zip_symlink_dir(self) -> str:
         return os.path.join(
             THE_COMICS_DIR,
             self.series_name,
         )
 
-    def get_dest_zip_dir(self) -> str:
-        title = f"{self.get_dest_rel_dirname()} [{self.get_comic_issue_title()}]"
-        return os.path.join(self.get_dest_zip_root_dir(), title)
-
     def get_dest_comic_zip(self) -> str:
-        return self.get_dest_zip_dir() + ".cbz"
+        title = f"{self.get_dest_rel_dirname()} [{self.get_comic_issue_title()}]"
+        return os.path.join(self.get_dest_zip_root_dir(), title) + ".cbz"
 
     def get_dest_series_comic_zip_symlink(self) -> str:
         file_title = get_lookup_title(self.title, self.file_title)
         full_title = f"{file_title} [{self.get_comic_issue_title()}]"
         return (
             os.path.join(
-                f"{self.get_dest_series_zip_dir()}",
+                f"{self.get_dest_series_zip_symlink_dir()}",
                 f"{self.number_in_series:03d} {full_title}",
             )
             + ".cbz"
@@ -360,8 +361,8 @@ def symlink_comic_book_zip(dry_run: bool, comic: ComicBook):
             f' to "{comic.get_dest_series_comic_zip_symlink()}".'
         )
 
-        if not os.path.exists(comic.get_dest_series_zip_dir()):
-            os.makedirs(comic.get_dest_series_zip_dir())
+        if not os.path.exists(comic.get_dest_series_zip_symlink_dir()):
+            os.makedirs(comic.get_dest_series_zip_symlink_dir())
         if os.path.islink(comic.get_dest_series_comic_zip_symlink()):
             os.remove(comic.get_dest_series_comic_zip_symlink())
 
@@ -421,10 +422,11 @@ def write_summary(
         f.write(f'file_title               = "{comic.file_title}"\n')
         f.write(f'issue_title              = "{comic.issue_title}"\n')
         f.write(f'comic title              = "{comic.get_comic_title()}"\n')
+        f.write(f'ini_file                 = "{comic.ini_file}"\n')
         f.write(f'srce_dir                 = "{comic.srce_dir}"\n')
         f.write(f'srce_fixes_dir           = "{comic.srce_fixes_dir}"\n')
         f.write(f'dest_dir                 = "{comic.get_dest_dir()}"\n')
-        f.write(f'dest_zip_dir             = "{comic.get_dest_zip_dir()}"\n')
+        f.write(f'dest_comic_zip           = "{comic.get_dest_comic_zip()}"\n')
         f.write(
             f'dest_series_zip_symlink  = "{comic.get_dest_series_comic_zip_symlink()}"\n'
         )
@@ -461,14 +463,15 @@ def write_summary(
         f.write("Pages Config Summary:\n")
         for pg in comic.images_in_order:
             f.write(
-                f"pages = {pg.filenames:11}," f" page_type = {pg.page_type.name:12}\n"
+                f"pages = {pg.page_filenames:11},"
+                f" page_type = {pg.page_type.name:12}\n"
             )
         f.write("\n")
 
         f.write("Page List Summary:\n")
         for srce_page, dest_page in zip(pages.srce_pages, pages.dest_pages):
-            srce_filename = f'"{os.path.basename(srce_page.filename)}"'
-            dest_filename = f'"{os.path.basename(dest_page.filename)}"'
+            srce_filename = f'"{os.path.basename(srce_page.page_filename)}"'
+            dest_filename = f'"{os.path.basename(dest_page.page_filename)}"'
             dest_page_type = f'"{dest_page.page_type.name}"'
             f.write(
                 f"Added srce {srce_filename:17}"
@@ -491,21 +494,21 @@ def get_required_pages_in_order(
     req_pages = []
 
     for page_image in page_images_in_book:
-        if page_image.filenames == TITLE_EMPTY_FILENAME:
+        if page_image.page_filenames == TITLE_EMPTY_FILENAME:
             assert page_image.page_type == PageType.TITLE
-            req_pages.append(CleanPage(page_image.filenames, page_image.page_type))
+            req_pages.append(CleanPage(page_image.page_filenames, page_image.page_type))
             continue
-        if page_image.filenames == EMPTY_FILENAME:
+        if page_image.page_filenames == EMPTY_FILENAME:
             assert page_image.page_type == PageType.BLANK_PAGE
-            req_pages.append(CleanPage(page_image.filenames, page_image.page_type))
+            req_pages.append(CleanPage(page_image.page_filenames, page_image.page_type))
             continue
 
-        if "-" not in page_image.filenames:
-            filename = page_image.filenames
+        if "-" not in page_image.page_filenames:
+            filename = page_image.page_filenames
             file_num = int(filename)
             req_pages.append(CleanPage(filename, page_image.page_type, file_num))
         else:
-            start, end = page_image.filenames.split("-")
+            start, end = page_image.page_filenames.split("-")
             start_num = int(start)
             end_num = int(end)
             for file_num in range(start_num, end_num + 1):
@@ -560,9 +563,9 @@ def get_srce_and_dest_pages_in_order(
 
 
 def get_checked_srce_file(comic: ComicBook, page: CleanPage) -> str:
-    if page.filename == TITLE_EMPTY_FILENAME:
+    if page.page_filename == TITLE_EMPTY_FILENAME:
         srce_file = TITLE_EMPTY_IMAGE_FILEPATH
-    elif page.filename == EMPTY_FILENAME:
+    elif page.page_filename == EMPTY_FILENAME:
         srce_file = EMPTY_IMAGE_FILEPATH
     else:
         srce_file = get_srce_file(comic, page)
@@ -574,9 +577,11 @@ def get_checked_srce_file(comic: ComicBook, page: CleanPage) -> str:
 
 
 def get_srce_file(comic: ComicBook, page: CleanPage) -> str:
-    srce_file = os.path.join(comic.get_srce_image_dir(), page.filename + SRCE_FILE_EXT)
+    srce_file = os.path.join(
+        comic.get_srce_image_dir(), page.page_filename + SRCE_FILE_EXT
+    )
     srce_fixes_file = os.path.join(
-        comic.get_srce_fixes_image_dir(), page.filename + SRCE_FILE_EXT
+        comic.get_srce_fixes_image_dir(), page.page_filename + SRCE_FILE_EXT
     )
     if not os.path.isfile(srce_fixes_file):
         return srce_file
@@ -591,7 +596,7 @@ def get_srce_file(comic: ComicBook, page: CleanPage) -> str:
             logging.info(f'NOTE: Using fixes srce file: "{srce_fixes_file}".')
             if page.page_type not in [PageType.COVER, PageType.BODY]:
                 raise Exception(
-                    f"Expected fixes page to be COVER or BODY: '{page.filename}'."
+                    f"Expected fixes page to be COVER or BODY: '{page.page_filename}'."
                 )
     elif is_fixes_special_case(comic, page):
         logging.info(
@@ -605,16 +610,19 @@ def get_srce_file(comic: ComicBook, page: CleanPage) -> str:
         )
         if page.page_type in [PageType.COVER, PageType.BODY]:
             raise Exception(
-                f"Expected added page to be NOT COVER OR BODY: '{page.filename}'."
+                f"Expected added page to be NOT COVER OR BODY: '{page.page_filename}'."
             )
 
     return srce_fixes_file
 
 
 def is_fixes_special_case(comic: ComicBook, page: CleanPage) -> bool:
-    if get_safe_title(comic.title) == "Back to Long Ago!" and page.filename == "209":
+    if (
+        get_safe_title(comic.title) == "Back to Long Ago!"
+        and page.page_filename == "209"
+    ):
         return page.page_type == PageType.BACK_NO_PANELS
-    if comic.file_title == "The Bill Collectors" and page.filename == "227":
+    if comic.file_title == "The Bill Collectors" and page.page_filename == "227":
         return page.page_type == PageType.BODY
 
     return False
@@ -807,7 +815,7 @@ def set_srce_panel_bounding_boxes(
     logging.debug("Setting srce panel bounding boxes.")
 
     for srce_page in srce_pages:
-        srce_page_image = open_image_for_reading(srce_page.filename)
+        srce_page_image = open_image_for_reading(srce_page.page_filename)
         if srce_page.page_type in PAGES_WITHOUT_PANELS:
             srce_page.panels_bbox = BoundingBox(
                 0, 0, srce_page_image.width - 1, srce_page_image.height - 1
@@ -833,7 +841,7 @@ def get_panels_bounding_box(
     srce_page_bounding_box_filename = str(
         os.path.join(
             comic.panel_segments_dir,
-            os.path.splitext(os.path.basename(srce_page.filename))[0]
+            os.path.splitext(os.path.basename(srce_page.page_filename))[0]
             + "_panel_bounds.txt",
         )
     )
@@ -857,7 +865,8 @@ def get_panels_bounding_box(
         )
 
     logging.info(
-        f'Getting Kumiko panel segment info for srce file "{os.path.basename(srce_page.filename)}".'
+        f"Getting Kumiko panel segment info for srce file"
+        f' "{os.path.basename(srce_page.page_filename)}".'
     )
 
     if not os.path.isdir(comic.panel_segments_dir):
@@ -874,7 +883,7 @@ def get_panels_bounding_box(
         dry_run,
         comic.panel_segments_dir,
         srce_page_image,
-        srce_page.filename,
+        srce_page.page_filename,
         srce_bounded_dir,
     )
 
@@ -919,7 +928,7 @@ def get_dest_panel_bounding_box(comic: ComicBook, srce_page: CleanPage) -> Bound
             required_panels_width, srce_panels_bbox_width, srce_panels_bbox_height
         )
         logging.warning(
-            f'For "{os.path.basename(srce_page.filename)}",'
+            f'For "{os.path.basename(srce_page.page_filename)}",'
             f" panels bbox height {srce_panels_bbox_height}"
             f" < {comic.srce_av_panels_bbox_height - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN}"
             f" (average height {comic.srce_av_panels_bbox_height}"
@@ -947,45 +956,52 @@ def process_page(
     dest_page: CleanPage,
 ):
     logging.info(
-        f'Convert "{os.path.basename(srce_page.filename)}" (page-type {srce_page.page_type.name})'
-        f' to "{os.path.basename(dest_page.filename)}"'
+        f'Convert "{os.path.basename(srce_page.page_filename)}"'
+        f" (page-type {srce_page.page_type.name})"
+        f' to "{os.path.basename(dest_page.page_filename)}"'
         f" (page number = {get_page_num_str(dest_page)},"
         f" cache pages = {cache_pages})..."
     )
 
-    srce_page_image = open_image_for_reading(srce_page.filename)
+    srce_page_image = open_image_for_reading(srce_page.page_filename)
     if (
         srce_page.page_type == PageType.BODY
         and srce_page_image.height < MIN_HD_SRCE_HEIGHT
     ):
         raise Exception(
             f"Srce image error: min required height {MIN_HD_SRCE_HEIGHT}."
-            f' Poor srce file resolution for "{srce_page.filename}":'
+            f' Poor srce file resolution for "{srce_page.page_filename}":'
             f" {srce_page_image.width} x {srce_page_image.height}."
         )
 
     if (
         srce_page.page_type in CACHEABLE_PAGES
         and cache_pages
-        and os.path.exists(dest_page.filename)
-        and not is_dest_file_out_of_date(srce_page.filename, dest_page.filename)
+        and os.path.exists(dest_page.page_filename)
+        and not is_dest_file_out_of_date(
+            srce_page.page_filename, dest_page.page_filename
+        )
     ):
-        logging.debug(f'Caching on - using existing page file "{dest_page.filename}".')
+        logging.debug(
+            f'Caching on - using existing page file "{dest_page.page_filename}".'
+        )
         return
 
     dest_page_image = get_dest_page_image(comic, srce_page_image, srce_page, dest_page)
 
     if dry_run:
-        logging.info(f'{DRY_RUN_STR}: Save changes to image "{dest_page.filename}".')
+        logging.info(
+            f'{DRY_RUN_STR}: Save changes to image "{dest_page.page_filename}".'
+        )
     else:
         dest_page_image.save(
-            dest_page.filename,
+            dest_page.page_filename,
             optimize=True,
             compress_level=DEST_JPG_COMPRESS_LEVEL,
             quality=DEST_JPG_QUALITY,
             comment="\n".join(get_dest_jpg_comments(srce_page, dest_page)),
         )
-        logging.info(f'Saved changes to image "{dest_page.filename}".')
+        logging.info(f'Saved changes to image "{dest_page.page_filename}".')
 
     logging.info("")
 
@@ -1049,7 +1065,7 @@ def get_dest_page_image(
     rgb_dest_page_image = dest_page_image.convert("RGB")
 
     if dest_page.page_type in MEDIAN_FILTERABLE_PAGES:
-        logging.debug(f'Starting median filter of "{dest_page.filename}"...')
+        logging.debug(f'Starting median filter of "{dest_page.page_filename}"...')
         rgb_dest_page_image = get_improved_image(
             rgb_dest_page_image, dest_page.page_thicken_lines_alpha
         )
@@ -1189,7 +1205,7 @@ def get_dest_centred_page_image(
     srce_aspect_ratio = float(srce_page_image.height) / float(srce_page_image.width)
     if abs(srce_aspect_ratio - DEST_TARGET_ASPECT_RATIO) > 0.01:
         logging.debug(
-            f"Wrong aspect ratio for page '{srce_page.filename}':"
+            f"Wrong aspect ratio for page '{srce_page.page_filename}':"
             f" {srce_aspect_ratio:.2f} != {DEST_TARGET_ASPECT_RATIO:.2f}."
             f" Using black bars."
         )
@@ -1233,12 +1249,12 @@ def get_dest_main_page_image(
 
     if dest_page_image.width != DEST_TARGET_WIDTH:
         raise Exception(
-            f'Width mismatch for page "{srce_page.filename}":'
+            f'Width mismatch for page "{srce_page.page_filename}":'
             f"{dest_page_image.width} != {DEST_TARGET_WIDTH}"
         )
     if dest_page_image.height != DEST_TARGET_HEIGHT:
         raise Exception(
-            f'Height mismatch for page "{srce_page.filename}":'
+            f'Height mismatch for page "{srce_page.page_filename}":'
             f"{dest_page_image.height} != {DEST_TARGET_HEIGHT}"
         )
 
@@ -1550,24 +1566,22 @@ def get_page_number_str(page: CleanPage, page_number: int) -> str:
     return ROMAN_NUMERALS[page_number]
 
 
-def process_additional_files(
-    dry_run: bool, cfg_file: str, comic: ComicBook, pages: SrceAndDestPages
-):
+def process_additional_files(dry_run: bool, comic: ComicBook, pages: SrceAndDestPages):
     if dry_run:
         logging.info(
-            f'{DRY_RUN_STR}: shutil.copy2("{cfg_file}", "{comic.get_dest_dir()}")'
+            f'{DRY_RUN_STR}: shutil.copy2("{comic.ini_file}", "{comic.get_dest_dir()}")'
         )
     else:
-        shutil.copy2(cfg_file, comic.get_dest_dir())
+        shutil.copy2(comic.ini_file, comic.get_dest_dir())
 
-    write_readme_file(dry_run, cfg_file, comic)
+    write_readme_file(dry_run, comic)
     write_metadata_file(dry_run, comic, pages.dest_pages)
     write_json_metadata(dry_run, comic, pages.dest_pages)
     write_srce_dest_map(dry_run, comic, pages)
     write_dest_panels_bboxes(dry_run, comic, pages.dest_pages)
 
 
-def write_readme_file(dry_run: bool, cfg_file: str, comic: ComicBook):
+def write_readme_file(dry_run: bool, comic: ComicBook):
     readme_file = os.path.join(comic.get_dest_dir(), README_FILENAME)
     if dry_run:
         logging.info(f'{DRY_RUN_STR}: Write info to "{readme_file}".')
@@ -1579,7 +1593,7 @@ def write_readme_file(dry_run: bool, cfg_file: str, comic: ComicBook):
             f.write("\n")
             now_str = datetime.now().strftime("%b %d %Y %H:%M:%S")
             f.write(f"Created:           {now_str}\n")
-            f.write(f'Archived ini file: "{os.path.basename(cfg_file)}"\n')
+            f.write(f'Archived ini file: "{os.path.basename(comic.ini_file)}"\n')
 
 
 def write_metadata_file(dry_run: bool, comic: ComicBook, dest_pages: List[CleanPage]):
@@ -1629,12 +1643,12 @@ def write_json_metadata(dry_run: bool, comic: ComicBook, dest_pages: List[CleanP
             comic.required_dim.panels_bbox_height,
             comic.required_dim.page_num_y_bottom,
         ]
-        metadata["page_counts"] = get_page_counts(comic, dest_pages)
+        metadata["page_counts"] = get_page_counts(dest_pages)
         with open(metadata_file, "w") as f:
             json.dump(metadata, f)
 
 
-def get_page_counts(comic: ComicBook, dest_pages: List[CleanPage]) -> Dict[str, int]:
+def get_page_counts(dest_pages: List[CleanPage]) -> Dict[str, int]:
     page_counts = dict()
 
     front_page_count = len([p for p in dest_pages if p.page_type == PageType.FRONT])
@@ -1720,10 +1734,10 @@ def write_srce_dest_map(
         dest_page_map = dict()
         for srce_page, dest_page in zip(pages.srce_pages, pages.dest_pages):
             srce_page = {
-                "file": os.path.basename(srce_page.filename),
+                "file": os.path.basename(srce_page.page_filename),
                 "type": dest_page.page_type.name,
             }
-            dest_page_map[os.path.basename(dest_page.filename)] = srce_page
+            dest_page_map[os.path.basename(dest_page.page_filename)] = srce_page
         srce_dest_map["pages"] = dest_page_map
 
         with open(src_dst_map_file, "w") as f:
@@ -1741,7 +1755,7 @@ def write_dest_panels_bboxes(
     else:
         bboxes_dict = dict()
         for dest_page in dest_pages:
-            bbox_key = os.path.basename(dest_page.filename)
+            bbox_key = os.path.basename(dest_page.page_filename)
             bboxes_dict[bbox_key] = dest_page.panels_bbox.get_box()
 
         with open(dst_bboxes_file, "w") as f:
@@ -1864,7 +1878,7 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
         )
 
     comic = ComicBook(
-        config_file=ini_file,
+        ini_file=ini_file,
         title=title,
         title_font_file=get_font_path(
             config["info"].get("title_font_file", INTRO_TITLE_DEFAULT_FONT_FILE)
@@ -1884,7 +1898,6 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
         srce_av_panels_bbox_width=-1,
         srce_av_panels_bbox_height=-1,
         required_dim=RequiredDimensions(),
-        srce_root_dir=srce_root_dir,
         srce_dir=srce_dir,
         srce_fixes_dir=srce_fixup_dir,
         panel_segments_dir=panel_segments_dir,
@@ -1976,7 +1989,8 @@ def log_comic_book_params(comic: ComicBook, caching: bool):
     logging.info(f"Req panels bbox hgt: {comic.required_dim.panels_bbox_height}.")
     logging.info(f"Calc panels bbox ht: {calc_panels_bbox_height}.")
     logging.info(f"Page num y bottom:   {comic.required_dim.page_num_y_bottom}.")
-    logging.info(f'Srce root:           "{comic.srce_root_dir}".')
+    logging.info(f'Ini file:            "{comic.ini_file}".')
+    logging.info(f'Srce root:           "{comic.get_srce_root_dir()}".')
     logging.info(
         f'Srce comic dir:      "SRCE ROOT/{os.path.basename(comic.srce_dir)}".'
     )
@@ -1994,7 +2008,7 @@ def log_comic_book_params(comic: ComicBook, caching: bool):
 
 
 def create_comic_book(
-    dry_run: bool, cfg_file: str, comic: ComicBook, caching: bool
+    dry_run: bool, comic: ComicBook, caching: bool
 ) -> SrceAndDestPages:
     pages = get_srce_and_dest_pages_in_order(comic)
 
@@ -2006,7 +2020,7 @@ def create_comic_book(
 
     create_dest_dirs(dry_run, comic)
     process_pages(dry_run, caching, comic, pages)
-    process_additional_files(dry_run, cfg_file, comic, pages)
+    process_additional_files(dry_run, comic, pages)
 
     return pages
 
@@ -2029,16 +2043,15 @@ def get_config_dir(config_dir_arg: str) -> str:
 
 
 def get_config_file(ini_file: str) -> str:
-    cfg_file = ini_file
-    real_cfg_file = os.path.realpath(cfg_file)
+    real_ini_file = os.path.realpath(ini_file)
 
-    if os.path.islink(cfg_file):
-        logging.debug(f'Converted config symlink "{cfg_file}" to "{real_cfg_file}".')
+    if os.path.islink(ini_file):
+        logging.debug(f'Converted ini symlink "{ini_file}" to "{real_ini_file}".')
 
-    if not os.path.isfile(real_cfg_file):
-        raise Exception(f'Could not find ini file "{real_cfg_file}".')
+    if not os.path.isfile(real_ini_file):
+        raise Exception(f'Could not find ini file "{real_ini_file}".')
 
-    return real_cfg_file
+    return real_ini_file
 
 
 def get_work_dir(wrk_dir_root: str) -> str:
@@ -2090,7 +2103,7 @@ def process_comic_books(
     ret_code = 0
     for ini_file in ini_files:
         comic = get_comic_book(comic_book_info, ini_file)
-        if 0 != process_comic_book(options, ini_file, comic):
+        if 0 != process_comic_book(options, comic):
             ret_code = 1
 
     return ret_code
@@ -2126,12 +2139,11 @@ def process_single_comic_book(
     comic_book_info: ComicBookInfoDict,
 ) -> int:
     comic = get_comic_book(comic_book_info, ini_file)
-    return process_comic_book(options, ini_file, comic)
+    return process_comic_book(options, comic)
 
 
 def process_comic_book(
     options: CmdOptions,
-    ini_file: str,
     comic: ComicBook,
 ) -> int:
     process_timing = Timing(datetime.now())
@@ -2140,9 +2152,7 @@ def process_comic_book(
         symlink_comic_book_zip(options.dry_run, comic)
         return 0
 
-    srce_and_dest_pages = build_comic_book(
-        options.dry_run, ini_file, options.no_cache, comic
-    )
+    srce_and_dest_pages = build_comic_book(options.dry_run, options.no_cache, comic)
 
     process_timing.end_time = datetime.now()
     logging.info(
@@ -2173,10 +2183,10 @@ def check_comics_integrity(
 
         dest_dirs.append((ini_file, comic.get_dest_dir()))
         zip_files.append(comic.get_dest_comic_zip())
-        zip_symlink_dirs.add(comic.get_dest_series_zip_dir())
+        zip_symlink_dirs.add(comic.get_dest_series_zip_symlink_dir())
         zip_symlinks.append(comic.get_dest_series_comic_zip_symlink())
 
-        if 0 != check_out_of_date_files(options, ini_file, comic):
+        if 0 != check_out_of_date_files(comic):
             ret_code = 1
 
     if 0 != check_unexpected_files(
@@ -2212,12 +2222,8 @@ class OutOfDateErrors:
     zip_symlink_timestamp: float = 0.0
 
 
-def check_out_of_date_files(
-    options: CmdOptions,
-    ini_file: str,
-    comic: ComicBook,
-) -> int:
-    out_of_date_errors = OutOfDateErrors(
+def make_out_of_date_errors(ini_file: str) -> OutOfDateErrors:
+    return OutOfDateErrors(
         ini_file=ini_file,
         srce_and_dest_files_out_of_date=[],
         srce_and_dest_files_missing=[],
@@ -2225,6 +2231,10 @@ def check_out_of_date_files(
         unexpected_zip_files=[],
         unexpected_zip_symlinks=[],
     )
+
+
+def check_out_of_date_files(comic: ComicBook) -> int:
+    out_of_date_errors = make_out_of_date_errors(comic.ini_file)
 
     check_srce_and_dest_files(comic, out_of_date_errors)
     check_zip_files(comic, out_of_date_errors)
@@ -2270,22 +2280,22 @@ def check_missing_or_out_of_date_dest_files(
     for pages in zip(srce_and_dest_pages.srce_pages, srce_and_dest_pages.dest_pages):
         srce_page = pages[0]
         dest_page = pages[1]
-        if not os.path.isfile(dest_page.filename):
+        if not os.path.isfile(dest_page.page_filename):
             out_of_date_errors.srce_and_dest_files_missing.append(
-                (srce_page.filename, dest_page.filename)
+                (srce_page.page_filename, dest_page.page_filename)
             )
         else:
-            srce_timestamp = os.path.getmtime(srce_page.filename)
+            srce_timestamp = os.path.getmtime(srce_page.page_filename)
             if out_of_date_errors.max_srce_timestamp < srce_timestamp:
                 out_of_date_errors.max_srce_timestamp = srce_timestamp
 
-            dest_timestamp = os.path.getmtime(dest_page.filename)
+            dest_timestamp = os.path.getmtime(dest_page.page_filename)
             if out_of_date_errors.max_dest_timestamp < dest_timestamp:
                 out_of_date_errors.max_dest_timestamp = dest_timestamp
 
             if srce_timestamp > dest_timestamp:
                 out_of_date_errors.srce_and_dest_files_out_of_date.append(
-                    (srce_page.filename, dest_page.filename)
+                    (srce_page.page_filename, dest_page.page_filename)
                 )
 
 
@@ -2294,7 +2304,7 @@ def check_unexpected_dest_files(
     srce_and_dest_pages: SrceAndDestPages,
     out_of_date_errors: OutOfDateErrors,
 ) -> None:
-    allowed_dest_files = [f.filename for f in srce_and_dest_pages.dest_pages]
+    allowed_dest_files = [f.page_filename for f in srce_and_dest_pages.dest_pages]
     dest_dir = comic.get_dest_image_dir()
     for file in os.listdir(dest_dir):
         dest_file = os.path.join(dest_dir, file)
@@ -2555,9 +2565,9 @@ def print_cmd(options: CmdOptions, ini_file: str) -> int:
 
 
 def build_comic_book(
-    dry_run: bool, cfg_file: str, no_cache: bool, comic: ComicBook
+    dry_run: bool, no_cache: bool, comic: ComicBook
 ) -> SrceAndDestPages:
-    srce_and_dest_pages = create_comic_book(dry_run, cfg_file, comic, not no_cache)
+    srce_and_dest_pages = create_comic_book(dry_run, comic, not no_cache)
 
     zip_comic_book(dry_run, comic)
     symlink_comic_book_zip(dry_run, comic)
