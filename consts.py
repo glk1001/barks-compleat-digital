@@ -18,6 +18,11 @@ ROMAN_NUMERALS = {
     10: "x",
 }
 
+DEST_TARGET_WIDTH = 2120
+DEST_TARGET_HEIGHT = 3200
+DEST_TARGET_X_MARGIN = 100
+DEST_TARGET_ASPECT_RATIO = float(DEST_TARGET_HEIGHT) / float(DEST_TARGET_WIDTH)
+
 THIS_DIR = os.path.realpath(os.path.dirname(__file__))
 BARKS = "Carl Barks"
 BARKS_ROOT_DIR = os.path.join(str(Path.home()), "Books", BARKS)
@@ -29,24 +34,31 @@ THE_CHRONOLOGICAL_DIRS_DIR = os.path.join(THE_COMICS_DIR, THE_CHRONOLOGICAL_DIRS
 THE_CHRONOLOGICAL_DIR = os.path.join(THE_COMICS_DIR, THE_CHRONOLOGICAL_SUBDIR)
 THE_YEARS_SUBDIR = "Chronological Years"
 THE_YEARS_COMICS_DIR = os.path.join(THE_COMICS_DIR, THE_YEARS_SUBDIR)
-IMAGES_SUBDIR = "images"
 CONFIGS_SUBDIR = "Configs"
-PUBLICATION_INFO_DIRNAME = "story-indexes"
-SUBMISSION_DATES_DIRNAME = "story-indexes"
+IMAGES_SUBDIR = "images"
+PUBLICATION_INFO_SUBDIR = "story-indexes"
+SUBMISSION_DATES_SUBDIR = "story-indexes"
 TITLE_EMPTY_FILENAME = "title_empty"
 EMPTY_FILENAME = "empty"
-NUMBER_LEN = 3
 SRCE_FILE_EXT = ".jpg"
 DEST_FILE_EXT = ".jpg"
 INSET_FILE_EXT = ".png"
 DEST_JPG_QUALITY = 95
 DEST_JPG_COMPRESS_LEVEL = 9
 MIN_HD_SRCE_HEIGHT = 3000
+NUMBER_LEN = 3
 
 DEST_SRCE_MAP_FILENAME = "srce-dest-map.json"
 DEST_PANELS_BBOXES_FILENAME = "dest-panels-bboxes.json"
 PANEL_BOUNDS_FILENAME_SUFFIX = "_panel_bounds.txt"
 PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN = 100
+
+README_FILENAME = "readme.txt"
+SUMMARY_FILENAME = "clean_summary.txt"
+METADATA_FILENAME = "metadata.txt"
+JSON_METADATA_FILENAME = "comic-metadata.json"
+DOUBLE_PAGES_SECTION = "double_pages"
+PAGE_NUMBERS_SECTION = "page_numbers"
 
 
 class PageType(Enum):
@@ -90,3 +102,13 @@ MEDIAN_FILTERABLE_PAGES = [
     PageType.BODY,
     PageType.BACK_MATTER,
 ]
+
+
+FONT_DIR = os.path.join(str(Path.home()), "Prj", "fonts")
+INTRO_TITLE_DEFAULT_FONT_FILE = os.path.join(FONT_DIR, "Carl Barks Script.ttf")
+INTRO_TEXT_FONT_FILE = "Verdana Italic.ttf"
+PAGE_NUM_FONT_FILE = "verdana.ttf"
+
+
+def get_font_path(font_filename: str) -> str:
+    return os.path.join(FONT_DIR, font_filename)

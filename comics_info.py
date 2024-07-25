@@ -249,6 +249,7 @@ SERIES_INFO_START_NUMBERS: Dict[str, int] = {
     SERIES_MISC: 1,
 }
 
+
 # fmt: off
 SERIES_INFO: Dict[str, SeriesInfo] = {
     "Donald Duck Finds Pirate Gold": SeriesInfo("?", SERIES_DDA),
@@ -446,3 +447,16 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "The Riddle of the Red Hat": SeriesInfo("?", SERIES_MISC),
 }
 # fmt: on
+
+
+def get_formatted_day(day: int) -> str:
+    if day == 1 or day == 31:
+        day_str = str(day) + "st"
+    elif day == 2 or day == 22:
+        day_str = str(day) + "nd"
+    elif day == 3 or day == 23:
+        day_str = str(day) + "rd"
+    else:
+        day_str = str(day) + "th"
+
+    return day_str

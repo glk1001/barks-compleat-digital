@@ -19,8 +19,8 @@ from comics_info import (
     US,
     VP,
 )
-from consts import THIS_DIR, SUBMISSION_DATES_DIRNAME
-from create_clean_comic import MONTH_AS_LONG_STR, get_formatted_day
+from comics_info import MONTH_AS_LONG_STR, get_formatted_day
+from consts import THIS_DIR, SUBMISSION_DATES_SUBDIR
 from read_stories import get_all_stories, StoryInfo
 from read_sub_dates import get_all_submitted_info, SubmittedInfo, SubmittedInfoDict
 
@@ -40,7 +40,7 @@ MONTH_AS_INT: Dict[str, int] = {
     "December": comics_info.DEC,
 }
 
-SUBMISSION_DATES_DIR = str(os.path.join(THIS_DIR, SUBMISSION_DATES_DIRNAME))
+SUBMISSION_DATES_DIR = str(os.path.join(THIS_DIR, SUBMISSION_DATES_SUBDIR))
 
 COMICS_AND_STORIES_ISSUE_NAME = "W WDC"
 COMICS_AND_STORIES_FILENAME = "sub-dates-cs-cleaned.txt"

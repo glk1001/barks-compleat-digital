@@ -3,10 +3,10 @@ import re
 from dataclasses import dataclass
 from typing import List, Tuple
 
-from consts import THIS_DIR, PUBLICATION_INFO_DIRNAME
+from consts import THIS_DIR, PUBLICATION_INFO_SUBDIR
 
 STORY_INDEX_FILE = os.path.join(
-    THIS_DIR, PUBLICATION_INFO_DIRNAME, "wiki-story-index.txt"
+    THIS_DIR, PUBLICATION_INFO_SUBDIR, "wiki-story-index.txt"
 )
 
 LONG_MONTHS = {
