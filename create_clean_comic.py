@@ -107,27 +107,9 @@ SPLASH_BORDER_WIDTH = 10
 @dataclass
 class CmdOptions:
     dry_run: bool = False
-    just_symlinks: bool = False
     no_cache: bool = False
-    list_cmds: bool = False
-    check_integrity: bool = False
-
-
-def process_all_comic_books(
-    options: CmdOptions,
-    cfg_dir: str,
-    comic_book_info: ComicBookInfoDict,
-) -> int:
-    ini_files = get_ini_files(cfg_dir)
-
-    if options.check_integrity:
-        ret_code = check_comics_integrity(ini_files, comic_book_info)
-    elif options.list_cmds:
-        ret_code = print_all_cmds(options, ini_files)
-    else:
-        ret_code = process_comic_books(options, cfg_dir, ini_files, comic_book_info)
-
-    return ret_code
+    just_zip: bool = False
+    just_symlinks: bool = False
 
 
 def process_comic_books(
@@ -148,8 +130,6 @@ def process_comic_books(
 
 
 def print_all_cmds(options: CmdOptions, ini_files: List[str]) -> int:
-    assert options.list_cmds
-
     for ini_file in ini_files:
         if 0 != print_cmd(options, ini_file):
             return 1
@@ -162,7 +142,8 @@ def print_cmd(options: CmdOptions, ini_file: str) -> int:
     just_symlinks_arg = "" if not options.just_symlinks else f" {JUST_SYMLINKS_ARG}"
     no_cache_arg = "" if not options.no_cache else f" {NO_CACHE_ARG}"
     print(
-        f"python3 {__file__}{dry_run_arg}{just_symlinks_arg}{no_cache_arg}"
+        f"python3 {__file__} {BUILD_SINGLE_ARG}"
+        f"{dry_run_arg}{just_symlinks_arg}{no_cache_arg}"
         f' {WORK_DIR_ARG} "{work_dir_root}" {INI_FILE_ARG} {shlex.quote(ini_file)}'
     )
 
@@ -182,6 +163,13 @@ def process_comic_book(options: CmdOptions, comic: ComicBook) -> int:
     process_timing = Timing(datetime.now())
 
     if options.just_symlinks:
+        create_symlinks_to_comic_zip(options.dry_run, options.no_cache, comic)
+        return 0
+
+    if options.just_zip:
+        srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
+        max_dest_timestamp = get_max_timestamp(srce_and_dest_pages.dest_pages)
+        zip_comic_book(options.dry_run, options.no_cache, comic, max_dest_timestamp)
         create_symlinks_to_comic_zip(options.dry_run, options.no_cache, comic)
         return 0
 
@@ -936,13 +924,13 @@ def setup_logging(log_level) -> None:
     )
 
 
-def get_config_dir(config_dir_arg: str) -> str:
-    config_dir = os.path.realpath(config_dir_arg)
+def get_config_dir(cfg_dir: str) -> str:
+    real_config_dir = os.path.realpath(cfg_dir)
 
-    if not os.path.isdir(config_dir):
-        raise Exception(f'Could not find config directory "{config_dir}".')
+    if not os.path.isdir(real_config_dir):
+        raise Exception(f'Could not find config directory "{real_config_dir}".')
 
-    return config_dir
+    return real_config_dir
 
 
 def get_config_file(ini_file: str) -> str:
@@ -969,61 +957,124 @@ def get_work_dir(wrk_dir_root: str) -> str:
     return wrk_dir
 
 
+LOG_LEVEL_ARG = "--log-level"
+WORK_DIR_ARG = "--work-dir"
+DRY_RUN_ARG = "--dry-run"
+NO_CACHE_ARG = "--no-cache"
+JUST_ZIP_ARG = "--just-zip"
+JUST_SYMLINKS_ARG = "--just-symlinks"
 CONFIG_DIR_ARG = "--config-dir"
 INI_FILE_ARG = "--ini-file"
-LOG_LEVEL_ARG = "--log-level"
-DRY_RUN_ARG = "--dry-run"
-JUST_SYMLINKS_ARG = "--just-symlinks"
-WORK_DIR_ARG = "--work-dir"
-NO_CACHE_ARG = "--no-cache"
-LIST_CMDS_ARG = "--list-cmds"
-CHECK_INTEGRITY = "--check-integrity"
+
+BUILD_ALL_ARG = "build-all"
+BUILD_SINGLE_ARG = "build-single"
+LIST_CMDS_ARG = "list-cmds"
+CHECK_INTEGRITY_ARG = "check-integrity"
 
 
 def get_args():
-    parser = argparse.ArgumentParser(
+    global_parser = argparse.ArgumentParser(
+        #            prog="build-barks",
         description="Create a clean Barks comic from Fantagraphics source."
     )
-    parser.add_argument(CONFIG_DIR_ARG, action="store", type=str, required=False)
-    parser.add_argument(INI_FILE_ARG, action="store", type=str, required=False)
-    parser.add_argument(
-        LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
+
+    subparsers = global_parser.add_subparsers(
+        dest="cmd_name",
+        title="subcommands",
+        help="comic building commands",
+        required=True,
     )
-    parser.add_argument(DRY_RUN_ARG, action="store_true", required=False, default=False)
-    parser.add_argument(
+
+    build_all_parser = subparsers.add_parser(
+        BUILD_ALL_ARG, help="build all available comics"
+    )
+    build_all_parser.add_argument(
+        CONFIG_DIR_ARG, action="store", type=str, required=True
+    )
+    build_all_parser.add_argument(
+        JUST_ZIP_ARG, action="store_true", required=False, default=False
+    )
+    build_all_parser.add_argument(
         JUST_SYMLINKS_ARG, action="store_true", required=False, default=False
     )
-    parser.add_argument(WORK_DIR_ARG, type=str, required=True)
-    parser.add_argument(
+    build_all_parser.add_argument(
+        DRY_RUN_ARG, action="store_true", required=False, default=False
+    )
+    build_all_parser.add_argument(
         NO_CACHE_ARG, action="store_true", required=False, default=False
     )
-    parser.add_argument(
-        LIST_CMDS_ARG, action="store_true", required=False, default=False
-    )
-    parser.add_argument(
-        CHECK_INTEGRITY, action="store_true", required=False, default=False
+    build_all_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
+    build_all_parser.add_argument(
+        LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
 
-    args = parser.parse_args()
+    build_single_parser = subparsers.add_parser(
+        BUILD_SINGLE_ARG, help="build a single comic"
+    )
+    build_single_parser.add_argument(
+        INI_FILE_ARG, action="store", type=str, required=True
+    )
+    build_single_parser.add_argument(
+        JUST_ZIP_ARG, action="store_true", required=False, default=False
+    )
+    build_single_parser.add_argument(
+        JUST_SYMLINKS_ARG, action="store_true", required=False, default=False
+    )
+    build_single_parser.add_argument(
+        DRY_RUN_ARG, action="store_true", required=False, default=False
+    )
+    build_single_parser.add_argument(
+        NO_CACHE_ARG, action="store_true", required=False, default=False
+    )
+    build_single_parser.add_argument(
+        LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
+    )
+    build_single_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
 
-    if args.config_dir and args.ini_file:
-        print(
-            f"Argument error: Cannot have both '{CONFIG_DIR_ARG}' and '{INI_FILE_ARG}'."
-        )
-        return None
-    if not args.config_dir and not args.ini_file:
-        print(
-            f"Argument error: You need to specify one of '{CONFIG_DIR_ARG}' or '{INI_FILE_ARG}'."
-        )
-        return None
+    list_cmds_parser = subparsers.add_parser(
+        LIST_CMDS_ARG, help="list the python commands to build all comics"
+    )
+    list_cmds_parser.add_argument(
+        CONFIG_DIR_ARG, action="store", type=str, required=True
+    )
+    list_cmds_parser.add_argument(
+        DRY_RUN_ARG, action="store_true", required=False, default=False
+    )
+    list_cmds_parser.add_argument(
+        NO_CACHE_ARG, action="store_true", required=False, default=False
+    )
+    list_cmds_parser.add_argument(
+        LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
+    )
+    list_cmds_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
+
+    check_integrity_parser = subparsers.add_parser(
+        CHECK_INTEGRITY_ARG, help="check the integrity of all previously built comics"
+    )
+    check_integrity_parser.add_argument(
+        CONFIG_DIR_ARG, action="store", type=str, required=True
+    )
+    check_integrity_parser.add_argument(
+        LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
+    )
+    check_integrity_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
+
+    args = global_parser.parse_args()
 
     return args
 
 
+def get_cmd_options(args) -> CmdOptions:
+    return CmdOptions(
+        dry_run=args.dry_run,
+        no_cache=args.no_cache,
+        just_zip=hasattr(args, "just_zip") and args.just_zip,
+        just_symlinks=hasattr(args, "just_symlinks") and args.just_symlinks,
+    )
+
+
 if __name__ == "__main__":
     cmd_args = get_args()
-    if not cmd_args:
-        sys.exit(1)
 
     setup_logging(cmd_args.log_level)
 
@@ -1035,26 +1086,23 @@ if __name__ == "__main__":
 
     init_bounding_box_processor(work_dir)
 
-    cmd_options = CmdOptions(
-        dry_run=cmd_args.dry_run,
-        just_symlinks=cmd_args.just_symlinks,
-        no_cache=cmd_args.no_cache,
-        list_cmds=cmd_args.list_cmds,
-        check_integrity=cmd_args.check_integrity,
-    )
-
-    if cmd_args.config_dir:
-        exit_code = process_all_comic_books(
-            cmd_options,
-            get_config_dir(cmd_args.config_dir),
-            all_comic_book_info,
+    if cmd_args.cmd_name == CHECK_INTEGRITY_ARG:
+        all_ini_files = get_ini_files(get_config_dir(cmd_args.config_dir))
+        exit_code = check_comics_integrity(all_ini_files, all_comic_book_info)
+    elif cmd_args.cmd_name == LIST_CMDS_ARG:
+        all_ini_files = get_ini_files(get_config_dir(cmd_args.config_dir))
+        exit_code = print_all_cmds(get_cmd_options(cmd_args), all_ini_files)
+    elif cmd_args.cmd_name == BUILD_SINGLE_ARG:
+        comic_book = get_comic_book(all_comic_book_info, cmd_args.ini_file)
+        exit_code = process_comic_book(get_cmd_options(cmd_args), comic_book)
+    elif cmd_args.cmd_name == BUILD_ALL_ARG:
+        config_dir = get_config_dir(cmd_args.config_dir)
+        all_ini_files = get_ini_files(config_dir)
+        exit_code = process_comic_books(
+            get_cmd_options(cmd_args), config_dir, all_ini_files, all_comic_book_info
         )
     else:
-        exit_code = process_single_comic_book(
-            cmd_options,
-            get_config_file(cmd_args.ini_file),
-            all_comic_book_info,
-        )
+        raise Exception(f'ERROR: Unknown cmd_arg "{cmd_args.cmd_name}".')
 
     if exit_code != 0:
         print(f"\nThere were errors: exit code = {exit_code}.")

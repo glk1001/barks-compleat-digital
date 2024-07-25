@@ -9,15 +9,13 @@ from consts import (
     THE_CHRONOLOGICAL_DIR,
     THE_YEARS_COMICS_DIR,
     THE_COMICS_DIR,
-    DEST_PANELS_BBOXES_FILENAME,
-    DEST_SRCE_MAP_FILENAME,
+    DEST_NON_IMAGE_FILES,
     IMAGES_SUBDIR,
-    README_FILENAME,
-    SUMMARY_FILENAME,
-    METADATA_FILENAME,
-    JSON_METADATA_FILENAME,
 )
-from out_of_date_checking import get_dest_file_out_of_date_msg
+from out_of_date_checking import (
+    get_dest_file_out_of_date_msg,
+    get_file_out_of_date_wrt_max_dest_msg,
+)
 from pages import (
     get_srce_and_dest_pages_in_order,
     SrceAndDestPages,
@@ -50,6 +48,8 @@ class ZipSymlinkOutOfDateErrors:
 @dataclass
 class OutOfDateErrors:
     ini_file: str
+    dest_dir_files_missing: List[str]
+    dest_dir_files_out_of_date: List[str]
     srce_and_dest_files_missing: List[Tuple[str, str]]
     srce_and_dest_files_out_of_date: List[Tuple[str, str]]
     unexpected_dest_image_files: List[str]
@@ -65,6 +65,8 @@ class OutOfDateErrors:
 def make_out_of_date_errors(ini_file: str) -> OutOfDateErrors:
     return OutOfDateErrors(
         ini_file=ini_file,
+        dest_dir_files_missing=[],
+        dest_dir_files_out_of_date=[],
         srce_and_dest_files_out_of_date=[],
         srce_and_dest_files_missing=[],
         unexpected_dest_image_files=[],
@@ -118,6 +120,7 @@ def check_out_of_date_files(comic: ComicBook) -> int:
 
     check_srce_and_dest_files(comic, out_of_date_errors)
     check_zip_files(comic, out_of_date_errors)
+    check_additional_files(comic, out_of_date_errors)
 
     out_of_date_errors.is_error = (
         len(out_of_date_errors.srce_and_dest_files_missing) > 0
@@ -213,14 +216,6 @@ def check_unexpected_files(
     if 0 != check_files_in_dir("main", THE_COMICS_DIR, allowed_main_dir_files):
         ret_code = 1
 
-    allowed_dest_non_image_files = {
-        SUMMARY_FILENAME,
-        JSON_METADATA_FILENAME,
-        DEST_PANELS_BBOXES_FILENAME,
-        METADATA_FILENAME,
-        README_FILENAME,
-        DEST_SRCE_MAP_FILENAME,
-    }
     for dest_dir_info in dest_dirs_info_list:
         ini_file = os.path.basename(dest_dir_info[0])
         dest_dir = dest_dir_info[1]
@@ -228,7 +223,7 @@ def check_unexpected_files(
         for file in os.listdir(dest_dir):
             if file in [IMAGES_SUBDIR, ini_file]:
                 continue
-            if file not in allowed_dest_non_image_files:
+            if file not in DEST_NON_IMAGE_FILES:
                 print(
                     f'ERROR: The info file "{os.path.join(dest_dir, file)}" was unexpected.'
                 )
@@ -366,10 +361,28 @@ def check_zip_files(comic: ComicBook, errors: OutOfDateErrors) -> None:
         errors.year_zip_symlink_errors.symlink = comic.get_dest_year_comic_zip_symlink()
 
 
+def check_additional_files(comic: ComicBook, errors: OutOfDateErrors) -> None:
+    dest_dir = comic.get_dest_dir()
+    if not os.path.exists(dest_dir):
+        errors.dest_dir_files_missing.append(dest_dir)
+        return
+
+    for file in DEST_NON_IMAGE_FILES:
+        full_file = os.path.join(dest_dir, file)
+        if not os.path.exists(full_file):
+            errors.dest_dir_files_missing.append(full_file)
+            continue
+        file_timestamp = get_timestamp(full_file)
+        if file_timestamp < errors.max_srce_timestamp:
+            errors.dest_dir_files_out_of_date.append(full_file)
+
+
 def print_check_errors(errors: OutOfDateErrors) -> None:
     if (
         len(errors.srce_and_dest_files_missing) > 0
         or len(errors.srce_and_dest_files_out_of_date) > 0
+        or len(errors.dest_dir_files_missing) > 0
+        or len(errors.dest_dir_files_out_of_date) > 0
     ):
         print_out_of_date_or_missing_errors(errors)
 
@@ -500,7 +513,21 @@ def print_out_of_date_or_missing_errors(errors: OutOfDateErrors) -> None:
     if (
         len(errors.srce_and_dest_files_missing) > 0
         or len(errors.srce_and_dest_files_out_of_date) > 0
+        or len(errors.dest_dir_files_missing) > 0
+        or len(errors.dest_dir_files_out_of_date) > 0
     ):
+        print()
+
+    if len(errors.dest_dir_files_missing) > 0:
+        for file in errors.dest_dir_files_missing:
+            print(f'ERROR: The dest file "{file}" is missing.')
+        print()
+
+    if len(errors.dest_dir_files_out_of_date) > 0:
+        for file in errors.dest_dir_files_missing:
+            print(
+                f"ERROR: {get_file_out_of_date_wrt_max_dest_msg(file, errors.max_dest_timestamp)}"
+            )
         print()
 
     if (

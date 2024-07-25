@@ -59,6 +59,14 @@ METADATA_FILENAME = "metadata.txt"
 JSON_METADATA_FILENAME = "comic-metadata.json"
 DOUBLE_PAGES_SECTION = "double_pages"
 PAGE_NUMBERS_SECTION = "page_numbers"
+DEST_NON_IMAGE_FILES = {
+        SUMMARY_FILENAME,
+        JSON_METADATA_FILENAME,
+        DEST_PANELS_BBOXES_FILENAME,
+        METADATA_FILENAME,
+        README_FILENAME,
+        DEST_SRCE_MAP_FILENAME,
+}
 
 
 class PageType(Enum):
