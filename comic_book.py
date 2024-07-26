@@ -5,12 +5,13 @@ from dataclasses import dataclass
 from typing import List, Dict
 
 from comics_info import (
-    ComicBookInfo,
     ISSUE_NAME_AS_TITLE,
-    SHORT_ISSUE_NAME,
-    ComicBookInfoDict,
-    SOURCE_COMICS,
     MONTH_AS_LONG_STR,
+    SHORT_ISSUE_NAME,
+    SOURCE_COMICS,
+    ComicBookInfo,
+    ComicBookInfoDict,
+    SourceBook,
     get_formatted_day,
 )
 from consts import (
@@ -68,6 +69,7 @@ class ComicBook:
     srce_av_panels_bbox_width: int
     srce_av_panels_bbox_height: int
     required_dim: RequiredDimensions
+    fanta_info: SourceBook
     srce_dir: str
     srce_fixes_dir: str
     panel_segments_dir: str
@@ -137,7 +139,7 @@ class ComicBook:
         )
 
     def get_dest_comic_zip_filename(self) -> str:
-        return f"{self.get_dest_rel_dirname()} [{self.get_comic_issue_title()}].cbz"
+        return f"{self.get_title_with_issue_num()}.cbz"
 
     def get_dest_comic_zip(self) -> str:
         return os.path.join(
@@ -181,6 +183,9 @@ class ComicBook:
     def get_comic_issue_title(self) -> str:
         issue_name = SHORT_ISSUE_NAME[self.comic_book_info.issue_name]
         return f"{issue_name} {self.comic_book_info.issue_number}"
+
+    def get_title_with_issue_num(self) -> str:
+        return f"{self.get_dest_rel_dirname()} [{self.get_comic_issue_title()}]"
 
 
 def get_lookup_title(title: str, file_title: str) -> str:
@@ -274,14 +279,16 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
     )
 
     cb_info: ComicBookInfo = stories[lookup_title]
-    srce_info = SOURCE_COMICS[config["info"]["source_comic"]]
-    srce_root_dir = str(os.path.join(BARKS_ROOT_DIR, srce_info.pub))
-    srce_dir = os.path.join(srce_root_dir, srce_info.title)
+    fanta_info = SOURCE_COMICS[config["info"]["source_comic"]]
+    srce_root_dir = str(os.path.join(BARKS_ROOT_DIR, fanta_info.pub))
+    srce_dir = os.path.join(srce_root_dir, fanta_info.title)
     srce_fixup_dir = os.path.join(
-        srce_root_dir + "-fixes-and-additions", srce_info.title
+        srce_root_dir + "-fixes-and-additions", fanta_info.title
     )
     panel_segments_dir = str(
-        os.path.join(BARKS_ROOT_DIR, srce_info.pub + "-panel-segments", srce_info.title)
+        os.path.join(
+            BARKS_ROOT_DIR, fanta_info.pub + "-panel-segments", fanta_info.title
+        )
     )
 
     publication_date = get_formatted_first_published_str(cb_info)
@@ -290,8 +297,8 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
         f"First published in {get_formatted_first_published_str(cb_info)}\n"
         + f"Submitted to Western Publishing{get_formatted_submitted_date(cb_info)}\n"
         + f"\n"
-        + f"This edition published in {srce_info.pub} CBDL,"
-        + f" Volume {srce_info.volume}, {srce_info.year}\n"
+        + f"This edition published in {fanta_info.pub} CBDL,"
+        + f" Volume {fanta_info.volume}, {fanta_info.year}\n"
         + f"Color restoration by {cb_info.colorist}"
     )
 
@@ -325,6 +332,7 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
         srce_av_panels_bbox_width=-1,
         srce_av_panels_bbox_height=-1,
         required_dim=RequiredDimensions(),
+        fanta_info=fanta_info,
         srce_dir=srce_dir,
         srce_fixes_dir=srce_fixup_dir,
         panel_segments_dir=panel_segments_dir,

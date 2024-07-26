@@ -5,9 +5,10 @@ import os
 import shlex
 import shutil
 import sys
+from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 from PIL import Image, ImageFont, ImageDraw
@@ -148,6 +149,57 @@ def print_cmd(options: CmdOptions, ini_file: str) -> int:
     )
 
     return 0
+
+
+def show_all_mods(ini_files: List[str], comic_book_info: ComicBookInfoDict) -> int:
+    mod_dict = OrderedDict()
+    max_title_len = 0
+    for ini_file in ini_files:
+        comic = get_comic_book(comic_book_info, ini_file)
+
+        mods = get_mods(comic)
+        if not mods:
+            continue
+
+        if max_title_len < len(mods[0]):
+            max_title_len = len(mods[0])
+
+        mod_dict.update({get_mods(comic)})
+
+    for title, mods in mod_dict.items():
+        title_str = title + ":"
+        dest_mods = f"{'Dest':<6} - {mods[0]}"
+        srce_mods = mods[1]
+        print(f'{title_str:<{max_title_len+1}} {dest_mods}')
+        print(f'{" ":<{max_title_len+1}} {srce_mods}')
+
+    return 0
+
+
+def get_mods(comic: ComicBook) -> Union[None,Tuple[str, Tuple[str, str]]]:
+    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
+
+    modified_dest_pages = [
+        get_page_num_str(dest)
+        for dest in srce_and_dest_pages.dest_pages
+        if dest.page_is_modified and dest.page_type in [PageType.COVER, PageType.BODY]
+    ]
+    if not modified_dest_pages:
+        return None
+
+    mod_dest_pages_str = ",".join(modified_dest_pages)
+
+    modified_srce_pages = [
+        str(srce.page_num)
+        for srce in srce_and_dest_pages.srce_pages
+        if srce.page_is_modified and srce.page_type in [PageType.COVER, PageType.BODY]
+    ]
+    fanta_vol = f"FAN {comic.fanta_info.volume:>2}"
+    mod_srce_pages_str = f"{fanta_vol} - {','.join(modified_srce_pages)}"
+
+    title = comic.get_title_with_issue_num()
+
+    return title, (mod_dest_pages_str, mod_srce_pages_str)
 
 
 def process_single_comic_book(
@@ -970,6 +1022,7 @@ BUILD_ALL_ARG = "build-all"
 BUILD_SINGLE_ARG = "build-single"
 LIST_CMDS_ARG = "list-cmds"
 CHECK_INTEGRITY_ARG = "check-integrity"
+SHOW_MODS_ARG = "show-mods"
 
 
 def get_args():
@@ -1059,6 +1112,17 @@ def get_args():
     )
     check_integrity_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
 
+    show_mods_parser = subparsers.add_parser(
+        SHOW_MODS_ARG, help="list all modified pages"
+    )
+    show_mods_parser.add_argument(
+        CONFIG_DIR_ARG, action="store", type=str, required=True
+    )
+    show_mods_parser.add_argument(
+        LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
+    )
+    show_mods_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
+
     args = global_parser.parse_args()
 
     return args
@@ -1092,9 +1156,13 @@ if __name__ == "__main__":
     elif cmd_args.cmd_name == LIST_CMDS_ARG:
         all_ini_files = get_ini_files(get_config_dir(cmd_args.config_dir))
         exit_code = print_all_cmds(get_cmd_options(cmd_args), all_ini_files)
+    elif cmd_args.cmd_name == SHOW_MODS_ARG:
+        all_ini_files = get_ini_files(get_config_dir(cmd_args.config_dir))
+        exit_code = show_all_mods(all_ini_files, all_comic_book_info)
     elif cmd_args.cmd_name == BUILD_SINGLE_ARG:
-        comic_book = get_comic_book(all_comic_book_info, cmd_args.ini_file)
-        exit_code = process_comic_book(get_cmd_options(cmd_args), comic_book)
+        exit_code = process_single_comic_book(
+            get_cmd_options(cmd_args), cmd_args.ini_file, all_comic_book_info
+        )
     elif cmd_args.cmd_name == BUILD_ALL_ARG:
         config_dir = get_config_dir(cmd_args.config_dir)
         all_ini_files = get_ini_files(config_dir)
