@@ -229,6 +229,7 @@ RTOM = "Rich Tommaso"
 GLEA = "Gary Leach"
 SLEA = "Susan Daigle-Leach"
 DIGI = "Digikore Studios"
+BIGD = "Big Doors Studios"
 JRC = "Joseph Robert Cowles"
 
 
@@ -256,8 +257,8 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Donald Duck and the Mummy's Ring": SeriesInfo("?", SERIES_DDA),
     "Too Many Pets": SeriesInfo("?", SERIES_DDA),
     "Frozen Gold": SeriesInfo("?", SERIES_DDA),
-    "Mystery of the Swamp": SeriesInfo("?", SERIES_DDA),
-    "The Firebug": SeriesInfo("?", SERIES_DDA),
+    "Mystery of the Swamp": SeriesInfo(BIGD, SERIES_DDA),
+    "The Firebug": SeriesInfo(DIGI, SERIES_DDA),
     "The Terror of the River!!": SeriesInfo(SLEA, SERIES_DDA),
     "Maharajah Donald": SeriesInfo(GLEA, SERIES_DDA),
     "Volcano Valley": SeriesInfo(RTOM, SERIES_DDA),
