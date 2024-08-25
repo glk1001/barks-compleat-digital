@@ -39,6 +39,7 @@ from timing import Timing
 
 
 def write_summary(
+    dry_run: bool,
     comic: ComicBook,
     pages: SrceAndDestPages,
     max_dest_timestamp: float,
@@ -53,6 +54,10 @@ def write_summary(
             / comic.srce_av_panels_bbox_width
         )
     )
+
+    if dry_run:
+        logging.info(f'{DRY_RUN_STR}: Writing summary file "{summary_file}".')
+        return
 
     series_symlink_timestamp = get_timestamp_str(
         comic.get_dest_series_comic_zip_symlink()

@@ -235,6 +235,7 @@ def process_comic_book(options: CmdOptions, comic: ComicBook) -> int:
     )
 
     write_summary(
+        options.dry_run,
         comic,
         srce_and_dest_pages,
         max_dest_timestamp,
@@ -998,6 +999,7 @@ def get_config_file(ini_file: str) -> str:
 
 
 def get_work_dir(wrk_dir_root: str) -> str:
+    os.makedirs(wrk_dir_root, exist_ok=True)
     if not os.path.isdir(wrk_dir_root):
         raise Exception(f'Could not find work root directory "{wrk_dir_root}".')
 
