@@ -445,7 +445,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Trapped Lightning": SeriesInfo(RTOM, SERIES_GG),
     "Inventor of Anything": SeriesInfo(RTOM, SERIES_GG),
 
-    "The Riddle of the Red Hat": SeriesInfo("?", SERIES_MISC),
+    "The Riddle of the Red Hat": SeriesInfo(GLEA, SERIES_MISC),
 }
 # fmt: on
 
