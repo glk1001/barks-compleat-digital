@@ -3,8 +3,9 @@ from dataclasses import dataclass
 from typing import List, Tuple, Set
 
 from comic_book import ComicBook, get_comic_book
-from comics_info import ComicBookInfoDict
+from comics_info import ComicBookInfoDict, FAN
 from consts import (
+    BARKS_ROOT_DIR,
     THE_CHRONOLOGICAL_DIRS_DIR,
     THE_CHRONOLOGICAL_DIR,
     THE_YEARS_COMICS_DIR,
@@ -76,11 +77,41 @@ def make_out_of_date_errors(ini_file: str) -> OutOfDateErrors:
     )
 
 
+def check_comics_source_is_readonly() -> int:
+    srce_comics_dir = str(os.path.join(BARKS_ROOT_DIR, FAN))
+
+    return check_folder_and_contents_are_readonly(srce_comics_dir)
+
+
+def check_folder_and_contents_are_readonly(dir: str) -> int:
+    ret_code = 0
+
+    for f in os.listdir(dir):
+        file_path = os.path.join(dir, f)
+
+        if os.path.isdir(file_path):
+            if os.access(file_path, os.W_OK):
+                print(f'ERROR: Directory "{file_path}" is not readonly.')
+                ret_code = 1
+            if check_folder_and_contents_are_readonly(file_path) != 0:
+                ret_code = 1
+                continue
+
+        if os.access(file_path, os.W_OK):
+            print(f'ERROR: File "{file_path}" is not readonly.')
+            ret_code = 1
+
+    return ret_code
+
+
 def check_comics_integrity(
     ini_files: List[str],
     comic_book_info: ComicBookInfoDict,
 ) -> int:
     print()
+
+    if check_comics_source_is_readonly() != 0:
+        return 1
 
     dest_dirs = []
     zip_files = []
@@ -189,6 +220,10 @@ def check_unexpected_dest_image_files(
 ) -> None:
     allowed_dest_image_files = [f.page_filename for f in srce_and_dest_pages.dest_pages]
     dest_image_dir = comic.get_dest_image_dir()
+    if not os.path.isdir(dest_image_dir):
+        errors.dest_dir_files_missing.append(dest_image_dir)
+        return
+
     for file in os.listdir(dest_image_dir):
         dest_image_file = os.path.join(dest_image_dir, file)
         if dest_image_file not in allowed_dest_image_files:
@@ -219,6 +254,11 @@ def check_unexpected_files(
     for dest_dir_info in dest_dirs_info_list:
         ini_file = os.path.basename(dest_dir_info[0])
         dest_dir = dest_dir_info[1]
+
+        if not os.path.isdir(dest_dir):
+            print(f'ERROR: The dest directory "{dest_dir}" is missing.')
+            ret_code = 1
+            continue
 
         for file in os.listdir(dest_dir):
             if file in [IMAGES_SUBDIR, ini_file]:
@@ -268,6 +308,10 @@ def check_unexpected_files(
 
 def check_files_in_dir(file_type: str, the_dir: str, allowed_files: List[str]) -> int:
     ret_code = 0
+
+    if not os.path.isdir(the_dir):
+        print(f'ERROR: The directory "{the_dir}" is missing.')
+        return 1
 
     for file in os.listdir(the_dir):
         full_file = os.path.join(the_dir, file)
