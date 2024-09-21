@@ -8,6 +8,8 @@ from comics_info import (
     ISSUE_NAME_AS_TITLE,
     MONTH_AS_LONG_STR,
     SHORT_ISSUE_NAME,
+    SILENT_NIGHT,
+    SILENT_NIGHT_PUBLICATION_ISSUE,
     SOURCE_COMICS,
     ComicBookInfo,
     ComicBookInfoDict,
@@ -260,6 +262,34 @@ def log_comic_book_params(comic: ComicBook, caching: bool, work_dir: str):
     logging.info("")
 
 
+def get_main_publication_info(
+    file_title: str, cb_info: ComicBookInfo, fanta_info: SourceBook
+) -> str:
+    if file_title == SILENT_NIGHT:
+        # Originally intended for WDCS 64
+        publication_text = (
+            f"(*) Rejected by Western editors in 1945, this story was originally\n"
+            f" intended for publication in {get_formatted_first_published_str(cb_info)}\n"
+            + f"Submitted to Western Publishing{get_formatted_submitted_date(cb_info)}\n"
+            + f"\n"
+            + f"The story was also not published in the Fantagraphics CBDL but\n"
+            + f"fortunately did appear in {SILENT_NIGHT_PUBLICATION_ISSUE}\n"
+            + f"Color restoration by {cb_info.colorist}"
+        )
+        return publication_text
+
+    publication_text = (
+        f"First published in {get_formatted_first_published_str(cb_info)}\n"
+        + f"Submitted to Western Publishing{get_formatted_submitted_date(cb_info)}\n"
+        + f"\n"
+        + f"This edition published in {fanta_info.pub} CBDL,"
+        + f" Volume {fanta_info.volume}, {fanta_info.year}\n"
+        + f"Color restoration by {cb_info.colorist}"
+    )
+
+    return publication_text
+
+
 def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
     logging.info(f'Getting comic book info from config file "{ini_file}".')
 
@@ -293,15 +323,8 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
 
     publication_date = get_formatted_first_published_str(cb_info)
     submitted_date = get_formatted_submitted_date(cb_info)
-    publication_text = (
-        f"First published in {get_formatted_first_published_str(cb_info)}\n"
-        + f"Submitted to Western Publishing{get_formatted_submitted_date(cb_info)}\n"
-        + f"\n"
-        + f"This edition published in {fanta_info.pub} CBDL,"
-        + f" Volume {fanta_info.volume}, {fanta_info.year}\n"
-        + f"Color restoration by {cb_info.colorist}"
-    )
 
+    publication_text = get_main_publication_info(file_title, cb_info, fanta_info)
     if "extra_pub_info" in config["info"]:
         publication_text += "\n" + config["info"]["extra_pub_info"]
 

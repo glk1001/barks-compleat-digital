@@ -28,6 +28,7 @@ from comic_book import (
 )
 from comics_info import (
     ComicBookInfoDict,
+    CENSORED_TITLES,
     CS,
     get_all_comic_book_info,
 )
@@ -43,6 +44,7 @@ from consts import (
     DEST_TARGET_ASPECT_RATIO,
     DEST_JPG_QUALITY,
     DEST_JPG_COMPRESS_LEVEL,
+    FOOTNOTE_CHAR,
     MIN_HD_SRCE_HEIGHT,
     PageType,
     PAGES_WITHOUT_PANELS,
@@ -170,13 +172,13 @@ def show_all_mods(ini_files: List[str], comic_book_info: ComicBookInfoDict) -> i
         title_str = title + ":"
         dest_mods = f"{'Dest':<6} - {mods[0]}"
         srce_mods = mods[1]
-        print(f'{title_str:<{max_title_len+1}} {dest_mods}')
+        print(f"{title_str:<{max_title_len+1}} {dest_mods}")
         print(f'{" ":<{max_title_len+1}} {srce_mods}')
 
     return 0
 
 
-def get_mods(comic: ComicBook) -> Union[None,Tuple[str, Tuple[str, str]]]:
+def get_mods(comic: ComicBook) -> Union[None, Tuple[str, Tuple[str, str]]]:
     srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
 
     modified_dest_pages = [
@@ -666,30 +668,26 @@ def write_introduction(comic: ComicBook, dest_page_image: Image):
 
     top = INTRO_TOP
 
-    title, title_fonts, text_height = get_title_and_fonts(
-        draw, comic.get_comic_title(), comic.title_font_file, comic.title_font_size
-    )
+    title, title_fonts, text_height = get_title_and_fonts(draw, comic)
 
-    draw_centered_multiline_multi_font_text(
+    draw_centered_multiline_title_text(
+        comic,
         title,
-        dest_page_image,
-        draw,
         title_fonts,
         INTRO_TITLE_COLOR,
         top,
         spacing=INTRO_TITLE_SPACING,
+        image=dest_page_image,
+        draw=draw,
     )
     top += text_height + INTRO_TITLE_SPACING
 
     top += INTRO_TITLE_AUTHOR_GAP
     text = "by"
-    author_font = ImageFont.truetype(
-        comic.title_font_file, int(0.6 * comic.author_font_size)
-    )
-    text_height = get_intro_text_height(draw, text, author_font)
-    draw_centered_text(
-        text, dest_page_image, draw, author_font, INTRO_AUTHOR_COLOR, top
-    )
+    by_font_size = int(0.6 * comic.author_font_size)
+    by_font = ImageFont.truetype(comic.title_font_file, by_font_size)
+    text_height = get_intro_text_height(draw, text, by_font)
+    draw_centered_text(text, dest_page_image, draw, by_font, INTRO_AUTHOR_COLOR, top)
     top += text_height
 
     top += INTRO_TITLE_AUTHOR_BY_GAP
@@ -771,10 +769,19 @@ def get_intro_text_width(draw: ImageDraw.Draw, text: str, font: ImageFont) -> in
 
 
 def get_title_and_fonts(
-    draw: ImageDraw.Draw, title: str, font_file: str, font_size: int
+    draw: ImageDraw.Draw, comic: ComicBook
 ) -> Tuple[List[str], List[ImageFont.truetype], int]:
+    title = comic.get_comic_title()
+    font_file = comic.title_font_file
+    font_size = comic.title_font_size
+
     if title.startswith(CS):
-        return get_comics_and_stories_title_and_fonts(draw, title, font_file, font_size)
+        add_footnote = comic.file_title in CENSORED_TITLES
+
+        title_and_fonts = get_comics_and_stories_title_and_fonts(
+            draw, title, font_file, font_size, add_footnote
+        )
+        return title_and_fonts
 
     title_font = ImageFont.truetype(font_file, font_size)
     text_height = get_intro_text_height(draw, title, title_font)
@@ -782,11 +789,13 @@ def get_title_and_fonts(
 
 
 def get_comics_and_stories_title_and_fonts(
-    draw: ImageDraw.Draw, title: str, font_file: str, font_size: int
+    draw: ImageDraw.Draw, title: str, font_file: str, font_size: int, add_footnote: bool
 ) -> Tuple[List[str], List[ImageFont.truetype], int]:
     assert title.startswith(CS)
 
     comic_num = title[len(CS) :]
+    if add_footnote:
+        comic_num += FOOTNOTE_CHAR
 
     title_split = ["Comics", "and Stories", comic_num]
     title_fonts = [
@@ -825,14 +834,15 @@ def draw_centered_multiline_text(
     )
 
 
-def draw_centered_multiline_multi_font_text(
+def draw_centered_multiline_title_text(
+    comic: ComicBook,
     text_vals: List[str],
-    image: Image,
-    draw: ImageDraw,
     fonts: List[ImageFont],
-    color,
+    color: Tuple[int, int, int],
     top: int,
     spacing: int,
+    image: Image,
+    draw: ImageDraw,
 ):
     lines = []
     line = []
@@ -873,6 +883,12 @@ def draw_centered_multiline_multi_font_text(
                 width_spacing = int(1.1 * ((font_height * spacing) / max_font_height))
             left += width_spacing
 
+            has_footnote = False
+            if text[-1] == FOOTNOTE_CHAR:
+                has_footnote = True
+                text = text[:-1]
+                text_width -= 1
+
             draw.multiline_text(
                 (left, line_top + line_top_extra),
                 text,
@@ -882,8 +898,44 @@ def draw_centered_multiline_multi_font_text(
                 spacing=spacing,
             )
             left += text_width
+
+            if has_footnote:
+                draw_superscript_title_text(
+                    comic,
+                    FOOTNOTE_CHAR,
+                    color,
+                    left,
+                    line_top + line_top_extra,
+                    spacing,
+                    draw,
+                )
+
             line_start = False
         line_top += int(1.5 * max_font_height)
+
+
+def draw_superscript_title_text(
+    comic: ComicBook,
+    text: str,
+    color: Tuple[int, int, int],
+    left: int,
+    top: int,
+    spacing: int,
+    draw: ImageDraw,
+):
+    superscript_font_size = int(0.7 * comic.title_font_size)
+    superscript_font = ImageFont.truetype(comic.title_font_file, superscript_font_size)
+    draw.multiline_text(
+        (
+            left - int(0.75 * superscript_font_size),
+            top - 20,
+        ),
+        text,
+        fill=color,
+        font=superscript_font,
+        align="center",
+        spacing=spacing,
+    )
 
 
 def write_page_number(

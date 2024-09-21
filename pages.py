@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import List, Tuple, Dict, Union
 
 from comic_book import OriginalPage, ComicBook, get_safe_title
+from comics_info import CENSORED_TITLES
 from consts import (
     PageType,
     TITLE_EMPTY_FILENAME,
@@ -53,6 +54,8 @@ def is_fixes_special_case(comic: ComicBook, page: CleanPage) -> bool:
     ):
         return page.page_type == PageType.BACK_NO_PANELS
     if comic.file_title == "The Bill Collectors" and page.page_filename == "227":
+        return page.page_type == PageType.BODY
+    if comic.file_title in CENSORED_TITLES:
         return page.page_type == PageType.BODY
 
     return False

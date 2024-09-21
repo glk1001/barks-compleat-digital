@@ -251,6 +251,11 @@ SERIES_INFO_START_NUMBERS: Dict[str, int] = {
 }
 
 
+SILENT_NIGHT = "Silent Night"
+CENSORED_TITLES = [SILENT_NIGHT]
+
+SILENT_NIGHT_PUBLICATION_ISSUE = "Gemstone's Christmas Parade, No.3, 2005"
+
 # fmt: off
 SERIES_INFO: Dict[str, SeriesInfo] = {
     "Donald Duck Finds Pirate Gold": SeriesInfo("?", SERIES_DDA),
@@ -445,6 +450,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Trapped Lightning": SeriesInfo(RTOM, SERIES_GG),
     "Inventor of Anything": SeriesInfo(RTOM, SERIES_GG),
 
+    SILENT_NIGHT: SeriesInfo(SLEA, SERIES_CS),
     "The Riddle of the Red Hat": SeriesInfo(GLEA, SERIES_MISC),
 }
 # fmt: on
