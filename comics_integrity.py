@@ -83,11 +83,11 @@ def check_comics_source_is_readonly() -> int:
     return check_folder_and_contents_are_readonly(srce_comics_dir)
 
 
-def check_folder_and_contents_are_readonly(dir: str) -> int:
+def check_folder_and_contents_are_readonly(dir_path: str) -> int:
     ret_code = 0
 
-    for f in os.listdir(dir):
-        file_path = os.path.join(dir, f)
+    for f in os.listdir(dir_path):
+        file_path = os.path.join(dir_path, f)
 
         if os.path.isdir(file_path):
             if os.access(file_path, os.W_OK):

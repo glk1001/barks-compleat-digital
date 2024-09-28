@@ -36,14 +36,12 @@ class CleanPage:
         page_filename: str,
         page_type: PageType,
         page_num: int = -1,
-        page_is_modified: bool = False,
-        page_thicken_lines_alpha=0.0,
+        page_is_modified: bool = False
     ):
         self.page_filename = page_filename
         self.page_type = page_type
         self.page_num: int = page_num
         self.page_is_modified = page_is_modified
-        self.page_thicken_lines_alpha = page_thicken_lines_alpha
         self.panels_bbox: BoundingBox = BoundingBox()
 
 
@@ -165,7 +163,6 @@ def get_srce_and_dest_pages_in_order(
         dest_file = os.path.join(
             comic.get_dest_image_dir(), file_num_str + DEST_FILE_EXT
         )
-        dest_thicken_line_alpha = comic.thicken_line_alphas.get(page.page_num, 0.0)
 
         srce_page_list.append(
             CleanPage(srce_file, page.page_type, page.page_num, is_modified_srce_file)
@@ -176,7 +173,6 @@ def get_srce_and_dest_pages_in_order(
                 page.page_type,
                 page_num,
                 is_modified_srce_file,
-                dest_thicken_line_alpha,
             )
         )
 

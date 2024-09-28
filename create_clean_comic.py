@@ -73,9 +73,7 @@ from panel_bounding import (
     set_dest_panel_bounding_boxes,
 )
 from remove_alias_artifacts import (
-    SMALL_FLOAT,
     get_median_filter,
-    get_thickened_black_lines,
 )
 from timing import Timing
 from utils import get_ini_files
@@ -423,7 +421,6 @@ def get_dest_jpg_comments(srce_page: CleanPage, dest_page: CleanPage) -> List[st
         f"{indent}Srce panels bbox: {dest_page.panels_bbox.x_min}, {dest_page.panels_bbox.y_min},"
         + f" {dest_page.panels_bbox.x_max}, {dest_page.panels_bbox.y_max}",
         f"{indent}Dest page num: {dest_page.page_num}",
-        f"{indent}Dest thicken alpha: {dest_page.page_thicken_lines_alpha}",
     ]
 
     return comments
@@ -448,26 +445,20 @@ def get_dest_page_image(
 
     if dest_page.page_type in MEDIAN_FILTERABLE_PAGES:
         logging.debug(f'Starting median filter of "{dest_page.page_filename}"...')
-        rgb_dest_page_image = get_improved_image(
-            rgb_dest_page_image, dest_page.page_thicken_lines_alpha
-        )
+        rgb_dest_page_image = get_improved_image(rgb_dest_page_image)
 
     log_page_info("Dest", rgb_dest_page_image, dest_page)
 
     return rgb_dest_page_image
 
 
-def get_improved_image(image: Image, thicken_lines_alpha: float) -> Image:
+def get_improved_image(image: Image) -> Image:
     current_log_level = logging.getLogger().level
     try:
         logging.getLogger().setLevel(logging.INFO)
 
         image = get_median_filter(np.asarray(image))
-        if thicken_lines_alpha < SMALL_FLOAT:
-            return Image.fromarray(image)
 
-        logging.info(f"Doing black line thickening with alpha = {thicken_lines_alpha}.")
-        image = get_thickened_black_lines(image, thicken_lines_alpha)
         return Image.fromarray(image)
 
     finally:

@@ -126,7 +126,6 @@ def write_summary(
         f.write(f"DEST_TARGET_ASPECT_RATIO = {DEST_TARGET_ASPECT_RATIO:.2f}\n")
         f.write(f"DEST_JPG_QUALITY         = {DEST_JPG_QUALITY}\n")
         f.write(f"DEST_JPG_COMPRESS_LEVEL  = {DEST_JPG_COMPRESS_LEVEL}\n")
-        f.write(f"thicken line alpha       = {len(comic.thicken_line_alphas) > 0}\n")
         f.write(f"srce min panels bbox wid = {comic.srce_min_panels_bbox_width}\n")
         f.write(f"srce max panels bbox wid = {comic.srce_max_panels_bbox_width}\n")
         f.write(f"srce av panels bbox wid  = {comic.srce_av_panels_bbox_width}\n")

@@ -2,7 +2,7 @@ import configparser
 import logging
 import os
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import List
 
 from comics_info import (
     ISSUE_NAME_AS_TITLE,
@@ -85,7 +85,6 @@ class ComicBook:
     publication_text: str
     comic_book_info: ComicBookInfo
     images_in_order: List[OriginalPage]
-    thicken_line_alphas: Dict[int, float]
 
     def __post_init__(self):
         assert self.series_name != ""
@@ -232,7 +231,6 @@ def log_comic_book_params(comic: ComicBook, caching: bool, work_dir: str):
     logging.info(f"Dest aspect ratio:   {DEST_TARGET_ASPECT_RATIO :.2f}.")
     logging.info(f"Dest jpeg quality:   {DEST_JPG_QUALITY}.")
     logging.info(f"Dest compress level: {DEST_JPG_COMPRESS_LEVEL}.")
-    logging.info(f"Thicken line alpha:  {len(comic.thicken_line_alphas) > 0}.")
     logging.info(f"Srce min bbox wid:   {comic.srce_min_panels_bbox_width}.")
     logging.info(f"Srce max bbox wid:   {comic.srce_max_panels_bbox_width}.")
     logging.info(f"Srce min bbox hgt:   {comic.srce_min_panels_bbox_height}.")
@@ -328,12 +326,6 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
     if "extra_pub_info" in config["info"]:
         publication_text += "\n" + config["info"]["extra_pub_info"]
 
-    thicken_line_alphas: Dict[int, float] = {}
-    if "black_line_thickening" in config:
-        thicken_line_alphas = get_thicken_line_alphas(
-            config._sections["black_line_thickening"]
-        )
-
     comic = ComicBook(
         ini_file=ini_file,
         title=title,
@@ -371,7 +363,6 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
         images_in_order=[
             OriginalPage(key, PageType[config["pages"][key]]) for key in config["pages"]
         ],
-        thicken_line_alphas=thicken_line_alphas,
     )
 
     if not os.path.isdir(comic.srce_dir):
@@ -420,21 +411,3 @@ def get_formatted_submitted_date(info: ComicBookInfo) -> str:
         f" on {MONTH_AS_LONG_STR[info.submitted_month]}"
         f" {get_formatted_day(info.submitted_day)}, {info.submitted_year}"
     )
-
-
-def get_thicken_line_alphas(page_alphas: Dict[str, str]) -> Dict[int, float]:
-    thicken_line_alphas: Dict[int, float] = {}
-
-    for key in page_alphas:
-        alpha = float(page_alphas[key])
-        if "-" not in key:
-            page_num = int(key)
-            thicken_line_alphas[page_num] = alpha
-        else:
-            start, end = key.split("-")
-            start_num = int(start)
-            end_num = int(end)
-            for page_num in range(start_num, end_num + 1):
-                thicken_line_alphas[page_num] = alpha
-
-    return thicken_line_alphas
