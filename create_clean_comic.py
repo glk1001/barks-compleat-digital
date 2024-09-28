@@ -1,4 +1,5 @@
 import argparse
+import concurrent.futures
 import datetime
 import logging
 import os
@@ -291,8 +292,11 @@ def process_pages(
     else:
         delete_all_files_in_directory(dry_run, comic.get_dest_image_dir())
 
-    for srce_page, dest_page in zip(pages.srce_pages, pages.dest_pages):
-        process_page(dry_run, cache_pages, comic, srce_page, dest_page)
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        for srce_page, dest_page in zip(pages.srce_pages, pages.dest_pages):
+            executor.submit(
+                process_page, dry_run, cache_pages, comic, srce_page, dest_page
+            )
 
 
 def delete_all_files_in_directory(dry_run: bool, directory_path: str):
