@@ -1,6 +1,8 @@
 import cv2 as cv
 import numpy as np
 
+from remove_alias_artifacts import get_median_filter
+
 
 def median_filter1(gray_img, mask=3):
     """
