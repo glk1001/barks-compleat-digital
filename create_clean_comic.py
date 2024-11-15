@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Tuple, Union
 
-import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 
 from additional_file_writing import (
@@ -51,7 +50,6 @@ from consts import (
     PAGES_WITHOUT_PANELS,
     PAINTING_PAGES,
     SPLASH_PAGES,
-    MEDIAN_FILTERABLE_PAGES,
     INTRO_TEXT_FONT_FILE,
     PAGE_NUM_FONT_FILE,
     get_font_path,
@@ -72,9 +70,6 @@ from panel_bounding import (
     get_scaled_panels_bbox_height,
     set_srce_panel_bounding_boxes,
     set_dest_panel_bounding_boxes,
-)
-from remove_alias_artifacts import (
-    get_median_filter,
 )
 from timing import Timing
 from utils import get_ini_files
@@ -416,26 +411,9 @@ def get_dest_page_image(
 
     rgb_dest_page_image = dest_page_image.convert("RGB")
 
-    if dest_page.page_type in MEDIAN_FILTERABLE_PAGES:
-        logging.debug(f'Starting median filter of "{dest_page.page_filename}"...')
-        rgb_dest_page_image = get_improved_image(rgb_dest_page_image)
-
     log_page_info("Dest", rgb_dest_page_image, dest_page)
 
     return rgb_dest_page_image
-
-
-def get_improved_image(image: Image) -> Image:
-    current_log_level = logging.getLogger().level
-    try:
-        logging.getLogger().setLevel(logging.INFO)
-
-        image = get_median_filter(np.asarray(image))
-
-        return Image.fromarray(image)
-
-    finally:
-        logging.getLogger().setLevel(current_log_level)
 
 
 def log_page_info(prefix: str, image: Image, page: CleanPage):

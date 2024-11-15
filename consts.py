@@ -103,13 +103,6 @@ PAINTING_PAGES = [
     PageType.PAINTING,
     PageType.PAINTING_NO_BORDER,
 ]
-MEDIAN_FILTERABLE_PAGES = [
-    PageType.SPLASH,
-    PageType.SPLASH_NO_BORDER,
-    PageType.FRONT_MATTER,
-    PageType.BODY,
-    PageType.BACK_MATTER,
-]
 
 FONT_DIR = os.path.join(str(Path.home()), "Prj", "fonts")
 INTRO_TITLE_DEFAULT_FONT_FILE = os.path.join(FONT_DIR, "Carl Barks Script.ttf")
