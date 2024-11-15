@@ -12,7 +12,6 @@ from consts import (
     TITLE_EMPTY_FILENAME,
     EMPTY_FILENAME,
     DEST_FILE_EXT,
-    SRCE_FILE_EXT,
     FRONT_MATTER_PAGES,
     ROMAN_NUMERALS,
 )
@@ -189,9 +188,9 @@ def get_checked_srce_file(comic: ComicBook, page: CleanPage) -> Tuple[str, bool]
 
 
 def get_srce_file(comic: ComicBook, page: CleanPage) -> Tuple[str, bool]:
-    srce_file = os.path.join(comic.get_srce_image_dir(), page.page_filename + SRCE_FILE_EXT)
+    srce_file = os.path.join(comic.get_srce_image_dir(), page.page_filename + comic.srce_file_ext)
     srce_fixes_file = os.path.join(
-        comic.get_srce_fixes_image_dir(), page.page_filename + SRCE_FILE_EXT
+        comic.get_srce_fixes_image_dir(), page.page_filename + comic.srce_file_ext
     )
     if not os.path.isfile(srce_fixes_file):
         return srce_file, False

@@ -73,6 +73,7 @@ class ComicBook:
     required_dim: RequiredDimensions
     fanta_info: SourceBook
     srce_dir: str
+    srce_file_ext: str
     srce_fixes_dir: str
     panel_segments_dir: str
     series_name: str
@@ -246,6 +247,7 @@ def log_comic_book_params(comic: ComicBook, caching: bool, work_dir: str):
     logging.info(f'Srce fixes dir:      "FIXES ROOT/{fixes_basename}".')
     logging.info(f'Srce segments root:  "{comic.get_srce_segments_root_dir()}".')
     logging.info(f'Srce segments dir:   "SEGMENTS ROOT/{panel_segments_basename}".')
+    logging.info(f'Srce file ext:       "{comic.srce_file_ext}".')
     logging.info(f'Dest root:           "{comic.get_dest_root_dir()}".')
     logging.info(f'Dest comic dir:      "DEST ROOT/{dest_basename}".')
     logging.info(f'Dest zip root:       "{comic.get_dest_zip_root_dir()}".')
@@ -300,6 +302,7 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
     fanta_info = SOURCE_COMICS[config["info"]["source_comic"]]
     srce_root_dir = str(os.path.join(BARKS_ROOT_DIR, fanta_info.subdir))
     srce_dir = os.path.join(srce_root_dir, fanta_info.title)
+    srce_file_ext = fanta_info.srce_file_ext
     srce_fixup_dir = os.path.join(srce_root_dir + "-fixes-and-additions", fanta_info.title)
     panel_segments_dir = str(os.path.join(srce_root_dir + "-panel-segments", fanta_info.title))
 
@@ -329,6 +332,7 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
         required_dim=RequiredDimensions(),
         fanta_info=fanta_info,
         srce_dir=srce_dir,
+        srce_file_ext=srce_file_ext,
         srce_fixes_dir=srce_fixup_dir,
         panel_segments_dir=panel_segments_dir,
         series_name=cb_info.series_name,

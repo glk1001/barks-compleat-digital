@@ -143,6 +143,7 @@ class SourceBook:
     volume: int
     year: int
     subdir: str
+    srce_file_ext: str
 
 
 FAN = "Fantagraphics"
@@ -184,6 +185,9 @@ SHORT_ISSUE_NAME = {
 FAN_DIR1 = "Fantagraphics"
 FAN_DIR2 = "Fantagraphics-restored"
 
+PNG_FILE_EXT = ".png"
+JPG_FILE_EXT = ".jpg"
+
 VOLUME_01 = f"{CB} Vol. 1 - {DD} - Pirate Gold {SRC_SALEM}"
 VOLUME_02 = f"{CB} Vol. 2 - {DD} - Frozen Gold {SRC_SALEM}"
 VOLUME_03 = f"{CB} Vol. 3 - {DD} - Mystery of the Swamp {SRC_SALEM}"
@@ -205,26 +209,26 @@ VOLUME_18 = f"{CB} Vol. 18 - {DD} - The Lost Peg Leg Mine ({SRC_DIGI}"
 VOLUME_19 = f"{CB} Vol. 19 - {DD} - The Black Pearls of Tabu Yama {SRC_BEAN}"
 VOLUME_20 = f"{CB} Vol. 20 - {US} - The Mines of King Solomon {SRC_BEAN}"
 SOURCE_COMICS = {
-    "FANTA_01": SourceBook(VOLUME_01, FAN, 1, 2025, FAN_DIR2),
-    "FANTA_02": SourceBook(VOLUME_02, FAN, 2, 2024, FAN_DIR2),
-    "FANTA_03": SourceBook(VOLUME_03, FAN, 3, 2024, FAN_DIR1),
-    "FANTA_04": SourceBook(VOLUME_04, FAN, 4, 2023, FAN_DIR1),
-    "FANTA_05": SourceBook(VOLUME_05, FAN, 5, 2013, FAN_DIR1),
-    "FANTA_06": SourceBook(VOLUME_06, FAN, 6, 2013, FAN_DIR1),
-    "FANTA_07": SourceBook(VOLUME_07, FAN, 7, 2011, FAN_DIR1),
-    "FANTA_08": SourceBook(VOLUME_08, FAN, 8, 2014, FAN_DIR1),
-    "FANTA_09": SourceBook(VOLUME_09, FAN, 9, 2015, FAN_DIR1),
-    "FANTA_10": SourceBook(VOLUME_10, FAN, 10, 2016, FAN_DIR1),
-    "FANTA_11": SourceBook(VOLUME_11, FAN, 11, 2012, FAN_DIR1),
-    "FANTA_12": SourceBook(VOLUME_12, FAN, 12, 2012, FAN_DIR1),
-    "FANTA_13": SourceBook(VOLUME_13, FAN, 13, 2015, FAN_DIR1),
-    "FANTA_14": SourceBook(VOLUME_14, FAN, 14, 2014, FAN_DIR1),
-    "FANTA_15": SourceBook(VOLUME_15, FAN, 15, 2016, FAN_DIR1),
-    "FANTA_16": SourceBook(VOLUME_16, FAN, 16, 2017, FAN_DIR1),
-    "FANTA_17": SourceBook(VOLUME_17, FAN, 17, 2017, FAN_DIR1),
-    "FANTA_18": SourceBook(VOLUME_18, FAN, 18, 2018, FAN_DIR1),
-    "FANTA_19": SourceBook(VOLUME_19, FAN, 19, 2018, FAN_DIR1),
-    "FANTA_20": SourceBook(VOLUME_20, FAN, 20, 2019, FAN_DIR1),
+    "FANTA_01": SourceBook(VOLUME_01, FAN, 1, 2025, FAN_DIR2, PNG_FILE_EXT),
+    "FANTA_02": SourceBook(VOLUME_02, FAN, 2, 2024, FAN_DIR2, PNG_FILE_EXT),
+    "FANTA_03": SourceBook(VOLUME_03, FAN, 3, 2024, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_04": SourceBook(VOLUME_04, FAN, 4, 2023, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_05": SourceBook(VOLUME_05, FAN, 5, 2013, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_06": SourceBook(VOLUME_06, FAN, 6, 2013, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_07": SourceBook(VOLUME_07, FAN, 7, 2011, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_08": SourceBook(VOLUME_08, FAN, 8, 2014, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_09": SourceBook(VOLUME_09, FAN, 9, 2015, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_10": SourceBook(VOLUME_10, FAN, 10, 2016, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_11": SourceBook(VOLUME_11, FAN, 11, 2012, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_12": SourceBook(VOLUME_12, FAN, 12, 2012, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_13": SourceBook(VOLUME_13, FAN, 13, 2015, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_14": SourceBook(VOLUME_14, FAN, 14, 2014, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_15": SourceBook(VOLUME_15, FAN, 15, 2016, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_16": SourceBook(VOLUME_16, FAN, 16, 2017, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_17": SourceBook(VOLUME_17, FAN, 17, 2017, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_18": SourceBook(VOLUME_18, FAN, 18, 2018, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_19": SourceBook(VOLUME_19, FAN, 19, 2018, FAN_DIR1, JPG_FILE_EXT),
+    "FANTA_20": SourceBook(VOLUME_20, FAN, 20, 2019, FAN_DIR1, JPG_FILE_EXT),
 }
 
 SERIES_DDA = DD + " Adventures"
