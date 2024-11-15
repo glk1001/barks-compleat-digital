@@ -115,9 +115,7 @@ def check_story_submitted_order(stories: ComicBookInfoDict):
             raise Exception(
                 f'"{title}": Invalid submission month: {stories[story].submitted_month}.'
             )
-        submitted_day = (
-            1 if stories[story].submitted_day == -1 else stories[story].submitted_day
-        )
+        submitted_day = 1 if stories[story].submitted_day == -1 else stories[story].submitted_day
         submitted_date = date(
             stories[story].submitted_year,
             stories[story].submitted_month,
@@ -144,6 +142,7 @@ class SourceBook:
     pub: str
     volume: int
     year: int
+    subdir: str
 
 
 FAN = "Fantagraphics"
@@ -182,30 +181,51 @@ SHORT_ISSUE_NAME = {
     KI: "KG",
 }
 
-# fmt: off
+FAN_DIR1 = "Fantagraphics"
+FAN_DIR2 = "Fantagraphics-restored"
+
+VOLUME_01 = f"{CB} Vol. 1 - {DD} - Pirate Gold {SRC_SALEM}"
+VOLUME_02 = f"{CB} Vol. 2 - {DD} - Frozen Gold {SRC_SALEM}"
+VOLUME_03 = f"{CB} Vol. 3 - {DD} - Mystery of the Swamp {SRC_SALEM}"
+VOLUME_04 = f"{CB} Vol. 4 - {DD} - Maharajah Donald {SRC_SALEM}"
+VOLUME_05 = f"{CB} Vol. 5 - {DD} - Christmas on Bear Mountain {SRC_DIGI}"
+VOLUME_06 = f"{CB} Vol. 6 - {DD} - The Old Castle's Secret {SRC_DIGI}"
+VOLUME_07 = f"{CB} Vol. 7 - {DD} - Lost in the Andes {SRC_DIGI}"
+VOLUME_08 = f"{CB} Vol. 8 - {DD} - Trail of the Unicorn {SRC_DIGI}"
+VOLUME_09 = f"{CB} Vol. 9 - {DD} - The Pixilated Parrot {SRC_DIGI}"
+VOLUME_10 = f"{CB} Vol. 10 - {DD} - Terror of the Beagle Boys {SRC_DIGI}"
+VOLUME_11 = f"{CB} Vol. 11 - {DD} - A Christmas for Shacktown {SRC_DIGI}"
+VOLUME_12 = f"{CB} Vol. 12 - {US} - Only a Poor Old Man {SRC_DIGI}"
+VOLUME_13 = f"{CB} Vol. 13 - {DD} - Trick or Treat {SRC_DIGI}"
+VOLUME_14 = f"{CB} Vol. 14 - {US} - The Seven Cities of Gold {SRC_DIGI}"
+VOLUME_15 = f"{CB} Vol. 15 - {DD} - The Ghost Sheriff of Last Gasp {SRC_DIGI}"
+VOLUME_16 = f"{CB} Vol. 16 - {US} - The Lost Crown of Genghis Khan {SRC_DIGI}"
+VOLUME_17 = f"{CB} Vol. 17 - {DD} - The Secret of Hondorica {SRC_DIGI}"
+VOLUME_18 = f"{CB} Vol. 18 - {DD} - The Lost Peg Leg Mine ({SRC_DIGI}"
+VOLUME_19 = f"{CB} Vol. 19 - {DD} - The Black Pearls of Tabu Yama {SRC_BEAN}"
+VOLUME_20 = f"{CB} Vol. 20 - {US} - The Mines of King Solomon {SRC_BEAN}"
 SOURCE_COMICS = {
-    'FANTA_01': SourceBook( f"{CB} Vol. 1 - {DD} - Pirate Gold {SRC_SALEM}", FAN, 1, 2025),
-    'FANTA_02': SourceBook( f"{CB} Vol. 2 - {DD} - Frozen Gold {SRC_SALEM}", FAN, 2, 2024),
-    'FANTA_03': SourceBook( f"{CB} Vol. 3 - {DD} - Mystery of the Swamp {SRC_SALEM}", FAN, 3, 2024),
-    'FANTA_04': SourceBook( f"{CB} Vol. 4 - {DD} - Maharajah Donald {SRC_SALEM}", FAN, 4, 2023),
-    'FANTA_05': SourceBook( f"{CB} Vol. 5 - {DD} - Christmas on Bear Mountain {SRC_DIGI}", FAN, 5, 2013),
-    'FANTA_06': SourceBook( f"{CB} Vol. 6 - {DD} - The Old Castle's Secret {SRC_DIGI}", FAN, 6, 2013),
-    'FANTA_07': SourceBook( f"{CB} Vol. 7 - {DD} - Lost in the Andes {SRC_DIGI}", FAN, 7, 2011),
-    'FANTA_08': SourceBook( f"{CB} Vol. 8 - {DD} - Trail of the Unicorn {SRC_DIGI}", FAN, 8, 2014),
-    'FANTA_09': SourceBook( f"{CB} Vol. 9 - {DD} - The Pixilated Parrot {SRC_DIGI}", FAN, 9, 2015),
-    'FANTA_10': SourceBook(f"{CB} Vol. 10 - {DD} - Terror of the Beagle Boys {SRC_DIGI}", FAN, 10, 2016),
-    'FANTA_11': SourceBook(f"{CB} Vol. 11 - {DD} - A Christmas for Shacktown {SRC_DIGI}", FAN, 11, 2012),
-    'FANTA_12': SourceBook(f"{CB} Vol. 12 - {US} - Only a Poor Old Man {SRC_DIGI}", FAN, 12, 2012),
-    'FANTA_13': SourceBook(f"{CB} Vol. 13 - {DD} - Trick or Treat {SRC_DIGI}", FAN, 13, 2015),
-    'FANTA_14': SourceBook(f"{CB} Vol. 14 - {US} - The Seven Cities of Gold {SRC_DIGI}", FAN, 14, 2014),
-    'FANTA_15': SourceBook(f"{CB} Vol. 15 - {DD} - The Ghost Sheriff of Last Gasp {SRC_DIGI}", FAN, 15, 2016),
-    'FANTA_16': SourceBook(f"{CB} Vol. 16 - {US} - The Lost Crown of Genghis Khan {SRC_DIGI}", FAN, 16, 2017),
-    'FANTA_17': SourceBook(f"{CB} Vol. 17 - {DD} - The Secret of Hondorica {SRC_DIGI}", FAN, 17, 2017),
-    'FANTA_18': SourceBook(f"{CB} Vol. 18 - {DD} - The Lost Peg Leg Mine ({SRC_DIGI}", FAN, 18, 2018),
-    'FANTA_19': SourceBook(f"{CB} Vol. 19 - {DD} - The Black Pearls of Tabu Yama {SRC_BEAN}", FAN, 19, 2018),
-    'FANTA_20': SourceBook(f"{CB} Vol. 20 - {US} - The Mines of King Solomon {SRC_BEAN}", FAN, 20, 2019),
+    "FANTA_01": SourceBook(VOLUME_01, FAN, 1, 2025, FAN_DIR2),
+    "FANTA_02": SourceBook(VOLUME_02, FAN, 2, 2024, FAN_DIR2),
+    "FANTA_03": SourceBook(VOLUME_03, FAN, 3, 2024, FAN_DIR1),
+    "FANTA_04": SourceBook(VOLUME_04, FAN, 4, 2023, FAN_DIR1),
+    "FANTA_05": SourceBook(VOLUME_05, FAN, 5, 2013, FAN_DIR1),
+    "FANTA_06": SourceBook(VOLUME_06, FAN, 6, 2013, FAN_DIR1),
+    "FANTA_07": SourceBook(VOLUME_07, FAN, 7, 2011, FAN_DIR1),
+    "FANTA_08": SourceBook(VOLUME_08, FAN, 8, 2014, FAN_DIR1),
+    "FANTA_09": SourceBook(VOLUME_09, FAN, 9, 2015, FAN_DIR1),
+    "FANTA_10": SourceBook(VOLUME_10, FAN, 10, 2016, FAN_DIR1),
+    "FANTA_11": SourceBook(VOLUME_11, FAN, 11, 2012, FAN_DIR1),
+    "FANTA_12": SourceBook(VOLUME_12, FAN, 12, 2012, FAN_DIR1),
+    "FANTA_13": SourceBook(VOLUME_13, FAN, 13, 2015, FAN_DIR1),
+    "FANTA_14": SourceBook(VOLUME_14, FAN, 14, 2014, FAN_DIR1),
+    "FANTA_15": SourceBook(VOLUME_15, FAN, 15, 2016, FAN_DIR1),
+    "FANTA_16": SourceBook(VOLUME_16, FAN, 16, 2017, FAN_DIR1),
+    "FANTA_17": SourceBook(VOLUME_17, FAN, 17, 2017, FAN_DIR1),
+    "FANTA_18": SourceBook(VOLUME_18, FAN, 18, 2018, FAN_DIR1),
+    "FANTA_19": SourceBook(VOLUME_19, FAN, 19, 2018, FAN_DIR1),
+    "FANTA_20": SourceBook(VOLUME_20, FAN, 20, 2019, FAN_DIR1),
 }
-# fmt: on
 
 SERIES_DDA = DD + " Adventures"
 SERIES_USA = US + " Adventures"
@@ -250,18 +270,17 @@ SERIES_INFO_START_NUMBERS: Dict[str, int] = {
     SERIES_MISC: 1,
 }
 
-
 SILENT_NIGHT = "Silent Night"
 CENSORED_TITLES = [SILENT_NIGHT]
 
 SILENT_NIGHT_PUBLICATION_ISSUE = "Gemstone's Christmas Parade, No.3, 2005"
 
-# fmt: off
 SERIES_INFO: Dict[str, SeriesInfo] = {
+    # DDA
     "Donald Duck Finds Pirate Gold": SeriesInfo("?", SERIES_DDA),
     "Donald Duck and the Mummy's Ring": SeriesInfo("?", SERIES_DDA),
-    "Too Many Pets": SeriesInfo("?", SERIES_DDA),
-    "Frozen Gold": SeriesInfo("?", SERIES_DDA),
+    "Too Many Pets": SeriesInfo(GLEA, SERIES_DDA),
+    "Frozen Gold": SeriesInfo(GLEA, SERIES_DDA),
     "Mystery of the Swamp": SeriesInfo(BIGD, SERIES_DDA),
     "The Terror of the River!!": SeriesInfo(SLEA, SERIES_DDA),
     "Maharajah Donald": SeriesInfo(GLEA, SERIES_DDA),
@@ -294,7 +313,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Trick or Treat": SeriesInfo(RTOM, SERIES_DDA),
     "Secret of Hondorica": SeriesInfo(RTOM, SERIES_DDA),
     "Forbidden Valley": SeriesInfo(RTOM, SERIES_DDA),
-
+    # US
     "Only a Poor Old Man": SeriesInfo(RTOM, SERIES_USA),
     "Back to the Klondike": SeriesInfo(RTOM, SERIES_USA),
     "The Horseradish Story": SeriesInfo(RTOM, SERIES_USA),
@@ -313,7 +332,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "The Second-Richest Duck": SeriesInfo(RTOM, SERIES_USA),
     "Back to Long Ago!": SeriesInfo(RTOM, SERIES_USA),
     "A Cold Bargain": SeriesInfo(RTOM, SERIES_USA),
-
+    # WDCS
     "The Victory Garden": SeriesInfo("?", SERIES_CS),
     "The Rabbit's Foot": SeriesInfo("?", SERIES_CS),
     "Lifeguard Daze": SeriesInfo("?", SERIES_CS),
@@ -425,8 +444,8 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Some Heir Over the Rainbow": SeriesInfo(RTOM, SERIES_CS),
     "The Master Rainmaker": SeriesInfo(RTOM, SERIES_CS),
     "The Money Stairs": SeriesInfo(RTOM, SERIES_CS),
-
-    "The Hard Loser": SeriesInfo("?", SERIES_DDS),
+    # DD SHORTS
+    "The Hard Loser": SeriesInfo(SLEA, SERIES_DDS),
     "The Firebug": SeriesInfo(DIGI, SERIES_DDS),
     "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_DDS),
     "The Peaceful Hills": SeriesInfo(SLEA, SERIES_DDS),
@@ -437,7 +456,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Toyland": SeriesInfo(RTOM, SERIES_DDS),
     "New Toys": SeriesInfo(RTOM, SERIES_DDS),
     "Hobblin' Goblins": SeriesInfo(RTOM, SERIES_DDS),
-
+    # US SHORTS
     "Somethin' Fishy Here": SeriesInfo(RTOM, SERIES_USS),
     "The Round Money Bin": SeriesInfo(RTOM, SERIES_USS),
     "Billion Dollar Pigeon": SeriesInfo(RTOM, SERIES_USS),
@@ -446,14 +465,13 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "The Tuckered Tiger": SeriesInfo(RTOM, SERIES_USS),
     "Heirloom Watch": SeriesInfo(RTOM, SERIES_USS),
     "Faulty Fortune": SeriesInfo(RTOM, SERIES_USS),
-
+    # GG
     "Trapped Lightning": SeriesInfo(RTOM, SERIES_GG),
     "Inventor of Anything": SeriesInfo(RTOM, SERIES_GG),
-
+    # MISC
     SILENT_NIGHT: SeriesInfo(SLEA, SERIES_CS),
     "The Riddle of the Red Hat": SeriesInfo(GLEA, SERIES_MISC),
 }
-# fmt: on
 
 
 def get_formatted_day(day: int) -> str:

@@ -143,9 +143,7 @@ class ComicBook:
         return f"{self.get_title_with_issue_num()}.cbz"
 
     def get_dest_comic_zip(self) -> str:
-        return os.path.join(
-            self.get_dest_zip_root_dir(), self.get_dest_comic_zip_filename()
-        )
+        return os.path.join(self.get_dest_zip_root_dir(), self.get_dest_comic_zip_filename())
 
     def get_dest_series_comic_zip_symlink_filename(self) -> str:
         file_title = get_lookup_title(self.title, self.file_title)
@@ -243,9 +241,7 @@ def log_comic_book_params(comic: ComicBook, caching: bool, work_dir: str):
     logging.info(f"Page num y bottom:   {comic.required_dim.page_num_y_bottom}.")
     logging.info(f'Ini file:            "{comic.ini_file}".')
     logging.info(f'Srce root:           "{comic.get_srce_root_dir()}".')
-    logging.info(
-        f'Srce comic dir:      "SRCE ROOT/{os.path.basename(comic.srce_dir)}".'
-    )
+    logging.info(f'Srce comic dir:      "SRCE ROOT/{os.path.basename(comic.srce_dir)}".')
     logging.info(f'Srce fixes root:     "{comic.get_srce_fixes_root_dir()}".')
     logging.info(f'Srce fixes dir:      "FIXES ROOT/{fixes_basename}".')
     logging.info(f'Srce segments root:  "{comic.get_srce_segments_root_dir()}".')
@@ -291,33 +287,21 @@ def get_main_publication_info(
 def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
     logging.info(f'Getting comic book info from config file "{ini_file}".')
 
-    config = configparser.ConfigParser(
-        interpolation=configparser.ExtendedInterpolation()
-    )
+    config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
     config.read(ini_file)
 
     title = config["info"]["title"]
-    issue_title = (
-        "" if "issue_title" not in config["info"] else config["info"]["issue_title"]
-    )
+    issue_title = "" if "issue_title" not in config["info"] else config["info"]["issue_title"]
     file_title = config["info"]["file_title"]
     lookup_title = get_lookup_title(title, file_title)
-    intro_inset_file = str(
-        os.path.join(CONFIGS_SUBDIR, get_inset_filename(ini_file, file_title))
-    )
+    intro_inset_file = str(os.path.join(CONFIGS_SUBDIR, get_inset_filename(ini_file, file_title)))
 
     cb_info: ComicBookInfo = stories[lookup_title]
     fanta_info = SOURCE_COMICS[config["info"]["source_comic"]]
-    srce_root_dir = str(os.path.join(BARKS_ROOT_DIR, fanta_info.pub))
+    srce_root_dir = str(os.path.join(BARKS_ROOT_DIR, fanta_info.subdir))
     srce_dir = os.path.join(srce_root_dir, fanta_info.title)
-    srce_fixup_dir = os.path.join(
-        srce_root_dir + "-fixes-and-additions", fanta_info.title
-    )
-    panel_segments_dir = str(
-        os.path.join(
-            BARKS_ROOT_DIR, fanta_info.pub + "-panel-segments", fanta_info.title
-        )
-    )
+    srce_fixup_dir = os.path.join(srce_root_dir + "-fixes-and-additions", fanta_info.title)
+    panel_segments_dir = str(os.path.join(srce_root_dir + "-panel-segments", fanta_info.title))
 
     publication_date = get_formatted_first_published_str(cb_info)
     submitted_date = get_formatted_submitted_date(cb_info)
@@ -332,14 +316,10 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
         title_font_file=get_font_path(
             config["info"].get("title_font_file", INTRO_TITLE_DEFAULT_FONT_FILE)
         ),
-        title_font_size=config["info"].getint(
-            "title_font_size", INTRO_TITLE_DEFAULT_FONT_SIZE
-        ),
+        title_font_size=config["info"].getint("title_font_size", INTRO_TITLE_DEFAULT_FONT_SIZE),
         file_title=file_title,
         issue_title=issue_title,
-        author_font_size=config["info"].getint(
-            "author_font_size", INTRO_AUTHOR_DEFAULT_FONT_SIZE
-        ),
+        author_font_size=config["info"].getint("author_font_size", INTRO_AUTHOR_DEFAULT_FONT_SIZE),
         srce_min_panels_bbox_width=-1,
         srce_max_panels_bbox_width=-1,
         srce_min_panels_bbox_height=-1,
@@ -368,13 +348,9 @@ def get_comic_book(stories: ComicBookInfoDict, ini_file: str) -> ComicBook:
     if not os.path.isdir(comic.srce_dir):
         raise Exception(f'Could not find srce directory "{comic.srce_dir}".')
     if not os.path.isdir(comic.get_srce_image_dir()):
-        raise Exception(
-            f'Could not find srce image directory "{comic.get_srce_image_dir()}".'
-        )
+        raise Exception(f'Could not find srce image directory "{comic.get_srce_image_dir()}".')
     if not os.path.isdir(comic.srce_fixes_dir):
-        raise Exception(
-            f'Could not find srce fixup directory "{comic.srce_fixes_dir}".'
-        )
+        raise Exception(f'Could not find srce fixup directory "{comic.srce_fixes_dir}".')
     if not os.path.isdir(comic.get_srce_fixes_image_dir()):
         raise Exception(
             f'Could not find srce fixup image directory "{comic.get_srce_fixes_image_dir()}".'
