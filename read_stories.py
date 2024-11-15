@@ -5,9 +5,7 @@ from typing import List, Tuple
 
 from consts import THIS_DIR, PUBLICATION_INFO_SUBDIR
 
-STORY_INDEX_FILE = os.path.join(
-    THIS_DIR, PUBLICATION_INFO_SUBDIR, "wiki-story-index.txt"
-)
+STORY_INDEX_FILE = os.path.join(THIS_DIR, PUBLICATION_INFO_SUBDIR, "wiki-story-index.txt")
 
 LONG_MONTHS = {
     "<none>": "<none>",
@@ -100,9 +98,7 @@ def get_all_stories() -> List[StoryInfo]:
 
         title = fields[0]
         if title in titles:
-            raise Exception(
-                f'ERROR: Duplicate title in file "{STORY_INDEX_FILE}": "{title}".'
-            )
+            raise Exception(f'ERROR: Duplicate title in file "{STORY_INDEX_FILE}": "{title}".')
         titles.add(title)
         issue_name = fields[1]
         issue_number = fields[2]
@@ -110,8 +106,6 @@ def get_all_stories() -> List[StoryInfo]:
         issue_month, issue_year = get_issue_month_year(issue_date)
         issue_month = LONG_MONTHS[issue_month]
 
-        all_stories.append(
-            StoryInfo(title, issue_name, issue_number, issue_month, issue_year)
-        )
+        all_stories.append(StoryInfo(title, issue_name, issue_number, issue_month, issue_year))
 
     return all_stories

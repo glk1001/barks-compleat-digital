@@ -75,9 +75,7 @@ class BoundingBoxProcessor(object):
                 y_min,
                 x_max,
                 y_max,
-            ), segment_info = self.__kumiko.get_panel_bounding_box(
-                srce_page_image, srce_filename
-            )
+            ), segment_info = self.__kumiko.get_panel_bounding_box(srce_page_image, srce_filename)
         else:
             logging.warning(f'Using bounded srce file "{file_with_bbox}".')
             srce_bounded_image = Image.open(file_with_bbox, "r")
@@ -92,9 +90,7 @@ class BoundingBoxProcessor(object):
 
         self.__save_segment_info(self.__work_dir, srce_filename, segment_info)
         if dry_run:
-            logging.info(
-                f'{DRY_RUN_STR}: Saving panel segment info to "{panel_segments_dir}".'
-            )
+            logging.info(f'{DRY_RUN_STR}: Saving panel segment info to "{panel_segments_dir}".')
         else:
             self.__save_segment_info(panel_segments_dir, srce_filename, segment_info)
 
@@ -107,20 +103,15 @@ class BoundingBoxProcessor(object):
     ):
         segment_info_filename = os.path.join(
             output_dir,
-            os.path.splitext(os.path.basename(page_filename))[0]
-            + "_panel_segments.json",
+            os.path.splitext(os.path.basename(page_filename))[0] + "-panel-segments.json",
         )
 
         if output_dir == self.__work_dir:
-            logging.debug(
-                f'Saving panel segment info to work file "{segment_info_filename}".'
-            )
+            logging.debug(f'Saving panel segment info to work file "{segment_info_filename}".')
         else:
             logging.debug(f'Saving panel segment info to "{segment_info_filename}".')
 
-        segment_info_filtered = {
-            k: v for k, v in segment_info.items() if k != "processing_time"
-        }
+        segment_info_filtered = {k: v for k, v in segment_info.items() if k != "processing_time"}
         with open(segment_info_filename, "w") as f:
             f.write(f"{segment_info_filtered}\n")
 
@@ -145,10 +136,7 @@ class BoundingBoxProcessor(object):
 
         marked_image_filename = os.path.join(
             self.__work_dir,
-            os.path.splitext(os.path.basename(page_filename))[0]
-            + "_panel_bounds_marked.jpg",
+            os.path.splitext(os.path.basename(page_filename))[0] + "-panel-bounds-marked.jpg",
         )
-        logging.debug(
-            f'Saving panel bounds image to work file "{marked_image_filename}".'
-        )
+        logging.debug(f'Saving panel bounds image to work file "{marked_image_filename}".')
         page_image.save(marked_image_filename, optimize=True, compress_level=5)

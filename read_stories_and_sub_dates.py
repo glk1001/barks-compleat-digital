@@ -117,11 +117,7 @@ all_ki_sub_dates: SubmittedInfoDict = get_all_submitted_info(
 
 
 def get_formatted_submitted_date(info: ComicBookInfo) -> str:
-    month = (
-        "<none>"
-        if info.submitted_month == -1
-        else MONTH_AS_LONG_STR[info.submitted_month]
-    )
+    month = "<none>" if info.submitted_month == -1 else MONTH_AS_LONG_STR[info.submitted_month]
     return f"{month} {get_formatted_day(info.submitted_day)}, {info.submitted_year}"
 
 
@@ -306,9 +302,7 @@ TITLE_FIXUPS: dict[str, str] = {
 TITLE_FIXUPS = {key.lower(): TITLE_FIXUPS[key] for key in TITLE_FIXUPS}
 
 
-def get_submitted_date(
-    title: str, sub_info_list: List[SubmittedInfo]
-) -> Tuple[int, int, int]:
+def get_submitted_date(title: str, sub_info_list: List[SubmittedInfo]) -> Tuple[int, int, int]:
     def get_date(info: SubmittedInfo) -> Tuple[int, int, int]:
         year = -1 if info.submitted_year == "<none>" else int(info.submitted_year)
         month = MONTH_AS_INT[info.submitted_month]
@@ -362,9 +356,7 @@ def get_comic_book_info(story: StoryInfo) -> ComicBookInfo:
         sub_info = all_vp_sub_dates[(VACATION_PARADE_ISSUE_NAME, story.issue_num)]
     elif story.issue_name == "Boys' and Girls' March of Comics":
         issue_name = MC
-        sub_info = all_moc_sub_dates[
-            (MARCH_OF_COMICS_GIVEAWAYS_ISSUE_NAME, story.issue_num)
-        ]
+        sub_info = all_moc_sub_dates[(MARCH_OF_COMICS_GIVEAWAYS_ISSUE_NAME, story.issue_num)]
     elif story.issue_name == "Firestone Giveaway":
         issue_name = FG
         sub_info = all_fg_sub_dates[(FIRESTONE_GIVEAWAYS_ISSUE_NAME, story.issue_num)]

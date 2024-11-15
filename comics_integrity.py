@@ -264,9 +264,7 @@ def check_unexpected_files(
             if file in [IMAGES_SUBDIR, ini_file]:
                 continue
             if file not in DEST_NON_IMAGE_FILES:
-                print(
-                    f'ERROR: The info file "{os.path.join(dest_dir, file)}" was unexpected.'
-                )
+                print(f'ERROR: The info file "{os.path.join(dest_dir, file)}" was unexpected.')
                 ret_code = 1
 
     if dest_dirs_info_list:
@@ -282,15 +280,11 @@ def check_unexpected_files(
 
     if allowed_zip_series_symlinks:
         for dest_dir in allowed_zip_series_symlink_dirs:
-            if check_files_in_dir(
-                "series", dest_dir, list(allowed_zip_series_symlinks)
-            ):
+            if check_files_in_dir("series", dest_dir, list(allowed_zip_series_symlinks)):
                 ret_code = 1
 
     if allowed_zip_year_symlinks:
-        year_symlink_parent_dir = os.path.dirname(
-            list(allowed_zip_year_symlink_dirs)[0]
-        )
+        year_symlink_parent_dir = os.path.dirname(list(allowed_zip_year_symlink_dirs)[0])
         if 0 != check_files_in_dir(
             "year dir", year_symlink_parent_dir, list(allowed_zip_year_symlink_dirs)
         ):
@@ -348,37 +342,27 @@ def check_zip_files(comic: ComicBook, errors: OutOfDateErrors) -> None:
 
     if not os.path.exists(comic.get_dest_series_comic_zip_symlink()):
         errors.series_zip_symlink_errors.missing = True
-        errors.series_zip_symlink_errors.symlink = (
-            comic.get_dest_series_comic_zip_symlink()
-        )
+        errors.series_zip_symlink_errors.symlink = comic.get_dest_series_comic_zip_symlink()
         return
 
-    series_zip_symlink_timestamp = get_timestamp(
-        comic.get_dest_series_comic_zip_symlink()
-    )
+    series_zip_symlink_timestamp = get_timestamp(comic.get_dest_series_comic_zip_symlink())
     if series_zip_symlink_timestamp < zip_timestamp:
         errors.series_zip_symlink_errors.out_of_date_wrt_zip = True
         errors.series_zip_symlink_errors.timestamp = series_zip_symlink_timestamp
-        errors.series_zip_symlink_errors.symlink = (
-            comic.get_dest_series_comic_zip_symlink()
-        )
+        errors.series_zip_symlink_errors.symlink = comic.get_dest_series_comic_zip_symlink()
         errors.zip_errors.timestamp = zip_timestamp
         errors.zip_errors.file = comic.get_dest_comic_zip()
 
     if series_zip_symlink_timestamp < ini_timestamp:
         errors.series_zip_symlink_errors.out_of_date_wrt_ini = True
         errors.series_zip_symlink_errors.timestamp = series_zip_symlink_timestamp
-        errors.series_zip_symlink_errors.symlink = (
-            comic.get_dest_series_comic_zip_symlink()
-        )
+        errors.series_zip_symlink_errors.symlink = comic.get_dest_series_comic_zip_symlink()
         errors.ini_timestamp = ini_timestamp
 
     if series_zip_symlink_timestamp < errors.max_dest_timestamp:
         errors.series_zip_symlink_errors.out_of_date_wrt_dest = True
         errors.series_zip_symlink_errors.timestamp = series_zip_symlink_timestamp
-        errors.series_zip_symlink_errors.symlink = (
-            comic.get_dest_series_comic_zip_symlink()
-        )
+        errors.series_zip_symlink_errors.symlink = comic.get_dest_series_comic_zip_symlink()
 
     if not os.path.exists(comic.get_dest_year_comic_zip_symlink()):
         errors.year_zip_symlink_errors.missing = True
@@ -545,10 +529,7 @@ def print_out_of_date_or_missing_errors(errors: OutOfDateErrors) -> None:
     for srce_dest in errors.srce_and_dest_files_missing:
         srce_file = srce_dest[0]
         dest_file = srce_dest[1]
-        print(
-            f'ERROR: There is no dest file "{dest_file}"'
-            f' matching srce file "{srce_file}".'
-        )
+        print(f'ERROR: There is no dest file "{dest_file}"' f' matching srce file "{srce_file}".')
     for srce_dest in errors.srce_and_dest_files_out_of_date:
         srce_file = srce_dest[0]
         dest_file = srce_dest[1]

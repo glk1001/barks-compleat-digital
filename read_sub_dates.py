@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
-
 LONG_MONTHS = {
     "<none>",
     "January",
@@ -63,13 +62,11 @@ def get_all_submitted_info(issue_filename: str, issue_name: str) -> SubmittedInf
 
     all_submitted_info: SubmittedInfoDict = {}
 
-
     def add_info(key: Tuple[str, str], info: SubmittedInfo):
         if key not in all_submitted_info:
             all_submitted_info[key] = [info]
         else:
             all_submitted_info[key].append(info)
-
 
     for line in all_lines:
         # print(line[1])
@@ -89,8 +86,6 @@ def get_all_submitted_info(issue_filename: str, issue_name: str) -> SubmittedInf
         if sub_month not in LONG_MONTHS:
             raise Exception(f"Bad month: '{line[1]}'.")
 
-        add_info((issue_name, issue_number), SubmittedInfo(
-            title, sub_year, sub_month, sub_day
-        ))
+        add_info((issue_name, issue_number), SubmittedInfo(title, sub_year, sub_month, sub_day))
 
     return all_submitted_info

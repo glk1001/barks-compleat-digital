@@ -31,9 +31,7 @@ class KumikoPanelSegmentation:
         logging.debug(f'Getting segment info for "{work_filename}".')
         segment_info = self.__run_kumiko(work_filename)
 
-        x_min, y_min, x_max, y_max = self.__get_min_max_panel_values(
-            segment_info["panels"]
-        )
+        x_min, y_min, x_max, y_max = self.__get_min_max_panel_values(segment_info["panels"])
 
         return (x_min, y_min, x_max, y_max), segment_info
 

@@ -54,20 +54,16 @@ def check_comic_bboxes(
     bounding_boxes_dim: PanelsBoundingBoxesDimensions,
 ):
     min_bbox_width = (
-        bounding_boxes_dim.dest_required_bbox_width
-        - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
+        bounding_boxes_dim.dest_required_bbox_width - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
     )
     max_bbox_width = (
-        bounding_boxes_dim.dest_required_bbox_width
-        + PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
+        bounding_boxes_dim.dest_required_bbox_width + PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
     )
     min_bbox_height = (
-        bounding_boxes_dim.dest_required_bbox_height
-        - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
+        bounding_boxes_dim.dest_required_bbox_height - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
     )
     max_bbox_height = (
-        bounding_boxes_dim.dest_required_bbox_height
-        + PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
+        bounding_boxes_dim.dest_required_bbox_height + PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
     )
 
     for page in bbox_dict:

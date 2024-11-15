@@ -14,9 +14,7 @@ ADAPTIVE_THRESHOLD_CONST_SUBTRACT = 12  # Careful here with including alias arti
 SMALL_FLOAT = 0.0001
 
 LOWER_HSV_BLACK_CUT = np.array([0, 0, 0])
-HIGHER_HSV_BLACK_CUT = np.array(
-    [360, 255, 150]
-)  # getting this right important for thin lines
+HIGHER_HSV_BLACK_CUT = np.array([360, 255, 150])  # getting this right important for thin lines
 
 
 def _median_filter(
@@ -115,9 +113,7 @@ def get_median_filter(input_image: cv.typing.MatLike) -> cv.typing.MatLike:
             enlarged_black_ink_mask,
         )
 
-    filtered_image = _median_filter(
-        input_image, enlarged_black_ink_mask, MEDIAN_BLUR_APERTURE_SIZE
-    )
+    filtered_image = _median_filter(input_image, enlarged_black_ink_mask, MEDIAN_BLUR_APERTURE_SIZE)
     if DEBUG:
         cv.imwrite(
             os.path.join(DEBUG_OUTPUT_DIR, "median-filtered-image.jpg"),
@@ -171,17 +167,13 @@ def get_thickened_black_lines(
 
     filtered_image = input_image.copy()
     if DEBUG:
-        cv.imwrite(
-            os.path.join(DEBUG_OUTPUT_DIR, "filtered-image-1.jpg"), filtered_image
-        )
+        cv.imwrite(os.path.join(DEBUG_OUTPUT_DIR, "filtered-image-1.jpg"), filtered_image)
 
     filtered_image[black_ink_contours_mask > 0] = (0, 0, 0)
     filtered_image = cv.GaussianBlur(filtered_image, (3, 3), sigmaX=0, sigmaY=0)
     # filtered_image = cv.blur(filtered_image, (2, 2), anchor=(-1,-1))
     if DEBUG:
-        cv.imwrite(
-            os.path.join(DEBUG_OUTPUT_DIR, "filtered-image-2.jpg"), filtered_image
-        )
+        cv.imwrite(os.path.join(DEBUG_OUTPUT_DIR, "filtered-image-2.jpg"), filtered_image)
 
     alpha = thicken_alpha
     beta = 1.0 - alpha
@@ -230,15 +222,11 @@ if __name__ == "__main__":
     median_filtered_image = get_median_filter(src_image)
 
     # thicken_line_alpha = 0.0  # depends on the comic - works for turk (test-image-1.jpg)
-    thicken_line_alpha = (
-        0.5  # depends on the comic - works for Sunken Yacht (test-image-2.jpg)
-    )
+    thicken_line_alpha = 0.5  # depends on the comic - works for Sunken Yacht (test-image-2.jpg)
     if thicken_line_alpha < SMALL_FLOAT:
         improved_image = median_filtered_image
     else:
-        improved_image = get_thickened_black_lines(
-            median_filtered_image, thicken_line_alpha
-        )
+        improved_image = get_thickened_black_lines(median_filtered_image, thicken_line_alpha)
 
     cv.imwrite(
         os.path.join(DEBUG_OUTPUT_DIR, "improved-image.jpg"),

@@ -18,9 +18,7 @@ from consts import (
 )
 from panel_bounding_boxes import BoundingBox
 
-THIS_SCRIPT_DIR = os.path.dirname(
-    os.path.abspath(inspect.getfile(inspect.currentframe()))
-)
+THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "empty_page.png")
 TITLE_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
@@ -36,7 +34,7 @@ class CleanPage:
         page_filename: str,
         page_type: PageType,
         page_num: int = -1,
-        page_is_modified: bool = False
+        page_is_modified: bool = False,
     ):
         self.page_filename = page_filename
         self.page_type = page_type
@@ -46,10 +44,7 @@ class CleanPage:
 
 
 def is_fixes_special_case(comic: ComicBook, page: CleanPage) -> bool:
-    if (
-        get_safe_title(comic.title) == "Back to Long Ago!"
-        and page.page_filename == "209"
-    ):
+    if get_safe_title(comic.title) == "Back to Long Ago!" and page.page_filename == "209":
         return page.page_type == PageType.BACK_NO_PANELS
     if comic.file_title == "The Bill Collectors" and page.page_filename == "227":
         return page.page_type == PageType.BODY
@@ -160,9 +155,7 @@ def get_srce_and_dest_pages_in_order(
 
         srce_file, is_modified_srce_file = get_checked_srce_file(comic, page)
         file_num_str = f"{file_section_num}-{file_page_num:02d}"
-        dest_file = os.path.join(
-            comic.get_dest_image_dir(), file_num_str + DEST_FILE_EXT
-        )
+        dest_file = os.path.join(comic.get_dest_image_dir(), file_num_str + DEST_FILE_EXT)
 
         srce_page_list.append(
             CleanPage(srce_file, page.page_type, page.page_num, is_modified_srce_file)
@@ -196,9 +189,7 @@ def get_checked_srce_file(comic: ComicBook, page: CleanPage) -> Tuple[str, bool]
 
 
 def get_srce_file(comic: ComicBook, page: CleanPage) -> Tuple[str, bool]:
-    srce_file = os.path.join(
-        comic.get_srce_image_dir(), page.page_filename + SRCE_FILE_EXT
-    )
+    srce_file = os.path.join(comic.get_srce_image_dir(), page.page_filename + SRCE_FILE_EXT)
     srce_fixes_file = os.path.join(
         comic.get_srce_fixes_image_dir(), page.page_filename + SRCE_FILE_EXT
     )
@@ -214,9 +205,7 @@ def get_srce_file(comic: ComicBook, page: CleanPage) -> Tuple[str, bool]:
         else:
             logging.info(f'NOTE: Using fixes srce file: "{srce_fixes_file}".')
             if page.page_type not in [PageType.COVER, PageType.BODY]:
-                raise Exception(
-                    f"Expected fixes page to be COVER or BODY: '{page.page_filename}'."
-                )
+                raise Exception(f"Expected fixes page to be COVER or BODY: '{page.page_filename}'.")
     elif is_fixes_special_case(comic, page):
         logging.info(
             f"NOTE: Special case - using ADDED fixes srce file for {page.page_type.name} page:"
@@ -224,13 +213,10 @@ def get_srce_file(comic: ComicBook, page: CleanPage) -> Tuple[str, bool]:
         )
     else:
         logging.info(
-            f"NOTE: Using added srce file of type {page.page_type.name}:"
-            f' "{srce_fixes_file}".'
+            f"NOTE: Using added srce file of type {page.page_type.name}:" f' "{srce_fixes_file}".'
         )
         if page.page_type in [PageType.COVER, PageType.BODY]:
-            raise Exception(
-                f"Expected added page to be NOT COVER OR BODY: '{page.page_filename}'."
-            )
+            raise Exception(f"Expected added page to be NOT COVER OR BODY: '{page.page_filename}'.")
 
     is_modified_file = page.page_type in [PageType.COVER, PageType.BODY]
 

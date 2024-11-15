@@ -18,7 +18,6 @@ from image_io import open_image_for_reading
 from pages import CleanPage, SrceAndDestPages
 from panel_bounding_boxes import BoundingBox, BoundingBoxProcessor
 
-
 bounding_box_processor: BoundingBoxProcessor
 
 
@@ -63,9 +62,7 @@ def get_required_panels_bbox_width_height(
 def get_scaled_panels_bbox_height(
     scaled_panels_bbox_width: int, panels_bbox_width, panels_bbox_height: int
 ) -> int:
-    return int(
-        round((panels_bbox_height * scaled_panels_bbox_width) / panels_bbox_width)
-    )
+    return int(round((panels_bbox_height * scaled_panels_bbox_width) / panels_bbox_width))
 
 
 def get_average_panels_bbox_width_height(
@@ -79,9 +76,7 @@ def get_average_panels_bbox_width_height(
             continue
 
         panels_height = srce_page.panels_bbox.get_height()
-        if panels_height < (
-            max_panels_bbox_height - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
-        ):
+        if panels_height < (max_panels_bbox_height - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN):
             continue
 
         panels_width = srce_page.panels_bbox.get_width()
@@ -161,8 +156,7 @@ def get_panels_bounding_box(
     srce_page_bounding_box_filename = str(
         os.path.join(
             comic.panel_segments_dir,
-            os.path.splitext(os.path.basename(srce_page.page_filename))[0]
-            + "_panel_bounds.txt",
+            os.path.splitext(os.path.basename(srce_page.page_filename))[0] + "_panel_bounds.txt",
         )
     )
 
@@ -263,6 +257,4 @@ def get_dest_panel_bounding_box(comic: ComicBook, srce_page: CleanPage) -> Bound
     dest_panels_x_max = dest_panels_x_min + (required_panels_width - 1)
     dest_panels_y_max = dest_panels_y_min + (required_panels_height - 1)
 
-    return BoundingBox(
-        dest_panels_x_min, dest_panels_y_min, dest_panels_x_max, dest_panels_y_max
-    )
+    return BoundingBox(dest_panels_x_min, dest_panels_y_min, dest_panels_x_max, dest_panels_y_max)

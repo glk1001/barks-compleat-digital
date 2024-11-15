@@ -59,14 +59,11 @@ def write_summary(
         logging.info(f'{DRY_RUN_STR}: Writing summary file "{summary_file}".')
         return
 
-    series_symlink_timestamp = get_timestamp_str(
-        comic.get_dest_series_comic_zip_symlink()
-    )
+    series_symlink_timestamp = get_timestamp_str(comic.get_dest_series_comic_zip_symlink())
     year_symlink_timestamp = get_timestamp_str(comic.get_dest_year_comic_zip_symlink())
 
     has_modified_cover = any(
-        srce.page_is_modified and srce.page_type == PageType.COVER
-        for srce in pages.srce_pages
+        srce.page_is_modified and srce.page_type == PageType.COVER for srce in pages.srce_pages
     )
     modified_body_pages = [
         get_page_num_str(dest)
@@ -77,9 +74,7 @@ def write_summary(
     with open(summary_file, "w") as f:
         f.write("Run Summary:\n")
         f.write(f"time of run              = {timing.start_time}\n")
-        f.write(
-            f"time taken               = {timing.get_elapsed_time_in_seconds()} seconds\n"
-        )
+        f.write(f"time taken               = {timing.get_elapsed_time_in_seconds()} seconds\n")
         f.write(f'title                    = "{comic.title}"\n')
         f.write(f'file title               = "{comic.file_title}"\n')
         f.write(f'issue title              = "{comic.issue_title}"\n')
@@ -89,24 +84,14 @@ def write_summary(
         f.write(f'srce fixes_dir           = "{comic.srce_fixes_dir}"\n')
         f.write(f'dest dir                 = "{comic.get_dest_dir()}"\n')
         f.write(f'dest comic_zip           = "{comic.get_dest_comic_zip()}"\n')
-        f.write(
-            f'dest series zip symlink  = "{comic.get_dest_series_comic_zip_symlink()}"\n'
-        )
-        f.write(
-            f'dest year zip symlink    = "{comic.get_dest_year_comic_zip_symlink()}"\n'
-        )
+        f.write(f'dest series zip symlink  = "{comic.get_dest_series_comic_zip_symlink()}"\n')
+        f.write(f'dest year zip symlink    = "{comic.get_dest_year_comic_zip_symlink()}"\n')
         f.write(f'ini file timestamp       = "{get_timestamp_str(comic.ini_file)}"\n')
-        f.write(
-            f'max dest timestamp       = "{get_timestamp_as_str(max_dest_timestamp)}"\n'
-        )
-        f.write(
-            f'comic zip timestamp      = "{get_timestamp_str(comic.get_dest_comic_zip())}"\n'
-        )
+        f.write(f'max dest timestamp       = "{get_timestamp_as_str(max_dest_timestamp)}"\n')
+        f.write(f'comic zip timestamp      = "{get_timestamp_str(comic.get_dest_comic_zip())}"\n')
         f.write(f'series symlink timestamp = "{series_symlink_timestamp}"\n')
         f.write(f'year symlink timestamp   = "{year_symlink_timestamp}"\n')
-        f.write(
-            f'title font file          = "{get_font_path(comic.title_font_file)}"\n'
-        )
+        f.write(f'title font file          = "{get_font_path(comic.title_font_file)}"\n')
         f.write(f"chronological number     = {comic.chronological_number}\n")
         f.write(f'series                   = "{comic.series_name}"\n')
         f.write(f"series book num          = {comic.number_in_series}\n")
@@ -140,18 +125,13 @@ def write_summary(
 
         f.write("Pages Config Summary:\n")
         for pg in comic.images_in_order:
-            f.write(
-                f"pages = {pg.page_filenames:11},"
-                f" page type = {pg.page_type.name:12}\n"
-            )
+            f.write(f"pages = {pg.page_filenames:11}," f" page type = {pg.page_type.name:12}\n")
         f.write("\n")
 
         f.write("Page List Summary:\n")
         for srce_page, dest_page in zip(pages.srce_pages, pages.dest_pages):
             srce_is_modded = " ***M" if srce_page.page_is_modified else ""
-            srce_filename = (
-                f'"{os.path.basename(srce_page.page_filename)}" {srce_is_modded}'
-            )
+            srce_filename = f'"{os.path.basename(srce_page.page_filename)}" {srce_is_modded}'
             dest_filename = f'"{os.path.basename(dest_page.page_filename)}"'
             dest_page_type = f'"{dest_page.page_type.name}"'
             f.write(
@@ -249,23 +229,15 @@ def get_page_counts(dest_pages: List[CleanPage]) -> Dict[str, int]:
 
     splash_page_count = len([p for p in dest_pages if p.page_type in SPLASH_PAGES])
 
-    front_matter_page_count = len(
-        [p for p in dest_pages if p.page_type == PageType.FRONT_MATTER]
-    )
+    front_matter_page_count = len([p for p in dest_pages if p.page_type == PageType.FRONT_MATTER])
 
     story_page_count = len([p for p in dest_pages if p.page_type == PageType.BODY])
 
     back_matter_page_count = len(
-        [
-            p
-            for p in dest_pages
-            if p.page_type in [PageType.BACK_MATTER, PageType.BACK_NO_PANELS]
-        ]
+        [p for p in dest_pages if p.page_type in [PageType.BACK_MATTER, PageType.BACK_NO_PANELS]]
     )
 
-    blank_page_count = len(
-        [p for p in dest_pages if p.page_type == PageType.BLANK_PAGE]
-    )
+    blank_page_count = len([p for p in dest_pages if p.page_type == PageType.BLANK_PAGE])
 
     total_page_count = len(dest_pages)
     assert total_page_count == (

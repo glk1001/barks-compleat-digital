@@ -171,8 +171,8 @@ def show_all_mods(ini_files: List[str], comic_book_info: ComicBookInfoDict) -> i
         title_str = title + ":"
         dest_mods = f"{'Dest':<6} - {mods[0]}"
         srce_mods = mods[1]
-        print(f"{title_str:<{max_title_len+1}} {dest_mods}")
-        print(f'{" ":<{max_title_len+1}} {srce_mods}')
+        print(f"{title_str:<{max_title_len + 1}} {dest_mods}")
+        print(f'{" ":<{max_title_len + 1}} {srce_mods}')
 
     return 0
 
@@ -259,9 +259,7 @@ def build_comic_book(
     return srce_and_dest_pages, max_dest_timestamp
 
 
-def create_comic_book(
-    dry_run: bool, comic: ComicBook, caching: bool
-) -> SrceAndDestPages:
+def create_comic_book(dry_run: bool, comic: ComicBook, caching: bool) -> SrceAndDestPages:
     pages = get_srce_and_dest_pages_in_order(comic)
 
     set_srce_panel_bounding_boxes(dry_run, caching, comic, pages.srce_pages)
@@ -294,16 +292,12 @@ def process_pages(
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
         for srce_page, dest_page in zip(pages.srce_pages, pages.dest_pages):
-            executor.submit(
-                process_page, dry_run, cache_pages, comic, srce_page, dest_page
-            )
+            executor.submit(process_page, dry_run, cache_pages, comic, srce_page, dest_page)
 
 
 def delete_all_files_in_directory(dry_run: bool, directory_path: str):
     if dry_run:
-        logging.info(
-            f'{DRY_RUN_STR}: Deleting all files in directory "{directory_path}".'
-        )
+        logging.info(f'{DRY_RUN_STR}: Deleting all files in directory "{directory_path}".')
         return
 
     logging.debug(f'Deleting all files in directory "{directory_path}".')
@@ -336,25 +330,13 @@ def set_required_dimensions(
     comic.required_dim.panels_bbox_width = required_panels_bbox_width
     comic.required_dim.panels_bbox_height = required_panels_bbox_height
 
-    page_num_y_centre = int(
-        round(0.5 * (0.5 * (DEST_TARGET_HEIGHT - required_panels_bbox_height)))
-    )
-    comic.required_dim.page_num_y_bottom = int(
-        page_num_y_centre - (PAGE_NUM_HEIGHT / 2)
-    )
+    page_num_y_centre = int(round(0.5 * (0.5 * (DEST_TARGET_HEIGHT - required_panels_bbox_height))))
+    comic.required_dim.page_num_y_bottom = int(page_num_y_centre - (PAGE_NUM_HEIGHT / 2))
 
-    logging.debug(
-        f"Set srce average panels bbox width to {comic.srce_av_panels_bbox_width}."
-    )
-    logging.debug(
-        f"Set srce average panels bbox height to {comic.srce_av_panels_bbox_height}."
-    )
-    logging.debug(
-        f"Set required panels bbox width to {comic.required_dim.panels_bbox_width}."
-    )
-    logging.debug(
-        f"Set required panels bbox height to {comic.required_dim.panels_bbox_height}."
-    )
+    logging.debug(f"Set srce average panels bbox width to {comic.srce_av_panels_bbox_width}.")
+    logging.debug(f"Set srce average panels bbox height to {comic.srce_av_panels_bbox_height}.")
+    logging.debug(f"Set required panels bbox width to {comic.required_dim.panels_bbox_width}.")
+    logging.debug(f"Set required panels bbox height to {comic.required_dim.panels_bbox_height}.")
     logging.debug(f"Set page num y bottom to {comic.required_dim.page_num_y_bottom}.")
     logging.debug("")
 
@@ -375,10 +357,7 @@ def process_page(
     )
 
     srce_page_image = open_image_for_reading(srce_page.page_filename)
-    if (
-        srce_page.page_type == PageType.BODY
-        and srce_page_image.height < MIN_HD_SRCE_HEIGHT
-    ):
+    if srce_page.page_type == PageType.BODY and srce_page_image.height < MIN_HD_SRCE_HEIGHT:
         raise Exception(
             f"Srce image error: min required height {MIN_HD_SRCE_HEIGHT}."
             f' Poor srce file resolution for "{srce_page.page_filename}":'
@@ -388,21 +367,15 @@ def process_page(
     if (
         cache_pages
         and os.path.exists(dest_page.page_filename)
-        and not is_dest_file_out_of_date(
-            srce_page.page_filename, dest_page.page_filename
-        )
+        and not is_dest_file_out_of_date(srce_page.page_filename, dest_page.page_filename)
     ):
-        logging.debug(
-            f'Caching on - using existing page file "{dest_page.page_filename}".'
-        )
+        logging.debug(f'Caching on - using existing page file "{dest_page.page_filename}".')
         return
 
     dest_page_image = get_dest_page_image(comic, srce_page_image, srce_page, dest_page)
 
     if dry_run:
-        logging.info(
-            f'{DRY_RUN_STR}: Save changes to image "{dest_page.page_filename}".'
-        )
+        logging.info(f'{DRY_RUN_STR}: Save changes to image "{dest_page.page_filename}".')
     else:
         dest_page_image.save(
             dest_page.page_filename,
@@ -437,13 +410,9 @@ def get_dest_page_image(
     log_page_info("Dest", None, dest_page)
 
     if dest_page.page_type in PAGES_WITHOUT_PANELS:
-        dest_page_image = get_dest_non_body_page_image(
-            comic, srce_page_image, srce_page, dest_page
-        )
+        dest_page_image = get_dest_non_body_page_image(comic, srce_page_image, srce_page, dest_page)
     else:
-        dest_page_image = get_dest_main_page_image(
-            comic, srce_page_image, srce_page, dest_page
-        )
+        dest_page_image = get_dest_main_page_image(comic, srce_page_image, srce_page, dest_page)
 
     rgb_dest_page_image = dest_page_image.convert("RGB")
 
@@ -492,9 +461,7 @@ def get_dest_non_body_page_image(
     if dest_page.page_type in SPLASH_PAGES:
         return get_dest_splash_page_image(srce_page_image, srce_page)
     if dest_page.page_type == PageType.BACK_NO_PANELS:
-        return get_dest_no_panels_page_image(
-            comic, srce_page_image, srce_page, dest_page
-        )
+        return get_dest_no_panels_page_image(comic, srce_page_image, srce_page, dest_page)
     if dest_page.page_type == PageType.BLANK_PAGE:
         return get_dest_blank_page_image(srce_page_image)
     if dest_page.page_type == PageType.TITLE:
@@ -558,21 +525,15 @@ def get_dest_no_panels_page_image(
 ) -> Image:
     dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
 
-    dest_page_image = get_dest_centred_page_image(
-        no_panels_image, srce_page, dest_page_image
-    )
+    dest_page_image = get_dest_centred_page_image(no_panels_image, srce_page, dest_page_image)
 
     write_page_number(comic, dest_page_image, dest_page, PAGE_NUM_COLOR)
 
     return dest_page_image
 
 
-def get_dest_black_bars_page_image(
-    srce_page_image: Image, srce_page: CleanPage
-) -> Image:
-    dest_page_image = Image.new(
-        "RGB", (DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT), (0, 0, 0)
-    )
+def get_dest_black_bars_page_image(srce_page_image: Image, srce_page: CleanPage) -> Image:
+    dest_page_image = Image.new("RGB", (DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT), (0, 0, 0))
     return get_dest_centred_page_image(srce_page_image, srce_page, dest_page_image)
 
 
@@ -595,9 +556,7 @@ def get_dest_centred_page_image(
         size=(DEST_TARGET_WIDTH, required_height),
         resample=Image.Resampling.BICUBIC,
     )
-    no_margins_aspect_ratio = float(no_margins_image.height) / float(
-        no_margins_image.width
-    )
+    no_margins_aspect_ratio = float(no_margins_image.height) / float(no_margins_image.width)
     assert abs(srce_aspect_ratio - no_margins_aspect_ratio) <= 0.01
 
     if required_height == DEST_TARGET_HEIGHT:
@@ -640,9 +599,7 @@ def get_dest_main_page_image(
     return dest_page_image
 
 
-def get_centred_dest_page_image(
-    dest_page: CleanPage, dest_panels_image: Image
-) -> Image:
+def get_centred_dest_page_image(dest_page: CleanPage, dest_panels_image: Image) -> Image:
     dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
 
     dest_panels_image = dest_panels_image.resize(
@@ -689,9 +646,7 @@ def write_introduction(comic: ComicBook, dest_page_image: Image):
     text = f"{BARKS}"
     author_font = ImageFont.truetype(comic.title_font_file, comic.author_font_size)
     text_height = get_intro_text_height(draw, text, author_font)
-    draw_centered_text(
-        text, dest_page_image, draw, author_font, INTRO_AUTHOR_COLOR, top
-    )
+    draw_centered_text(text, dest_page_image, draw, author_font, INTRO_AUTHOR_COLOR, top)
     top += text_height + INTRO_AUTHOR_INSET_GAP
 
     pub_text_font = ImageFont.truetype(
@@ -750,16 +705,12 @@ def get_resized_inset(
 
 
 def get_intro_text_height(draw: ImageDraw.Draw, text: str, font: ImageFont) -> int:
-    text_bbox = draw.multiline_textbbox(
-        (0, 0), text, font=font, spacing=INTRO_TITLE_SPACING
-    )
+    text_bbox = draw.multiline_textbbox((0, 0), text, font=font, spacing=INTRO_TITLE_SPACING)
     return text_bbox[3] - text_bbox[1]
 
 
 def get_intro_text_width(draw: ImageDraw.Draw, text: str, font: ImageFont) -> int:
-    text_bbox = draw.multiline_textbbox(
-        (0, 0), text, font=font, spacing=INTRO_TITLE_SPACING
-    )
+    text_bbox = draw.multiline_textbbox((0, 0), text, font=font, spacing=INTRO_TITLE_SPACING)
     return text_bbox[2] - text_bbox[0]
 
 
@@ -804,9 +755,7 @@ def get_comics_and_stories_title_and_fonts(
     return title_split, title_fonts, text_height
 
 
-def draw_centered_text(
-    text: str, image: Image, draw: ImageDraw, font: ImageFont, color, top: int
-):
+def draw_centered_text(text: str, image: Image, draw: ImageDraw, font: ImageFont, color, top: int):
     w = draw.textlength(text, font)
     # h = font.getbbox(text)[3]
     left = (image.width - w) / 2
@@ -824,9 +773,7 @@ def draw_centered_multiline_text(
 ):
     text_width = get_intro_text_width(draw, text, font)
     left = (image.width - text_width) / 2
-    draw.multiline_text(
-        (left, top), text, fill=color, font=font, align="center", spacing=spacing
-    )
+    draw.multiline_text((left, top), text, fill=color, font=font, align="center", spacing=spacing)
 
 
 def draw_centered_multiline_title_text(
@@ -933,9 +880,7 @@ def draw_superscript_title_text(
     )
 
 
-def write_page_number(
-    comic: ComicBook, dest_page_image: Image, dest_page: CleanPage, color
-):
+def write_page_number(comic: ComicBook, dest_page_image: Image, dest_page: CleanPage, color):
     draw = ImageDraw.Draw(dest_page_image)
 
     dest_page_centre = int(dest_page_image.width / 2)
@@ -981,9 +926,7 @@ def write_page_number(
 
 def process_additional_files(dry_run: bool, comic: ComicBook, pages: SrceAndDestPages):
     if dry_run:
-        logging.info(
-            f'{DRY_RUN_STR}: shutil.copy2("{comic.ini_file}", "{comic.get_dest_dir()}")'
-        )
+        logging.info(f'{DRY_RUN_STR}: shutil.copy2("{comic.ini_file}", "{comic.get_dest_dir()}")')
     else:
         shutil.copy2(comic.ini_file, comic.get_dest_dir())
 
@@ -997,9 +940,7 @@ def process_additional_files(dry_run: bool, comic: ComicBook, pages: SrceAndDest
 def create_dest_dirs(dry_run: bool, comic: ComicBook):
     if not os.path.isdir(comic.get_dest_image_dir()):
         if dry_run:
-            logging.info(
-                f'{DRY_RUN_STR} Would have made directory "{comic.get_dest_image_dir()}".'
-            )
+            logging.info(f'{DRY_RUN_STR} Would have made directory "{comic.get_dest_image_dir()}".')
             return
         os.makedirs(comic.get_dest_image_dir())
 
@@ -1050,9 +991,7 @@ def get_work_dir(wrk_dir_root: str) -> str:
     if not os.path.isdir(wrk_dir_root):
         raise Exception(f'Could not find work root directory "{wrk_dir_root}".')
 
-    wrk_dir = os.path.join(
-        wrk_dir_root, datetime.now().strftime("%Y_%m_%d-%H_%M_%S.%f")
-    )
+    wrk_dir = os.path.join(wrk_dir_root, datetime.now().strftime("%Y_%m_%d-%H_%M_%S.%f"))
     os.makedirs(wrk_dir)
 
     return wrk_dir
@@ -1087,35 +1026,21 @@ def get_args():
         required=True,
     )
 
-    build_all_parser = subparsers.add_parser(
-        BUILD_ALL_ARG, help="build all available comics"
-    )
-    build_all_parser.add_argument(
-        CONFIG_DIR_ARG, action="store", type=str, required=True
-    )
-    build_all_parser.add_argument(
-        JUST_ZIP_ARG, action="store_true", required=False, default=False
-    )
+    build_all_parser = subparsers.add_parser(BUILD_ALL_ARG, help="build all available comics")
+    build_all_parser.add_argument(CONFIG_DIR_ARG, action="store", type=str, required=True)
+    build_all_parser.add_argument(JUST_ZIP_ARG, action="store_true", required=False, default=False)
     build_all_parser.add_argument(
         JUST_SYMLINKS_ARG, action="store_true", required=False, default=False
     )
-    build_all_parser.add_argument(
-        DRY_RUN_ARG, action="store_true", required=False, default=False
-    )
-    build_all_parser.add_argument(
-        NO_CACHE_ARG, action="store_true", required=False, default=False
-    )
+    build_all_parser.add_argument(DRY_RUN_ARG, action="store_true", required=False, default=False)
+    build_all_parser.add_argument(NO_CACHE_ARG, action="store_true", required=False, default=False)
     build_all_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
     build_all_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
 
-    build_single_parser = subparsers.add_parser(
-        BUILD_SINGLE_ARG, help="build a single comic"
-    )
-    build_single_parser.add_argument(
-        INI_FILE_ARG, action="store", type=str, required=True
-    )
+    build_single_parser = subparsers.add_parser(BUILD_SINGLE_ARG, help="build a single comic")
+    build_single_parser.add_argument(INI_FILE_ARG, action="store", type=str, required=True)
     build_single_parser.add_argument(
         JUST_ZIP_ARG, action="store_true", required=False, default=False
     )
@@ -1136,15 +1061,9 @@ def get_args():
     list_cmds_parser = subparsers.add_parser(
         LIST_CMDS_ARG, help="list the python commands to build all comics"
     )
-    list_cmds_parser.add_argument(
-        CONFIG_DIR_ARG, action="store", type=str, required=True
-    )
-    list_cmds_parser.add_argument(
-        DRY_RUN_ARG, action="store_true", required=False, default=False
-    )
-    list_cmds_parser.add_argument(
-        NO_CACHE_ARG, action="store_true", required=False, default=False
-    )
+    list_cmds_parser.add_argument(CONFIG_DIR_ARG, action="store", type=str, required=True)
+    list_cmds_parser.add_argument(DRY_RUN_ARG, action="store_true", required=False, default=False)
+    list_cmds_parser.add_argument(NO_CACHE_ARG, action="store_true", required=False, default=False)
     list_cmds_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
@@ -1153,20 +1072,14 @@ def get_args():
     check_integrity_parser = subparsers.add_parser(
         CHECK_INTEGRITY_ARG, help="check the integrity of all previously built comics"
     )
-    check_integrity_parser.add_argument(
-        CONFIG_DIR_ARG, action="store", type=str, required=True
-    )
+    check_integrity_parser.add_argument(CONFIG_DIR_ARG, action="store", type=str, required=True)
     check_integrity_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
     check_integrity_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
 
-    show_mods_parser = subparsers.add_parser(
-        SHOW_MODS_ARG, help="list all modified pages"
-    )
-    show_mods_parser.add_argument(
-        CONFIG_DIR_ARG, action="store", type=str, required=True
-    )
+    show_mods_parser = subparsers.add_parser(SHOW_MODS_ARG, help="list all modified pages")
+    show_mods_parser.add_argument(CONFIG_DIR_ARG, action="store", type=str, required=True)
     show_mods_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )

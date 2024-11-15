@@ -112,7 +112,6 @@ MEDIAN_FILTERABLE_PAGES = [
     PageType.BACK_MATTER,
 ]
 
-
 FONT_DIR = os.path.join(str(Path.home()), "Prj", "fonts")
 INTRO_TITLE_DEFAULT_FONT_FILE = os.path.join(FONT_DIR, "Carl Barks Script.ttf")
 INTRO_TEXT_FONT_FILE = "Verdana Italic.ttf"
