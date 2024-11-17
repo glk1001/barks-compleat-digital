@@ -343,7 +343,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Good Deeds": SeriesInfo("?", SERIES_CS),
     "The Limber W. Guest Ranch": SeriesInfo("?", SERIES_CS),
     "The Mighty Trapper": SeriesInfo("?", SERIES_CS),
-    "Good Neighbors": SeriesInfo("?", SERIES_CS),
+    "Good Neighbors": SeriesInfo(BIGD, SERIES_CS),
     "Salesman Donald": SeriesInfo("?", SERIES_CS),
     "Snow Fun": SeriesInfo("?", SERIES_CS),
     "The Duck in the Iron Pants": SeriesInfo("?", SERIES_CS),
