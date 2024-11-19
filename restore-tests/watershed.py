@@ -51,7 +51,8 @@ class App:
 
 
 if __name__ == '__main__':
-    image_file = "/home/greg/Prj/github/mcomix-barks-tools/simple-test-image.jpg"
+#    image_file = "/home/greg/Prj/github/barks-compleat-digital/restore-tests/simple-test-image.jpg"
+    image_file = "/home/greg/Prj/github/restore-barks/experiments/test-image-2.jpg"
     src_image = cv.imread(image_file)
     gray = cv.cvtColor(src_image, cv.COLOR_BGR2GRAY)
     ret, bin_img = cv.threshold(gray,
@@ -90,14 +91,25 @@ if __name__ == '__main__':
     markers += 1
     # mark the region of unknown with zero
     markers[unknown == 255] = 0
-    # cv.imwrite("/tmp/junk-markers.jpg", markers)
+    cv.imwrite("/tmp/junk-markers.jpg", markers)
 
     # watershed Algorithm
     markers = cv.watershed(src_image, markers)
     src_image[markers == -1] = [0,0,255]
     cv.imwrite("/tmp/junk-watershed-img.jpg", src_image)
 
-    # app = App("/home/greg/Prj/github/mcomix-barks-tools/simple-test-image.jpg")
+    # app = App("/home/greg/Prj/github/barks-compleat-digital/simple-test-image.jpg")
     # vis = app.watershed()
     # cv.imwrite("/tmp/junk-watershed.jpg", vis)
 
+    for label in np.unique(markers):
+        # if the label is zero, we are examining the 'background'
+        # so simply ignore it
+        if label == 1:
+            continue
+        # otherwise, allocate memory for the label region and draw
+        # it on the mask
+        mask = np.zeros(gray.shape, dtype="uint8")
+        mask[markers == label] = 255
+        file = f"/tmp/junk-label-{label}.jpg"
+        cv.imwrite(file, mask)
