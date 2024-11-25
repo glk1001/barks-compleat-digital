@@ -2,8 +2,9 @@ import os
 from dataclasses import dataclass
 from typing import List, Tuple, Set
 
-from barks_fantagraphics.comic_book import ComicBook, get_comic_book
-from barks_fantagraphics.comics_info import ComicBookInfoDict, FAN
+from barks_fantagraphics.comic_book import ComicBook
+from barks_fantagraphics.comics_database import ComicsDatabase
+from barks_fantagraphics.comics_info import FAN
 from barks_fantagraphics.consts import (
     BARKS_ROOT_DIR,
     THE_CHRONOLOGICAL_DIRS_DIR,
@@ -104,11 +105,7 @@ def check_folder_and_contents_are_readonly(dir_path: str) -> int:
     return ret_code
 
 
-def check_comics_integrity(
-    titles_dir: str,
-    story_titles: List[str],
-    comic_book_info: ComicBookInfoDict,
-) -> int:
+def check_comics_integrity(comics_db: ComicsDatabase) -> int:
     print()
 
     if check_comics_source_is_readonly() != 0:
@@ -121,11 +118,10 @@ def check_comics_integrity(
     zip_year_symlink_dirs = set()
     zip_year_symlinks = []
     ret_code = 0
-    for title in story_titles:
-        ini_file = os.path.join(titles_dir, title + ".ini")
-        comic = get_comic_book(comic_book_info, ini_file)
+    for title in comics_db.get_all_story_titles():
+        comic = comics_db.get_comic_book(title)
 
-        dest_dirs.append((ini_file, comic.get_dest_dir()))
+        dest_dirs.append((comics_db.get_ini_file(title), comic.get_dest_dir()))
         zip_files.append(comic.get_dest_comic_zip())
         zip_series_symlink_dirs.add(comic.get_dest_series_zip_symlink_dir())
         zip_series_symlinks.append(comic.get_dest_series_comic_zip_symlink())
