@@ -34,7 +34,6 @@ from barks_fantagraphics.comics_info import (
 )
 from barks_fantagraphics.consts import (
     DRY_RUN_STR,
-    PUBLICATION_INFO_SUBDIR,
     STORY_TITLES_DIR,
     BARKS,
     DEST_TARGET_WIDTH,
@@ -72,10 +71,8 @@ from panel_bounding import (
     set_dest_panel_bounding_boxes,
 )
 from timing import Timing
-from utils import get_ini_files
+from utils import get_all_story_titles
 from zipping import zip_comic_book, create_symlinks_to_comic_zip
-
-STORIES_INFO_FILENAME = "the-stories.csv"
 
 INTRO_TOP = 350
 INTRO_BOTTOM_MARGIN = INTRO_TOP
@@ -107,18 +104,20 @@ class CmdOptions:
     no_cache: bool = False
     just_zip: bool = False
     just_symlinks: bool = False
+    story_info_dir: str = ""
 
 
 def process_comic_books(
     options: CmdOptions,
-    titles_ini_dir: str,
-    ini_files: List[str],
+    titles_dir: str,
+    story_titles: List[str],
     comic_book_info: ComicBookInfoDict,
 ) -> int:
-    logging.info(f'Processing all ini files in "{titles_ini_dir}".')
+    logging.info(f'Processing all titles in "{titles_dir}".')
 
     ret_code = 0
-    for ini_file in ini_files:
+    for title in story_titles:
+        ini_file = os.path.join(titles_dir, title + ".ini")
         comic = get_comic_book(comic_book_info, ini_file)
         if 0 != process_comic_book(options, comic):
             ret_code = 1
@@ -126,31 +125,36 @@ def process_comic_books(
     return ret_code
 
 
-def print_all_cmds(options: CmdOptions, ini_files: List[str]) -> int:
-    for ini_file in ini_files:
-        if 0 != print_cmd(options, ini_file):
+def print_all_cmds(options: CmdOptions, info_dir: str, story_titles: List[str]) -> int:
+    for title in story_titles:
+        if 0 != print_cmd(options, info_dir, title):
             return 1
 
     return 0
 
 
-def print_cmd(options: CmdOptions, ini_file: str) -> int:
+def print_cmd(options: CmdOptions, info_dir: str, story_title: str) -> int:
     dry_run_arg = "" if not options.dry_run else f" {DRY_RUN_ARG}"
     just_symlinks_arg = "" if not options.just_symlinks else f" {JUST_SYMLINKS_ARG}"
     no_cache_arg = "" if not options.no_cache else f" {NO_CACHE_ARG}"
     print(
         f"python3 {__file__} {BUILD_SINGLE_ARG}"
         f"{dry_run_arg}{just_symlinks_arg}{no_cache_arg}"
-        f' {WORK_DIR_ARG} "{work_dir_root}" {STORY_TITLE_ARG} {shlex.quote(ini_file)}'
+        f' {WORK_DIR_ARG} "{work_dir_root}"'
+        f' {STORY_INFO_DIR_ARG} "{os.path.realpath(info_dir)}"'
+        f" {STORY_TITLE_ARG} {shlex.quote(story_title)}"
     )
 
     return 0
 
 
-def show_all_mods(ini_files: List[str], comic_book_info: ComicBookInfoDict) -> int:
+def show_all_mods(
+    titles_dir: str, story_titles: List[str], comic_book_info: ComicBookInfoDict
+) -> int:
     mod_dict = OrderedDict()
     max_title_len = 0
-    for ini_file in ini_files:
+    for title in story_titles:
+        ini_file = os.path.join(titles_dir, title + ".ini")
         comic = get_comic_book(comic_book_info, ini_file)
 
         mods = get_mods(comic)
@@ -200,9 +204,11 @@ def get_mods(comic: ComicBook) -> Union[None, Tuple[str, Tuple[str, str]]]:
 
 def process_single_comic_book(
     options: CmdOptions,
-    ini_file: str,
+    titles_dir: str,
+    story_title: str,
     comic_book_info: ComicBookInfoDict,
 ) -> int:
+    ini_file = os.path.join(titles_dir, story_title + ".ini")
     comic = get_comic_book(comic_book_info, ini_file)
     return process_comic_book(options, comic)
 
@@ -952,18 +958,6 @@ def get_story_info_dir(story_dir: str) -> str:
     return real_story_info_dir
 
 
-def get_config_file(ini_file: str) -> str:
-    real_ini_file = os.path.realpath(ini_file)
-
-    if os.path.islink(ini_file):
-        logging.debug(f'Converted ini symlink "{ini_file}" to "{real_ini_file}".')
-
-    if not os.path.isfile(real_ini_file):
-        raise Exception(f'Could not find ini file "{real_ini_file}".')
-
-    return real_ini_file
-
-
 def get_work_dir(wrk_dir_root: str) -> str:
     os.makedirs(wrk_dir_root, exist_ok=True)
     if not os.path.isdir(wrk_dir_root):
@@ -1088,30 +1082,27 @@ if __name__ == "__main__":
 
     story_info_dir = get_story_info_dir(cmd_args.story_info_dir)
     story_titles_dir = os.path.join(story_info_dir, STORY_TITLES_DIR)
-    all_comic_book_info = get_all_comic_book_info(
-        str(os.path.join(story_info_dir, PUBLICATION_INFO_SUBDIR, STORIES_INFO_FILENAME))
-    )
+    all_comic_book_info = get_all_comic_book_info(story_info_dir)
 
     init_bounding_box_processor(work_dir)
 
     if cmd_args.cmd_name == CHECK_INTEGRITY_ARG:
-        all_ini_files = get_ini_files(story_titles_dir)
-        exit_code = check_comics_integrity(all_ini_files, all_comic_book_info)
+        all_story_titles = get_all_story_titles(story_titles_dir)
+        exit_code = check_comics_integrity(story_titles_dir, all_story_titles, all_comic_book_info)
     elif cmd_args.cmd_name == LIST_CMDS_ARG:
-        all_ini_files = get_ini_files(story_titles_dir)
-        exit_code = print_all_cmds(get_cmd_options(cmd_args), all_ini_files)
+        all_story_titles = get_all_story_titles(story_titles_dir)
+        exit_code = print_all_cmds(get_cmd_options(cmd_args), story_info_dir, all_story_titles)
     elif cmd_args.cmd_name == SHOW_MODS_ARG:
-        all_ini_files = get_ini_files(story_titles_dir)
-        exit_code = show_all_mods(all_ini_files, all_comic_book_info)
-    elif cmd_args.cmd_name == BUILD_SINGLE_ARG:
-        story_ini_file = os.path.join(story_titles_dir, cmd_args.story_title + ".ini")
-        exit_code = process_single_comic_book(
-            get_cmd_options(cmd_args), story_ini_file, all_comic_book_info
-        )
+        all_story_titles = get_all_story_titles(story_titles_dir)
+        exit_code = show_all_mods(story_titles_dir, all_story_titles, all_comic_book_info)
     elif cmd_args.cmd_name == BUILD_ALL_ARG:
-        all_ini_files = get_ini_files(story_titles_dir)
+        all_story_titles = get_all_story_titles(story_titles_dir)
         exit_code = process_comic_books(
-            get_cmd_options(cmd_args), story_titles_dir, all_ini_files, all_comic_book_info
+            get_cmd_options(cmd_args), story_titles_dir, all_story_titles, all_comic_book_info
+        )
+    elif cmd_args.cmd_name == BUILD_SINGLE_ARG:
+        exit_code = process_single_comic_book(
+            get_cmd_options(cmd_args), story_titles_dir, cmd_args.story_title, all_comic_book_info
         )
     else:
         raise Exception(f'ERROR: Unknown cmd_arg "{cmd_args.cmd_name}".')

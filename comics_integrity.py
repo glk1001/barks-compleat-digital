@@ -105,7 +105,8 @@ def check_folder_and_contents_are_readonly(dir_path: str) -> int:
 
 
 def check_comics_integrity(
-    ini_files: List[str],
+    titles_dir: str,
+    story_titles: List[str],
     comic_book_info: ComicBookInfoDict,
 ) -> int:
     print()
@@ -120,7 +121,8 @@ def check_comics_integrity(
     zip_year_symlink_dirs = set()
     zip_year_symlinks = []
     ret_code = 0
-    for ini_file in ini_files:
+    for title in story_titles:
+        ini_file = os.path.join(titles_dir, title + ".ini")
         comic = get_comic_book(comic_book_info, ini_file)
 
         dest_dirs.append((ini_file, comic.get_dest_dir()))
