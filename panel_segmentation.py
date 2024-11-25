@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Tuple
 
 from PIL import Image
 
-from consts import BIG_NUM
+from barks_fantagraphics.consts import BIG_NUM
 
 
 class KumikoPanelSegmentation:

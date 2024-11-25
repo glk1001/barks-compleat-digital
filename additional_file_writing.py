@@ -4,8 +4,8 @@ import os
 from datetime import datetime
 from typing import List, Dict
 
-from comic_book import ComicBook, get_safe_title
-from consts import (
+from barks_fantagraphics.comic_book import ComicBook, get_safe_title
+from barks_fantagraphics.consts import (
     DRY_RUN_STR,
     PageType,
     FRONT_MATTER_PAGES,

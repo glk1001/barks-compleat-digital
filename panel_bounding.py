@@ -4,8 +4,8 @@ from typing import List, Tuple
 
 from PIL import Image
 
-from comic_book import ComicBook
-from consts import (
+from barks_fantagraphics.comic_book import ComicBook
+from barks_fantagraphics.consts import (
     PAGES_WITHOUT_PANELS,
     PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN,
     BIG_NUM,

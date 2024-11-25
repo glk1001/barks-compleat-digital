@@ -2,9 +2,9 @@ import os
 from dataclasses import dataclass
 from typing import List, Tuple, Set
 
-from comic_book import ComicBook, get_comic_book
-from comics_info import ComicBookInfoDict, FAN
-from consts import (
+from barks_fantagraphics.comic_book import ComicBook, get_comic_book
+from barks_fantagraphics.comics_info import ComicBookInfoDict, FAN
+from barks_fantagraphics.consts import (
     BARKS_ROOT_DIR,
     THE_CHRONOLOGICAL_DIRS_DIR,
     THE_CHRONOLOGICAL_DIR,

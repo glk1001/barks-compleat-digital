@@ -5,9 +5,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Tuple, Dict, Union
 
-from comic_book import OriginalPage, ComicBook, get_safe_title
-from comics_info import CENSORED_TITLES
-from consts import (
+from barks_fantagraphics.comic_book import OriginalPage, ComicBook, get_safe_title
+from barks_fantagraphics.comics_info import CENSORED_TITLES
+from barks_fantagraphics.consts import (
     PageType,
     TITLE_EMPTY_FILENAME,
     EMPTY_FILENAME,

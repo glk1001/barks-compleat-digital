@@ -2,7 +2,7 @@ import logging
 
 from PIL import Image
 
-from consts import DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT
+from barks_fantagraphics.consts import DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT
 from pages import EMPTY_IMAGE_FILES
 
 

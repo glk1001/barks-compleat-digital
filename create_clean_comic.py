@@ -21,22 +21,21 @@ from additional_file_writing import (
     write_dest_panels_bboxes,
     write_summary,
 )
-from comic_book import (
+from barks_fantagraphics.comic_book import (
     ComicBook,
     get_comic_book,
     log_comic_book_params,
 )
-from comics_info import (
+from barks_fantagraphics.comics_info import (
     ComicBookInfoDict,
     CENSORED_TITLES,
     CS,
     get_all_comic_book_info,
 )
-from comics_integrity import check_comics_integrity
-from consts import (
+from barks_fantagraphics.consts import (
     DRY_RUN_STR,
-    THIS_DIR,
     PUBLICATION_INFO_SUBDIR,
+    STORY_TITLES_DIR,
     BARKS,
     DEST_TARGET_WIDTH,
     DEST_TARGET_HEIGHT,
@@ -54,6 +53,7 @@ from consts import (
     PAGE_NUM_FONT_FILE,
     get_font_path,
 )
+from comics_integrity import check_comics_integrity
 from image_io import open_image_for_reading
 from out_of_date_checking import is_dest_file_out_of_date
 from pages import (
@@ -111,11 +111,11 @@ class CmdOptions:
 
 def process_comic_books(
     options: CmdOptions,
-    cfg_dir: str,
+    titles_ini_dir: str,
     ini_files: List[str],
     comic_book_info: ComicBookInfoDict,
 ) -> int:
-    logging.info(f'Processing all ini files in "{cfg_dir}".')
+    logging.info(f'Processing all ini files in "{titles_ini_dir}".')
 
     ret_code = 0
     for ini_file in ini_files:
@@ -141,7 +141,7 @@ def print_cmd(options: CmdOptions, ini_file: str) -> int:
     print(
         f"python3 {__file__} {BUILD_SINGLE_ARG}"
         f"{dry_run_arg}{just_symlinks_arg}{no_cache_arg}"
-        f' {WORK_DIR_ARG} "{work_dir_root}" {INI_FILE_ARG} {shlex.quote(ini_file)}'
+        f' {WORK_DIR_ARG} "{work_dir_root}" {STORY_TITLE_ARG} {shlex.quote(ini_file)}'
     )
 
     return 0
@@ -943,13 +943,13 @@ def setup_logging(log_level) -> None:
     )
 
 
-def get_config_dir(cfg_dir: str) -> str:
-    real_config_dir = os.path.realpath(cfg_dir)
+def get_story_info_dir(story_dir: str) -> str:
+    real_story_info_dir = os.path.realpath(story_dir)
 
-    if not os.path.isdir(real_config_dir):
-        raise Exception(f'Could not find config directory "{real_config_dir}".')
+    if not os.path.isdir(real_story_info_dir):
+        raise Exception(f'Could not find story info directory "{real_story_info_dir}".')
 
-    return real_config_dir
+    return real_story_info_dir
 
 
 def get_config_file(ini_file: str) -> str:
@@ -981,8 +981,8 @@ DRY_RUN_ARG = "--dry-run"
 NO_CACHE_ARG = "--no-cache"
 JUST_ZIP_ARG = "--just-zip"
 JUST_SYMLINKS_ARG = "--just-symlinks"
-CONFIG_DIR_ARG = "--config-dir"
-INI_FILE_ARG = "--ini-file"
+STORY_INFO_DIR_ARG = "--story-info-dir"
+STORY_TITLE_ARG = "--story-title"
 
 BUILD_ALL_ARG = "build-all"
 BUILD_SINGLE_ARG = "build-single"
@@ -1005,7 +1005,7 @@ def get_args():
     )
 
     build_all_parser = subparsers.add_parser(BUILD_ALL_ARG, help="build all available comics")
-    build_all_parser.add_argument(CONFIG_DIR_ARG, action="store", type=str, required=True)
+    build_all_parser.add_argument(STORY_INFO_DIR_ARG, action="store", type=str, required=True)
     build_all_parser.add_argument(JUST_ZIP_ARG, action="store_true", required=False, default=False)
     build_all_parser.add_argument(
         JUST_SYMLINKS_ARG, action="store_true", required=False, default=False
@@ -1018,7 +1018,8 @@ def get_args():
     )
 
     build_single_parser = subparsers.add_parser(BUILD_SINGLE_ARG, help="build a single comic")
-    build_single_parser.add_argument(INI_FILE_ARG, action="store", type=str, required=True)
+    build_single_parser.add_argument(STORY_INFO_DIR_ARG, action="store", type=str, required=True)
+    build_single_parser.add_argument(STORY_TITLE_ARG, action="store", type=str, required=True)
     build_single_parser.add_argument(
         JUST_ZIP_ARG, action="store_true", required=False, default=False
     )
@@ -1039,7 +1040,7 @@ def get_args():
     list_cmds_parser = subparsers.add_parser(
         LIST_CMDS_ARG, help="list the python commands to build all comics"
     )
-    list_cmds_parser.add_argument(CONFIG_DIR_ARG, action="store", type=str, required=True)
+    list_cmds_parser.add_argument(STORY_INFO_DIR_ARG, action="store", type=str, required=True)
     list_cmds_parser.add_argument(DRY_RUN_ARG, action="store_true", required=False, default=False)
     list_cmds_parser.add_argument(NO_CACHE_ARG, action="store_true", required=False, default=False)
     list_cmds_parser.add_argument(
@@ -1050,14 +1051,14 @@ def get_args():
     check_integrity_parser = subparsers.add_parser(
         CHECK_INTEGRITY_ARG, help="check the integrity of all previously built comics"
     )
-    check_integrity_parser.add_argument(CONFIG_DIR_ARG, action="store", type=str, required=True)
+    check_integrity_parser.add_argument(STORY_INFO_DIR_ARG, action="store", type=str, required=True)
     check_integrity_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
     check_integrity_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
 
     show_mods_parser = subparsers.add_parser(SHOW_MODS_ARG, help="list all modified pages")
-    show_mods_parser.add_argument(CONFIG_DIR_ARG, action="store", type=str, required=True)
+    show_mods_parser.add_argument(STORY_INFO_DIR_ARG, action="store", type=str, required=True)
     show_mods_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
@@ -1084,30 +1085,33 @@ if __name__ == "__main__":
 
     work_dir_root = cmd_args.work_dir
     work_dir = get_work_dir(work_dir_root)
+
+    story_info_dir = get_story_info_dir(cmd_args.story_info_dir)
+    story_titles_dir = os.path.join(story_info_dir, STORY_TITLES_DIR)
     all_comic_book_info = get_all_comic_book_info(
-        str(os.path.join(THIS_DIR, PUBLICATION_INFO_SUBDIR, STORIES_INFO_FILENAME))
+        str(os.path.join(story_info_dir, PUBLICATION_INFO_SUBDIR, STORIES_INFO_FILENAME))
     )
 
     init_bounding_box_processor(work_dir)
 
     if cmd_args.cmd_name == CHECK_INTEGRITY_ARG:
-        all_ini_files = get_ini_files(get_config_dir(cmd_args.config_dir))
+        all_ini_files = get_ini_files(story_titles_dir)
         exit_code = check_comics_integrity(all_ini_files, all_comic_book_info)
     elif cmd_args.cmd_name == LIST_CMDS_ARG:
-        all_ini_files = get_ini_files(get_config_dir(cmd_args.config_dir))
+        all_ini_files = get_ini_files(story_titles_dir)
         exit_code = print_all_cmds(get_cmd_options(cmd_args), all_ini_files)
     elif cmd_args.cmd_name == SHOW_MODS_ARG:
-        all_ini_files = get_ini_files(get_config_dir(cmd_args.config_dir))
+        all_ini_files = get_ini_files(story_titles_dir)
         exit_code = show_all_mods(all_ini_files, all_comic_book_info)
     elif cmd_args.cmd_name == BUILD_SINGLE_ARG:
+        story_ini_file = os.path.join(story_titles_dir, cmd_args.story_title + ".ini")
         exit_code = process_single_comic_book(
-            get_cmd_options(cmd_args), cmd_args.ini_file, all_comic_book_info
+            get_cmd_options(cmd_args), story_ini_file, all_comic_book_info
         )
     elif cmd_args.cmd_name == BUILD_ALL_ARG:
-        config_dir = get_config_dir(cmd_args.config_dir)
-        all_ini_files = get_ini_files(config_dir)
+        all_ini_files = get_ini_files(story_titles_dir)
         exit_code = process_comic_books(
-            get_cmd_options(cmd_args), config_dir, all_ini_files, all_comic_book_info
+            get_cmd_options(cmd_args), story_titles_dir, all_ini_files, all_comic_book_info
         )
     else:
         raise Exception(f'ERROR: Unknown cmd_arg "{cmd_args.cmd_name}".')

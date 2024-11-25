@@ -5,7 +5,7 @@ from typing import Any, Dict, Tuple
 
 from PIL import Image, ImageDraw
 
-from consts import DRY_RUN_STR, PANEL_BOUNDS_FILENAME_SUFFIX
+from barks_fantagraphics.consts import DRY_RUN_STR, PANEL_BOUNDS_FILENAME_SUFFIX
 from panel_segmentation import KumikoPanelSegmentation
 
 
