@@ -1,4 +1,4 @@
-from comics_consts import PageType
+from barks_fantagraphics.comics_consts import PageType
 
 DRY_RUN_STR = "DRY_RUN"
 

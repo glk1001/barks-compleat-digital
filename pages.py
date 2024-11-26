@@ -6,9 +6,7 @@ from datetime import datetime
 from typing import List, Tuple, Dict, Union
 
 from barks_fantagraphics.comic_book import OriginalPage, ComicBook, get_safe_title
-from barks_fantagraphics.comics_consts import (
-    PageType,
-)
+from barks_fantagraphics.comics_consts import PageType
 from barks_fantagraphics.comics_info import CENSORED_TITLES
 from consts import (
     ROMAN_NUMERALS,
@@ -95,40 +93,8 @@ def get_page_number_str(page: CleanPage, page_number: int) -> str:
     return ROMAN_NUMERALS[page_number]
 
 
-def get_required_pages_in_order(
-    page_images_in_book: List[OriginalPage],
-) -> List[CleanPage]:
-    req_pages = []
-
-    for page_image in page_images_in_book:
-        if page_image.page_filenames == TITLE_EMPTY_FILENAME:
-            assert page_image.page_type == PageType.TITLE
-            req_pages.append(CleanPage(page_image.page_filenames, page_image.page_type))
-            continue
-        if page_image.page_filenames == EMPTY_FILENAME:
-            assert page_image.page_type == PageType.BLANK_PAGE
-            req_pages.append(CleanPage(page_image.page_filenames, page_image.page_type))
-            continue
-
-        if "-" not in page_image.page_filenames:
-            filename = page_image.page_filenames
-            file_num = int(filename)
-            req_pages.append(CleanPage(filename, page_image.page_type, file_num))
-        else:
-            start, end = page_image.page_filenames.split("-")
-            start_num = int(start)
-            end_num = int(end)
-            for file_num in range(start_num, end_num + 1):
-                filename = f"{file_num:03d}"
-                req_pages.append(CleanPage(filename, page_image.page_type, file_num))
-
-    return req_pages
-
-
-def get_srce_and_dest_pages_in_order(
-    comic: ComicBook,
-) -> SrceAndDestPages:
-    required_pages = get_required_pages_in_order(comic.images_in_order)
+def get_srce_and_dest_pages_in_order(comic: ComicBook) -> SrceAndDestPages:
+    required_pages = get_required_pages_in_order(comic.page_images_in_order)
 
     srce_page_list = []
     dest_page_list = []
@@ -171,6 +137,25 @@ def get_srce_and_dest_pages_in_order(
         )
 
     return SrceAndDestPages(srce_page_list, dest_page_list)
+
+
+def get_required_pages_in_order(page_images_in_book: List[OriginalPage]) -> List[CleanPage]:
+    req_pages = []
+
+    for page_image in page_images_in_book:
+        filename = page_image.page_filenames
+
+        if filename == TITLE_EMPTY_FILENAME:
+            assert page_image.page_type == PageType.TITLE
+            req_pages.append(CleanPage(filename, page_image.page_type))
+        elif filename == EMPTY_FILENAME:
+            assert page_image.page_type == PageType.BLANK_PAGE
+            req_pages.append(CleanPage(filename, page_image.page_type))
+        else:
+            file_num = int(filename)
+            req_pages.append(CleanPage(filename, page_image.page_type, file_num))
+
+    return req_pages
 
 
 def get_checked_srce_file(comic: ComicBook, page: CleanPage) -> Tuple[str, bool]:

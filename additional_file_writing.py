@@ -40,7 +40,7 @@ from pages import (
 from timing import Timing
 
 
-def write_summary(
+def write_summary_file(
     dry_run: bool,
     comic: ComicBook,
     pages: SrceAndDestPages,
@@ -126,7 +126,7 @@ def write_summary(
         f.write("\n")
 
         f.write("Pages Config Summary:\n")
-        for pg in comic.images_in_order:
+        for pg in comic.config_page_images:
             f.write(f"pages = {pg.page_filenames:11}," f" page type = {pg.page_type.name:12}\n")
         f.write("\n")
 

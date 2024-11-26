@@ -2,7 +2,7 @@ import logging
 import os
 from typing import List
 
-from comic_book import ComicBook, get_safe_title
+from barks_fantagraphics.comic_book import ComicBook, get_safe_title
 from consts import (
     DEST_JPG_QUALITY,
     DEST_JPG_COMPRESS_LEVEL,
@@ -27,7 +27,7 @@ def get_list_of_numbers(list_str: str) -> List[int]:
     return [n for n in range(int(p_start), int(p_end) + 1)]
 
 
-def log_comic_book_params(comic: ComicBook, caching: bool, work_dir: str):
+def log_comic_book_params(comic: ComicBook, caching: bool):
     logging.info("")
 
     calc_panels_bbox_height = int(
@@ -78,5 +78,4 @@ def log_comic_book_params(comic: ComicBook, caching: bool, work_dir: str):
     logging.info(f'Dest comic zip:      "ZIP ROOT/{dest_comic_zip_basename}".')
     logging.info(f'Dest series symlink: "{comic.get_dest_series_comic_zip_symlink()}".')
     logging.info(f'Dest year symlink:   "{comic.get_dest_year_comic_zip_symlink()}".')
-    logging.info(f'Work directory:      "{work_dir}".')
     logging.info("")

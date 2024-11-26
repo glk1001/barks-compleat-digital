@@ -62,31 +62,25 @@ class BoundingBoxProcessor(object):
         panel_segments_dir: str,
         srce_page_image: Image,
         srce_filename: str,
-        srce_bounded_dir: str,
+        srce_bounded_override_dir: str,
     ) -> BoundingBox:
         logging.debug("Getting panel bounding box from kumiko.")
 
         file_basename = os.path.basename(srce_filename)
-        file_with_bbox = os.path.join(srce_bounded_dir, file_basename)
+        override_file_with_bbox = os.path.join(srce_bounded_override_dir, file_basename)
 
-        if not os.path.isfile(file_with_bbox):
-            (
-                x_min,
-                y_min,
-                x_max,
-                y_max,
-            ), segment_info = self.__kumiko.get_panel_bounding_box(srce_page_image, srce_filename)
+        if not os.path.isfile(override_file_with_bbox):
+            srce_bounded_image = srce_page_image
         else:
-            logging.warning(f'Using bounded srce file "{file_with_bbox}".')
-            srce_bounded_image = Image.open(file_with_bbox, "r")
-            (
-                x_min,
-                y_min,
-                x_max,
-                y_max,
-            ), segment_info = self.__kumiko.get_panel_bounding_box(
-                srce_bounded_image, srce_filename
-            )
+            logging.warning(f'Using bounded srce override file "{override_file_with_bbox}".')
+            srce_bounded_image = Image.open(override_file_with_bbox, "r")
+
+        (
+            x_min,
+            y_min,
+            x_max,
+            y_max,
+        ), segment_info = self.__kumiko.get_panel_bounding_box(srce_bounded_image, srce_filename)
 
         self.__save_segment_info(self.__work_dir, srce_filename, segment_info)
         if dry_run:

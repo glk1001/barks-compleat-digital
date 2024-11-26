@@ -191,14 +191,14 @@ def get_panels_bounding_box(
         else:
             os.makedirs(comic.panel_segments_dir, exist_ok=True)
 
-    srce_bounded_dir = os.path.join(comic.get_srce_fixes_image_dir(), "bounded")
+    srce_bounded_override_dir = os.path.join(comic.get_srce_fixes_image_dir(), "bounded")
 
     bounding_box = bounding_box_processor.get_panels_bounding_box_from_kumiko(
         dry_run,
         comic.panel_segments_dir,
         srce_page_image,
         srce_page.page_filename,
-        srce_bounded_dir,
+        srce_bounded_override_dir,
     )
 
     if dry_run:
