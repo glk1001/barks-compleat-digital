@@ -5,27 +5,29 @@ from datetime import datetime
 from typing import List, Dict
 
 from barks_fantagraphics.comic_book import ComicBook, get_safe_title
-from barks_fantagraphics.consts import (
-    DRY_RUN_STR,
+from barks_fantagraphics.comics_consts import (
     PageType,
-    FRONT_MATTER_PAGES,
-    PAINTING_PAGES,
-    SPLASH_PAGES,
-    DEST_SRCE_MAP_FILENAME,
-    DEST_PANELS_BBOXES_FILENAME,
+    get_font_path,
+)
+from consts import (
+    DRY_RUN_STR,
     DEST_JPG_QUALITY,
     DEST_JPG_COMPRESS_LEVEL,
-    DEST_TARGET_WIDTH,
-    DEST_TARGET_HEIGHT,
-    DEST_TARGET_X_MARGIN,
-    DEST_TARGET_ASPECT_RATIO,
-    get_font_path,
+    DEST_SRCE_MAP_FILENAME,
+    DEST_PANELS_BBOXES_FILENAME,
     README_FILENAME,
     SUMMARY_FILENAME,
     METADATA_FILENAME,
     JSON_METADATA_FILENAME,
     DOUBLE_PAGES_SECTION,
     PAGE_NUMBERS_SECTION,
+    DEST_TARGET_WIDTH,
+    DEST_TARGET_HEIGHT,
+    DEST_TARGET_X_MARGIN,
+    DEST_TARGET_ASPECT_RATIO,
+    FRONT_MATTER_PAGES,
+    SPLASH_PAGES,
+    PAINTING_PAGES,
 )
 from pages import (
     CleanPage,

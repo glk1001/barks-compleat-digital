@@ -3,17 +3,17 @@ from dataclasses import dataclass
 from typing import List, Tuple, Set
 
 from barks_fantagraphics.comic_book import ComicBook
-from barks_fantagraphics.comics_database import ComicsDatabase
-from barks_fantagraphics.comics_info import FAN
-from barks_fantagraphics.consts import (
+from barks_fantagraphics.comics_consts import (
     BARKS_ROOT_DIR,
     THE_CHRONOLOGICAL_DIRS_DIR,
     THE_CHRONOLOGICAL_DIR,
     THE_YEARS_COMICS_DIR,
     THE_COMICS_DIR,
-    DEST_NON_IMAGE_FILES,
     IMAGES_SUBDIR,
 )
+from barks_fantagraphics.comics_database import ComicsDatabase
+from barks_fantagraphics.comics_info import FAN
+from consts import DEST_NON_IMAGE_FILES
 from out_of_date_checking import (
     get_dest_file_out_of_date_msg,
     get_file_out_of_date_wrt_max_dest_msg,

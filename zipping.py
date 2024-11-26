@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Union
 
 from barks_fantagraphics.comic_book import ComicBook
-from barks_fantagraphics.consts import DRY_RUN_STR
+from consts import DRY_RUN_STR
 from out_of_date_checking import (
     is_zip_file_out_of_date_wrt_dest,
     is_symlink_out_of_date_wrt_zip,

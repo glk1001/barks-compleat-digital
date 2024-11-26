@@ -1,0 +1,73 @@
+from comics_consts import PageType
+
+DRY_RUN_STR = "DRY_RUN"
+
+DEST_JPG_QUALITY = 95
+DEST_JPG_COMPRESS_LEVEL = 9
+MIN_HD_SRCE_HEIGHT = 3000
+
+DEST_SRCE_MAP_FILENAME = "srce-dest-map.json"
+DEST_PANELS_BBOXES_FILENAME = "dest-panels-bboxes.json"
+
+PANEL_BOUNDS_FILENAME_SUFFIX = "_panel_bounds.txt"
+PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN = 100
+README_FILENAME = "readme.txt"
+SUMMARY_FILENAME = "clean_summary.txt"
+METADATA_FILENAME = "metadata.txt"
+JSON_METADATA_FILENAME = "comic-metadata.json"
+DOUBLE_PAGES_SECTION = "double_pages"
+PAGE_NUMBERS_SECTION = "page_numbers"
+DEST_NON_IMAGE_FILES = {
+    SUMMARY_FILENAME,
+    JSON_METADATA_FILENAME,
+    DEST_PANELS_BBOXES_FILENAME,
+    METADATA_FILENAME,
+    README_FILENAME,
+    DEST_SRCE_MAP_FILENAME,
+}
+
+FOOTNOTE_CHAR = "*"
+
+BIG_NUM = 10000
+
+ROMAN_NUMERALS = {
+    1: "i",
+    2: "ii",
+    3: "iii",
+    4: "iv",
+    5: "v",
+    6: "vi",
+    7: "vii",
+    8: "viii",
+    9: "ix",
+    10: "x",
+}
+
+DEST_TARGET_WIDTH = 2120
+DEST_TARGET_HEIGHT = 3200
+DEST_TARGET_X_MARGIN = 100
+DEST_TARGET_ASPECT_RATIO = float(DEST_TARGET_HEIGHT) / float(DEST_TARGET_WIDTH)
+
+TITLE_EMPTY_FILENAME = "title_empty"
+EMPTY_FILENAME = "empty"
+DEST_FILE_EXT = ".jpg"
+
+FRONT_PAGES = [
+    PageType.FRONT,
+    PageType.TITLE,
+    PageType.COVER,
+    PageType.SPLASH,
+    PageType.SPLASH_NO_BORDER,
+    PageType.PAINTING,
+    PageType.PAINTING_NO_BORDER,
+]
+FRONT_MATTER_PAGES = FRONT_PAGES + [PageType.FRONT_MATTER]
+PAGES_WITHOUT_PANELS = FRONT_PAGES + [PageType.BACK_NO_PANELS, PageType.BLANK_PAGE]
+SPLASH_PAGES = [
+    PageType.SPLASH,
+    PageType.SPLASH_NO_BORDER,
+]
+PAINTING_PAGES = [
+    PageType.PAINTING,
+    PageType.PAINTING_NO_BORDER,
+]

@@ -23,7 +23,13 @@ from additional_file_writing import (
 )
 from barks_fantagraphics.comic_book import (
     ComicBook,
-    log_comic_book_params,
+)
+from barks_fantagraphics.comics_consts import (
+    BARKS,
+    PageType,
+    INTRO_TEXT_FONT_FILE,
+    PAGE_NUM_FONT_FILE,
+    get_font_path,
 )
 from barks_fantagraphics.comics_database import ComicsDatabase, get_default_comics_database_dir
 from barks_fantagraphics.comics_info import (
@@ -31,26 +37,21 @@ from barks_fantagraphics.comics_info import (
     CENSORED_TITLES,
     CS,
 )
-from barks_fantagraphics.consts import (
+from comics_integrity import check_comics_integrity
+from consts import (
     DRY_RUN_STR,
-    BARKS,
+    DEST_JPG_QUALITY,
+    DEST_JPG_COMPRESS_LEVEL,
+    MIN_HD_SRCE_HEIGHT,
+    FOOTNOTE_CHAR,
     DEST_TARGET_WIDTH,
     DEST_TARGET_HEIGHT,
     DEST_TARGET_X_MARGIN,
     DEST_TARGET_ASPECT_RATIO,
-    DEST_JPG_QUALITY,
-    DEST_JPG_COMPRESS_LEVEL,
-    FOOTNOTE_CHAR,
-    MIN_HD_SRCE_HEIGHT,
-    PageType,
     PAGES_WITHOUT_PANELS,
-    PAINTING_PAGES,
     SPLASH_PAGES,
-    INTRO_TEXT_FONT_FILE,
-    PAGE_NUM_FONT_FILE,
-    get_font_path,
+    PAINTING_PAGES,
 )
-from comics_integrity import check_comics_integrity
 from image_io import open_image_for_reading
 from out_of_date_checking import is_dest_file_out_of_date
 from pages import (
@@ -69,6 +70,7 @@ from panel_bounding import (
     set_dest_panel_bounding_boxes,
 )
 from timing import Timing
+from utils import log_comic_book_params
 from zipping import zip_comic_book, create_symlinks_to_comic_zip
 
 INTRO_TOP = 350

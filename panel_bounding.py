@@ -5,14 +5,14 @@ from typing import List, Tuple
 from PIL import Image
 
 from barks_fantagraphics.comic_book import ComicBook
-from barks_fantagraphics.consts import (
-    PAGES_WITHOUT_PANELS,
+from consts import (
+    DRY_RUN_STR,
     PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN,
     BIG_NUM,
-    DRY_RUN_STR,
     DEST_TARGET_WIDTH,
     DEST_TARGET_HEIGHT,
     DEST_TARGET_X_MARGIN,
+    PAGES_WITHOUT_PANELS,
 )
 from image_io import open_image_for_reading
 from pages import CleanPage, SrceAndDestPages
