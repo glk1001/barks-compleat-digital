@@ -3,6 +3,7 @@ import logging
 import os
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import List, Tuple, Dict, Union
 
 from barks_fantagraphics.comic_book import OriginalPage, ComicBook, get_safe_title
@@ -169,7 +170,9 @@ def get_checked_srce_file(comic: ComicBook, page: CleanPage) -> Tuple[str, bool]
         srce_file, is_modified_file = get_srce_file(comic, page)
 
     if not os.path.isfile(srce_file):
-        raise Exception(f'Could not find source file "{srce_file}".')
+        srce_file = Path(srce_file).with_suffix(".png")
+        if not os.path.isfile(srce_file):
+            raise Exception(f'Could not find source file "{srce_file}".')
 
     return srce_file, is_modified_file
 

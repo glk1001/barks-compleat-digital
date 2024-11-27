@@ -431,64 +431,67 @@ def _get_centred_dest_page_image(dest_page: CleanPage, dest_panels_image: Image)
 
 
 def _write_introduction(comic: ComicBook, dest_page_image: Image):
-    logging.info(f'Writing introduction - using inset file "{comic.intro_inset_file}".')
+    try:
+        logging.info(f'Writing introduction - using inset file "{comic.intro_inset_file}".')
 
-    draw = ImageDraw.Draw(dest_page_image)
+        draw = ImageDraw.Draw(dest_page_image)
 
-    top = INTRO_TOP
+        top = INTRO_TOP
 
-    title, title_fonts, text_height = _get_title_and_fonts(draw, comic)
+        title, title_fonts, text_height = _get_title_and_fonts(draw, comic)
 
-    _draw_centered_multiline_title_text(
-        comic,
-        title,
-        title_fonts,
-        INTRO_TITLE_COLOR,
-        top,
-        spacing=INTRO_TITLE_SPACING,
-        image=dest_page_image,
-        draw=draw,
-    )
-    top += text_height + INTRO_TITLE_SPACING
+        _draw_centered_multiline_title_text(
+            comic,
+            title,
+            title_fonts,
+            INTRO_TITLE_COLOR,
+            top,
+            spacing=INTRO_TITLE_SPACING,
+            image=dest_page_image,
+            draw=draw,
+        )
+        top += text_height + INTRO_TITLE_SPACING
 
-    top += INTRO_TITLE_AUTHOR_GAP
-    text = "by"
-    by_font_size = int(0.6 * comic.author_font_size)
-    by_font = ImageFont.truetype(comic.title_font_file, by_font_size)
-    text_height = _get_intro_text_height(draw, text, by_font)
-    _draw_centered_text(text, dest_page_image, draw, by_font, INTRO_AUTHOR_COLOR, top)
-    top += text_height
+        top += INTRO_TITLE_AUTHOR_GAP
+        text = "by"
+        by_font_size = int(0.6 * comic.author_font_size)
+        by_font = ImageFont.truetype(comic.title_font_file, by_font_size)
+        text_height = _get_intro_text_height(draw, text, by_font)
+        _draw_centered_text(text, dest_page_image, draw, by_font, INTRO_AUTHOR_COLOR, top)
+        top += text_height
 
-    top += INTRO_TITLE_AUTHOR_BY_GAP
-    text = f"{BARKS}"
-    author_font = ImageFont.truetype(comic.title_font_file, comic.author_font_size)
-    text_height = _get_intro_text_height(draw, text, author_font)
-    _draw_centered_text(text, dest_page_image, draw, author_font, INTRO_AUTHOR_COLOR, top)
-    top += text_height + INTRO_AUTHOR_INSET_GAP
+        top += INTRO_TITLE_AUTHOR_BY_GAP
+        text = f"{BARKS}"
+        author_font = ImageFont.truetype(comic.title_font_file, comic.author_font_size)
+        text_height = _get_intro_text_height(draw, text, author_font)
+        _draw_centered_text(text, dest_page_image, draw, author_font, INTRO_AUTHOR_COLOR, top)
+        top += text_height + INTRO_AUTHOR_INSET_GAP
 
-    pub_text_font = ImageFont.truetype(
-        get_font_path(INTRO_TEXT_FONT_FILE), INTRO_PUB_TEXT_FONT_SIZE
-    )
-    text_height = _get_intro_text_height(draw, comic.publication_text, pub_text_font)
-    pub_text_top = dest_page_image.height - INTRO_BOTTOM_MARGIN - text_height
+        pub_text_font = ImageFont.truetype(
+            get_font_path(INTRO_TEXT_FONT_FILE), INTRO_PUB_TEXT_FONT_SIZE
+        )
+        text_height = _get_intro_text_height(draw, comic.publication_text, pub_text_font)
+        pub_text_top = dest_page_image.height - INTRO_BOTTOM_MARGIN - text_height
 
-    inset_pos, new_inset = _get_resized_inset(
-        comic.intro_inset_file,
-        top,
-        pub_text_top,
-        dest_page_image.width,
-    )
-    dest_page_image.paste(new_inset, inset_pos)
+        inset_pos, new_inset = _get_resized_inset(
+            comic.intro_inset_file,
+            top,
+            pub_text_top,
+            dest_page_image.width,
+        )
+        dest_page_image.paste(new_inset, inset_pos)
 
-    _draw_centered_multiline_text(
-        comic.publication_text,
-        dest_page_image,
-        draw,
-        pub_text_font,
-        INTRO_PUB_TEXT_COLOR,
-        pub_text_top,
-        INTRO_PUB_TEXT_SPACING,
-    )
+        _draw_centered_multiline_text(
+            comic.publication_text,
+            dest_page_image,
+            draw,
+            pub_text_font,
+            INTRO_PUB_TEXT_COLOR,
+            pub_text_top,
+            INTRO_PUB_TEXT_SPACING,
+        )
+    except Exception as e:
+        logging.error(f'Error writing introduction: "{e}".')
 
 
 def _get_resized_inset(
