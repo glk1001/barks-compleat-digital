@@ -75,6 +75,8 @@ class BoundingBoxProcessor(object):
             logging.warning(f'Using bounded srce override file "{override_file_with_bbox}".')
             srce_bounded_image = Image.open(override_file_with_bbox, "r")
 
+        srce_bounded_image = srce_bounded_image.convert("RGB")
+
         (
             x_min,
             y_min,
