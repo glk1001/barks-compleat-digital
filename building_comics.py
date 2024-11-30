@@ -107,6 +107,9 @@ def _create_comic_book(dry_run: bool, comic: ComicBook, caching: bool) -> SrceAn
     return pages
 
 
+_process_page_error = False
+
+
 def _process_pages(
     dry_run: bool,
     cache_pages: bool,
@@ -122,9 +125,15 @@ def _process_pages(
     else:
         _delete_all_files_in_directory(dry_run, comic.get_dest_image_dir())
 
+    global _process_page_error
+    _process_page_error = False
+
     with concurrent.futures.ProcessPoolExecutor() as executor:
         for srce_page, dest_page in zip(pages.srce_pages, pages.dest_pages):
             executor.submit(_process_page, dry_run, cache_pages, comic, srce_page, dest_page)
+
+    if _process_page_error:
+        raise Exception("There were errors while processing pages.")
 
 
 def _delete_all_files_in_directory(dry_run: bool, directory_path: str):
@@ -180,45 +189,50 @@ def _process_page(
     srce_page: CleanPage,
     dest_page: CleanPage,
 ):
-    logging.info(
-        f'Convert "{os.path.basename(srce_page.page_filename)}"'
-        f" (page-type {srce_page.page_type.name})"
-        f' to "{os.path.basename(dest_page.page_filename)}"'
-        f" (page number = {get_page_num_str(dest_page)},"
-        f" cache pages = {cache_pages})..."
-    )
-
-    srce_page_image = open_image_for_reading(srce_page.page_filename)
-    if srce_page.page_type == PageType.BODY and srce_page_image.height < MIN_HD_SRCE_HEIGHT:
-        raise Exception(
-            f"Srce image error: min required height {MIN_HD_SRCE_HEIGHT}."
-            f' Poor srce file resolution for "{srce_page.page_filename}":'
-            f" {srce_page_image.width} x {srce_page_image.height}."
+    try:
+        logging.info(
+            f'Convert "{os.path.basename(srce_page.page_filename)}"'
+            f" (page-type {srce_page.page_type.name})"
+            f' to "{os.path.basename(dest_page.page_filename)}"'
+            f" (page number = {get_page_num_str(dest_page)},"
+            f" cache pages = {cache_pages})..."
         )
 
-    if (
-        cache_pages
-        and os.path.exists(dest_page.page_filename)
-        and not is_dest_file_out_of_date(srce_page.page_filename, dest_page.page_filename)
-    ):
-        logging.debug(f'Caching on - using existing page file "{dest_page.page_filename}".')
-        return
+        srce_page_image = open_image_for_reading(srce_page.page_filename)
+        if srce_page.page_type == PageType.BODY and srce_page_image.height < MIN_HD_SRCE_HEIGHT:
+            raise Exception(
+                f"Srce image error: min required height {MIN_HD_SRCE_HEIGHT}."
+                f' Poor srce file resolution for "{srce_page.page_filename}":'
+                f" {srce_page_image.width} x {srce_page_image.height}."
+            )
 
-    dest_page_image = _get_dest_page_image(comic, srce_page_image, srce_page, dest_page)
+        if (
+            cache_pages
+            and os.path.exists(dest_page.page_filename)
+            and not is_dest_file_out_of_date(srce_page.page_filename, dest_page.page_filename)
+        ):
+            logging.debug(f'Caching on - using existing page file "{dest_page.page_filename}".')
+            return
 
-    if dry_run:
-        logging.info(f'{DRY_RUN_STR}: Save changes to image "{dest_page.page_filename}".')
-    else:
-        dest_page_image.save(
-            dest_page.page_filename,
-            optimize=True,
-            compress_level=DEST_JPG_COMPRESS_LEVEL,
-            quality=DEST_JPG_QUALITY,
-            comment="\n".join(_get_dest_jpg_comments(srce_page, dest_page)),
-        )
-        logging.info(f'Saved changes to image "{dest_page.page_filename}".')
+        dest_page_image = _get_dest_page_image(comic, srce_page_image, srce_page, dest_page)
 
-    logging.info("")
+        if dry_run:
+            logging.info(f'{DRY_RUN_STR}: Save changes to image "{dest_page.page_filename}".')
+        else:
+            dest_page_image.save(
+                dest_page.page_filename,
+                optimize=True,
+                compress_level=DEST_JPG_COMPRESS_LEVEL,
+                quality=DEST_JPG_QUALITY,
+                comment="\n".join(_get_dest_jpg_comments(srce_page, dest_page)),
+            )
+            logging.info(f'Saved changes to image "{dest_page.page_filename}".')
+
+        logging.info("")
+    except Exception as e:
+        logging.error(f'Error in process page: "{e}".')
+        global _process_page_error
+        _process_page_error = True
 
 
 def _get_dest_jpg_comments(srce_page: CleanPage, dest_page: CleanPage) -> List[str]:
@@ -431,67 +445,64 @@ def _get_centred_dest_page_image(dest_page: CleanPage, dest_panels_image: Image)
 
 
 def _write_introduction(comic: ComicBook, dest_page_image: Image):
-    try:
-        logging.info(f'Writing introduction - using inset file "{comic.intro_inset_file}".')
+    logging.info(f'Writing introduction - using inset file "{comic.intro_inset_file}".')
 
-        draw = ImageDraw.Draw(dest_page_image)
+    draw = ImageDraw.Draw(dest_page_image)
 
-        top = INTRO_TOP
+    top = INTRO_TOP
 
-        title, title_fonts, text_height = _get_title_and_fonts(draw, comic)
+    title, title_fonts, text_height = _get_title_and_fonts(draw, comic)
 
-        _draw_centered_multiline_title_text(
-            comic,
-            title,
-            title_fonts,
-            INTRO_TITLE_COLOR,
-            top,
-            spacing=INTRO_TITLE_SPACING,
-            image=dest_page_image,
-            draw=draw,
-        )
-        top += text_height + INTRO_TITLE_SPACING
+    _draw_centered_multiline_title_text(
+        comic,
+        title,
+        title_fonts,
+        INTRO_TITLE_COLOR,
+        top,
+        spacing=INTRO_TITLE_SPACING,
+        image=dest_page_image,
+        draw=draw,
+    )
+    top += text_height + INTRO_TITLE_SPACING
 
-        top += INTRO_TITLE_AUTHOR_GAP
-        text = "by"
-        by_font_size = int(0.6 * comic.author_font_size)
-        by_font = ImageFont.truetype(comic.title_font_file, by_font_size)
-        text_height = _get_intro_text_height(draw, text, by_font)
-        _draw_centered_text(text, dest_page_image, draw, by_font, INTRO_AUTHOR_COLOR, top)
-        top += text_height
+    top += INTRO_TITLE_AUTHOR_GAP
+    text = "by"
+    by_font_size = int(0.6 * comic.author_font_size)
+    by_font = ImageFont.truetype(comic.title_font_file, by_font_size)
+    text_height = _get_intro_text_height(draw, text, by_font)
+    _draw_centered_text(text, dest_page_image, draw, by_font, INTRO_AUTHOR_COLOR, top)
+    top += text_height
 
-        top += INTRO_TITLE_AUTHOR_BY_GAP
-        text = f"{BARKS}"
-        author_font = ImageFont.truetype(comic.title_font_file, comic.author_font_size)
-        text_height = _get_intro_text_height(draw, text, author_font)
-        _draw_centered_text(text, dest_page_image, draw, author_font, INTRO_AUTHOR_COLOR, top)
-        top += text_height + INTRO_AUTHOR_INSET_GAP
+    top += INTRO_TITLE_AUTHOR_BY_GAP
+    text = f"{BARKS}"
+    author_font = ImageFont.truetype(comic.title_font_file, comic.author_font_size)
+    text_height = _get_intro_text_height(draw, text, author_font)
+    _draw_centered_text(text, dest_page_image, draw, author_font, INTRO_AUTHOR_COLOR, top)
+    top += text_height + INTRO_AUTHOR_INSET_GAP
 
-        pub_text_font = ImageFont.truetype(
-            get_font_path(INTRO_TEXT_FONT_FILE), INTRO_PUB_TEXT_FONT_SIZE
-        )
-        text_height = _get_intro_text_height(draw, comic.publication_text, pub_text_font)
-        pub_text_top = dest_page_image.height - INTRO_BOTTOM_MARGIN - text_height
+    pub_text_font = ImageFont.truetype(
+        get_font_path(INTRO_TEXT_FONT_FILE), INTRO_PUB_TEXT_FONT_SIZE
+    )
+    text_height = _get_intro_text_height(draw, comic.publication_text, pub_text_font)
+    pub_text_top = dest_page_image.height - INTRO_BOTTOM_MARGIN - text_height
 
-        inset_pos, new_inset = _get_resized_inset(
-            comic.intro_inset_file,
-            top,
-            pub_text_top,
-            dest_page_image.width,
-        )
-        dest_page_image.paste(new_inset, inset_pos)
+    inset_pos, new_inset = _get_resized_inset(
+        comic.intro_inset_file,
+        top,
+        pub_text_top,
+        dest_page_image.width,
+    )
+    dest_page_image.paste(new_inset, inset_pos)
 
-        _draw_centered_multiline_text(
-            comic.publication_text,
-            dest_page_image,
-            draw,
-            pub_text_font,
-            INTRO_PUB_TEXT_COLOR,
-            pub_text_top,
-            INTRO_PUB_TEXT_SPACING,
-        )
-    except Exception as e:
-        logging.error(f'Error writing introduction: "{e}".')
+    _draw_centered_multiline_text(
+        comic.publication_text,
+        dest_page_image,
+        draw,
+        pub_text_font,
+        INTRO_PUB_TEXT_COLOR,
+        pub_text_top,
+        INTRO_PUB_TEXT_SPACING,
+    )
 
 
 def _get_resized_inset(

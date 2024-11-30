@@ -4,7 +4,6 @@ from typing import List, Tuple, Set
 
 from barks_fantagraphics.comic_book import ComicBook
 from barks_fantagraphics.comics_consts import (
-    BARKS_ROOT_DIR,
     THE_CHRONOLOGICAL_DIRS_DIR,
     THE_CHRONOLOGICAL_DIR,
     THE_YEARS_COMICS_DIR,
@@ -12,7 +11,6 @@ from barks_fantagraphics.comics_consts import (
     IMAGES_SUBDIR,
 )
 from barks_fantagraphics.comics_database import ComicsDatabase
-from barks_fantagraphics.comics_info import FAN
 from consts import DEST_NON_IMAGE_FILES
 from out_of_date_checking import (
     get_dest_file_out_of_date_msg,
@@ -78,10 +76,8 @@ def make_out_of_date_errors(ini_file: str) -> OutOfDateErrors:
     )
 
 
-def check_comics_source_is_readonly() -> int:
-    srce_comics_dir = str(os.path.join(BARKS_ROOT_DIR, FAN))
-
-    return check_folder_and_contents_are_readonly(srce_comics_dir)
+def check_comics_source_is_readonly(comics_db: ComicsDatabase) -> int:
+    return check_folder_and_contents_are_readonly(comics_db.get_fantagraphics_root_dir())
 
 
 def check_folder_and_contents_are_readonly(dir_path: str) -> int:
@@ -105,10 +101,51 @@ def check_folder_and_contents_are_readonly(dir_path: str) -> int:
     return ret_code
 
 
+def check_directory_structure(comics_db: ComicsDatabase) -> int:
+    ret_code = 0
+    for volume in range(2, 21):
+        vol_dir = os.path.join(
+            comics_db.get_restored_fantagraphics_volume_dir(volume), IMAGES_SUBDIR
+        )
+        if not os.path.isdir(vol_dir):
+            ret_code = 1
+            print(f'ERROR: Could not find directory "{vol_dir}".')
+        vol_dir = os.path.join(
+            comics_db.get_restored_fantagraphics_fixes_volume_dir(volume), IMAGES_SUBDIR
+        )
+        if not os.path.isdir(vol_dir):
+            ret_code = 1
+            print(f'ERROR: Could not find directory "{vol_dir}".')
+        vol_dir = os.path.join(
+            comics_db.get_fantagraphics_fixes_and_additions_volume_dir(volume), IMAGES_SUBDIR
+        )
+
+        if not os.path.isdir(vol_dir):
+            ret_code = 1
+            print(f'ERROR: Could not find directory "{vol_dir}".')
+        vol_dir = os.path.join(
+            comics_db.get_upscayled_fantagraphics_volume_dir(volume), IMAGES_SUBDIR
+        )
+        if not os.path.isdir(vol_dir):
+            ret_code = 1
+            print(f'ERROR: Could not find directory "{vol_dir}".')
+        vol_dir = os.path.join(
+            comics_db.get_fantagraphics_panel_segments_volume_dir(volume), IMAGES_SUBDIR
+        )
+        if not os.path.isdir(vol_dir):
+            ret_code = 1
+            print(f'ERROR: Could not find directory "{vol_dir}".')
+
+    return ret_code
+
+
 def check_comics_integrity(comics_db: ComicsDatabase) -> int:
     print()
 
-    if check_comics_source_is_readonly() != 0:
+    if check_comics_source_is_readonly(comics_db) != 0:
+        return 1
+
+    if check_directory_structure(comics_db) != 0:
         return 1
 
     dest_dirs = []
