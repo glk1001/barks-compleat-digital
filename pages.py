@@ -1,14 +1,11 @@
 import inspect
-import logging
 import os
 from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
 from typing import List, Tuple, Dict, Union
 
-from barks_fantagraphics.comic_book import OriginalPage, ComicBook, get_safe_title
+from barks_fantagraphics.comic_book import OriginalPage, ComicBook
 from barks_fantagraphics.comics_consts import PageType
-from barks_fantagraphics.comics_info import CENSORED_TITLES, JPG_FILE_EXT, PNG_FILE_EXT
 from consts import (
     ROMAN_NUMERALS,
     TITLE_EMPTY_FILENAME,
@@ -41,17 +38,6 @@ class CleanPage:
         self.page_num: int = page_num
         self.page_is_modified = page_is_modified
         self.panels_bbox: BoundingBox = BoundingBox()
-
-
-def is_fixes_special_case(comic: ComicBook, page: CleanPage) -> bool:
-    if get_safe_title(comic.title) == "Back to Long Ago!" and page.page_filename == "209":
-        return page.page_type == PageType.BACK_NO_PANELS
-    if comic.file_title == "The Bill Collectors" and page.page_filename == "227":
-        return page.page_type == PageType.BODY
-    if comic.file_title in CENSORED_TITLES:
-        return page.page_type == PageType.BODY
-
-    return False
 
 
 @dataclass
@@ -167,108 +153,11 @@ def get_checked_srce_file(comic: ComicBook, page: CleanPage) -> Tuple[str, bool]
         srce_file = EMPTY_IMAGE_FILEPATH
         is_modified_file = False
     else:
-        srce_file, is_modified_file = get_srce_file(comic, page)
-
-    if not os.path.isfile(srce_file):
-        srce_file = Path(srce_file).with_suffix(".png")
-        if not os.path.isfile(srce_file):
-            raise Exception(f'Could not find source file "{srce_file}".')
+        srce_file, is_modified_file = comic.get_final_srce_story_file(
+            page.page_filename, page.page_type
+        )
 
     return srce_file, is_modified_file
-
-
-def get_srce_file(comic: ComicBook, page: CleanPage) -> Tuple[str, bool]:
-    srce_restored_file, is_modified = get_srce_restored_file(comic, page)
-    if os.path.isfile(srce_restored_file):
-        return srce_restored_file, is_modified
-
-    srce_file = os.path.join(comic.get_srce_image_dir(), page.page_filename + JPG_FILE_EXT)
-    srce_fixes_file = os.path.join(
-        comic.get_srce_fixes_image_dir(), page.page_filename + JPG_FILE_EXT
-    )
-    if not os.path.isfile(srce_fixes_file):
-        return srce_file, False
-
-    if os.path.isfile(srce_file):
-        if is_fixes_special_case(comic, page):
-            logging.info(
-                f"NOTE: Special case - using {page.page_type.name} fixes srce file:"
-                f' "{srce_fixes_file}".'
-            )
-        else:
-            logging.info(f'NOTE: Using fixes srce file: "{srce_fixes_file}".')
-            if page.page_type not in [PageType.COVER, PageType.BODY]:
-                raise Exception(f"Expected fixes page to be COVER or BODY: '{page.page_filename}'.")
-    elif is_fixes_special_case(comic, page):
-        logging.info(
-            f"NOTE: Special case - using ADDED fixes srce file for {page.page_type.name} page:"
-            f' "{srce_fixes_file}".'
-        )
-    else:
-        logging.info(
-            f"NOTE: Using added srce file of type {page.page_type.name}:" f' "{srce_fixes_file}".'
-        )
-        if page.page_type in [PageType.COVER, PageType.BODY]:
-            raise Exception(f"Expected added page to be NOT COVER OR BODY: '{page.page_filename}'.")
-
-    is_modified_file = page.page_type in [PageType.COVER, PageType.BODY]
-
-    return srce_fixes_file, is_modified_file
-
-
-def get_srce_restored_file(comic: ComicBook, page: CleanPage) -> Tuple[str, bool]:
-    srce_restored_file = os.path.join(
-        comic.get_srce_restored_image_dir(), page.page_filename + JPG_FILE_EXT
-    )
-    if os.path.isfile(srce_restored_file):
-        raise Exception(f'Restored files should be png not jpg: "{srce_restored_file}".')
-    srce_restored_fixes_file = os.path.join(
-        comic.get_srce_restored_fixes_image_dir(), page.page_filename + JPG_FILE_EXT
-    )
-    if os.path.isfile(srce_restored_fixes_file):
-        raise Exception(
-            f'Restored fixes files should be png not jpg: "{srce_restored_fixes_file}".'
-        )
-
-    srce_restored_file = os.path.join(
-        comic.get_srce_restored_image_dir(), page.page_filename + PNG_FILE_EXT
-    )
-    srce_restored_fixes_file = os.path.join(
-        comic.get_srce_restored_fixes_image_dir(), page.page_filename + PNG_FILE_EXT
-    )
-
-    if not os.path.isfile(srce_restored_fixes_file):
-        return srce_restored_file, False
-
-    if os.path.isfile(srce_restored_file):
-        if is_fixes_special_case(comic, page):
-            logging.info(
-                f"NOTE: Special case - using {page.page_type.name} restored fixes srce file:"
-                f' "{srce_restored_fixes_file}".'
-            )
-        else:
-            logging.info(f'NOTE: Using restored fixes srce file: "{srce_restored_fixes_file}".')
-            if page.page_type not in [PageType.COVER, PageType.BODY]:
-                raise Exception(
-                    f"Expected restored fixes page to be COVER or BODY:" f' "{page.page_filename}".'
-                )
-    elif is_fixes_special_case(comic, page):
-        logging.info(
-            f"NOTE: Special case - using ADDED restored fixes srce file for"
-            f""
-            f' {page.page_type.name} page: "{srce_restored_fixes_file}".'
-        )
-    else:
-        logging.info(
-            f"NOTE: Using added srce restored file of type {page.page_type.name}:"
-            'f "{srce_restored_fixes_file}".'
-        )
-        if page.page_type in [PageType.COVER, PageType.BODY]:
-            raise Exception(f"Expected added page to be NOT COVER OR BODY: '{page.page_filename}'.")
-
-    is_modified_file = page.page_type in [PageType.COVER, PageType.BODY]
-
-    return srce_restored_fixes_file, is_modified_file
 
 
 def get_srce_dest_map(

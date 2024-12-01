@@ -3,8 +3,8 @@ import os
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
-from comics_info import ALL_SERIES
-from consts import (
+from barks_fantagraphics.comics_info import ALL_SERIES
+from barks_fantagraphics.comics_consts import (
     BARKS_ROOT_DIR,
     THE_COMICS_DIR,
     DEST_PANELS_BBOXES_FILENAME,

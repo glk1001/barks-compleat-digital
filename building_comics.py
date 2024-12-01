@@ -2,6 +2,7 @@ import concurrent.futures
 import logging
 import os
 import shutil
+from datetime import datetime
 from typing import Tuple, List
 
 from PIL import Image, ImageDraw, ImageFont
@@ -17,6 +18,7 @@ from barks_fantagraphics.comic_book import ComicBook
 from barks_fantagraphics.comics_consts import (
     PageType,
     BARKS,
+    BARKS_ROOT_DIR,
     get_font_path,
     INTRO_TEXT_FONT_FILE,
     PAGE_NUM_FONT_FILE,
@@ -214,6 +216,10 @@ def _process_page(
             logging.debug(f'Caching on - using existing page file "{dest_page.page_filename}".')
             return
 
+        logging.info(
+            f'Creating dest image "{os.path.basename(dest_page.page_filename)}"'
+            f' from srce file "{srce_page.page_filename}".'
+        )
         dest_page_image = _get_dest_page_image(comic, srce_page_image, srce_page, dest_page)
 
         if dry_run:
@@ -236,14 +242,23 @@ def _process_page(
 
 
 def _get_dest_jpg_comments(srce_page: CleanPage, dest_page: CleanPage) -> List[str]:
+    abbrev_srce_file = os.path.relpath(srce_page.page_filename, BARKS_ROOT_DIR)
+    abbrev_dest_file = os.path.relpath(dest_page.page_filename, BARKS_ROOT_DIR)
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+
+    prefix = "BARKS: "
     indent = "      "
     comments = [
         indent,
-        f"{indent}Srce page num: {srce_page.page_num}",
-        f"{indent}Srce page type: {srce_page.page_type.name}",
-        f"{indent}Srce panels bbox: {dest_page.panels_bbox.x_min}, {dest_page.panels_bbox.y_min},"
-        + f" {dest_page.panels_bbox.x_max}, {dest_page.panels_bbox.y_max}",
-        f"{indent}Dest page num: {dest_page.page_num}",
+        f'{indent}{prefix}Srce file: "{abbrev_srce_file}"',
+        f'{indent}{prefix}Dest file: "{abbrev_dest_file}"',
+        f"{indent}{prefix}Dest created: {now_str}",
+        f"{indent}{prefix}Srce page num: {srce_page.page_num}",
+        f"{indent}{prefix}Srce page type: {srce_page.page_type.name}",
+        f"{indent}{prefix}Srce panels bbox:"
+        f" {dest_page.panels_bbox.x_min}, {dest_page.panels_bbox.y_min},"
+        f" {dest_page.panels_bbox.x_max}, {dest_page.panels_bbox.y_max}",
+        f"{indent}{prefix}Dest page num: {dest_page.page_num}",
     ]
 
     return comments

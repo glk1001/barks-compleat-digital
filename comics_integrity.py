@@ -105,30 +105,38 @@ def check_directory_structure(comics_db: ComicsDatabase) -> int:
     ret_code = 0
     for volume in range(2, 21):
         vol_dir = os.path.join(
+            comics_db.get_upscayled_fantagraphics_volume_dir(volume), IMAGES_SUBDIR
+        )
+        if not os.path.isdir(vol_dir):
+            ret_code = 1
+            print(f'ERROR: Could not find directory "{vol_dir}".')
+
+        vol_dir = os.path.join(
             comics_db.get_restored_fantagraphics_volume_dir(volume), IMAGES_SUBDIR
         )
         if not os.path.isdir(vol_dir):
             ret_code = 1
             print(f'ERROR: Could not find directory "{vol_dir}".')
+
+        vol_dir = os.path.join(comics_db.get_fantagraphics_fixes_volume_dir(volume), IMAGES_SUBDIR)
+        if not os.path.isdir(vol_dir):
+            ret_code = 1
+            print(f'ERROR: Could not find directory "{vol_dir}".')
+
+        vol_dir = os.path.join(
+            comics_db.get_upscayled_fantagraphics_fixes_volume_dir(volume), IMAGES_SUBDIR
+        )
+        if not os.path.isdir(vol_dir):
+            ret_code = 1
+            print(f'ERROR: Could not find directory "{vol_dir}".')
+
         vol_dir = os.path.join(
             comics_db.get_restored_fantagraphics_fixes_volume_dir(volume), IMAGES_SUBDIR
         )
         if not os.path.isdir(vol_dir):
             ret_code = 1
             print(f'ERROR: Could not find directory "{vol_dir}".')
-        vol_dir = os.path.join(
-            comics_db.get_fantagraphics_fixes_and_additions_volume_dir(volume), IMAGES_SUBDIR
-        )
 
-        if not os.path.isdir(vol_dir):
-            ret_code = 1
-            print(f'ERROR: Could not find directory "{vol_dir}".')
-        vol_dir = os.path.join(
-            comics_db.get_upscayled_fantagraphics_volume_dir(volume), IMAGES_SUBDIR
-        )
-        if not os.path.isdir(vol_dir):
-            ret_code = 1
-            print(f'ERROR: Could not find directory "{vol_dir}".')
         vol_dir = os.path.join(
             comics_db.get_fantagraphics_panel_segments_volume_dir(volume), IMAGES_SUBDIR
         )

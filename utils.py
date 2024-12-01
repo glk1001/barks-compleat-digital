@@ -71,7 +71,6 @@ def log_comic_book_params(comic: ComicBook, caching: bool):
     logging.info(f'Srce fixes dir:      "FIXES ROOT/{fixes_basename}".')
     logging.info(f'Srce segments root:  "{comic.get_srce_segments_root_dir()}".')
     logging.info(f'Srce segments dir:   "SEGMENTS ROOT/{panel_segments_basename}".')
-    #logging.info(f'Srce file ext:       "{comic.srce_file_ext}".')
     logging.info(f'Dest root:           "{comic.get_dest_root_dir()}".')
     logging.info(f'Dest comic dir:      "DEST ROOT/{dest_basename}".')
     logging.info(f'Dest zip root:       "{comic.get_dest_zip_root_dir()}".')
