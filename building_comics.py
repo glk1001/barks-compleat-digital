@@ -14,11 +14,10 @@ from additional_file_writing import (
     write_srce_dest_map,
     write_dest_panels_bboxes,
 )
-from barks_fantagraphics.comic_book import ComicBook
+from barks_fantagraphics.comic_book import ComicBook, get_barks_path
 from barks_fantagraphics.comics_consts import (
     PageType,
     BARKS,
-    BARKS_ROOT_DIR,
     get_font_path,
     INTRO_TEXT_FONT_FILE,
     PAGE_NUM_FONT_FILE,
@@ -122,7 +121,7 @@ def _process_pages(
     if cache_pages:
         logging.debug(
             f"Caching on - not deleting cached files"
-            f' in images directory "{comic.get_dest_image_dir()}".'
+            f' in images directory "{get_barks_path(comic.get_dest_image_dir())}".'
         )
     else:
         _delete_all_files_in_directory(dry_run, comic.get_dest_image_dir())
@@ -140,10 +139,13 @@ def _process_pages(
 
 def _delete_all_files_in_directory(dry_run: bool, directory_path: str):
     if dry_run:
-        logging.info(f'{DRY_RUN_STR}: Deleting all files in directory "{directory_path}".')
+        logging.info(
+            f"{DRY_RUN_STR}: Deleting all files in directory"
+            f' "{get_barks_path(directory_path)}".'
+        )
         return
 
-    logging.debug(f'Deleting all files in directory "{directory_path}".')
+    logging.debug(f'Deleting all files in directory "{get_barks_path(directory_path)}".')
 
     with os.scandir(directory_path) as files:
         for file in files:
@@ -193,11 +195,11 @@ def _process_page(
 ):
     try:
         logging.info(
-            f'Convert "{os.path.basename(srce_page.page_filename)}"'
+            f'Convert "{get_barks_path(srce_page.page_filename)}"'
             f" (page-type {srce_page.page_type.name})"
-            f' to "{os.path.basename(dest_page.page_filename)}"'
-            f" (page number = {get_page_num_str(dest_page)},"
-            f" cache pages = {cache_pages})..."
+            f' to "{get_barks_path(dest_page.page_filename)}"'
+            f" (page {get_page_num_str(dest_page):>2},"
+            f" cache pages = {cache_pages})."
         )
 
         srce_page_image = open_image_for_reading(srce_page.page_filename)
@@ -213,17 +215,23 @@ def _process_page(
             and os.path.exists(dest_page.page_filename)
             and not is_dest_file_out_of_date(srce_page.page_filename, dest_page.page_filename)
         ):
-            logging.debug(f'Caching on - using existing page file "{dest_page.page_filename}".')
+            logging.debug(
+                f"Caching on - using existing page file"
+                f' "{get_barks_path(dest_page.page_filename)}".'
+            )
             return
 
         logging.info(
-            f'Creating dest image "{os.path.basename(dest_page.page_filename)}"'
-            f' from srce file "{srce_page.page_filename}".'
+            f'Creating dest image "{get_barks_path(dest_page.page_filename)}"'
+            f' from srce file "{get_barks_path(srce_page.page_filename)}".'
         )
         dest_page_image = _get_dest_page_image(comic, srce_page_image, srce_page, dest_page)
 
         if dry_run:
-            logging.info(f'{DRY_RUN_STR}: Save changes to image "{dest_page.page_filename}".')
+            logging.info(
+                f"{DRY_RUN_STR}: Save changes to image"
+                f' "{get_barks_path(dest_page.page_filename)}".'
+            )
         else:
             dest_page_image.save(
                 dest_page.page_filename,
@@ -232,7 +240,7 @@ def _process_page(
                 quality=DEST_JPG_QUALITY,
                 comment="\n".join(_get_dest_jpg_comments(srce_page, dest_page)),
             )
-            logging.info(f'Saved changes to image "{dest_page.page_filename}".')
+            logging.info(f'Saved changes to image "{get_barks_path(dest_page.page_filename)}".')
 
         logging.info("")
     except Exception as e:
@@ -242,16 +250,14 @@ def _process_page(
 
 
 def _get_dest_jpg_comments(srce_page: CleanPage, dest_page: CleanPage) -> List[str]:
-    abbrev_srce_file = os.path.relpath(srce_page.page_filename, BARKS_ROOT_DIR)
-    abbrev_dest_file = os.path.relpath(dest_page.page_filename, BARKS_ROOT_DIR)
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
     prefix = "BARKS: "
     indent = "      "
     comments = [
         indent,
-        f'{indent}{prefix}Srce file: "{abbrev_srce_file}"',
-        f'{indent}{prefix}Dest file: "{abbrev_dest_file}"',
+        f'{indent}{prefix}Srce file: "{get_barks_path(srce_page.page_filename)}"',
+        f'{indent}{prefix}Dest file: "{get_barks_path(dest_page.page_filename)}"',
         f"{indent}{prefix}Dest created: {now_str}",
         f"{indent}{prefix}Srce page num: {srce_page.page_num}",
         f"{indent}{prefix}Srce page type: {srce_page.page_type.name}",
@@ -389,7 +395,7 @@ def _get_dest_centred_page_image(
     srce_aspect_ratio = float(srce_page_image.height) / float(srce_page_image.width)
     if abs(srce_aspect_ratio - DEST_TARGET_ASPECT_RATIO) > 0.01:
         logging.debug(
-            f"Wrong aspect ratio for page '{srce_page.page_filename}':"
+            f"Wrong aspect ratio for page '{get_barks_path(srce_page.page_filename)}':"
             f" {srce_aspect_ratio:.2f} != {DEST_TARGET_ASPECT_RATIO :.2f}."
             f" Using black bars."
         )
@@ -460,7 +466,9 @@ def _get_centred_dest_page_image(dest_page: CleanPage, dest_panels_image: Image)
 
 
 def _write_introduction(comic: ComicBook, dest_page_image: Image):
-    logging.info(f'Writing introduction - using inset file "{comic.intro_inset_file}".')
+    logging.info(
+        f'Writing introduction - using inset file "{get_barks_path(comic.intro_inset_file)}".'
+    )
 
     draw = ImageDraw.Draw(dest_page_image)
 
@@ -786,7 +794,10 @@ def _process_additional_files(dry_run: bool, comic: ComicBook, pages: SrceAndDes
 def _create_dest_dirs(dry_run: bool, comic: ComicBook):
     if not os.path.isdir(comic.get_dest_image_dir()):
         if dry_run:
-            logging.info(f'{DRY_RUN_STR} Would have made directory "{comic.get_dest_image_dir()}".')
+            logging.info(
+                f"{DRY_RUN_STR} Would have made directory"
+                f' "{get_barks_path(comic.get_dest_image_dir())}".'
+            )
             return
         os.makedirs(comic.get_dest_image_dir())
 

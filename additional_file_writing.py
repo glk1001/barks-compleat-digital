@@ -83,7 +83,11 @@ def write_summary_file(
         f.write(f'comic title              = "{comic.get_comic_title()}"\n')
         f.write(f'ini file                 = "{comic.ini_file}"\n')
         f.write(f'srce dir                 = "{comic.srce_dir}"\n')
-        f.write(f'srce fixes_dir           = "{comic.srce_fixes_dir}"\n')
+        f.write(f'srce upscayled dir       = "{comic.srce_upscayled_dir}"\n')
+        f.write(f'srce restored dir        = "{comic.srce_restored_dir}"\n')
+        f.write(f'srce fixes dir           = "{comic.srce_fixes_dir}"\n')
+        f.write(f'srce upscayled fixes dir = "{comic.srce_upscayled_fixes_dir}"\n')
+        f.write(f'srce restored fixes dir  = "{comic.srce_restored_fixes_dir}"\n')
         f.write(f'dest dir                 = "{comic.get_dest_dir()}"\n')
         f.write(f'dest comic_zip           = "{comic.get_dest_comic_zip()}"\n')
         f.write(f'dest series zip symlink  = "{comic.get_dest_series_comic_zip_symlink()}"\n')
@@ -194,8 +198,8 @@ def write_json_metadata(dry_run: bool, comic: ComicBook, dest_pages: List[CleanP
         metadata["comic_title"] = get_safe_title(comic.get_comic_title())
         metadata["series_name"] = comic.series_name
         metadata["number_in_series"] = comic.number_in_series
-        metadata["srce_file"] = comic.srce_dir
-        metadata["dest_file"] = comic.get_dest_dir()
+        metadata["srce_dir"] = comic.srce_dir
+        metadata["dest_dir"] = comic.get_dest_dir()
         metadata["publication_date"] = comic.publication_date
         metadata["submitted_date"] = comic.submitted_date
         metadata["submitted_year"] = comic.submitted_year
@@ -213,7 +217,7 @@ def write_json_metadata(dry_run: bool, comic: ComicBook, dest_pages: List[CleanP
         metadata["page_counts"] = get_page_counts(dest_pages)
         with open(metadata_file, "w") as f:
             # noinspection PyTypeChecker
-            json.dump(metadata, f)
+            json.dump(metadata, f, indent=4)
 
 
 def get_page_counts(dest_pages: List[CleanPage]) -> Dict[str, int]:
@@ -281,7 +285,7 @@ def write_srce_dest_map(
         srce_dest_map = get_srce_dest_map(comic, pages)
         with open(src_dst_map_file, "w") as f:
             # noinspection PyTypeChecker
-            json.dump(srce_dest_map, f)
+            json.dump(srce_dest_map, f, indent=4)
 
 
 def write_dest_panels_bboxes(
@@ -300,4 +304,4 @@ def write_dest_panels_bboxes(
 
         with open(dst_bboxes_file, "w") as f:
             # noinspection PyTypeChecker
-            json.dump(bboxes_dict, f)
+            json.dump(bboxes_dict, f, indent=4)

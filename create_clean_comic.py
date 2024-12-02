@@ -70,7 +70,7 @@ def print_cmd(options: CmdOptions, comics_db: ComicsDatabase, story_title: str) 
 
 
 def show_all_mods(comics_db: ComicsDatabase) -> int:
-    mod_dict = OrderedDict()
+    mod_dict = dict()
     max_title_len = 0
     for title in comics_db.get_all_story_titles():
         comic = comics_db.get_comic_book(title)
@@ -84,7 +84,8 @@ def show_all_mods(comics_db: ComicsDatabase) -> int:
 
         mod_dict.update({get_mods(comic)})
 
-    for title, mods in mod_dict.items():
+    for title in sorted(mod_dict.keys()):
+        mods = mod_dict[title]
         title_str = title + ":"
         dest_mods = f"{'Dest':<6} - {mods[0]}"
         srce_mods = mods[1]
