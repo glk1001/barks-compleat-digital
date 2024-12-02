@@ -33,10 +33,9 @@ from pages import (
     CleanPage,
     SrceAndDestPages,
     get_srce_dest_map,
-    get_timestamp_str,
     get_page_num_str,
-    get_timestamp_as_str,
 )
+from utils import get_timestamp_str, get_timestamp_as_str
 from timing import Timing
 
 

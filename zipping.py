@@ -6,10 +6,7 @@ from typing import Union
 
 from barks_fantagraphics.comic_book import ComicBook, get_barks_path
 from consts import DRY_RUN_STR
-from out_of_date_checking import (
-    is_zip_file_out_of_date_wrt_dest,
-    is_symlink_out_of_date_wrt_zip,
-)
+from utils import is_zip_file_out_of_date_wrt_dest, is_symlink_out_of_date_wrt_zip
 
 
 def zip_comic_book(dry_run: bool, no_cache: bool, comic: ComicBook, max_dest_timestamp: float):
@@ -18,8 +15,10 @@ def zip_comic_book(dry_run: bool, no_cache: bool, comic: ComicBook, max_dest_tim
         and os.path.isfile(comic.get_dest_comic_zip())
         and not is_zip_file_out_of_date_wrt_dest(comic.get_dest_comic_zip(), max_dest_timestamp)
     ):
-        logging.debug(f'Caching on - keeping existing zip file'
-                      f' "{get_barks_path(comic.get_dest_comic_zip())}".')
+        logging.debug(
+            f"Caching on - keeping existing zip file"
+            f' "{get_barks_path(comic.get_dest_comic_zip())}".'
+        )
         return
 
     if dry_run:
@@ -83,8 +82,10 @@ def create_symlink_zip(
             f' "{get_barks_path(symlink)}".'
         )
     else:
-        logging.info(f'Symlinking (relative) the comic zip file "{get_barks_path(zip_file)}" to'
-                     f' "{get_barks_path(symlink)}".')
+        logging.info(
+            f'Symlinking (relative) the comic zip file "{get_barks_path(zip_file)}" to'
+            f' "{get_barks_path(symlink)}".'
+        )
 
         if not os.path.exists(symlink_dir):
             os.makedirs(symlink_dir)

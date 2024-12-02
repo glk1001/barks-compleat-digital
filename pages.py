@@ -1,7 +1,6 @@
 import inspect
 import os
 from dataclasses import dataclass
-from datetime import datetime
 from typing import List, Tuple, Dict, Union
 
 from barks_fantagraphics.comic_book import OriginalPage, ComicBook
@@ -14,6 +13,7 @@ from consts import (
     FRONT_MATTER_PAGES,
 )
 from panel_bounding_boxes import BoundingBox
+from utils import get_timestamp
 
 THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
@@ -48,22 +48,6 @@ class SrceAndDestPages:
 
 def get_max_timestamp(pages: List[CleanPage]) -> float:
     return max(get_timestamp(p.page_filename) for p in pages)
-
-
-def get_timestamp(file: str) -> float:
-    if os.path.islink(file):
-        return os.lstat(file).st_mtime
-
-    return os.path.getmtime(file)
-
-
-def get_timestamp_str(file: str) -> str:
-    return get_timestamp_as_str(get_timestamp(file))
-
-
-def get_timestamp_as_str(timestamp: float) -> str:
-    timestamp_as_date = datetime.fromtimestamp(timestamp)
-    return timestamp_as_date.strftime("%Y_%m_%d-%H_%M_%S.%f")
 
 
 def get_page_num_str(page: CleanPage) -> str:

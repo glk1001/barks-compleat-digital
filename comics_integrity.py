@@ -12,17 +12,17 @@ from barks_fantagraphics.comics_consts import (
 )
 from barks_fantagraphics.comics_database import ComicsDatabase
 from consts import DEST_NON_IMAGE_FILES
-from out_of_date_checking import (
-    get_dest_file_out_of_date_msg,
-    get_file_out_of_date_wrt_max_dest_msg,
-)
 from pages import (
     get_srce_and_dest_pages_in_order,
     SrceAndDestPages,
+)
+from utils import (
+    get_shorter_ini_filename,
     get_timestamp,
     get_timestamp_as_str,
+    get_dest_file_out_of_date_msg,
+    get_file_out_of_date_wrt_max_dest_msg,
 )
-from utils import get_shorter_ini_filename
 
 
 @dataclass
