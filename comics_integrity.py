@@ -112,7 +112,21 @@ def check_directory_structure(comics_db: ComicsDatabase) -> int:
             print(f'ERROR: Could not find directory "{vol_dir}".')
 
         vol_dir = os.path.join(
+            comics_db.get_fantagraphics_upscayled_restored_volume_dir(volume), IMAGES_SUBDIR
+        )
+        if not os.path.isdir(vol_dir):
+            ret_code = 1
+            print(f'ERROR: Could not find directory "{vol_dir}".')
+
+        vol_dir = os.path.join(
             comics_db.get_fantagraphics_restored_volume_dir(volume), IMAGES_SUBDIR
+        )
+        if not os.path.isdir(vol_dir):
+            ret_code = 1
+            print(f'ERROR: Could not find directory "{vol_dir}".')
+
+        vol_dir = os.path.join(
+            comics_db.get_fantagraphics_svg_restored_volume_dir(volume), IMAGES_SUBDIR
         )
         if not os.path.isdir(vol_dir):
             ret_code = 1
