@@ -4,7 +4,8 @@ from typing import List, Tuple
 
 from PIL import Image
 
-from barks_fantagraphics.comic_book import ComicBook, get_barks_path
+from barks_fantagraphics.comic_book import ComicBook
+from barks_fantagraphics.comics_utils import get_relpath
 from consts import (
     DRY_RUN_STR,
     PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN,
@@ -165,12 +166,12 @@ def get_panels_bounding_box(
             logging.info(
                 f"{DRY_RUN_STR}: "
                 f"Caching off - deleting panel bbox file"
-                f' "{get_barks_path(srce_page_bounding_box_filename)}".'
+                f' "{get_relpath(srce_page_bounding_box_filename)}".'
             )
         else:
             logging.debug(
                 f"Caching off - deleting panel bbox file"
-                f' "{get_barks_path(srce_page_bounding_box_filename)}".'
+                f' "{get_relpath(srce_page_bounding_box_filename)}".'
             )
             os.remove(srce_page_bounding_box_filename)
             assert not os.path.isfile(srce_page_bounding_box_filename)

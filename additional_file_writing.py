@@ -9,6 +9,7 @@ from barks_fantagraphics.comics_consts import (
     PageType,
     get_font_path,
 )
+from barks_fantagraphics.comics_utils import get_clean_path
 from consts import (
     DRY_RUN_STR,
     DEST_JPG_QUALITY,
@@ -35,8 +36,8 @@ from pages import (
     get_srce_dest_map,
     get_page_num_str,
 )
-from utils import get_timestamp_str, get_timestamp_as_str
 from timing import Timing
+from utils import get_timestamp_str, get_timestamp_as_str
 
 
 def write_summary_file(
@@ -72,6 +73,20 @@ def write_summary_file(
         if dest.page_is_modified and dest.page_type == PageType.BODY
     ]
 
+    ini_file = get_clean_path(comic.ini_file)
+    srce_dir = get_clean_path(comic.srce_dir)
+    srce_upscayled_dir = get_clean_path(comic.srce_upscayled_dir)
+    srce_restored_dir = get_clean_path(comic.srce_restored_dir)
+    srce_fixes_dir = get_clean_path(comic.srce_fixes_dir)
+    srce_upscayled_fixes_dir = get_clean_path(comic.srce_upscayled_fixes_dir)
+    srce_restored_fixes_dir = get_clean_path(comic.srce_restored_fixes_dir)
+    dest_dir = get_clean_path(comic.get_dest_dir())
+    dest_comic_zip = get_clean_path(comic.get_dest_comic_zip())
+    dest_series_zip_symlink = get_clean_path(comic.get_dest_series_comic_zip_symlink())
+    dest_year_zip_symlink = get_clean_path(comic.get_dest_year_comic_zip_symlink())
+    title_font_file = get_clean_path(get_font_path(comic.title_font_file))
+    intro_inset_file = get_clean_path(comic.intro_inset_file)
+
     with open(summary_file, "w") as f:
         f.write("Run Summary:\n")
         f.write(f"time of run              = {timing.start_time}\n")
@@ -80,23 +95,23 @@ def write_summary_file(
         f.write(f'file title               = "{comic.file_title}"\n')
         f.write(f'issue title              = "{comic.issue_title}"\n')
         f.write(f'comic title              = "{comic.get_comic_title()}"\n')
-        f.write(f'ini file                 = "{comic.ini_file}"\n')
-        f.write(f'srce dir                 = "{comic.srce_dir}"\n')
-        f.write(f'srce upscayled dir       = "{comic.srce_upscayled_dir}"\n')
-        f.write(f'srce restored dir        = "{comic.srce_restored_dir}"\n')
-        f.write(f'srce fixes dir           = "{comic.srce_fixes_dir}"\n')
-        f.write(f'srce upscayled fixes dir = "{comic.srce_upscayled_fixes_dir}"\n')
-        f.write(f'srce restored fixes dir  = "{comic.srce_restored_fixes_dir}"\n')
-        f.write(f'dest dir                 = "{comic.get_dest_dir()}"\n')
-        f.write(f'dest comic_zip           = "{comic.get_dest_comic_zip()}"\n')
-        f.write(f'dest series zip symlink  = "{comic.get_dest_series_comic_zip_symlink()}"\n')
-        f.write(f'dest year zip symlink    = "{comic.get_dest_year_comic_zip_symlink()}"\n')
+        f.write(f'ini file                 = "{ini_file}"\n')
+        f.write(f'srce dir                 = "{srce_dir}"\n')
+        f.write(f'srce upscayled dir       = "{srce_upscayled_dir}"\n')
+        f.write(f'srce restored dir        = "{srce_restored_dir}"\n')
+        f.write(f'srce fixes dir           = "{srce_fixes_dir}"\n')
+        f.write(f'srce upscayled fixes dir = "{srce_upscayled_fixes_dir}"\n')
+        f.write(f'srce restored fixes dir  = "{srce_restored_fixes_dir}"\n')
+        f.write(f'dest dir                 = "{dest_dir}"\n')
+        f.write(f'dest comic_zip           = "{dest_comic_zip}"\n')
+        f.write(f'dest series zip symlink  = "{dest_series_zip_symlink}"\n')
+        f.write(f'dest year zip symlink    = "{dest_year_zip_symlink}"\n')
         f.write(f'ini file timestamp       = "{get_timestamp_str(comic.ini_file)}"\n')
         f.write(f'max dest timestamp       = "{get_timestamp_as_str(max_dest_timestamp)}"\n')
         f.write(f'comic zip timestamp      = "{get_timestamp_str(comic.get_dest_comic_zip())}"\n')
         f.write(f'series symlink timestamp = "{series_symlink_timestamp}"\n')
         f.write(f'year symlink timestamp   = "{year_symlink_timestamp}"\n')
-        f.write(f'title font file          = "{get_font_path(comic.title_font_file)}"\n')
+        f.write(f'title font file          = "{title_font_file}"\n')
         f.write(f"chronological number     = {comic.chronological_number}\n")
         f.write(f'series                   = "{comic.series_name}"\n')
         f.write(f"series book num          = {comic.number_in_series}\n")
@@ -106,7 +121,7 @@ def write_summary_file(
         f.write(f"publication text         = \n{comic.publication_text}\n")
         f.write(f"has modified cover       = {has_modified_cover}\n")
         f.write(f"modified body pages      = {", ".join(modified_body_pages)}\n")
-        f.write(f'intro inset file         = "{comic.intro_inset_file}"\n')
+        f.write(f'intro inset file         = "{intro_inset_file}"\n')
         f.write(f"caching                  = {caching}\n")
         f.write(f"title font size          = {comic.title_font_size}\n")
         f.write(f"author font size         = {comic.author_font_size}\n")
@@ -197,8 +212,8 @@ def write_json_metadata(dry_run: bool, comic: ComicBook, dest_pages: List[CleanP
         metadata["comic_title"] = get_safe_title(comic.get_comic_title())
         metadata["series_name"] = comic.series_name
         metadata["number_in_series"] = comic.number_in_series
-        metadata["srce_dir"] = comic.srce_dir
-        metadata["dest_dir"] = comic.get_dest_dir()
+        metadata["srce_dir"] = get_clean_path(comic.srce_dir)
+        metadata["dest_dir"] = get_clean_path(comic.get_dest_dir())
         metadata["publication_date"] = comic.publication_date
         metadata["submitted_date"] = comic.submitted_date
         metadata["submitted_year"] = comic.submitted_year

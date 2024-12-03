@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Tuple
 
 from PIL import Image
 
-from barks_fantagraphics.comic_book import get_barks_path
+from barks_fantagraphics.comics_utils import get_relpath
 from consts import BIG_NUM
 
 
@@ -19,7 +19,7 @@ class KumikoPanelSegmentation:
         self, srce_image: Image, srce_filename: str
     ) -> Tuple[Tuple[int, int, int, int], Dict[str, Any]]:
         logging.debug(
-            f'Getting panel bounding box for "{get_barks_path(srce_filename)}" using kumiko.'
+            f'Getting panel bounding box for "{get_relpath(srce_filename)}" using kumiko.'
         )
 
         work_filename = str(

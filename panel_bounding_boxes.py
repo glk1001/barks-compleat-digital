@@ -5,7 +5,7 @@ from typing import Any, Dict, Tuple
 
 from PIL import Image, ImageDraw
 
-from barks_fantagraphics.comic_book import get_barks_path
+from barks_fantagraphics.comics_utils import get_relpath
 from consts import DRY_RUN_STR, PANEL_BOUNDS_FILENAME_SUFFIX
 from panel_segmentation import KumikoPanelSegmentation
 
@@ -49,7 +49,7 @@ class BoundingBoxProcessor(object):
             return BoundingBox(x_min, y_min, x_max, y_max)
 
     def save_panels_bounding_box(self, filename: str, bounding_box: BoundingBox):
-        logging.debug(f'Saving panel bounding box to file "{get_barks_path(filename)}".')
+        logging.debug(f'Saving panel bounding box to file "{get_relpath(filename)}".')
 
         with open(filename, "w") as f:
             f.write(
@@ -89,7 +89,7 @@ class BoundingBoxProcessor(object):
         if dry_run:
             logging.info(
                 f"{DRY_RUN_STR}: Saving panel segment info to"
-                f' "{get_barks_path(panel_segments_dir)}".'
+                f' "{get_relpath(panel_segments_dir)}".'
             )
         else:
             self.__save_segment_info(panel_segments_dir, srce_filename, segment_info)
@@ -109,9 +109,7 @@ class BoundingBoxProcessor(object):
         if output_dir == self.__work_dir:
             logging.debug(f'Saving panel segment info to work file "{segment_info_filename}".')
         else:
-            logging.debug(
-                f'Saving panel segment info to "{get_barks_path(segment_info_filename)}".'
-            )
+            logging.debug(f'Saving panel segment info to "{get_relpath(segment_info_filename)}".')
 
         segment_info_filtered = {k: v for k, v in segment_info.items() if k != "processing_time"}
         with open(segment_info_filename, "w") as f:

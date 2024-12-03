@@ -14,7 +14,7 @@ from additional_file_writing import (
     write_srce_dest_map,
     write_dest_panels_bboxes,
 )
-from barks_fantagraphics.comic_book import ComicBook, get_barks_path, get_safe_title
+from barks_fantagraphics.comic_book import ComicBook, get_safe_title
 from barks_fantagraphics.comics_consts import (
     PageType,
     BARKS,
@@ -23,6 +23,7 @@ from barks_fantagraphics.comics_consts import (
     PAGE_NUM_FONT_FILE,
 )
 from barks_fantagraphics.comics_info import CS, CENSORED_TITLES
+from barks_fantagraphics.comics_utils import get_clean_path, get_relpath
 from consts import (
     DRY_RUN_STR,
     DEST_TARGET_WIDTH,
@@ -120,7 +121,7 @@ def _process_pages(
     if cache_pages:
         logging.debug(
             f"Caching on - not deleting cached files"
-            f' in images directory "{get_barks_path(comic.get_dest_image_dir())}".'
+            f' in images directory "{get_relpath(comic.get_dest_image_dir())}".'
         )
     else:
         _delete_all_files_in_directory(dry_run, comic.get_dest_image_dir())
@@ -139,12 +140,11 @@ def _process_pages(
 def _delete_all_files_in_directory(dry_run: bool, directory_path: str):
     if dry_run:
         logging.info(
-            f"{DRY_RUN_STR}: Deleting all files in directory"
-            f' "{get_barks_path(directory_path)}".'
+            f"{DRY_RUN_STR}: Deleting all files in directory" f' "{get_relpath(directory_path)}".'
         )
         return
 
-    logging.debug(f'Deleting all files in directory "{get_barks_path(directory_path)}".')
+    logging.debug(f'Deleting all files in directory "{get_relpath(directory_path)}".')
 
     with os.scandir(directory_path) as files:
         for file in files:
@@ -194,9 +194,9 @@ def _process_page(
 ):
     try:
         logging.info(
-            f'Convert "{get_barks_path(srce_page.page_filename)}"'
+            f'Convert "{get_relpath(srce_page.page_filename)}"'
             f" (page-type {srce_page.page_type.name})"
-            f' to "{get_barks_path(dest_page.page_filename)}"'
+            f' to "{get_relpath(dest_page.page_filename)}"'
             f" (page {get_page_num_str(dest_page):>2},"
             f" cache pages = {cache_pages})."
         )
@@ -216,20 +216,20 @@ def _process_page(
         ):
             logging.debug(
                 f"Caching on - using existing page file"
-                f' "{get_barks_path(dest_page.page_filename)}".'
+                f' "{get_relpath(dest_page.page_filename)}".'
             )
             return
 
         logging.info(
-            f'Creating dest image "{get_barks_path(dest_page.page_filename)}"'
-            f' from srce file "{get_barks_path(srce_page.page_filename)}".'
+            f'Creating dest image "{get_relpath(dest_page.page_filename)}"'
+            f' from srce file "{get_relpath(srce_page.page_filename)}".'
         )
         dest_page_image = _get_dest_page_image(comic, srce_page_image, srce_page, dest_page)
 
         if dry_run:
             logging.info(
                 f"{DRY_RUN_STR}: Save changes to image"
-                f' "{get_barks_path(dest_page.page_filename)}".'
+                f' "{get_relpath(dest_page.page_filename)}".'
             )
         else:
             dest_page_image.save(
@@ -239,7 +239,7 @@ def _process_page(
                 quality=DEST_JPG_QUALITY,
                 comment="\n".join(_get_dest_jpg_comments(srce_page, dest_page)),
             )
-            logging.info(f'Saved changes to image "{get_barks_path(dest_page.page_filename)}".')
+            logging.info(f'Saved changes to image "{get_relpath(dest_page.page_filename)}".')
 
         logging.info("")
     except Exception as e:
@@ -255,8 +255,8 @@ def _get_dest_jpg_comments(srce_page: CleanPage, dest_page: CleanPage) -> List[s
     indent = "      "
     comments = [
         indent,
-        f'{indent}{prefix}Srce file: "{get_barks_path(srce_page.page_filename)}"',
-        f'{indent}{prefix}Dest file: "{get_barks_path(dest_page.page_filename)}"',
+        f'{indent}{prefix}Srce file: "{get_clean_path(srce_page.page_filename)}"',
+        f'{indent}{prefix}Dest file: "{get_clean_path(dest_page.page_filename)}"',
         f"{indent}{prefix}Dest created: {now_str}",
         f"{indent}{prefix}Srce page num: {srce_page.page_num}",
         f"{indent}{prefix}Srce page type: {srce_page.page_type.name}",
@@ -394,7 +394,7 @@ def _get_dest_centred_page_image(
     srce_aspect_ratio = float(srce_page_image.height) / float(srce_page_image.width)
     if abs(srce_aspect_ratio - DEST_TARGET_ASPECT_RATIO) > 0.01:
         logging.debug(
-            f"Wrong aspect ratio for page '{get_barks_path(srce_page.page_filename)}':"
+            f"Wrong aspect ratio for page '{get_relpath(srce_page.page_filename)}':"
             f" {srce_aspect_ratio:.2f} != {DEST_TARGET_ASPECT_RATIO :.2f}."
             f" Using black bars."
         )
@@ -466,7 +466,7 @@ def _get_centred_dest_page_image(dest_page: CleanPage, dest_panels_image: Image)
 
 def _write_introduction(comic: ComicBook, dest_page_image: Image):
     logging.info(
-        f'Writing introduction - using inset file "{get_barks_path(comic.intro_inset_file)}".'
+        f'Writing introduction - using inset file "{get_relpath(comic.intro_inset_file)}".'
     )
 
     draw = ImageDraw.Draw(dest_page_image)
@@ -795,7 +795,7 @@ def _create_dest_dirs(dry_run: bool, comic: ComicBook):
         if dry_run:
             logging.info(
                 f"{DRY_RUN_STR} Would have made directory"
-                f' "{get_barks_path(comic.get_dest_image_dir())}".'
+                f' "{get_relpath(comic.get_dest_image_dir())}".'
             )
             return
         os.makedirs(comic.get_dest_image_dir())
@@ -836,20 +836,18 @@ def log_comic_book_params(comic: ComicBook, caching: bool):
     logging.info(f"Req panels bbox hgt:  {comic.required_dim.panels_bbox_height}.")
     logging.info(f"Calc panels bbox ht:  {calc_panels_bbox_height}.")
     logging.info(f"Page num y bottom:    {comic.required_dim.page_num_y_bottom}.")
-    logging.info(f'Ini file:             "{comic.ini_file}".')
-    logging.info(f'Srce dir:             "{get_barks_path(comic.srce_dir)}".')
-    logging.info(f'Srce upscayled dir:   "{get_barks_path(comic.srce_upscayled_dir)}".')
-    logging.info(f'Srce restored dir:    "{get_barks_path(comic.srce_restored_dir)}".')
-    logging.info(f'Srce fixes dir:       "{get_barks_path(comic.srce_fixes_dir)}".')
-    logging.info(f'Srce upscayled fixes: "{get_barks_path(comic.srce_upscayled_fixes_dir)}".')
-    logging.info(f'Srce restored fixes:  "{get_barks_path(comic.srce_restored_fixes_dir)}".')
-    logging.info(f'Srce segments dir:    "{get_barks_path(comic.panel_segments_dir)}".')
-    logging.info(f'Dest dir:             "{get_barks_path(comic.get_dest_dir())}".')
-    logging.info(f'Dest comic zip:       "{get_barks_path(comic.get_dest_comic_zip())}".')
+    logging.info(f'Ini file:             "{get_clean_path(comic.ini_file)}".')
+    logging.info(f'Srce dir:             "{get_relpath(comic.srce_dir)}".')
+    logging.info(f'Srce upscayled dir:   "{get_relpath(comic.srce_upscayled_dir)}".')
+    logging.info(f'Srce restored dir:    "{get_relpath(comic.srce_restored_dir)}".')
+    logging.info(f'Srce fixes dir:       "{get_relpath(comic.srce_fixes_dir)}".')
+    logging.info(f'Srce upscayled fixes: "{get_relpath(comic.srce_upscayled_fixes_dir)}".')
+    logging.info(f'Srce restored fixes:  "{get_relpath(comic.srce_restored_fixes_dir)}".')
+    logging.info(f'Srce segments dir:    "{get_relpath(comic.panel_segments_dir)}".')
+    logging.info(f'Dest dir:             "{get_relpath(comic.get_dest_dir())}".')
+    logging.info(f'Dest comic zip:       "{get_relpath(comic.get_dest_comic_zip())}".')
     logging.info(
-        f'Dest series symlink:  "{get_barks_path(comic.get_dest_series_comic_zip_symlink())}".'
+        f'Dest series symlink:  "{get_relpath(comic.get_dest_series_comic_zip_symlink())}".'
     )
-    logging.info(
-        f'Dest year symlink:    "{get_barks_path(comic.get_dest_year_comic_zip_symlink())}".'
-    )
+    logging.info(f'Dest year symlink:    "{get_relpath(comic.get_dest_year_comic_zip_symlink())}".')
     logging.info("")

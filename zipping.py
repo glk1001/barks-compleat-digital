@@ -4,7 +4,8 @@ import shutil
 from pathlib import Path
 from typing import Union
 
-from barks_fantagraphics.comic_book import ComicBook, get_barks_path
+from barks_fantagraphics.comic_book import ComicBook
+from barks_fantagraphics.comics_utils import get_relpath
 from consts import DRY_RUN_STR
 from utils import is_zip_file_out_of_date_wrt_dest, is_symlink_out_of_date_wrt_zip
 
@@ -17,19 +18,19 @@ def zip_comic_book(dry_run: bool, no_cache: bool, comic: ComicBook, max_dest_tim
     ):
         logging.debug(
             f"Caching on - keeping existing zip file"
-            f' "{get_barks_path(comic.get_dest_comic_zip())}".'
+            f' "{get_relpath(comic.get_dest_comic_zip())}".'
         )
         return
 
     if dry_run:
         logging.info(
-            f'{DRY_RUN_STR}: Zipping directory "{get_barks_path(comic.get_dest_dir())}"'
-            f' to "{get_barks_path(comic.get_dest_comic_zip())}".'
+            f'{DRY_RUN_STR}: Zipping directory "{get_relpath(comic.get_dest_dir())}"'
+            f' to "{get_relpath(comic.get_dest_comic_zip())}".'
         )
     else:
         logging.info(
-            f'Zipping directory "{get_barks_path(comic.get_dest_dir())}" to'
-            f' "{get_barks_path(comic.get_dest_comic_zip())}".'
+            f'Zipping directory "{get_relpath(comic.get_dest_dir())}" to'
+            f' "{get_relpath(comic.get_dest_comic_zip())}".'
         )
 
         os.makedirs(comic.get_dest_zip_root_dir(), exist_ok=True)
@@ -73,18 +74,18 @@ def create_symlink_zip(
         and os.path.islink(symlink)
         and not is_symlink_out_of_date_wrt_zip(symlink, zip_file)
     ):
-        logging.debug(f'Caching on - keeping existing symlink file "{get_barks_path(symlink)}".')
+        logging.debug(f'Caching on - keeping existing symlink file "{get_relpath(symlink)}".')
         return
 
     if dry_run:
         logging.info(
-            f'{DRY_RUN_STR}: Symlinking (relative) comic zip file "{get_barks_path(zip_file)}" to'
-            f' "{get_barks_path(symlink)}".'
+            f'{DRY_RUN_STR}: Symlinking (relative) comic zip file "{get_relpath(zip_file)}" to'
+            f' "{get_relpath(symlink)}".'
         )
     else:
         logging.info(
-            f'Symlinking (relative) the comic zip file "{get_barks_path(zip_file)}" to'
-            f' "{get_barks_path(symlink)}".'
+            f'Symlinking (relative) the comic zip file "{get_relpath(zip_file)}" to'
+            f' "{get_relpath(symlink)}".'
         )
 
         if not os.path.exists(symlink_dir):
@@ -111,7 +112,7 @@ def relative_symlink(target: Union[Path, str], destination: Union[Path, str]):
 
     relative_source = os.path.relpath(target, target_dir)
 
-    logging.debug(f'"{relative_source}" -> "{destination.name}" in "{get_barks_path(target_dir)}"')
+    logging.debug(f'"{relative_source}" -> "{destination.name}" in "{get_relpath(target_dir)}"')
     target_dir_fd = os.open(str(target_dir.absolute()), os.O_RDONLY)
     try:
         os.symlink(relative_source, destination.name, dir_fd=target_dir_fd)
