@@ -53,7 +53,7 @@ from panel_bounding import (
     get_required_panels_bbox_width_height,
     get_scaled_panels_bbox_height,
 )
-from utils import is_dest_file_out_of_date
+from utils import dest_file_is_out_of_date_wrt_srce
 from zipping import zip_comic_book, create_symlinks_to_comic_zip
 
 INTRO_TOP = 350
@@ -209,10 +209,8 @@ def _process_page(
                 f" {srce_page_image.width} x {srce_page_image.height}."
             )
 
-        if (
-            cache_pages
-            and os.path.exists(dest_page.page_filename)
-            and not is_dest_file_out_of_date(srce_page.page_filename, dest_page.page_filename)
+        if cache_pages and not dest_file_is_out_of_date_wrt_srce(
+            srce_page.page_filename, dest_page.page_filename
         ):
             logging.debug(
                 f"Caching on - using existing page file"

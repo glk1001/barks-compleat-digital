@@ -13,7 +13,7 @@ from consts import (
     FRONT_MATTER_PAGES,
 )
 from panel_bounding_boxes import BoundingBox
-from utils import get_timestamp
+from barks_fantagraphics.comics_utils import get_timestamp
 
 THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 

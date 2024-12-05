@@ -1,7 +1,6 @@
 import argparse
 import datetime
 import logging
-import os
 import shlex
 import sys
 from dataclasses import dataclass
@@ -12,6 +11,7 @@ from additional_file_writing import write_summary_file
 from barks_fantagraphics.comic_book import ComicBook
 from barks_fantagraphics.comics_consts import PageType
 from barks_fantagraphics.comics_database import ComicsDatabase, get_default_comics_database_dir
+from barks_fantagraphics.comics_utils import get_work_dir
 from building_comics import build_comic_book
 from comics_integrity import check_comics_integrity
 from pages import get_max_timestamp, get_srce_and_dest_pages_in_order, get_page_num_str
@@ -301,25 +301,13 @@ def setup_logging(log_level) -> None:
     )
 
 
-def get_work_dir(work_dir_root: str) -> str:
-    os.makedirs(work_dir_root, exist_ok=True)
-    if not os.path.isdir(work_dir_root):
-        raise Exception(f'Could not find work root directory "{work_dir_root}".')
-
-    wrk_dir = os.path.join(work_dir_root, datetime.now().strftime("%Y_%m_%d-%H_%M_%S.%f"))
-    os.makedirs(wrk_dir)
-
-    logging.debug(f'Work directory: "{wrk_dir}".')
-
-    return wrk_dir
-
-
 if __name__ == "__main__":
     cmd_args = get_args()
 
     setup_logging(cmd_args.log_level)
 
     work_dir = get_work_dir(cmd_args.work_dir)
+    logging.debug(f'Work dir: "{work_dir}".')
 
     cmd_options = get_cmd_options(cmd_args)
     comics_database = ComicsDatabase(cmd_args.comics_database_dir)

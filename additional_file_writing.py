@@ -9,7 +9,7 @@ from barks_fantagraphics.comics_consts import (
     PageType,
     get_font_path,
 )
-from barks_fantagraphics.comics_utils import get_clean_path
+from barks_fantagraphics.comics_utils import get_clean_path, get_timestamp_str, get_timestamp_as_str
 from consts import (
     DRY_RUN_STR,
     DEST_JPG_QUALITY,
@@ -37,7 +37,6 @@ from pages import (
     get_page_num_str,
 )
 from timing import Timing
-from utils import get_timestamp_str, get_timestamp_as_str
 
 
 def write_summary_file(

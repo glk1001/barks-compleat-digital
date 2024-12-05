@@ -7,14 +7,12 @@ from typing import Union
 from barks_fantagraphics.comic_book import ComicBook
 from barks_fantagraphics.comics_utils import get_relpath
 from consts import DRY_RUN_STR
-from utils import is_zip_file_out_of_date_wrt_dest, is_symlink_out_of_date_wrt_zip
+from utils import zip_file_is_out_of_date_wrt_dest, symlink_is_out_of_date_wrt_zip
 
 
 def zip_comic_book(dry_run: bool, no_cache: bool, comic: ComicBook, max_dest_timestamp: float):
-    if (
-        not no_cache
-        and os.path.isfile(comic.get_dest_comic_zip())
-        and not is_zip_file_out_of_date_wrt_dest(comic.get_dest_comic_zip(), max_dest_timestamp)
+    if not no_cache and not zip_file_is_out_of_date_wrt_dest(
+        comic.get_dest_comic_zip(), max_dest_timestamp
     ):
         logging.debug(
             f"Caching on - keeping existing zip file"
@@ -69,11 +67,7 @@ def create_symlinks_to_comic_zip(dry_run: bool, no_cache: bool, comic: ComicBook
 def create_symlink_zip(
     dry_run: bool, no_cache: bool, zip_file: str, symlink_dir: str, symlink: str
 ) -> None:
-    if (
-        not no_cache
-        and os.path.islink(symlink)
-        and not is_symlink_out_of_date_wrt_zip(symlink, zip_file)
-    ):
+    if not no_cache and not symlink_is_out_of_date_wrt_zip(symlink, zip_file):
         logging.debug(f'Caching on - keeping existing symlink file "{get_relpath(symlink)}".')
         return
 

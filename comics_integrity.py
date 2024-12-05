@@ -18,11 +18,10 @@ from pages import (
 )
 from utils import (
     get_shorter_ini_filename,
-    get_timestamp,
-    get_timestamp_as_str,
-    get_dest_file_out_of_date_msg,
+    get_dest_file_out_of_date_wrt_to_src_msg,
     get_file_out_of_date_wrt_max_dest_msg,
 )
+from barks_fantagraphics.comics_utils import get_timestamp, get_timestamp_as_str
 
 
 @dataclass
@@ -590,7 +589,7 @@ def print_out_of_date_or_missing_errors(errors: OutOfDateErrors) -> None:
     for srce_dest in errors.srce_and_dest_files_out_of_date:
         srce_file = srce_dest[0]
         dest_file = srce_dest[1]
-        print(f"ERROR: {get_dest_file_out_of_date_msg(srce_file, dest_file)}")
+        print(f"ERROR: {get_dest_file_out_of_date_wrt_to_src_msg(srce_file, dest_file)}")
 
     if (
         len(errors.srce_and_dest_files_missing) > 0
