@@ -14,7 +14,6 @@ from additional_file_writing import (
     write_srce_dest_map,
     write_dest_panels_bboxes,
 )
-from barks_fantagraphics.comics_image_io import METADATA_PROPERTY_GROUP
 from barks_fantagraphics.comic_book import ComicBook, get_safe_title
 from barks_fantagraphics.comics_consts import (
     PageType,
@@ -23,6 +22,7 @@ from barks_fantagraphics.comics_consts import (
     INTRO_TEXT_FONT_FILE,
     PAGE_NUM_FONT_FILE,
 )
+from barks_fantagraphics.comics_image_io import METADATA_PROPERTY_GROUP
 from barks_fantagraphics.comics_info import CS, CENSORED_TITLES
 from barks_fantagraphics.comics_utils import get_clean_path, get_relpath
 from consts import (
@@ -38,12 +38,12 @@ from consts import (
     SPLASH_PAGES,
     DEST_TARGET_ASPECT_RATIO,
     FOOTNOTE_CHAR,
+    EMPTY_IMAGE_FILEPATH,
 )
 from image_io import open_image_for_reading
 from pages import (
     CleanPage,
     SrceAndDestPages,
-    EMPTY_IMAGE_FILEPATH,
     get_max_timestamp,
     get_page_num_str,
     get_srce_and_dest_pages_in_order,

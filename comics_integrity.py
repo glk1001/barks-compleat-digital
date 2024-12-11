@@ -2,21 +2,22 @@ import os
 from dataclasses import dataclass
 from typing import List, Tuple, Set
 
-from barks_fantagraphics.comic_book import ComicBook
+from barks_fantagraphics.comic_book import ComicBook, get_page_str
 from barks_fantagraphics.comics_consts import (
     THE_CHRONOLOGICAL_DIRS_DIR,
     THE_CHRONOLOGICAL_DIR,
     THE_YEARS_COMICS_DIR,
     THE_COMICS_DIR,
     IMAGES_SUBDIR,
+    PageType,
 )
 from barks_fantagraphics.comics_database import ComicsDatabase
-from barks_fantagraphics.comics_image_io import get_png_metadata
-from barks_fantagraphics.comics_utils import get_timestamp, get_timestamp_as_str, get_clean_path
+from barks_fantagraphics.comics_utils import get_timestamp, get_timestamp_as_str
 from consts import DEST_NON_IMAGE_FILES
 from pages import (
-    get_srce_and_dest_pages_in_order,
+    CleanPage,
     SrceAndDestPages,
+    get_srce_and_dest_pages_in_order,
 )
 from utils import (
     get_shorter_ini_filename,
@@ -645,18 +646,36 @@ def print_out_of_date_or_missing_errors(errors: OutOfDateErrors) -> None:
             )
 
 
-def get_underlying_source_files(comic: ComicBook, srce_restored_file: str) -> List[str]:
-    underlying_files = [srce_restored_file]
+def get_restored_srce_dependencies(
+    comic: ComicBook, srce_page: CleanPage
+) -> List[Tuple[str, float]]:
+    page_num_str = get_page_str(srce_page.page_num)
 
-    metadata = get_png_metadata(srce_restored_file)
-    if "Upscayl file" in metadata:
-        file = get_clean_path(metadata["Upscayl file"].strip('"'))
-        underlying_files.append(file)
-    if "Source file" in metadata:
-        file = get_clean_path(metadata["Source file"].strip('"'))
-        underlying_files.append(file)
+    srce_page_timestamp = get_timestamp(srce_page.page_filename)
 
-    underlying_files.append(comic.ini_file)
-    underlying_files.append(comic.intro_inset_file)
+    srce_upscayl_file = comic.get_srce_upscayled_story_file(page_num_str)
+    srce_with_fixes_file = comic.get_srce_with_fixes_story_file(page_num_str, srce_page.page_type)[
+        0
+    ]
+    srce_upscayl_timestamp = (
+        get_timestamp(srce_upscayl_file) if os.path.isfile(srce_upscayl_file) else -1
+    )
+    srce_panel_segments_file = comic.get_srce_panel_segments_story_file(page_num_str)
+    srce_panel_segments_timestamp = (
+        get_timestamp(srce_panel_segments_file) if os.path.isfile(srce_panel_segments_file) else -1
+    )
+
+    underlying_files = []
+
+    if srce_page.page_type in [PageType.FRONT_MATTER, PageType.BODY, PageType.BACK_MATTER]:
+        underlying_files.append((srce_panel_segments_file, srce_panel_segments_timestamp))
+
+    underlying_files.append((comic.ini_file, get_timestamp(comic.ini_file)))
+    underlying_files.append((comic.intro_inset_file, get_timestamp(comic.intro_inset_file)))
+    underlying_files.append((srce_page.page_filename, srce_page_timestamp))
+
+    if srce_page.page_type in [PageType.FRONT_MATTER, PageType.BODY, PageType.BACK_MATTER]:
+        underlying_files.append((srce_upscayl_file, srce_upscayl_timestamp))
+        underlying_files.append((srce_with_fixes_file, get_timestamp(srce_with_fixes_file)))
 
     return underlying_files

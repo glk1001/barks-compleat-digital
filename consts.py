@@ -1,4 +1,9 @@
+import inspect
+import os
+
 from barks_fantagraphics.comics_consts import PageType
+
+THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 DRY_RUN_STR = "DRY_RUN"
 
@@ -9,7 +14,6 @@ MIN_HD_SRCE_HEIGHT = 3000
 DEST_SRCE_MAP_FILENAME = "srce-dest-map.json"
 DEST_PANELS_BBOXES_FILENAME = "dest-panels-bboxes.json"
 
-PANEL_BOUNDS_FILENAME_SUFFIX = "_panel_bounds.txt"
 PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN = 100
 README_FILENAME = "readme.txt"
 SUMMARY_FILENAME = "clean_summary.txt"
@@ -51,6 +55,13 @@ DEST_TARGET_ASPECT_RATIO = float(DEST_TARGET_HEIGHT) / float(DEST_TARGET_WIDTH)
 TITLE_EMPTY_FILENAME = "title_empty"
 EMPTY_FILENAME = "empty"
 DEST_FILE_EXT = ".jpg"
+
+EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "empty_page.png")
+TITLE_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
+EMPTY_IMAGE_FILES = {
+    EMPTY_IMAGE_FILEPATH,
+    TITLE_EMPTY_IMAGE_FILEPATH,
+}
 
 FRONT_PAGES = [
     PageType.FRONT,

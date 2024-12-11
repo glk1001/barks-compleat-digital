@@ -16,10 +16,12 @@ from barks_fantagraphics.comics_utils import (
     get_work_dir,
     get_timestamp_str,
     get_relpath,
+    get_timestamp,
+    get_timestamp_as_str,
     setup_logging,
 )
 from building_comics import build_comic_book
-from comics_integrity import check_comics_integrity, get_underlying_source_files
+from comics_integrity import check_comics_integrity, get_restored_srce_dependencies
 from pages import get_max_timestamp, get_srce_and_dest_pages_in_order, get_page_num_str
 from panel_bounding import init_bounding_box_processor
 from timing import Timing
@@ -132,25 +134,28 @@ def show_source_files(comics_db: ComicsDatabase, title: str) -> int:
     srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
     for srce_page, dest_page in zip(srce_and_dest_pages.srce_pages, srce_and_dest_pages.dest_pages):
         print()
-        print(get_filepath_with_date(dest_page.page_filename))
-        for file in get_underlying_source_files(comic, srce_page.page_filename):
-            print(f"{get_filepath_with_date(file)}")
+        prev_timestamp = get_timestamp(dest_page.page_filename)
+        print(get_filepath_with_date(dest_page.page_filename, prev_timestamp, " "))
+        for file, timestamp in get_restored_srce_dependencies(comic, srce_page):
+            out_of_date_marker = "*" if (timestamp < 0) or (timestamp > prev_timestamp) else " "
+            print(f"{get_filepath_with_date(file, timestamp, out_of_date_marker)}")
+            prev_timestamp = timestamp
     #   max_dest_timestamp = get_max_timestamp(srce_and_dest_pages.dest_pages)
 
     return 0
 
 
-def get_filepath_with_date(file: str) -> str:
+def get_filepath_with_date(file: str, timestamp: float, out_of_date_marker: str) -> str:
     missing_timestamp = "FILE MISSING          "  # same length as timestamp str
 
     if os.path.isfile(file):
         file_str = get_relpath(file)
-        file_timestamp = get_timestamp_str(file, "-", date_time_sep=" ", hr_sep=":")
+        file_timestamp = get_timestamp_as_str(timestamp, "-", date_time_sep=" ", hr_sep=":")
     else:
         file_str = file
         file_timestamp = missing_timestamp
 
-    return f'{file_timestamp}: "{file_str}"'
+    return f'{file_timestamp}:{out_of_date_marker}"{file_str}"'
 
 
 def process_single_comic_book(

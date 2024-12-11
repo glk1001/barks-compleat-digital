@@ -4,7 +4,7 @@ from typing import List, Tuple
 
 from PIL import Image
 
-from barks_fantagraphics.comic_book import ComicBook
+from barks_fantagraphics.comic_book import ComicBook, get_page_str
 from barks_fantagraphics.comics_utils import get_relpath
 from consts import (
     DRY_RUN_STR,
@@ -154,11 +154,8 @@ def get_panels_bounding_box(
 ) -> BoundingBox:
     assert srce_page.page_type not in PAGES_WITHOUT_PANELS
 
-    srce_page_bounding_box_filename = str(
-        os.path.join(
-            comic.panel_segments_dir,
-            os.path.splitext(os.path.basename(srce_page.page_filename))[0] + "_panel_bounds.txt",
-        )
+    srce_page_bounding_box_filename = comic.get_srce_panel_segments_story_file(
+        get_page_str(srce_page.page_num)
     )
 
     if not use_cached_bboxes and os.path.isfile(srce_page_bounding_box_filename):
@@ -187,12 +184,7 @@ def get_panels_bounding_box(
     )
 
     if not os.path.isdir(comic.panel_segments_dir):
-        if dry_run:
-            logging.info(
-                f'{DRY_RUN_STR}: Making panel segments directory "{comic.panel_segments_dir}".'
-            )
-        else:
-            os.makedirs(comic.panel_segments_dir, exist_ok=True)
+        raise Exception(f'Could not find panel segments directory "{comic.panel_segments_dir}".')
 
     srce_bounded_override_dir = os.path.join(comic.get_srce_fixes_image_dir(), "bounded")
 

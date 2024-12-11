@@ -2,8 +2,7 @@ import logging
 
 from PIL import Image
 
-from consts import DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT
-from pages import EMPTY_IMAGE_FILES
+from consts import DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT, EMPTY_IMAGE_FILES
 
 
 def open_image_for_reading(filename: str) -> Image:

@@ -1,28 +1,20 @@
-import inspect
 import os
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Union
 
 from barks_fantagraphics.comic_book import OriginalPage, ComicBook
 from barks_fantagraphics.comics_consts import PageType
+from barks_fantagraphics.comics_utils import get_timestamp
 from consts import (
     ROMAN_NUMERALS,
     TITLE_EMPTY_FILENAME,
     EMPTY_FILENAME,
     DEST_FILE_EXT,
     FRONT_MATTER_PAGES,
-)
-from panel_bounding_boxes import BoundingBox
-from barks_fantagraphics.comics_utils import get_timestamp
-
-THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-
-EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "empty_page.png")
-TITLE_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
-EMPTY_IMAGE_FILES = {
     EMPTY_IMAGE_FILEPATH,
     TITLE_EMPTY_IMAGE_FILEPATH,
-}
+)
+from panel_bounding_boxes import BoundingBox
 
 
 class CleanPage:

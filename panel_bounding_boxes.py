@@ -5,9 +5,13 @@ from typing import Any, Dict, Tuple
 
 from PIL import Image, ImageDraw
 
+from barks_fantagraphics.comics_info import JSON_FILE_EXT
 from barks_fantagraphics.comics_utils import get_relpath
-from consts import DRY_RUN_STR, PANEL_BOUNDS_FILENAME_SUFFIX
+from consts import DRY_RUN_STR
+from image_io import open_image_for_reading
 from panel_segmentation import KumikoPanelSegmentation
+
+PANEL_BOUNDS_WORK_FILE_SUFFIX = "_panel_bounds.txt"
 
 
 @dataclass
@@ -42,7 +46,7 @@ class BoundingBoxProcessor(object):
             y_max = int(vals[3])
 
             logging.debug(
-                f'Got panel bounding box file "PANEL_SEGMENTS_DIR: {os.path.basename(filename)}".'
+                f'Using panel bounding box file "{get_relpath(filename)}".'
                 f"Box: {x_min}, {y_min}, {x_max}, {y_max}."
             )
 
@@ -103,7 +107,7 @@ class BoundingBoxProcessor(object):
     ):
         segment_info_filename = os.path.join(
             output_dir,
-            os.path.splitext(os.path.basename(page_filename))[0] + "-panel-segments.json",
+            os.path.splitext(os.path.basename(page_filename))[0] + JSON_FILE_EXT,
         )
 
         if output_dir == self.__work_dir:
@@ -120,14 +124,14 @@ class BoundingBoxProcessor(object):
     ):
         bounds_filename = os.path.join(
             self.__work_dir,
-            os.path.splitext(os.path.basename(page_filename))[0] + PANEL_BOUNDS_FILENAME_SUFFIX,
+            os.path.splitext(os.path.basename(page_filename))[0] + PANEL_BOUNDS_WORK_FILE_SUFFIX,
         )
         logging.debug(f'Saving panel bounds to work file "{bounds_filename}".')
         with open(bounds_filename, "w") as f:
             f.write(f"{x_min}, {y_min}, {x_max}, {y_max}\n")
 
         # Draw the panel bounds on page image.
-        page_image = Image.open(page_filename, "r")
+        page_image = open_image_for_reading(page_filename)
         draw = ImageDraw.Draw(page_image)
         draw.line([(x_min, y_min), (x_max, y_min)], width=3, fill=(256, 0, 0))
         draw.line([(x_max, y_min), (x_max, y_max)], width=3, fill=(256, 0, 0))
