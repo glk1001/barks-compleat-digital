@@ -14,6 +14,7 @@ from additional_file_writing import (
     write_srce_dest_map,
     write_dest_panels_bboxes,
 )
+from barks_fantagraphics.comics_image_io import METADATA_PROPERTY_GROUP
 from barks_fantagraphics.comic_book import ComicBook, get_safe_title
 from barks_fantagraphics.comics_consts import (
     PageType,
@@ -249,19 +250,19 @@ def _process_page(
 def _get_dest_jpg_comments(srce_page: CleanPage, dest_page: CleanPage) -> List[str]:
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
-    prefix = "BARKS: "
+    prefix = METADATA_PROPERTY_GROUP
     indent = "      "
     comments = [
         indent,
-        f'{indent}{prefix}Srce file: "{get_clean_path(srce_page.page_filename)}"',
-        f'{indent}{prefix}Dest file: "{get_clean_path(dest_page.page_filename)}"',
-        f"{indent}{prefix}Dest created: {now_str}",
-        f"{indent}{prefix}Srce page num: {srce_page.page_num}",
-        f"{indent}{prefix}Srce page type: {srce_page.page_type.name}",
-        f"{indent}{prefix}Srce panels bbox:"
+        f'{indent}{prefix}:Srce file: "{get_clean_path(srce_page.page_filename)}"',
+        f'{indent}{prefix}:Dest file: "{get_clean_path(dest_page.page_filename)}"',
+        f"{indent}{prefix}:Dest created: {now_str}",
+        f"{indent}{prefix}:Srce page num: {srce_page.page_num}",
+        f"{indent}{prefix}:Srce page type: {srce_page.page_type.name}",
+        f"{indent}{prefix}:Srce panels bbox:"
         f" {dest_page.panels_bbox.x_min}, {dest_page.panels_bbox.y_min},"
         f" {dest_page.panels_bbox.x_max}, {dest_page.panels_bbox.y_max}",
-        f"{indent}{prefix}Dest page num: {dest_page.page_num}",
+        f"{indent}{prefix}:Dest page num: {dest_page.page_num}",
     ]
 
     return comments

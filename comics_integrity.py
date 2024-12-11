@@ -11,6 +11,8 @@ from barks_fantagraphics.comics_consts import (
     IMAGES_SUBDIR,
 )
 from barks_fantagraphics.comics_database import ComicsDatabase
+from barks_fantagraphics.comics_image_io import get_png_metadata
+from barks_fantagraphics.comics_utils import get_timestamp, get_timestamp_as_str, get_clean_path
 from consts import DEST_NON_IMAGE_FILES
 from pages import (
     get_srce_and_dest_pages_in_order,
@@ -21,7 +23,6 @@ from utils import (
     get_dest_file_out_of_date_wrt_to_src_msg,
     get_file_out_of_date_wrt_max_dest_msg,
 )
-from barks_fantagraphics.comics_utils import get_timestamp, get_timestamp_as_str
 
 
 @dataclass
@@ -111,7 +112,7 @@ def check_directory_structure(comics_db: ComicsDatabase) -> int:
             print(f'ERROR: Could not find directory "{vol_dir}".')
 
         vol_dir = os.path.join(
-            comics_db.get_fantagraphics_upscayled_restored_volume_dir(volume), IMAGES_SUBDIR
+            comics_db.get_fantagraphics_restored_upscayled_volume_dir(volume), IMAGES_SUBDIR
         )
         if not os.path.isdir(vol_dir):
             ret_code = 1
@@ -642,3 +643,20 @@ def print_out_of_date_or_missing_errors(errors: OutOfDateErrors) -> None:
                 f" there are {len(errors.srce_and_dest_files_out_of_date)} out of"
                 f" date dest files.\n"
             )
+
+
+def get_underlying_source_files(comic: ComicBook, srce_restored_file: str) -> List[str]:
+    underlying_files = [srce_restored_file]
+
+    metadata = get_png_metadata(srce_restored_file)
+    if "Upscayl file" in metadata:
+        file = get_clean_path(metadata["Upscayl file"].strip('"'))
+        underlying_files.append(file)
+    if "Source file" in metadata:
+        file = get_clean_path(metadata["Source file"].strip('"'))
+        underlying_files.append(file)
+
+    underlying_files.append(comic.ini_file)
+    underlying_files.append(comic.intro_inset_file)
+
+    return underlying_files

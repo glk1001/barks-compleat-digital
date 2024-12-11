@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import logging
+import os.path
 import shlex
 import sys
 from dataclasses import dataclass
@@ -11,9 +12,14 @@ from additional_file_writing import write_summary_file
 from barks_fantagraphics.comic_book import ComicBook
 from barks_fantagraphics.comics_consts import PageType
 from barks_fantagraphics.comics_database import ComicsDatabase, get_default_comics_database_dir
-from barks_fantagraphics.comics_utils import get_work_dir
+from barks_fantagraphics.comics_utils import (
+    get_work_dir,
+    get_timestamp_str,
+    get_relpath,
+    setup_logging,
+)
 from building_comics import build_comic_book
-from comics_integrity import check_comics_integrity
+from comics_integrity import check_comics_integrity, get_underlying_source_files
 from pages import get_max_timestamp, get_srce_and_dest_pages_in_order, get_page_num_str
 from panel_bounding import init_bounding_box_processor
 from timing import Timing
@@ -120,6 +126,33 @@ def get_mods(comic: ComicBook) -> Union[None, Tuple[str, Tuple[str, str]]]:
     return title, (mod_dest_pages_str, mod_srce_pages_str)
 
 
+def show_source_files(comics_db: ComicsDatabase, title: str) -> int:
+    comic = comics_db.get_comic_book(title)
+
+    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
+    for srce_page, dest_page in zip(srce_and_dest_pages.srce_pages, srce_and_dest_pages.dest_pages):
+        print()
+        print(get_filepath_with_date(dest_page.page_filename))
+        for file in get_underlying_source_files(comic, srce_page.page_filename):
+            print(f"{get_filepath_with_date(file)}")
+    #   max_dest_timestamp = get_max_timestamp(srce_and_dest_pages.dest_pages)
+
+    return 0
+
+
+def get_filepath_with_date(file: str) -> str:
+    missing_timestamp = "FILE MISSING          "  # same length as timestamp str
+
+    if os.path.isfile(file):
+        file_str = get_relpath(file)
+        file_timestamp = get_timestamp_str(file, "-", date_time_sep=" ", hr_sep=":")
+    else:
+        file_str = file
+        file_timestamp = missing_timestamp
+
+    return f'{file_timestamp}: "{file_str}"'
+
+
 def process_single_comic_book(
     options: CmdOptions,
     comics_db: ComicsDatabase,
@@ -171,13 +204,14 @@ NO_CACHE_ARG = "--no-cache"
 JUST_ZIP_ARG = "--just-zip"
 JUST_SYMLINKS_ARG = "--just-symlinks"
 COMICS_DATABASE_DIR_ARG = "--comics-database-dir"
-STORY_TITLE_ARG = "--story-title"
+STORY_TITLE_ARG = "--title"
 
 BUILD_ALL_ARG = "build-all"
 BUILD_SINGLE_ARG = "build-single"
 LIST_CMDS_ARG = "list-cmds"
 CHECK_INTEGRITY_ARG = "check-integrity"
 SHOW_MODS_ARG = "show-mods"
+SHOW_SOURCE_ARG = "show-source"
 
 
 def get_args():
@@ -278,6 +312,21 @@ def get_args():
     )
     show_mods_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
 
+    show_source_parser = subparsers.add_parser(
+        SHOW_SOURCE_ARG, help="list all source files used in title"
+    )
+    show_source_parser.add_argument(STORY_TITLE_ARG, action="store", type=str, required=True)
+    show_source_parser.add_argument(
+        COMICS_DATABASE_DIR_ARG,
+        action="store",
+        type=str,
+        default=get_default_comics_database_dir(),
+    )
+    show_source_parser.add_argument(
+        LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
+    )
+    show_source_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
+
     args = global_parser.parse_args()
 
     return args
@@ -290,14 +339,6 @@ def get_cmd_options(args) -> CmdOptions:
         just_zip=hasattr(args, "just_zip") and args.just_zip,
         just_symlinks=hasattr(args, "just_symlinks") and args.just_symlinks,
         work_dir_root=hasattr(args, "work_dir") and args.work_dir,
-    )
-
-
-def setup_logging(log_level) -> None:
-    logging.basicConfig(
-        format="%(asctime)s %(levelname)s: %(message)s",
-        datefmt="%m/%d/%Y %H:%M:%S",
-        level=log_level,
     )
 
 
@@ -320,10 +361,12 @@ if __name__ == "__main__":
         exit_code = print_all_cmds(cmd_options, comics_database)
     elif cmd_args.cmd_name == SHOW_MODS_ARG:
         exit_code = show_all_mods(comics_database)
+    elif cmd_args.cmd_name == SHOW_SOURCE_ARG:
+        exit_code = show_source_files(comics_database, cmd_args.title)
     elif cmd_args.cmd_name == BUILD_ALL_ARG:
         exit_code = process_all_comic_books(cmd_options, comics_database)
     elif cmd_args.cmd_name == BUILD_SINGLE_ARG:
-        exit_code = process_single_comic_book(cmd_options, comics_database, cmd_args.story_title)
+        exit_code = process_single_comic_book(cmd_options, comics_database, cmd_args.title)
     else:
         raise Exception(f'ERROR: Unknown cmd_arg "{cmd_args.cmd_name}".')
 
