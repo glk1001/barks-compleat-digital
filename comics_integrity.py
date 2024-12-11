@@ -105,68 +105,41 @@ def check_folder_and_contents_are_readonly(dir_path: str) -> int:
 def check_directory_structure(comics_db: ComicsDatabase) -> int:
     ret_code = 0
     for volume in range(2, 21):
-        vol_dir = os.path.join(
-            comics_db.get_fantagraphics_upscayled_volume_dir(volume), IMAGES_SUBDIR
-        )
-        if not os.path.isdir(vol_dir):
+        if not _found_dir(comics_db.get_fantagraphics_upscayled_volume_image_dir(volume)):
             ret_code = 1
-            print(f'ERROR: Could not find directory "{vol_dir}".')
 
-        vol_dir = os.path.join(
-            comics_db.get_fantagraphics_restored_upscayled_volume_dir(volume), IMAGES_SUBDIR
-        )
-        if not os.path.isdir(vol_dir):
+        if not _found_dir(comics_db.get_fantagraphics_restored_volume_image_dir(volume)):
             ret_code = 1
-            print(f'ERROR: Could not find directory "{vol_dir}".')
 
-        vol_dir = os.path.join(
-            comics_db.get_fantagraphics_restored_volume_dir(volume), IMAGES_SUBDIR
-        )
-        if not os.path.isdir(vol_dir):
+        if not _found_dir(comics_db.get_fantagraphics_restored_upscayled_volume_image_dir(volume)):
             ret_code = 1
-            print(f'ERROR: Could not find directory "{vol_dir}".')
 
-        vol_dir = os.path.join(
-            comics_db.get_fantagraphics_restored_svg_volume_dir(volume), IMAGES_SUBDIR
-        )
-        if not os.path.isdir(vol_dir):
+        if not _found_dir(comics_db.get_fantagraphics_restored_svg_volume_image_dir(volume)):
             ret_code = 1
-            print(f'ERROR: Could not find directory "{vol_dir}".')
 
-        vol_dir = os.path.join(comics_db.get_fantagraphics_fixes_volume_dir(volume), IMAGES_SUBDIR)
-        if not os.path.isdir(vol_dir):
+        if not _found_dir(comics_db.get_fantagraphics_restored_ocr_volume_dir(volume)):
             ret_code = 1
-            print(f'ERROR: Could not find directory "{vol_dir}".')
 
-        vol_dir = os.path.join(
-            comics_db.get_fantagraphics_upscayled_fixes_volume_dir(volume), IMAGES_SUBDIR
-        )
-        if not os.path.isdir(vol_dir):
+        if not _found_dir(comics_db.get_fantagraphics_fixes_volume_image_dir(volume)):
             ret_code = 1
-            print(f'ERROR: Could not find directory "{vol_dir}".')
 
-        vol_dir = os.path.join(
-            comics_db.get_fantagraphics_restored_fixes_volume_dir(volume), IMAGES_SUBDIR
-        )
-        if not os.path.isdir(vol_dir):
+        if not _found_dir(comics_db.get_fantagraphics_upscayled_fixes_volume_image_dir(volume)):
             ret_code = 1
-            print(f'ERROR: Could not find directory "{vol_dir}".')
 
-        vol_dir = os.path.join(
-            comics_db.get_fantagraphics_restored_ocr_volume_dir(volume), IMAGES_SUBDIR
-        )
-        if not os.path.isdir(vol_dir):
+        if not _found_dir(comics_db.get_fantagraphics_restored_fixes_volume_image_dir(volume)):
             ret_code = 1
-            print(f'ERROR: Could not find directory "{vol_dir}".')
 
-        vol_dir = os.path.join(
-            comics_db.get_fantagraphics_panel_segments_volume_dir(volume), IMAGES_SUBDIR
-        )
-        if not os.path.isdir(vol_dir):
+        if not _found_dir(comics_db.get_fantagraphics_panel_segments_volume_dir(volume)):
             ret_code = 1
-            print(f'ERROR: Could not find directory "{vol_dir}".')
 
     return ret_code
+
+
+def _found_dir(dirname: str) -> bool:
+    if not os.path.isdir(dirname):
+        print(f'ERROR: Could not find directory "{dirname}".')
+        return False
+    return True
 
 
 def check_comics_integrity(comics_db: ComicsDatabase) -> int:
