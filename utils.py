@@ -7,7 +7,12 @@ from barks_fantagraphics.comics_utils import (
     get_timestamp_as_str,
     dest_file_is_older_than_srce,
     file_is_older_than_timestamp,
+    get_relpath,
 )
+
+DATE_SEP = "-"
+DATE_TIME_SEP = " "
+HOUR_SEP = ":"
 
 
 def get_shorter_ini_filename(ini_file: str) -> str:
@@ -30,7 +35,7 @@ def dest_file_is_out_of_date_wrt_srce(srce_file: str, dest_file: str) -> bool:
         return False
 
     if dest_file_is_older_than_srce(srce_file, dest_file, False):
-        logging.debug(get_dest_file_out_of_date_wrt_to_src_msg(srce_file, dest_file))
+        logging.debug(get_file_out_of_date_with_other_file_msg(dest_file, srce_file, ""))
         return True
 
     return False
@@ -42,7 +47,7 @@ def zip_file_is_out_of_date_wrt_dest(zip_file: str, max_dest_timestamp: float) -
         return False
 
     if file_is_older_than_timestamp(zip_file, max_dest_timestamp):
-        logging.debug(get_zip_file_out_of_date_wrt_max_dest_msg(zip_file, max_dest_timestamp))
+        logging.debug(get_file_out_of_date_wrt_max_timestamp_msg(zip_file, max_dest_timestamp, ""))
         return True
 
     return False
@@ -68,19 +73,32 @@ def symlink_is_out_of_date_wrt_zip(symlink: str, zip_file: str) -> bool:
     return False
 
 
-def get_dest_file_out_of_date_wrt_to_src_msg(srce_file: str, dest_file: str) -> str:
+def get_file_out_of_date_with_other_file_msg(file: str, other_file: str, msg_prefix: str) -> str:
+    if not os.path.isfile(other_file):
+        return f'File "{other_file}" is missing.'
+
+    blank_prefix = f'{" ":<{len(msg_prefix)}}'
+
     return (
-        f'The dest image file "{dest_file}" ({get_timestamp_str(dest_file)})'
-        f" is out of date WRT"
-        f' srce file "{srce_file}" ({get_timestamp_str(srce_file)}).'
+        f'{msg_prefix}File "{get_relpath(file)}"\n'
+        f"{blank_prefix}is out of date with\n"
+        f'{blank_prefix}file "{get_relpath(other_file)}":\n'
+        f"{blank_prefix}'{get_timestamp_str(file, DATE_SEP, DATE_TIME_SEP, HOUR_SEP)}'"
+        f" < '{get_timestamp_str(other_file, " - ", DATE_TIME_SEP, HOUR_SEP)}'."
     )
 
 
-def get_file_out_of_date_wrt_max_dest_msg(file: str, max_dest_timestamp: float) -> str:
+def get_file_out_of_date_wrt_max_timestamp_msg(
+    file: str, max_timestamp: float, msg_prefix: str
+) -> str:
+    blank_prefix = f'{" ":<{len(msg_prefix)}}'
+
     return (
-        f"The file \"{file}\" timestamp '{get_timestamp_str(file)}',"
-        f" is out of date WRT"
-        f" max dest page timestamp '{get_timestamp_as_str(max_dest_timestamp)}'."
+        f'{msg_prefix}File "{file}"\n'
+        f"{blank_prefix}is out of date with\n"
+        f"{blank_prefix}max timestamp:\n"
+        f"{blank_prefix}'{get_timestamp_str(file, DATE_SEP, DATE_TIME_SEP, HOUR_SEP)}'"
+        f" < '{get_timestamp_as_str(max_timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP)}'."
     )
 
 

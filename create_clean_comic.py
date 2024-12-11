@@ -294,6 +294,7 @@ def get_args():
     check_integrity_parser = subparsers.add_parser(
         CHECK_INTEGRITY_ARG, help="check the integrity of all previously built comics"
     )
+    check_integrity_parser.add_argument(STORY_TITLE_ARG, action="store", type=str, required=False, default="")
     check_integrity_parser.add_argument(
         COMICS_DATABASE_DIR_ARG,
         action="store",
@@ -361,7 +362,7 @@ if __name__ == "__main__":
     init_bounding_box_processor(work_dir)
 
     if cmd_args.cmd_name == CHECK_INTEGRITY_ARG:
-        exit_code = check_comics_integrity(comics_database)
+        exit_code = check_comics_integrity(comics_database, cmd_args.title)
     elif cmd_args.cmd_name == LIST_CMDS_ARG:
         exit_code = print_all_cmds(cmd_options, comics_database)
     elif cmd_args.cmd_name == SHOW_MODS_ARG:
