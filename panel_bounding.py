@@ -154,7 +154,7 @@ def get_panels_bounding_box(
 ) -> BoundingBox:
     assert srce_page.page_type not in PAGES_WITHOUT_PANELS
 
-    srce_page_bounding_box_filename = comic.get_srce_panel_segments_story_file(
+    srce_page_bounding_box_filename = comic.get_srce_page_bounds_file(
         get_page_str(srce_page.page_num)
     )
 

@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from dataclasses import dataclass
@@ -117,7 +118,7 @@ class BoundingBoxProcessor(object):
 
         segment_info_filtered = {k: v for k, v in segment_info.items() if k != "processing_time"}
         with open(segment_info_filename, "w") as f:
-            f.write(f"{segment_info_filtered}\n")
+            json.dump(segment_info_filtered, f, indent=4)
 
     def __dump_panels_bounding_box(
         self, page_filename: str, x_min: int, y_min: int, x_max: int, y_max: int
@@ -143,4 +144,5 @@ class BoundingBoxProcessor(object):
             os.path.splitext(os.path.basename(page_filename))[0] + "-panel-bounds-marked.jpg",
         )
         logging.debug(f'Saving panel bounds image to work file "{marked_image_filename}".')
+        page_image = page_image.convert("RGB")
         page_image.save(marked_image_filename, optimize=True, compress_level=5)

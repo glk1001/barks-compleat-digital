@@ -716,15 +716,18 @@ def get_restored_srce_dependencies(
     srce_upscayl_timestamp = (
         get_timestamp(srce_upscayl_file) if os.path.isfile(srce_upscayl_file) else -1
     )
-    srce_panel_segments_file = comic.get_srce_panel_segments_story_file(page_num_str)
-    srce_panel_segments_timestamp = (
-        get_timestamp(srce_panel_segments_file) if os.path.isfile(srce_panel_segments_file) else -1
+    srce_page_bounds_file = comic.get_srce_page_bounds_file(page_num_str)
+    srce_page_bounds_timestamp = (
+        get_timestamp(srce_page_bounds_file) if os.path.isfile(srce_page_bounds_file) else -1
     )
 
     underlying_files = []
 
     if srce_page.page_type in [PageType.FRONT_MATTER, PageType.BODY, PageType.BACK_MATTER]:
-        underlying_files.append((srce_panel_segments_file, srce_panel_segments_timestamp))
+        underlying_files.append((srce_page_bounds_file, srce_page_bounds_timestamp))
+        panel_bounds_file = comic.get_fixes_panel_bounds_file(srce_page.page_num)
+        if panel_bounds_file:
+            underlying_files.append((panel_bounds_file, get_timestamp(panel_bounds_file)))
 
     underlying_files.append((comic.ini_file, get_timestamp(comic.ini_file)))
     underlying_files.append((comic.intro_inset_file, get_timestamp(comic.intro_inset_file)))
