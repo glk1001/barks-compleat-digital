@@ -32,7 +32,7 @@ def get_list_of_numbers(list_str: str) -> List[int]:
 def dest_file_is_out_of_date_wrt_srce(srce_file: str, dest_file: str) -> bool:
     if not os.path.isfile(dest_file):
         logging.debug(f'Dest file "{dest_file}" not found.')
-        return False
+        return True
 
     if dest_file_is_older_than_srce(srce_file, dest_file, False):
         logging.debug(get_file_out_of_date_with_other_file_msg(dest_file, srce_file, ""))
