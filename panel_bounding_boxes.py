@@ -2,15 +2,16 @@ import json
 import logging
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, Tuple
 
 from PIL import Image, ImageDraw
 
-from barks_fantagraphics.comics_info import JSON_FILE_EXT
+from barks_fantagraphics.comics_info import JPG_FILE_EXT, PNG_FILE_EXT
 from barks_fantagraphics.comics_utils import get_relpath
 from consts import DRY_RUN_STR
 from image_io import open_image_for_reading
-from panel_segmentation import KumikoPanelSegmentation
+from panel_segmentation import KumikoPanelSegmentation, get_min_max_panel_values
 
 PANEL_BOUNDS_WORK_FILE_SUFFIX = "_panel_bounds.txt"
 
@@ -37,84 +38,63 @@ class BoundingBoxProcessor(object):
         self.__work_dir = work_dir
         self.__kumiko = KumikoPanelSegmentation(work_dir)
 
-    def get_panels_bounding_box_from_file(self, filename: str) -> BoundingBox:
+    @staticmethod
+    def get_panels_bounding_box_from_file(filename: str) -> BoundingBox:
         with open(filename, "r") as f:
-            line = f.readline()
-            vals = line.split(", ")
-            x_min = int(vals[0])
-            y_min = int(vals[1])
-            x_max = int(vals[2])
-            y_max = int(vals[3])
+            segment_info = json.load(f)
 
-            logging.debug(
-                f'Using panel bounding box file "{get_relpath(filename)}".'
-                f"Box: {x_min}, {y_min}, {x_max}, {y_max}."
-            )
+        x_min, y_min, x_max, y_max = get_min_max_panel_values(segment_info)
 
-            return BoundingBox(x_min, y_min, x_max, y_max)
+        logging.debug(
+            f'Using panels segment info file "{get_relpath(filename)}".'
+            f"Box: {x_min}, {y_min}, {x_max}, {y_max}."
+        )
 
-    def save_panels_bounding_box(self, filename: str, bounding_box: BoundingBox):
-        logging.debug(f'Saving panel bounding box to file "{get_relpath(filename)}".')
+        return BoundingBox(x_min, y_min, x_max, y_max)
 
-        with open(filename, "w") as f:
-            f.write(
-                f"{bounding_box.x_min}, {bounding_box.y_min}, "
-                f"{bounding_box.x_max}, {bounding_box.y_max}\n"
-            )
-
-    def get_panels_bounding_box_from_kumiko(
+    def get_panels_segment_info_from_kumiko(
         self,
         dry_run: bool,
-        panel_segments_dir: str,
         srce_page_image: Image,
         srce_filename: str,
         srce_bounded_override_dir: str,
-    ) -> BoundingBox:
-        logging.debug("Getting panel bounding box from kumiko.")
+    ) -> Tuple[BoundingBox, Dict[str, Any]]:
+        logging.debug("Getting panels segment info from kumiko.")
 
-        file_basename = os.path.basename(srce_filename)
-        override_file_with_bbox = os.path.join(srce_bounded_override_dir, file_basename)
+        bad_override_filename = Path(srce_filename).stem + PNG_FILE_EXT
+        bad_override_file = os.path.join(srce_bounded_override_dir, bad_override_filename)
+        if os.path.isfile(bad_override_file):
+            raise Exception(
+                f'Override panels bounds files should not be .png: "{bad_override_file}".'
+            )
+
+        override_filename = Path(srce_filename).stem + JPG_FILE_EXT
+        override_file_with_bbox = os.path.join(srce_bounded_override_dir, override_filename)
 
         if not os.path.isfile(override_file_with_bbox):
             srce_bounded_image = srce_page_image
         else:
-            logging.warning(f'Using bounded srce override file "{override_file_with_bbox}".')
+            logging.warning(f'Using panels bounds override file "{override_file_with_bbox}".')
             srce_bounded_image = Image.open(override_file_with_bbox, "r")
 
         srce_bounded_image = srce_bounded_image.convert("RGB")
 
-        (
-            x_min,
-            y_min,
-            x_max,
-            y_max,
-        ), segment_info = self.__kumiko.get_panel_bounding_box(srce_bounded_image, srce_filename)
+        segment_info = self.__kumiko.get_panels_segment_info(srce_bounded_image, srce_filename)
+        x_min, y_min, x_max, y_max = get_min_max_panel_values(segment_info)
 
-        self.__save_segment_info(self.__work_dir, srce_filename, segment_info)
         if dry_run:
             logging.info(
-                f"{DRY_RUN_STR}: Saving panel segment info to"
-                f' "{get_relpath(panel_segments_dir)}".'
+                f"{DRY_RUN_STR}: Saving panels bounding box info to work dir"
+                f' "{self.__work_dir}".'
             )
         else:
-            self.__save_segment_info(panel_segments_dir, srce_filename, segment_info)
+            self.__dump_panels_bounding_box(srce_filename, x_min, y_min, x_max, y_max)
 
-        self.__dump_panels_bounding_box(srce_filename, x_min, y_min, x_max, y_max)
+        return BoundingBox(x_min, y_min, x_max, y_max), segment_info
 
-        return BoundingBox(x_min, y_min, x_max, y_max)
-
-    def __save_segment_info(
-        self, output_dir: str, page_filename: str, segment_info: Dict[str, Any]
-    ):
-        segment_info_filename = os.path.join(
-            output_dir,
-            os.path.splitext(os.path.basename(page_filename))[0] + JSON_FILE_EXT,
-        )
-
-        if output_dir == self.__work_dir:
-            logging.debug(f'Saving panel segment info to work file "{segment_info_filename}".')
-        else:
-            logging.debug(f'Saving panel segment info to "{get_relpath(segment_info_filename)}".')
+    @staticmethod
+    def save_panels_segment_info(segment_info_filename, segment_info: Dict[str, Any]):
+        logging.debug(f'Saving panel segment info to "{get_relpath(segment_info_filename)}".')
 
         segment_info_filtered = {k: v for k, v in segment_info.items() if k != "processing_time"}
         with open(segment_info_filename, "w") as f:

@@ -154,73 +154,73 @@ def get_panels_bounding_box(
 ) -> BoundingBox:
     assert srce_page.page_type not in PAGES_WITHOUT_PANELS
 
-    srce_page_bounding_box_filename = comic.get_srce_page_bounds_file(
+    srce_panels_segment_info_file = comic.get_srce_panel_segments_file(
         get_page_str(srce_page.page_num)
     )
 
-    if not use_cached_bboxes and os.path.isfile(srce_page_bounding_box_filename):
+    if not use_cached_bboxes and os.path.isfile(srce_panels_segment_info_file):
         if dry_run:
             logging.info(
                 f"{DRY_RUN_STR}: "
-                f"Caching off - deleting panel bbox file"
-                f' "{get_relpath(srce_page_bounding_box_filename)}".'
+                f"Caching off - deleting panels segment info file"
+                f' "{get_relpath(srce_panels_segment_info_file)}".'
             )
         else:
             logging.debug(
-                f"Caching off - deleting panel bbox file"
-                f' "{get_relpath(srce_page_bounding_box_filename)}".'
+                f"Caching off - deleting panels segment info file"
+                f' "{get_relpath(srce_panels_segment_info_file)}".'
             )
-            os.remove(srce_page_bounding_box_filename)
-            assert not os.path.isfile(srce_page_bounding_box_filename)
+            os.remove(srce_panels_segment_info_file)
+            assert not os.path.isfile(srce_panels_segment_info_file)
 
-    if os.path.isfile(srce_page_bounding_box_filename):
+    if os.path.isfile(srce_panels_segment_info_file):
+        if use_cached_bboxes:
+            logging.info(
+                f"Using cached panels segment info file"
+                f' "{get_relpath(srce_panels_segment_info_file)}".'
+            )
         return bounding_box_processor.get_panels_bounding_box_from_file(
-            srce_page_bounding_box_filename
+            srce_panels_segment_info_file
         )
 
     logging.info(
-        f"Getting Kumiko panel segment info for srce file"
+        f"Getting Kumiko panels segment info for srce image file"
         f' "{os.path.basename(srce_page.page_filename)}".'
     )
 
-    if not os.path.isdir(comic.panel_segments_dir):
-        raise Exception(f'Could not find panel segments directory "{comic.panel_segments_dir}".')
+    if not os.path.isdir(comic.get_srce_fixes_image_dir()):
+        raise Exception(
+            f'Could not find panel bounds directory "{comic.get_srce_fixes_image_dir()}".'
+        )
+    srce_panels_bounds_override_dir = os.path.join(comic.get_srce_fixes_image_dir(), "bounded")
 
-    srce_bounded_override_dir = os.path.join(comic.get_srce_fixes_image_dir(), "bounded")
-
-    bounding_box = bounding_box_processor.get_panels_bounding_box_from_kumiko(
+    bounding_box, segment_info = bounding_box_processor.get_panels_segment_info_from_kumiko(
         dry_run,
-        comic.panel_segments_dir,
         srce_page_image,
         srce_page.page_filename,
-        srce_bounded_override_dir,
+        srce_panels_bounds_override_dir,
     )
 
     if dry_run:
         logging.info(
-            f'{DRY_RUN_STR}: Saving panel bounding box to "{srce_page_bounding_box_filename}".'
+            f'{DRY_RUN_STR}: Saving panels segment info to "{srce_panels_segment_info_file}".'
         )
     else:
-        bounding_box_processor.save_panels_bounding_box(
-            srce_page_bounding_box_filename, bounding_box
-        )
+        bounding_box_processor.save_panels_segment_info(srce_panels_segment_info_file, segment_info)
 
     return bounding_box
 
 
-def set_dest_panel_bounding_boxes(
-    comic: ComicBook,
-    pages: SrceAndDestPages,
-):
+def set_dest_panel_bounding_boxes(comic: ComicBook, pages: SrceAndDestPages):
     logging.debug("Setting dest panel bounding boxes.")
 
     for srce_page, dest_page in zip(pages.srce_pages, pages.dest_pages):
-        dest_page.panels_bbox = get_dest_panel_bounding_box(comic, srce_page)
+        dest_page.panels_bbox = get_dest_panels_bounding_box(comic, srce_page)
 
     logging.debug("")
 
 
-def get_dest_panel_bounding_box(comic: ComicBook, srce_page: CleanPage) -> BoundingBox:
+def get_dest_panels_bounding_box(comic: ComicBook, srce_page: CleanPage) -> BoundingBox:
     if srce_page.page_type in PAGES_WITHOUT_PANELS:
         return BoundingBox(0, 0, DEST_TARGET_WIDTH - 1, DEST_TARGET_HEIGHT - 1)
 

@@ -3,7 +3,7 @@ import logging
 import os
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, Tuple
 
 from PIL import Image
 
@@ -11,13 +11,40 @@ from barks_fantagraphics.comics_utils import get_relpath
 from consts import BIG_NUM
 
 
+def get_min_max_panel_values(segment_info: Dict[str, Any]) -> Tuple[int, int, int, int]:
+    x_min = BIG_NUM
+    y_min = BIG_NUM
+    x_max = 0
+    y_max = 0
+    for segment in segment_info["panels"]:
+        x0 = segment[0]
+        y0 = segment[1]
+        w = segment[2]
+        h = segment[3]
+        x1 = x0 + (w - 1)
+        y1 = y0 + (h - 1)
+        if x_min > x0:
+            x_min = x0
+        if x_max < x1:
+            x_max = x1
+        if y_min > y0:
+            y_min = y0
+        if y_max < y1:
+            y_max = y1
+
+    assert x_min != BIG_NUM
+    assert y_min != BIG_NUM
+    assert x_max != 0
+    assert y_max != 0
+
+    return x_min, y_min, x_max, y_max
+
+
 class KumikoPanelSegmentation:
     def __init__(self, work_dir: str):
         self.__work_dir = work_dir
 
-    def get_panel_bounding_box(
-        self, srce_image: Image, srce_filename: str
-    ) -> Tuple[Tuple[int, int, int, int], Dict[str, Any]]:
+    def get_panels_segment_info(self, srce_image: Image, srce_filename: str) -> Dict[str, Any]:
         logging.debug(
             f'Getting panel bounding box for "{get_relpath(srce_filename)}" using kumiko.'
         )
@@ -34,9 +61,7 @@ class KumikoPanelSegmentation:
         logging.debug(f'Getting segment info for "{work_filename}".')
         segment_info = self.__run_kumiko(work_filename)
 
-        x_min, y_min, x_max, y_max = self.__get_min_max_panel_values(segment_info["panels"])
-
-        return (x_min, y_min, x_max, y_max), segment_info
+        return segment_info
 
     @staticmethod
     def __run_kumiko(page_filename: str) -> Dict[str, Any]:
@@ -56,34 +81,3 @@ class KumikoPanelSegmentation:
         assert len(segment_info) == 1
 
         return segment_info[0]
-
-    def __get_min_max_panel_values(
-        self,
-        segment_info: List[List[int]],
-    ) -> Tuple[int, int, int, int]:
-        x_min = BIG_NUM
-        y_min = BIG_NUM
-        x_max = 0
-        y_max = 0
-        for segment in segment_info:
-            x0 = segment[0]
-            y0 = segment[1]
-            w = segment[2]
-            h = segment[3]
-            x1 = x0 + (w - 1)
-            y1 = y0 + (h - 1)
-            if x_min > x0:
-                x_min = x0
-            if x_max < x1:
-                x_max = x1
-            if y_min > y0:
-                y_min = y0
-            if y_max < y1:
-                y_max = y1
-
-        assert x_min != BIG_NUM
-        assert y_min != BIG_NUM
-        assert x_max != 0
-        assert y_max != 0
-
-        return x_min, y_min, x_max, y_max
