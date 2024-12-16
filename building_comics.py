@@ -464,6 +464,8 @@ def _get_centred_dest_page_image(dest_page: CleanPage, dest_panels_image: Image)
 
 
 def _write_introduction(comic: ComicBook, dest_page_image: Image):
+    if not os.path.isfile(comic.intro_inset_file):
+        raise Exception(f'Could not find inset file "{comic.intro_inset_file}".')
     logging.info(
         f'Writing introduction - using inset file "{get_relpath(comic.intro_inset_file)}".'
     )
