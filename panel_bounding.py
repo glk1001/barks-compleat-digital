@@ -6,10 +6,10 @@ from PIL import Image
 
 from barks_fantagraphics.comic_book import ComicBook, get_page_str
 from barks_fantagraphics.comics_utils import get_relpath
+from barks_fantagraphics.panel_segmentation import BIG_NUM
 from consts import (
     DRY_RUN_STR,
     PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN,
-    BIG_NUM,
     DEST_TARGET_WIDTH,
     DEST_TARGET_HEIGHT,
     DEST_TARGET_X_MARGIN,

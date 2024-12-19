@@ -32,8 +32,6 @@ DEST_NON_IMAGE_FILES = {
 
 FOOTNOTE_CHAR = "*"
 
-BIG_NUM = 10000
-
 ROMAN_NUMERALS = {
     1: "i",
     2: "ii",

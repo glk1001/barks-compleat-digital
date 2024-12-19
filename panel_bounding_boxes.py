@@ -9,9 +9,9 @@ from PIL import Image, ImageDraw
 
 from barks_fantagraphics.comics_info import JPG_FILE_EXT, PNG_FILE_EXT
 from barks_fantagraphics.comics_utils import get_relpath
+from barks_fantagraphics.panel_segmentation import KumikoPanelSegmentation, get_min_max_panel_values
 from consts import DRY_RUN_STR
 from image_io import open_image_for_reading
-from panel_segmentation import KumikoPanelSegmentation, get_min_max_panel_values
 
 PANEL_BOUNDS_WORK_FILE_SUFFIX = "_panel_bounds.txt"
 
