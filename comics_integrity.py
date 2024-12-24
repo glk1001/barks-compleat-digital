@@ -149,7 +149,7 @@ def _found_dir(dirname: str) -> bool:
     return True
 
 
-def check_comics_integrity(comics_db: ComicsDatabase, title: str) -> int:
+def check_comics_integrity(comics_db: ComicsDatabase, titles: List[str]) -> int:
     print()
 
     if check_comics_source_is_readonly(comics_db) != 0:
@@ -158,10 +158,14 @@ def check_comics_integrity(comics_db: ComicsDatabase, title: str) -> int:
     if check_directory_structure(comics_db) != 0:
         return 1
 
-    if title:
-        ret_code = check_single_title(comics_db, title)
-    else:
+    if not titles:
         ret_code = check_all_titles(comics_db)
+    else:
+        ret_code = 0
+        for title in titles:
+            ret = check_single_title(comics_db, title)
+            if ret != 0:
+                ret_code = ret
 
     return ret_code
 

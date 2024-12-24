@@ -6,8 +6,9 @@ import shlex
 import sys
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Tuple, Union
+from typing import Tuple, Union, List
 
+from intspan import intspan
 from additional_file_writing import write_summary_file
 from barks_fantagraphics.comic_book import ComicBook
 from barks_fantagraphics.comics_consts import PageType
@@ -70,7 +71,7 @@ def print_cmd(options: CmdOptions, comics_db: ComicsDatabase, story_title: str) 
         f"{dry_run_arg}{just_symlinks_arg}{no_cache_arg}"
         f' {WORK_DIR_ARG} "{options.work_dir_root}"'
         f' {COMICS_DATABASE_DIR_ARG} "{comics_db.get_comics_database_dir()}"'
-        f" {STORY_TITLE_ARG} {shlex.quote(story_title)}"
+        f" {TITLE_ARG} {shlex.quote(story_title)}"
     )
 
     return 0
@@ -158,13 +159,20 @@ def get_filepath_with_date(file: str, timestamp: float, out_of_date_marker: str)
     return f'{file_timestamp}:{out_of_date_marker}"{file_str}"'
 
 
-def process_single_comic_book(
+def process_comic_book_titles(
     options: CmdOptions,
     comics_db: ComicsDatabase,
-    story_title: str,
+    titles: List[str],
 ) -> int:
-    comic = comics_db.get_comic_book(story_title)
-    return process_comic_book(options, comic)
+    ret_code = 0
+
+    for title in titles:
+        comic = comics_db.get_comic_book(title)
+        ret = process_comic_book(options, comic)
+        if ret != 0:
+            ret_code = ret
+
+    return ret_code
 
 
 def process_comic_book(options: CmdOptions, comic: ComicBook) -> int:
@@ -203,13 +211,14 @@ def process_comic_book(options: CmdOptions, comic: ComicBook) -> int:
 
 
 LOG_LEVEL_ARG = "--log-level"
+COMICS_DATABASE_DIR_ARG = "--comics-database-dir"
+VOLUME_ARG = "--volume"
+TITLE_ARG = "--title"
 WORK_DIR_ARG = "--work-dir"
 DRY_RUN_ARG = "--dry-run"
 NO_CACHE_ARG = "--no-cache"
 JUST_ZIP_ARG = "--just-zip"
 JUST_SYMLINKS_ARG = "--just-symlinks"
-COMICS_DATABASE_DIR_ARG = "--comics-database-dir"
-STORY_TITLE_ARG = "--title"
 
 BUILD_ALL_ARG = "build-all"
 BUILD_SINGLE_ARG = "build-single"
@@ -257,7 +266,8 @@ def get_args():
         type=str,
         default=get_default_comics_database_dir(),
     )
-    build_single_parser.add_argument(STORY_TITLE_ARG, action="store", type=str, required=True)
+    build_single_parser.add_argument(VOLUME_ARG, action="store", type=str, required=False)
+    build_single_parser.add_argument(TITLE_ARG, action="store", type=str, required=False)
     build_single_parser.add_argument(
         JUST_ZIP_ARG, action="store_true", required=False, default=False
     )
@@ -294,13 +304,14 @@ def get_args():
     check_integrity_parser = subparsers.add_parser(
         CHECK_INTEGRITY_ARG, help="check the integrity of all previously built comics"
     )
-    check_integrity_parser.add_argument(STORY_TITLE_ARG, action="store", type=str, required=False, default="")
     check_integrity_parser.add_argument(
         COMICS_DATABASE_DIR_ARG,
         action="store",
         type=str,
         default=get_default_comics_database_dir(),
     )
+    check_integrity_parser.add_argument(VOLUME_ARG, action="store", type=str, required=False)
+    check_integrity_parser.add_argument(TITLE_ARG, action="store", type=str, required=False)
     check_integrity_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
@@ -321,7 +332,7 @@ def get_args():
     show_source_parser = subparsers.add_parser(
         SHOW_SOURCE_ARG, help="list all source files used in title"
     )
-    show_source_parser.add_argument(STORY_TITLE_ARG, action="store", type=str, required=True)
+    show_source_parser.add_argument(TITLE_ARG, action="store", type=str, required=True)
     show_source_parser.add_argument(
         COMICS_DATABASE_DIR_ARG,
         action="store",
@@ -335,7 +346,25 @@ def get_args():
 
     args = global_parser.parse_args()
 
+    if args.cmd_name == CHECK_INTEGRITY_ARG:
+        if args.title and args.volume:
+            raise Exception(f"Cannot have both '{TITLE_ARG} and '{VOLUME_ARG}'.")
+    if args.cmd_name == BUILD_SINGLE_ARG:
+        if args.title and args.volume:
+            raise Exception(f"Cannot have both '{TITLE_ARG} and '{VOLUME_ARG}'.")
+
     return args
+
+
+def get_titles(args) -> List[str]:
+    assert args.cmd_name == CHECK_INTEGRITY_ARG or args.cmd_name == BUILD_SINGLE_ARG
+
+    if args.title:
+        return [args.title]
+
+    assert args.volume is not None
+    vol_list = list(intspan(args.volume))
+    return comics_database.get_all_story_titles_in_fantagraphics_volume(vol_list)
 
 
 def get_cmd_options(args) -> CmdOptions:
@@ -362,7 +391,7 @@ if __name__ == "__main__":
     init_bounding_box_processor(work_dir)
 
     if cmd_args.cmd_name == CHECK_INTEGRITY_ARG:
-        exit_code = check_comics_integrity(comics_database, cmd_args.title)
+        exit_code = check_comics_integrity(comics_database, get_titles(cmd_args))
     elif cmd_args.cmd_name == LIST_CMDS_ARG:
         exit_code = print_all_cmds(cmd_options, comics_database)
     elif cmd_args.cmd_name == SHOW_MODS_ARG:
@@ -372,7 +401,7 @@ if __name__ == "__main__":
     elif cmd_args.cmd_name == BUILD_ALL_ARG:
         exit_code = process_all_comic_books(cmd_options, comics_database)
     elif cmd_args.cmd_name == BUILD_SINGLE_ARG:
-        exit_code = process_single_comic_book(cmd_options, comics_database, cmd_args.title)
+        exit_code = process_comic_book_titles(cmd_options, comics_database, get_titles(cmd_args))
     else:
         raise Exception(f'ERROR: Unknown cmd_arg "{cmd_args.cmd_name}".')
 
