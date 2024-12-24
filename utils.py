@@ -7,7 +7,7 @@ from barks_fantagraphics.comics_utils import (
     get_timestamp_as_str,
     dest_file_is_older_than_srce,
     file_is_older_than_timestamp,
-    get_relpath,
+    get_abbrev_path,
 )
 
 DATE_SEP = "-"
@@ -80,9 +80,9 @@ def get_file_out_of_date_with_other_file_msg(file: str, other_file: str, msg_pre
     blank_prefix = f'{" ":<{len(msg_prefix)}}'
 
     return (
-        f'{msg_prefix}File "{get_relpath(file)}"\n'
+        f'{msg_prefix}File "{get_abbrev_path(file)}"\n'
         f"{blank_prefix}is out of date with\n"
-        f'{blank_prefix}file "{get_relpath(other_file)}":\n'
+        f'{blank_prefix}file "{get_abbrev_path(other_file)}":\n'
         f"{blank_prefix}'{get_timestamp_str(file, DATE_SEP, DATE_TIME_SEP, HOUR_SEP)}'"
         f" < '{get_timestamp_str(other_file, " - ", DATE_TIME_SEP, HOUR_SEP)}'."
     )
@@ -94,9 +94,8 @@ def get_file_out_of_date_wrt_max_timestamp_msg(
     blank_prefix = f'{" ":<{len(msg_prefix)}}'
 
     return (
-        f'{msg_prefix}File "{file}"\n'
-        f"{blank_prefix}is out of date with\n"
-        f"{blank_prefix}max timestamp:\n"
+        f'{msg_prefix}File "{get_abbrev_path(file)}"\n'
+        f"{blank_prefix}is out of date WRT max timestamp:\n"
         f"{blank_prefix}'{get_timestamp_str(file, DATE_SEP, DATE_TIME_SEP, HOUR_SEP)}'"
         f" < '{get_timestamp_as_str(max_timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP)}'."
     )
@@ -104,7 +103,7 @@ def get_file_out_of_date_wrt_max_timestamp_msg(
 
 def get_zip_file_out_of_date_wrt_max_dest_msg(zip_file: str, max_dest_timestamp: float) -> str:
     return (
-        f"Zip file \"{zip_file}\" timestamp '{get_timestamp_str(zip_file)}',"
+        f"Zip file \"{get_abbrev_path(zip_file)}\" timestamp '{get_timestamp_str(zip_file)}',"
         f" is out of date WRT"
         f" max dest page timestamp '{get_timestamp_as_str(max_dest_timestamp)}'."
     )
@@ -112,7 +111,7 @@ def get_zip_file_out_of_date_wrt_max_dest_msg(zip_file: str, max_dest_timestamp:
 
 def get_symlink_out_of_date_wrt_zip_msg(symlink: str, zip_file: str) -> str:
     return (
-        f"Symlink \"{symlink}\" timestamp '{get_timestamp_str(symlink)}',"
+        f"Symlink \"{get_abbrev_path(symlink)}\" timestamp '{get_timestamp_str(symlink)}',"
         f" is out of date WRT"
         f' zip file "{zip_file}" ({get_timestamp_str(zip_file)}).'
     )
@@ -120,7 +119,7 @@ def get_symlink_out_of_date_wrt_zip_msg(symlink: str, zip_file: str) -> str:
 
 def get_symlink_out_of_date_wrt_max_dest_msg(symlink: str, max_dest_timestamp: float) -> str:
     return (
-        f"Symlink \"{symlink}\" timestamp '{get_timestamp_str(symlink)}',"
+        f"Symlink \"{get_abbrev_path(symlink)}\" timestamp '{get_timestamp_str(symlink)}',"
         f" is out of date WRT"
         f" max dest image timestamp '{get_timestamp_as_str(max_dest_timestamp)}'."
     )
