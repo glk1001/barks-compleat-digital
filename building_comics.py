@@ -24,7 +24,7 @@ from barks_fantagraphics.comics_consts import (
 )
 from barks_fantagraphics.comics_image_io import METADATA_PROPERTY_GROUP
 from barks_fantagraphics.comics_info import CS, CENSORED_TITLES
-from barks_fantagraphics.comics_utils import get_clean_path, get_relpath
+from barks_fantagraphics.comics_utils import get_clean_path, get_relpath, get_abbrev_path
 from consts import (
     DRY_RUN_STR,
     DEST_TARGET_WIDTH,
@@ -194,14 +194,6 @@ def _process_page(
     dest_page: CleanPage,
 ):
     try:
-        logging.info(
-            f'Convert "{get_relpath(srce_page.page_filename)}"'
-            f" (page-type {srce_page.page_type.name})"
-            f' to "{get_relpath(dest_page.page_filename)}"'
-            f" (page {get_page_num_str(dest_page):>2},"
-            f" cache pages = {cache_pages})."
-        )
-
         srce_page_image = open_image_for_reading(srce_page.page_filename)
         if srce_page.page_type == PageType.BODY and srce_page_image.height < MIN_HD_SRCE_HEIGHT:
             raise Exception(
@@ -210,25 +202,30 @@ def _process_page(
                 f" {srce_page_image.width} x {srce_page_image.height}."
             )
 
-        if cache_pages and not dest_file_is_out_of_date_wrt_srce(
-            srce_page.page_filename, dest_page.page_filename
-        ):
-            logging.debug(
-                f"Caching on - using existing page file"
-                f' "{get_relpath(dest_page.page_filename)}".'
+        if cache_pages and not _is_dest_out_date(comic, srce_page, dest_page):
+            logging.info(
+                f"Using cached page file" f' "{get_abbrev_path(dest_page.page_filename)}".'
             )
             return
 
         logging.info(
-            f'Creating dest image "{get_relpath(dest_page.page_filename)}"'
-            f' from srce file "{get_relpath(srce_page.page_filename)}".'
+            f'Convert "{get_abbrev_path(srce_page.page_filename)}"'
+            f" (page-type {srce_page.page_type.name})"
+            f' to "{get_abbrev_path(dest_page.page_filename)}"'
+            f" (page {get_page_num_str(dest_page):>2},"
+            f" cache pages = {cache_pages})."
+        )
+
+        logging.info(
+            f'Creating dest image "{get_abbrev_path(dest_page.page_filename)}"'
+            f' from srce file "{get_abbrev_path(srce_page.page_filename)}".'
         )
         dest_page_image = _get_dest_page_image(comic, srce_page_image, srce_page, dest_page)
 
         if dry_run:
             logging.info(
                 f"{DRY_RUN_STR}: Save changes to image"
-                f' "{get_relpath(dest_page.page_filename)}".'
+                f' "{get_abbrev_path(dest_page.page_filename)}".'
             )
         else:
             dest_page_image.save(
@@ -238,13 +235,29 @@ def _process_page(
                 quality=DEST_JPG_QUALITY,
                 comment="\n".join(_get_dest_jpg_comments(srce_page, dest_page)),
             )
-            logging.info(f'Saved changes to image "{get_relpath(dest_page.page_filename)}".')
+            logging.info(f'Saved changes to image "{get_abbrev_path(dest_page.page_filename)}".')
 
         logging.info("")
     except Exception as e:
         logging.error(f'Error in process page: "{e}".')
         global _process_page_error
         _process_page_error = True
+
+
+def _is_dest_out_date(
+    comic: ComicBook,
+    srce_page: CleanPage,
+    dest_page: CleanPage,
+) -> bool:
+    ini_file = comic.ini_file
+    if dest_file_is_out_of_date_wrt_srce(ini_file, dest_page.page_filename):
+        return True
+
+    if dest_page.page_type == PageType.TITLE:
+        if dest_file_is_out_of_date_wrt_srce(comic.intro_inset_file, dest_page.page_filename):
+            return True
+
+    return dest_file_is_out_of_date_wrt_srce(srce_page.page_filename, dest_page.page_filename)
 
 
 def _get_dest_jpg_comments(srce_page: CleanPage, dest_page: CleanPage) -> List[str]:
@@ -838,17 +851,19 @@ def log_comic_book_params(comic: ComicBook, caching: bool):
     logging.info(f"Calc panels bbox ht:  {calc_panels_bbox_height}.")
     logging.info(f"Page num y bottom:    {comic.required_dim.page_num_y_bottom}.")
     logging.info(f'Ini file:             "{get_clean_path(comic.ini_file)}".')
-    logging.info(f'Srce dir:             "{get_relpath(comic.srce_dir)}".')
-    logging.info(f'Srce upscayled dir:   "{get_relpath(comic.srce_upscayled_dir)}".')
-    logging.info(f'Srce restored dir:    "{get_relpath(comic.srce_restored_dir)}".')
-    logging.info(f'Srce fixes dir:       "{get_relpath(comic.srce_fixes_dir)}".')
-    logging.info(f'Srce upscayled fixes: "{get_relpath(comic.srce_upscayled_fixes_dir)}".')
-    logging.info(f'Srce restored fixes:  "{get_relpath(comic.srce_restored_fixes_dir)}".')
-    logging.info(f'Srce segments dir:    "{get_relpath(comic.panel_segments_dir)}".')
-    logging.info(f'Dest dir:             "{get_relpath(comic.get_dest_dir())}".')
-    logging.info(f'Dest comic zip:       "{get_relpath(comic.get_dest_comic_zip())}".')
+    logging.info(f'Srce dir:             "{get_abbrev_path(comic.srce_dir)}".')
+    logging.info(f'Srce upscayled dir:   "{get_abbrev_path(comic.srce_upscayled_dir)}".')
+    logging.info(f'Srce restored dir:    "{get_abbrev_path(comic.srce_restored_dir)}".')
+    logging.info(f'Srce fixes dir:       "{get_abbrev_path(comic.srce_fixes_dir)}".')
+    logging.info(f'Srce upscayled fixes: "{get_abbrev_path(comic.srce_upscayled_fixes_dir)}".')
+    logging.info(f'Srce restored fixes:  "{get_abbrev_path(comic.srce_restored_fixes_dir)}".')
+    logging.info(f'Srce segments dir:    "{get_abbrev_path(comic.panel_segments_dir)}".')
+    logging.info(f'Dest dir:             "{get_abbrev_path(comic.get_dest_dir())}".')
+    logging.info(f'Dest comic zip:       "{get_abbrev_path(comic.get_dest_comic_zip())}".')
     logging.info(
-        f'Dest series symlink:  "{get_relpath(comic.get_dest_series_comic_zip_symlink())}".'
+        f'Dest series symlink:  "{get_abbrev_path(comic.get_dest_series_comic_zip_symlink())}".'
     )
-    logging.info(f'Dest year symlink:    "{get_relpath(comic.get_dest_year_comic_zip_symlink())}".')
+    logging.info(
+        f'Dest year symlink:    "{get_abbrev_path(comic.get_dest_year_comic_zip_symlink())}".'
+    )
     logging.info("")

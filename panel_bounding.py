@@ -5,7 +5,7 @@ from typing import List, Tuple
 from PIL import Image
 
 from barks_fantagraphics.comic_book import ComicBook, get_page_str
-from barks_fantagraphics.comics_utils import get_relpath
+from barks_fantagraphics.comics_utils import get_abbrev_path
 from barks_fantagraphics.panel_segmentation import BIG_NUM
 from consts import (
     DRY_RUN_STR,
@@ -163,12 +163,12 @@ def get_panels_bounding_box(
             logging.info(
                 f"{DRY_RUN_STR}: "
                 f"Caching off - deleting panels segment info file"
-                f' "{get_relpath(srce_panels_segment_info_file)}".'
+                f' "{get_abbrev_path(srce_panels_segment_info_file)}".'
             )
         else:
             logging.debug(
                 f"Caching off - deleting panels segment info file"
-                f' "{get_relpath(srce_panels_segment_info_file)}".'
+                f' "{get_abbrev_path(srce_panels_segment_info_file)}".'
             )
             os.remove(srce_panels_segment_info_file)
             assert not os.path.isfile(srce_panels_segment_info_file)
@@ -176,8 +176,7 @@ def get_panels_bounding_box(
     if os.path.isfile(srce_panels_segment_info_file):
         if use_cached_bboxes:
             logging.info(
-                f"Using cached panels segment info file"
-                f' "{get_relpath(srce_panels_segment_info_file)}".'
+                f"Using cached segment file" f' "{get_abbrev_path(srce_panels_segment_info_file)}".'
             )
         return bounding_box_processor.get_panels_bounding_box_from_file(
             srce_panels_segment_info_file

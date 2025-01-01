@@ -8,7 +8,7 @@ from typing import Any, Dict, Tuple
 from PIL import Image, ImageDraw
 
 from barks_fantagraphics.comics_info import JPG_FILE_EXT, PNG_FILE_EXT
-from barks_fantagraphics.comics_utils import get_relpath
+from barks_fantagraphics.comics_utils import get_abbrev_path
 from barks_fantagraphics.panel_segmentation import KumikoPanelSegmentation, get_min_max_panel_values
 from consts import DRY_RUN_STR
 from image_io import open_image_for_reading
@@ -46,7 +46,7 @@ class BoundingBoxProcessor(object):
         x_min, y_min, x_max, y_max = get_min_max_panel_values(segment_info)
 
         logging.debug(
-            f'Using panels segment info file "{get_relpath(filename)}".'
+            f'Using panels segment info file "{get_abbrev_path(filename)}".'
             f"Box: {x_min}, {y_min}, {x_max}, {y_max}."
         )
 
@@ -94,7 +94,7 @@ class BoundingBoxProcessor(object):
 
     @staticmethod
     def save_panels_segment_info(segment_info_filename, segment_info: Dict[str, Any]):
-        logging.debug(f'Saving panel segment info to "{get_relpath(segment_info_filename)}".')
+        logging.debug(f'Saving panel segment info to "{get_abbrev_path(segment_info_filename)}".')
 
         segment_info_filtered = {k: v for k, v in segment_info.items() if k != "processing_time"}
         with open(segment_info_filename, "w") as f:

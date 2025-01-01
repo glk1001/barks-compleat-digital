@@ -2,7 +2,7 @@ import os
 from dataclasses import dataclass
 from typing import List, Tuple, Set
 
-from barks_fantagraphics.comic_book import ComicBook, get_page_str, get_relpath, get_safe_title
+from barks_fantagraphics.comic_book import ComicBook, get_page_str, get_safe_title
 from barks_fantagraphics.comics_consts import (
     THE_CHRONOLOGICAL_DIRS_DIR,
     THE_CHRONOLOGICAL_DIR,
@@ -12,6 +12,7 @@ from barks_fantagraphics.comics_consts import (
     PageType,
 )
 from barks_fantagraphics.comics_database import ComicsDatabase
+from barks_fantagraphics.comics_utils import get_relpath
 from barks_fantagraphics.comics_utils import get_timestamp, get_timestamp_as_str
 from consts import DEST_NON_IMAGE_FILES
 from pages import (

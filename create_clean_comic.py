@@ -9,13 +9,13 @@ from datetime import datetime
 from typing import Tuple, Union, List
 
 from intspan import intspan
+
 from additional_file_writing import write_summary_file
 from barks_fantagraphics.comic_book import ComicBook
 from barks_fantagraphics.comics_consts import PageType
 from barks_fantagraphics.comics_database import ComicsDatabase, get_default_comics_database_dir
 from barks_fantagraphics.comics_utils import (
     get_work_dir,
-    get_timestamp_str,
     get_relpath,
     get_timestamp,
     get_timestamp_as_str,
