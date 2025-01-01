@@ -66,7 +66,7 @@ def symlink_is_out_of_date_wrt_zip(symlink: str, zip_file: str) -> bool:
         logging.debug(f'Dest file "{symlink}" not found.')
         return False
 
-    if dest_file_is_older_than_srce(symlink, zip_file, False):
+    if dest_file_is_older_than_srce(zip_file, symlink, False):
         logging.debug(get_symlink_out_of_date_wrt_zip_msg(symlink, zip_file))
         return True
 
@@ -76,6 +76,8 @@ def symlink_is_out_of_date_wrt_zip(symlink: str, zip_file: str) -> bool:
 def get_file_out_of_date_with_other_file_msg(file: str, other_file: str, msg_prefix: str) -> str:
     if not os.path.isfile(other_file):
         return f'File "{other_file}" is missing.'
+    if not os.path.isfile(file):
+        return f'File "{file}" is missing.'
 
     blank_prefix = f'{" ":<{len(msg_prefix)}}'
 
