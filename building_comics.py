@@ -96,7 +96,7 @@ def build_comic_book(
 def _create_comic_book(dry_run: bool, comic: ComicBook, caching: bool) -> SrceAndDestPages:
     pages = get_srce_and_dest_pages_in_order(comic)
 
-    set_srce_panel_bounding_boxes(dry_run, caching, comic, pages.srce_pages)
+    set_srce_panel_bounding_boxes(comic, pages.srce_pages)
     _set_required_dimensions(comic, pages.srce_pages)
     set_dest_panel_bounding_boxes(comic, pages)
 

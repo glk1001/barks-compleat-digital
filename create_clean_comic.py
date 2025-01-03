@@ -24,7 +24,6 @@ from barks_fantagraphics.comics_utils import (
 from building_comics import build_comic_book
 from comics_integrity import check_comics_integrity, get_restored_srce_dependencies
 from pages import get_max_timestamp, get_srce_and_dest_pages_in_order, get_page_num_str
-from panel_bounding import init_bounding_box_processor
 from timing import Timing
 from zipping import zip_comic_book, create_symlinks_to_comic_zip
 
@@ -387,8 +386,6 @@ if __name__ == "__main__":
 
     cmd_options = get_cmd_options(cmd_args)
     comics_database = ComicsDatabase(cmd_args.comics_database_dir)
-
-    init_bounding_box_processor(work_dir)
 
     if cmd_args.cmd_name == CHECK_INTEGRITY_ARG:
         exit_code = check_comics_integrity(comics_database, get_titles(cmd_args))

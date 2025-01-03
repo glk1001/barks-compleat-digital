@@ -2,13 +2,8 @@ import logging
 import os
 from typing import List, Tuple
 
-from PIL import Image
-
 from barks_fantagraphics.comic_book import ComicBook, get_page_str
-from barks_fantagraphics.comics_utils import get_abbrev_path
-from barks_fantagraphics.panel_segmentation import BIG_NUM
 from consts import (
-    DRY_RUN_STR,
     PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN,
     DEST_TARGET_WIDTH,
     DEST_TARGET_HEIGHT,
@@ -17,14 +12,7 @@ from consts import (
 )
 from image_io import open_image_for_reading
 from pages import CleanPage, SrceAndDestPages
-from panel_bounding_boxes import BoundingBox, BoundingBoxProcessor
-
-bounding_box_processor: BoundingBoxProcessor
-
-
-def init_bounding_box_processor(work_dir: str) -> None:
-    global bounding_box_processor
-    bounding_box_processor = BoundingBoxProcessor(work_dir)
+from panel_bounding_boxes import BoundingBox, get_panels_bounding_box_from_file
 
 
 def get_required_panels_bbox_width_height(
@@ -95,24 +83,24 @@ def get_average_panels_bbox_width_height(
 def get_min_max_panels_bbox_width_height(
     srce_pages: List[CleanPage],
 ) -> Tuple[int, int, int, int]:
-    min_panels_bbox_width = BIG_NUM
+    big_num = 10000
+
+    min_panels_bbox_width = big_num
+    min_panels_bbox_height = big_num
     max_panels_bbox_width = 0
-    min_panels_bbox_height = BIG_NUM
     max_panels_bbox_height = 0
+
     for srce_page in srce_pages:
         if srce_page.page_type in PAGES_WITHOUT_PANELS:
             continue
 
         panels_bbox_width = srce_page.panels_bbox.get_width()
         panels_bbox_height = srce_page.panels_bbox.get_height()
-        if min_panels_bbox_width > panels_bbox_width:
-            min_panels_bbox_width = panels_bbox_width
-        if min_panels_bbox_height > panels_bbox_height:
-            min_panels_bbox_height = panels_bbox_height
-        if max_panels_bbox_width < panels_bbox_width:
-            max_panels_bbox_width = panels_bbox_width
-        if max_panels_bbox_height < panels_bbox_height:
-            max_panels_bbox_height = panels_bbox_height
+
+        min_panels_bbox_width = min(min_panels_bbox_width, panels_bbox_width)
+        min_panels_bbox_height = min(min_panels_bbox_height, panels_bbox_height)
+        max_panels_bbox_width = max(max_panels_bbox_width, panels_bbox_width)
+        max_panels_bbox_height = max(max_panels_bbox_height, panels_bbox_height)
 
     return (
         min_panels_bbox_width,
@@ -123,91 +111,38 @@ def get_min_max_panels_bbox_width_height(
 
 
 def set_srce_panel_bounding_boxes(
-    dry_run: bool,
-    use_cached_bboxes: bool,
     comic: ComicBook,
     srce_pages: List[CleanPage],
 ):
     logging.debug("Setting srce panel bounding boxes.")
 
     for srce_page in srce_pages:
-        srce_page_image = open_image_for_reading(srce_page.page_filename)
         if srce_page.page_type in PAGES_WITHOUT_PANELS:
-            srce_page.panels_bbox = BoundingBox(
-                0, 0, srce_page_image.width - 1, srce_page_image.height - 1
-            )
+            srce_page.panels_bbox = get_full_image_bounding_box(srce_page.page_filename)
         else:
-            srce_page_image = srce_page_image.convert("RGB")
-            srce_page.panels_bbox = get_panels_bounding_box(
-                dry_run, use_cached_bboxes, comic, srce_page_image, srce_page
-            )
+            srce_page.panels_bbox = get_panels_bounding_box(comic, srce_page)
 
     logging.debug("")
 
 
-def get_panels_bounding_box(
-    dry_run: bool,
-    use_cached_bboxes: bool,
-    comic: ComicBook,
-    srce_page_image: Image,
-    srce_page: CleanPage,
-) -> BoundingBox:
+def get_full_image_bounding_box(image_file: str) -> BoundingBox:
+    image = open_image_for_reading(image_file)
+    return BoundingBox(0, 0, image.width - 1, image.height - 1)
+
+
+def get_panels_bounding_box(comic: ComicBook, srce_page: CleanPage) -> BoundingBox:
     assert srce_page.page_type not in PAGES_WITHOUT_PANELS
 
     srce_panels_segment_info_file = comic.get_srce_panel_segments_file(
         get_page_str(srce_page.page_num)
     )
 
-    if not use_cached_bboxes and os.path.isfile(srce_panels_segment_info_file):
-        if dry_run:
-            logging.info(
-                f"{DRY_RUN_STR}: "
-                f"Caching off - deleting panels segment info file"
-                f' "{get_abbrev_path(srce_panels_segment_info_file)}".'
-            )
-        else:
-            logging.debug(
-                f"Caching off - deleting panels segment info file"
-                f' "{get_abbrev_path(srce_panels_segment_info_file)}".'
-            )
-            os.remove(srce_panels_segment_info_file)
-            assert not os.path.isfile(srce_panels_segment_info_file)
-
-    if os.path.isfile(srce_panels_segment_info_file):
-        if use_cached_bboxes:
-            logging.info(
-                f"Using cached segment file" f' "{get_abbrev_path(srce_panels_segment_info_file)}".'
-            )
-        return bounding_box_processor.get_panels_bounding_box_from_file(
-            srce_panels_segment_info_file
-        )
-
-    logging.info(
-        f"Getting Kumiko panels segment info for srce image file"
-        f' "{os.path.basename(srce_page.page_filename)}".'
-    )
-
-    if not os.path.isdir(comic.get_srce_fixes_image_dir()):
+    if not os.path.isfile(srce_panels_segment_info_file):
         raise Exception(
-            f'Could not find panel bounds directory "{comic.get_srce_fixes_image_dir()}".'
+            f'Could not find panels segments info file "{srce_panels_segment_info_file}".'
         )
-    srce_panels_bounds_override_dir = os.path.join(comic.get_srce_fixes_image_dir(), "bounded")
 
-    bounding_box, segment_info = bounding_box_processor.get_panels_segment_info_from_kumiko(
-        dry_run,
-        srce_page_image,
-        srce_page.page_filename,
-        srce_panels_bounds_override_dir,
-    )
-
-    if dry_run:
-        logging.info(
-            f'{DRY_RUN_STR}: Saving panels segment info to "{srce_panels_segment_info_file}".'
-        )
-    else:
-        bounding_box_processor.save_panels_segment_info(srce_panels_segment_info_file, segment_info)
-
-    return bounding_box
+    return get_panels_bounding_box_from_file(srce_panels_segment_info_file)
 
 
 def set_dest_panel_bounding_boxes(comic: ComicBook, pages: SrceAndDestPages):

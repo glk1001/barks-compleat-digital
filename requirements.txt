@@ -1,6 +1,7 @@
 asgiref==3.8.1
 Django==5.1
 image==1.5.33
+intspan==1.6.1
 llvmlite==0.43.0
 numba==0.60.0
 numpy==2.0.2
