@@ -31,7 +31,6 @@ from zipping import zip_comic_book, create_symlinks_to_comic_zip
 @dataclass
 class CmdOptions:
     dry_run: bool = False
-    no_cache: bool = False
     just_zip: bool = False
     just_symlinks: bool = False
     work_dir_root: str = ""
@@ -64,10 +63,9 @@ def print_all_cmds(options: CmdOptions, comics_db: ComicsDatabase) -> int:
 def print_cmd(options: CmdOptions, comics_db: ComicsDatabase, story_title: str) -> int:
     dry_run_arg = "" if not options.dry_run else f" {DRY_RUN_ARG}"
     just_symlinks_arg = "" if not options.just_symlinks else f" {JUST_SYMLINKS_ARG}"
-    no_cache_arg = "" if not options.no_cache else f" {NO_CACHE_ARG}"
     print(
         f"python3 {__file__} {BUILD_SINGLE_ARG}"
-        f"{dry_run_arg}{just_symlinks_arg}{no_cache_arg}"
+        f"{dry_run_arg}{just_symlinks_arg}"
         f' {WORK_DIR_ARG} "{options.work_dir_root}"'
         f' {COMICS_DATABASE_DIR_ARG} "{comics_db.get_comics_database_dir()}"'
         f" {TITLE_ARG} {shlex.quote(story_title)}"
@@ -178,19 +176,17 @@ def process_comic_book(options: CmdOptions, comic: ComicBook) -> int:
     process_timing = Timing(datetime.now())
 
     if options.just_symlinks:
-        create_symlinks_to_comic_zip(options.dry_run, options.no_cache, comic)
+        create_symlinks_to_comic_zip(options.dry_run, comic)
         return 0
 
     if options.just_zip:
         srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
         max_dest_timestamp = get_max_timestamp(srce_and_dest_pages.dest_pages)
-        zip_comic_book(options.dry_run, options.no_cache, comic, max_dest_timestamp)
-        create_symlinks_to_comic_zip(options.dry_run, options.no_cache, comic)
+        zip_comic_book(options.dry_run, comic, max_dest_timestamp)
+        create_symlinks_to_comic_zip(options.dry_run, comic)
         return 0
 
-    srce_and_dest_pages, max_dest_timestamp = build_comic_book(
-        options.dry_run, options.no_cache, comic
-    )
+    srce_and_dest_pages, max_dest_timestamp = build_comic_book(options.dry_run, comic)
 
     process_timing.end_time = datetime.now()
     logging.info(
@@ -198,12 +194,7 @@ def process_comic_book(options: CmdOptions, comic: ComicBook) -> int:
     )
 
     write_summary_file(
-        options.dry_run,
-        comic,
-        srce_and_dest_pages,
-        max_dest_timestamp,
-        process_timing,
-        not options.no_cache,
+        options.dry_run, comic, srce_and_dest_pages, max_dest_timestamp, process_timing
     )
 
     return 0
@@ -215,7 +206,6 @@ VOLUME_ARG = "--volume"
 TITLE_ARG = "--title"
 WORK_DIR_ARG = "--work-dir"
 DRY_RUN_ARG = "--dry-run"
-NO_CACHE_ARG = "--no-cache"
 JUST_ZIP_ARG = "--just-zip"
 JUST_SYMLINKS_ARG = "--just-symlinks"
 
@@ -252,7 +242,6 @@ def get_args():
         JUST_SYMLINKS_ARG, action="store_true", required=False, default=False
     )
     build_all_parser.add_argument(DRY_RUN_ARG, action="store_true", required=False, default=False)
-    build_all_parser.add_argument(NO_CACHE_ARG, action="store_true", required=False, default=False)
     build_all_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
     build_all_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
@@ -277,9 +266,6 @@ def get_args():
         DRY_RUN_ARG, action="store_true", required=False, default=False
     )
     build_single_parser.add_argument(
-        NO_CACHE_ARG, action="store_true", required=False, default=False
-    )
-    build_single_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
     build_single_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
@@ -294,7 +280,6 @@ def get_args():
         default=get_default_comics_database_dir(),
     )
     list_cmds_parser.add_argument(DRY_RUN_ARG, action="store_true", required=False, default=False)
-    list_cmds_parser.add_argument(NO_CACHE_ARG, action="store_true", required=False, default=False)
     list_cmds_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
@@ -369,7 +354,6 @@ def get_titles(args) -> List[str]:
 def get_cmd_options(args) -> CmdOptions:
     return CmdOptions(
         dry_run=hasattr(args, "dry_run") and args.dry_run,
-        no_cache=hasattr(args, "no_cache") and args.no_cache,
         just_zip=hasattr(args, "just_zip") and args.just_zip,
         just_symlinks=hasattr(args, "just_symlinks") and args.just_symlinks,
         work_dir_root=hasattr(args, "work_dir") and args.work_dir,

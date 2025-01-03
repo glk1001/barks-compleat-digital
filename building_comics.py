@@ -54,7 +54,6 @@ from panel_bounding import (
     get_required_panels_bbox_width_height,
     get_scaled_panels_bbox_height,
 )
-from utils import dest_file_is_out_of_date_wrt_srce
 from zipping import zip_comic_book, create_symlinks_to_comic_zip
 
 INTRO_TOP = 350
@@ -81,29 +80,27 @@ SPLASH_BORDER_COLOR = (128, 0, 0)
 SPLASH_BORDER_WIDTH = 10
 
 
-def build_comic_book(
-    dry_run: bool, no_cache: bool, comic: ComicBook
-) -> Tuple[SrceAndDestPages, float]:
-    srce_and_dest_pages = _create_comic_book(dry_run, comic, not no_cache)
+def build_comic_book(dry_run: bool, comic: ComicBook) -> Tuple[SrceAndDestPages, float]:
+    srce_and_dest_pages = _create_comic_book(dry_run, comic)
     max_dest_timestamp = get_max_timestamp(srce_and_dest_pages.dest_pages)
 
-    zip_comic_book(dry_run, no_cache, comic, max_dest_timestamp)
-    create_symlinks_to_comic_zip(dry_run, no_cache, comic)
+    zip_comic_book(dry_run, comic, max_dest_timestamp)
+    create_symlinks_to_comic_zip(dry_run, comic)
 
     return srce_and_dest_pages, max_dest_timestamp
 
 
-def _create_comic_book(dry_run: bool, comic: ComicBook, caching: bool) -> SrceAndDestPages:
+def _create_comic_book(dry_run: bool, comic: ComicBook) -> SrceAndDestPages:
     pages = get_srce_and_dest_pages_in_order(comic)
 
     set_srce_panel_bounding_boxes(comic, pages.srce_pages)
     _set_required_dimensions(comic, pages.srce_pages)
     set_dest_panel_bounding_boxes(comic, pages)
 
-    log_comic_book_params(comic, caching)
+    log_comic_book_params(comic)
 
     _create_dest_dirs(dry_run, comic)
-    _process_pages(dry_run, caching, comic, pages)
+    _process_pages(dry_run, comic, pages)
     _process_additional_files(dry_run, comic, pages)
 
     return pages
@@ -114,25 +111,18 @@ _process_page_error = False
 
 def _process_pages(
     dry_run: bool,
-    cache_pages: bool,
     comic: ComicBook,
     pages: SrceAndDestPages,
 ):
     _delete_all_files_in_directory(dry_run, comic.get_dest_dir())
-    if cache_pages:
-        logging.debug(
-            f"Caching on - not deleting cached files"
-            f' in images directory "{get_relpath(comic.get_dest_image_dir())}".'
-        )
-    else:
-        _delete_all_files_in_directory(dry_run, comic.get_dest_image_dir())
+    _delete_all_files_in_directory(dry_run, comic.get_dest_image_dir())
 
     global _process_page_error
     _process_page_error = False
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
         for srce_page, dest_page in zip(pages.srce_pages, pages.dest_pages):
-            executor.submit(_process_page, dry_run, cache_pages, comic, srce_page, dest_page)
+            executor.submit(_process_page, dry_run, comic, srce_page, dest_page)
 
     if _process_page_error:
         raise Exception("There were errors while processing pages.")
@@ -188,7 +178,6 @@ def _set_required_dimensions(
 
 def _process_page(
     dry_run: bool,
-    cache_pages: bool,
     comic: ComicBook,
     srce_page: CleanPage,
     dest_page: CleanPage,
@@ -202,18 +191,11 @@ def _process_page(
                 f" {srce_page_image.width} x {srce_page_image.height}."
             )
 
-        if cache_pages and not _is_dest_out_date(comic, srce_page, dest_page):
-            logging.info(
-                f"Using cached page file" f' "{get_abbrev_path(dest_page.page_filename)}".'
-            )
-            return
-
         logging.info(
             f'Convert "{get_abbrev_path(srce_page.page_filename)}"'
             f" (page-type {srce_page.page_type.name})"
             f' to "{get_abbrev_path(dest_page.page_filename)}"'
-            f" (page {get_page_num_str(dest_page):>2},"
-            f" cache pages = {cache_pages})."
+            f" (page {get_page_num_str(dest_page):>2}."
         )
 
         logging.info(
@@ -242,22 +224,6 @@ def _process_page(
         logging.error(f'Error in process page: "{e}".')
         global _process_page_error
         _process_page_error = True
-
-
-def _is_dest_out_date(
-    comic: ComicBook,
-    srce_page: CleanPage,
-    dest_page: CleanPage,
-) -> bool:
-    ini_file = comic.ini_file
-    if dest_file_is_out_of_date_wrt_srce(ini_file, dest_page.page_filename):
-        return True
-
-    if dest_page.page_type == PageType.TITLE:
-        if dest_file_is_out_of_date_wrt_srce(comic.intro_inset_file, dest_page.page_filename):
-            return True
-
-    return dest_file_is_out_of_date_wrt_srce(srce_page.page_filename, dest_page.page_filename)
 
 
 def _get_dest_jpg_comments(srce_page: CleanPage, dest_page: CleanPage) -> List[str]:
@@ -818,7 +784,7 @@ def _create_dest_dirs(dry_run: bool, comic: ComicBook):
         raise Exception(f'Could not make directory "{comic.get_dest_image_dir()}".')
 
 
-def log_comic_book_params(comic: ComicBook, caching: bool):
+def log_comic_book_params(comic: ComicBook):
     logging.info("")
 
     calc_panels_bbox_height = int(
@@ -833,7 +799,6 @@ def log_comic_book_params(comic: ComicBook, caching: bool):
     logging.info(f'Comic issue title:    "{comic.get_comic_issue_title()}".')
     logging.info(f"Number in series:     {comic.number_in_series}.")
     logging.info(f"Chronological number  {comic.chronological_number}.")
-    logging.info(f"Caching:              {caching}.")
     logging.info(f"Dest x margin:        {DEST_TARGET_X_MARGIN}.")
     logging.info(f"Dest width:           {DEST_TARGET_WIDTH}.")
     logging.info(f"Dest height:          {DEST_TARGET_HEIGHT}.")

@@ -7,19 +7,9 @@ from typing import Union
 from barks_fantagraphics.comic_book import ComicBook
 from barks_fantagraphics.comics_utils import get_relpath
 from consts import DRY_RUN_STR
-from utils import zip_file_is_out_of_date_wrt_dest, symlink_is_out_of_date_wrt_zip
 
 
-def zip_comic_book(dry_run: bool, no_cache: bool, comic: ComicBook, max_dest_timestamp: float):
-    if not no_cache and not zip_file_is_out_of_date_wrt_dest(
-        comic.get_dest_comic_zip(), max_dest_timestamp
-    ):
-        logging.debug(
-            f"Caching on - keeping existing zip file"
-            f' "{get_relpath(comic.get_dest_comic_zip())}".'
-        )
-        return
-
+def zip_comic_book(dry_run: bool, comic: ComicBook, max_dest_timestamp: float):
     if dry_run:
         logging.info(
             f'{DRY_RUN_STR}: Zipping directory "{get_relpath(comic.get_dest_dir())}"'
@@ -43,13 +33,12 @@ def zip_comic_book(dry_run: bool, no_cache: bool, comic: ComicBook, max_dest_tim
             raise Exception(f'Could not create final comic zip "{comic.get_dest_comic_zip()}".')
 
 
-def create_symlinks_to_comic_zip(dry_run: bool, no_cache: bool, comic: ComicBook):
+def create_symlinks_to_comic_zip(dry_run: bool, comic: ComicBook):
     if not os.path.exists(comic.get_dest_comic_zip()):
         raise Exception(f'Could not find comic zip file "{comic.get_dest_comic_zip()}".')
 
     create_symlink_zip(
         dry_run,
-        no_cache,
         comic.get_dest_comic_zip(),
         comic.get_dest_series_zip_symlink_dir(),
         comic.get_dest_series_comic_zip_symlink(),
@@ -57,20 +46,13 @@ def create_symlinks_to_comic_zip(dry_run: bool, no_cache: bool, comic: ComicBook
 
     create_symlink_zip(
         dry_run,
-        no_cache,
         comic.get_dest_comic_zip(),
         comic.get_dest_year_zip_symlink_dir(),
         comic.get_dest_year_comic_zip_symlink(),
     )
 
 
-def create_symlink_zip(
-    dry_run: bool, no_cache: bool, zip_file: str, symlink_dir: str, symlink: str
-) -> None:
-    if not no_cache and not symlink_is_out_of_date_wrt_zip(symlink, zip_file):
-        logging.debug(f'Caching on - keeping existing symlink file "{get_relpath(symlink)}".')
-        return
-
+def create_symlink_zip(dry_run: bool, zip_file: str, symlink_dir: str, symlink: str) -> None:
     if dry_run:
         logging.info(
             f'{DRY_RUN_STR}: Symlinking (relative) comic zip file "{get_relpath(zip_file)}" to'

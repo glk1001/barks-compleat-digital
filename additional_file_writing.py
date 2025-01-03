@@ -45,7 +45,6 @@ def write_summary_file(
     pages: SrceAndDestPages,
     max_dest_timestamp: float,
     timing: Timing,
-    caching: bool,
 ):
     summary_file = os.path.join(comic.get_dest_dir(), SUMMARY_FILENAME)
 
@@ -121,7 +120,6 @@ def write_summary_file(
         f.write(f"has modified cover       = {has_modified_cover}\n")
         f.write(f"modified body pages      = {", ".join(modified_body_pages)}\n")
         f.write(f'intro inset file         = "{intro_inset_file}"\n')
-        f.write(f"caching                  = {caching}\n")
         f.write(f"title font size          = {comic.title_font_size}\n")
         f.write(f"author font size         = {comic.author_font_size}\n")
         f.write(f"DEST_TARGET_X_MARGIN     = {DEST_TARGET_X_MARGIN}\n")
