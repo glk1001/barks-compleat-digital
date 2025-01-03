@@ -84,7 +84,7 @@ def build_comic_book(dry_run: bool, comic: ComicBook) -> Tuple[SrceAndDestPages,
     srce_and_dest_pages = _create_comic_book(dry_run, comic)
     max_dest_timestamp = get_max_timestamp(srce_and_dest_pages.dest_pages)
 
-    zip_comic_book(dry_run, comic, max_dest_timestamp)
+    zip_comic_book(dry_run, comic)
     create_symlinks_to_comic_zip(dry_run, comic)
 
     return srce_and_dest_pages, max_dest_timestamp

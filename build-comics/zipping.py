@@ -9,7 +9,7 @@ from barks_fantagraphics.comics_utils import get_relpath
 from consts import DRY_RUN_STR
 
 
-def zip_comic_book(dry_run: bool, comic: ComicBook, max_dest_timestamp: float):
+def zip_comic_book(dry_run: bool, comic: ComicBook):
     if dry_run:
         logging.info(
             f'{DRY_RUN_STR}: Zipping directory "{get_relpath(comic.get_dest_dir())}"'

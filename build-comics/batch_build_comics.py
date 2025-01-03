@@ -15,7 +15,6 @@ from barks_fantagraphics.comic_book import ComicBook
 from barks_fantagraphics.comics_consts import PageType
 from barks_fantagraphics.comics_database import ComicsDatabase, get_default_comics_database_dir
 from barks_fantagraphics.comics_utils import (
-    get_work_dir,
     get_relpath,
     get_timestamp,
     get_timestamp_as_str,
@@ -33,7 +32,6 @@ class CmdOptions:
     dry_run: bool = False
     just_zip: bool = False
     just_symlinks: bool = False
-    work_dir_root: str = ""
 
 
 def process_all_comic_books(options: CmdOptions, comics_db: ComicsDatabase) -> int:
@@ -66,7 +64,6 @@ def print_cmd(options: CmdOptions, comics_db: ComicsDatabase, story_title: str) 
     print(
         f"python3 {__file__} {BUILD_SINGLE_ARG}"
         f"{dry_run_arg}{just_symlinks_arg}"
-        f' {WORK_DIR_ARG} "{options.work_dir_root}"'
         f' {COMICS_DATABASE_DIR_ARG} "{comics_db.get_comics_database_dir()}"'
         f" {TITLE_ARG} {shlex.quote(story_title)}"
     )
@@ -180,9 +177,7 @@ def process_comic_book(options: CmdOptions, comic: ComicBook) -> int:
         return 0
 
     if options.just_zip:
-        srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
-        max_dest_timestamp = get_max_timestamp(srce_and_dest_pages.dest_pages)
-        zip_comic_book(options.dry_run, comic, max_dest_timestamp)
+        zip_comic_book(options.dry_run, comic)
         create_symlinks_to_comic_zip(options.dry_run, comic)
         return 0
 
@@ -204,7 +199,6 @@ LOG_LEVEL_ARG = "--log-level"
 COMICS_DATABASE_DIR_ARG = "--comics-database-dir"
 VOLUME_ARG = "--volume"
 TITLE_ARG = "--title"
-WORK_DIR_ARG = "--work-dir"
 DRY_RUN_ARG = "--dry-run"
 JUST_ZIP_ARG = "--just-zip"
 JUST_SYMLINKS_ARG = "--just-symlinks"
@@ -242,7 +236,6 @@ def get_args():
         JUST_SYMLINKS_ARG, action="store_true", required=False, default=False
     )
     build_all_parser.add_argument(DRY_RUN_ARG, action="store_true", required=False, default=False)
-    build_all_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
     build_all_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
@@ -268,7 +261,6 @@ def get_args():
     build_single_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
-    build_single_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
 
     list_cmds_parser = subparsers.add_parser(
         LIST_CMDS_ARG, help="list the python commands to build all comics"
@@ -283,7 +275,6 @@ def get_args():
     list_cmds_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
-    list_cmds_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
 
     check_integrity_parser = subparsers.add_parser(
         CHECK_INTEGRITY_ARG, help="check the integrity of all previously built comics"
@@ -299,7 +290,6 @@ def get_args():
     check_integrity_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
-    check_integrity_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
 
     show_mods_parser = subparsers.add_parser(SHOW_MODS_ARG, help="list all modified pages")
     show_mods_parser.add_argument(
@@ -311,7 +301,6 @@ def get_args():
     show_mods_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
-    show_mods_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
 
     show_source_parser = subparsers.add_parser(
         SHOW_SOURCE_ARG, help="list all source files used in title"
@@ -326,7 +315,6 @@ def get_args():
     show_source_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
-    show_source_parser.add_argument(WORK_DIR_ARG, type=str, required=True)
 
     args = global_parser.parse_args()
 
@@ -356,7 +344,6 @@ def get_cmd_options(args) -> CmdOptions:
         dry_run=hasattr(args, "dry_run") and args.dry_run,
         just_zip=hasattr(args, "just_zip") and args.just_zip,
         just_symlinks=hasattr(args, "just_symlinks") and args.just_symlinks,
-        work_dir_root=hasattr(args, "work_dir") and args.work_dir,
     )
 
 
@@ -364,9 +351,6 @@ if __name__ == "__main__":
     cmd_args = get_args()
 
     setup_logging(cmd_args.log_level)
-
-    work_dir = get_work_dir(cmd_args.work_dir)
-    logging.debug(f'Work dir: "{work_dir}".')
 
     cmd_options = get_cmd_options(cmd_args)
     comics_database = ComicsDatabase(cmd_args.comics_database_dir)
