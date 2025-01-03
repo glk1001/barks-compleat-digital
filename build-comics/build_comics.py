@@ -590,7 +590,6 @@ def _get_comics_and_stories_title_and_fonts(
 
 def _draw_centered_text(text: str, image: Image, draw: ImageDraw, font: ImageFont, color, top: int):
     w = draw.textlength(text, font)
-    # h = font.getbbox(text)[3]
     left = (image.width - w) / 2
     draw.text((left, top), text, fill=color, font=font, align="center")
 

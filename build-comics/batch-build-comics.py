@@ -20,34 +20,15 @@ from barks_fantagraphics.comics_utils import (
     get_timestamp_as_str,
     setup_logging,
 )
-from building_comics import build_comic_book
+from build_comics import build_comic_book
 from comics_integrity import check_comics_integrity, get_restored_srce_dependencies
-from pages import get_max_timestamp, get_srce_and_dest_pages_in_order, get_page_num_str
+from pages import get_srce_and_dest_pages_in_order, get_page_num_str
 from timing import Timing
-from zipping import zip_comic_book, create_symlinks_to_comic_zip
 
 
 @dataclass
 class CmdOptions:
     dry_run: bool = False
-    just_zip: bool = False
-    just_symlinks: bool = False
-
-
-def process_all_comic_books(options: CmdOptions, comics_db: ComicsDatabase) -> int:
-    all_story_titles = comics_db.get_all_story_titles()
-
-    logging.info(
-        f'Processing all {len(all_story_titles)} titles in "{comics_db.get_story_titles_dir()}".'
-    )
-
-    ret_code = 0
-    for title in all_story_titles:
-        comic = comics_db.get_comic_book(title)
-        if 0 != process_comic_book(options, comic):
-            ret_code = 1
-
-    return ret_code
 
 
 def print_all_cmds(options: CmdOptions, comics_db: ComicsDatabase) -> int:
@@ -60,10 +41,9 @@ def print_all_cmds(options: CmdOptions, comics_db: ComicsDatabase) -> int:
 
 def print_cmd(options: CmdOptions, comics_db: ComicsDatabase, story_title: str) -> int:
     dry_run_arg = "" if not options.dry_run else f" {DRY_RUN_ARG}"
-    just_symlinks_arg = "" if not options.just_symlinks else f" {JUST_SYMLINKS_ARG}"
     print(
-        f"python3 {__file__} {BUILD_SINGLE_ARG}"
-        f"{dry_run_arg}{just_symlinks_arg}"
+        f"python3 {__file__} {BUILD_ARG}"
+        f"{dry_run_arg}"
         f' {COMICS_DATABASE_DIR_ARG} "{comics_db.get_comics_database_dir()}"'
         f" {TITLE_ARG} {shlex.quote(story_title)}"
     )
@@ -172,15 +152,6 @@ def process_comic_book_titles(
 def process_comic_book(options: CmdOptions, comic: ComicBook) -> int:
     process_timing = Timing(datetime.now())
 
-    if options.just_symlinks:
-        create_symlinks_to_comic_zip(options.dry_run, comic)
-        return 0
-
-    if options.just_zip:
-        zip_comic_book(options.dry_run, comic)
-        create_symlinks_to_comic_zip(options.dry_run, comic)
-        return 0
-
     srce_and_dest_pages, max_dest_timestamp = build_comic_book(options.dry_run, comic)
 
     process_timing.end_time = datetime.now()
@@ -203,8 +174,7 @@ DRY_RUN_ARG = "--dry-run"
 JUST_ZIP_ARG = "--just-zip"
 JUST_SYMLINKS_ARG = "--just-symlinks"
 
-BUILD_ALL_ARG = "build-all"
-BUILD_SINGLE_ARG = "build-single"
+BUILD_ARG = "build"
 LIST_CMDS_ARG = "list-cmds"
 CHECK_INTEGRITY_ARG = "check-integrity"
 SHOW_MODS_ARG = "show-mods"
@@ -224,41 +194,25 @@ def get_args():
         required=True,
     )
 
-    build_all_parser = subparsers.add_parser(BUILD_ALL_ARG, help="build all available comics")
-    build_all_parser.add_argument(
+    build_comics_parser = subparsers.add_parser(BUILD_ARG, help="build comics")
+    build_comics_parser.add_argument(
         COMICS_DATABASE_DIR_ARG,
         action="store",
         type=str,
         default=get_default_comics_database_dir(),
     )
-    build_all_parser.add_argument(JUST_ZIP_ARG, action="store_true", required=False, default=False)
-    build_all_parser.add_argument(
-        JUST_SYMLINKS_ARG, action="store_true", required=False, default=False
-    )
-    build_all_parser.add_argument(DRY_RUN_ARG, action="store_true", required=False, default=False)
-    build_all_parser.add_argument(
-        LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
-    )
-
-    build_single_parser = subparsers.add_parser(BUILD_SINGLE_ARG, help="build a single comic")
-    build_single_parser.add_argument(
-        COMICS_DATABASE_DIR_ARG,
-        action="store",
-        type=str,
-        default=get_default_comics_database_dir(),
-    )
-    build_single_parser.add_argument(VOLUME_ARG, action="store", type=str, required=False)
-    build_single_parser.add_argument(TITLE_ARG, action="store", type=str, required=False)
-    build_single_parser.add_argument(
+    build_comics_parser.add_argument(VOLUME_ARG, action="store", type=str, required=False)
+    build_comics_parser.add_argument(TITLE_ARG, action="store", type=str, required=False)
+    build_comics_parser.add_argument(
         JUST_ZIP_ARG, action="store_true", required=False, default=False
     )
-    build_single_parser.add_argument(
+    build_comics_parser.add_argument(
         JUST_SYMLINKS_ARG, action="store_true", required=False, default=False
     )
-    build_single_parser.add_argument(
+    build_comics_parser.add_argument(
         DRY_RUN_ARG, action="store_true", required=False, default=False
     )
-    build_single_parser.add_argument(
+    build_comics_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
 
@@ -321,7 +275,7 @@ def get_args():
     if args.cmd_name == CHECK_INTEGRITY_ARG:
         if args.title and args.volume:
             raise Exception(f"Cannot have both '{TITLE_ARG} and '{VOLUME_ARG}'.")
-    if args.cmd_name == BUILD_SINGLE_ARG:
+    if args.cmd_name == BUILD_ARG:
         if args.title and args.volume:
             raise Exception(f"Cannot have both '{TITLE_ARG} and '{VOLUME_ARG}'.")
 
@@ -329,7 +283,7 @@ def get_args():
 
 
 def get_titles(args) -> List[str]:
-    assert args.cmd_name == CHECK_INTEGRITY_ARG or args.cmd_name == BUILD_SINGLE_ARG
+    assert args.cmd_name == CHECK_INTEGRITY_ARG or args.cmd_name == BUILD_ARG
 
     if args.title:
         return [args.title]
@@ -342,8 +296,6 @@ def get_titles(args) -> List[str]:
 def get_cmd_options(args) -> CmdOptions:
     return CmdOptions(
         dry_run=hasattr(args, "dry_run") and args.dry_run,
-        just_zip=hasattr(args, "just_zip") and args.just_zip,
-        just_symlinks=hasattr(args, "just_symlinks") and args.just_symlinks,
     )
 
 
@@ -363,9 +315,7 @@ if __name__ == "__main__":
         exit_code = show_all_mods(comics_database)
     elif cmd_args.cmd_name == SHOW_SOURCE_ARG:
         exit_code = show_source_files(comics_database, cmd_args.title)
-    elif cmd_args.cmd_name == BUILD_ALL_ARG:
-        exit_code = process_all_comic_books(cmd_options, comics_database)
-    elif cmd_args.cmd_name == BUILD_SINGLE_ARG:
+    elif cmd_args.cmd_name == BUILD_ARG:
         exit_code = process_comic_book_titles(cmd_options, comics_database, get_titles(cmd_args))
     else:
         raise Exception(f'ERROR: Unknown cmd_arg "{cmd_args.cmd_name}".')
