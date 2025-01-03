@@ -213,7 +213,7 @@ if __name__ == "__main__":
     # )
     # src_image_file = "restore-tests/test-image-1.jpg"
     # src_image_file = "restore-tests/test-image-2.jpg"
-    src_image_file = "restore-tests/test-image-3.jpg"
+    src_image_file = "test-image-3.jpg"
     # src_image_file = "restore-tests/simple-test-image.jpg"
 
     src_image = cv.imread(src_image_file)
