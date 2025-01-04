@@ -100,7 +100,7 @@ def restore_title(title: str) -> None:
     check_for_errors(restore_processes)
 
 
-part1_max_workers = 10
+part1_max_workers = None
 
 
 def run_restore_part1(proc: RestorePipeline):
@@ -108,7 +108,7 @@ def run_restore_part1(proc: RestorePipeline):
     proc.do_part1()
 
 
-part2_max_workers = 1 if psutil.virtual_memory().total < SMALL_RAM else 7
+part2_max_workers = 1 if psutil.virtual_memory().total < SMALL_RAM else 6
 
 
 def run_restore_part2(proc: RestorePipeline):
@@ -116,7 +116,7 @@ def run_restore_part2(proc: RestorePipeline):
     proc.do_part2_memory_hungry()
 
 
-part3_max_workers = 10
+part3_max_workers = None
 
 
 def run_restore_part3(proc: RestorePipeline):
