@@ -124,7 +124,7 @@ class ComicsDatabase:
     def _get_root_dir(self, fanta_subdir: str) -> str:
         return str(os.path.join(BARKS_ROOT_DIR, fanta_subdir))
 
-    def get_fantagraphics_root_dir(self) -> str:
+    def get_fantagraphics_original_dir(self) -> str:
         return self._get_root_dir(self.get_fantagraphics_dirname())
 
     def get_fantagraphics_dirname(self) -> str:
@@ -132,7 +132,7 @@ class ComicsDatabase:
 
     def get_fantagraphics_volume_dir(self, volume_num: int) -> str:
         title = self.get_fantagraphics_volume_title(volume_num)
-        return str(os.path.join(self.get_fantagraphics_root_dir(), title))
+        return str(os.path.join(self.get_fantagraphics_original_dir(), title))
 
     def get_fantagraphics_volume_image_dir(self, volume_num: int) -> str:
         return str(os.path.join(self.get_fantagraphics_volume_dir(volume_num), IMAGES_SUBDIR))

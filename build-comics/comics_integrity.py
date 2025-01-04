@@ -1,3 +1,4 @@
+import logging
 import os
 from dataclasses import dataclass
 from typing import List, Tuple, Set
@@ -86,7 +87,16 @@ def make_out_of_date_errors(title: str, ini_file: str) -> OutOfDateErrors:
 
 
 def check_comics_source_is_readonly(comics_db: ComicsDatabase) -> int:
-    return check_folder_and_contents_are_readonly(comics_db.get_fantagraphics_root_dir())
+    logging.info("Checking Fantagraphics original directories are readonly.")
+
+    ret_code = check_folder_and_contents_are_readonly(comics_db.get_fantagraphics_original_dir())
+
+    if ret_code == 0:
+        logging.info("All Fantagraphics original directories are readonly.")
+    else:
+        logging.error("There are Fantagraphics original directories that are not readonly.")
+
+    return ret_code
 
 
 def check_folder_and_contents_are_readonly(dir_path: str) -> int:
@@ -111,6 +121,8 @@ def check_folder_and_contents_are_readonly(dir_path: str) -> int:
 
 
 def check_directory_structure(comics_db: ComicsDatabase) -> int:
+    logging.info("Check complete directory structure.")
+
     ret_code = 0
     for volume in range(2, 21):
         if not _found_dir(comics_db.get_fantagraphics_upscayled_volume_image_dir(volume)):
@@ -139,6 +151,11 @@ def check_directory_structure(comics_db: ComicsDatabase) -> int:
 
         if not _found_dir(comics_db.get_fantagraphics_panel_segments_volume_dir(volume)):
             ret_code = 1
+
+    if ret_code == 0:
+        logging.info("The directory structure is correct.")
+    else:
+        logging.error("There are issues with the directory structure.")
 
     return ret_code
 
@@ -217,9 +234,10 @@ def check_all_titles(comics_db: ComicsDatabase) -> int:
 
 
 def check_out_of_date_files(comic: ComicBook) -> int:
-    out_of_date_errors = make_out_of_date_errors(
-        get_safe_title(comic.get_comic_title()), comic.ini_file
-    )
+    title = get_safe_title(comic.get_comic_title())
+    logging.info(f'Checking title "{title}".')
+
+    out_of_date_errors = make_out_of_date_errors(title, comic.ini_file)
 
     check_srce_and_dest_files(comic, out_of_date_errors)
     check_zip_files(comic, out_of_date_errors)
@@ -242,7 +260,12 @@ def check_out_of_date_files(comic: ComicBook) -> int:
 
     print_check_errors(out_of_date_errors)
 
-    return 1 if out_of_date_errors.is_error else 0
+    ret_code = 1 if out_of_date_errors.is_error else 0
+
+    if ret_code == 0:
+        logging.info(f'There are no problems with "{title}".')
+
+    return ret_code
 
 
 def check_srce_and_dest_files(comic: ComicBook, errors: OutOfDateErrors) -> None:
