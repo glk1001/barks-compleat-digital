@@ -138,6 +138,8 @@ def process_comic_book_titles(
     comics_db: ComicsDatabase,
     titles: List[str],
 ) -> int:
+    assert len(titles) > 0
+
     ret_code = 0
 
     for title in titles:
@@ -288,9 +290,11 @@ def get_titles(args) -> List[str]:
     if args.title:
         return [args.title]
 
-    assert args.volume is not None
-    vol_list = list(intspan(args.volume))
-    return comics_database.get_all_story_titles_in_fantagraphics_volume(vol_list)
+    if args.volume is not None:
+        vol_list = list(intspan(args.volume))
+        return comics_database.get_all_story_titles_in_fantagraphics_volume(vol_list)
+
+    return []
 
 
 def get_cmd_options(args) -> CmdOptions:

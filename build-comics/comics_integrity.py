@@ -167,6 +167,45 @@ def _found_dir(dirname: str) -> bool:
     return True
 
 
+def check_no_unexpected_files(comics_db: ComicsDatabase) -> int:
+    logging.info("Check no unexpected files.")
+
+    ret_code = 0
+
+    dest_dirs = []
+    zip_files = []
+    zip_series_symlink_dirs = set()
+    zip_series_symlinks = []
+    zip_year_symlink_dirs = set()
+    zip_year_symlinks = []
+    for title in comics_db.get_all_story_titles():
+        comic = comics_db.get_comic_book(title)
+
+        dest_dirs.append((comics_db.get_ini_file(title), comic.get_dest_dir()))
+        zip_files.append(comic.get_dest_comic_zip())
+        zip_series_symlink_dirs.add(comic.get_dest_series_zip_symlink_dir())
+        zip_series_symlinks.append(comic.get_dest_series_comic_zip_symlink())
+        zip_year_symlink_dirs.add(comic.get_dest_year_zip_symlink_dir())
+        zip_year_symlinks.append(comic.get_dest_year_comic_zip_symlink())
+
+    if 0 != check_unexpected_files(
+        dest_dirs,
+        zip_files,
+        zip_series_symlink_dirs,
+        zip_series_symlinks,
+        zip_year_symlink_dirs,
+        zip_year_symlinks,
+    ):
+        ret_code = 1
+
+    if ret_code == 0:
+        logging.info("There are no unexpected files.")
+    else:
+        logging.error("There are some unexpected files.")
+
+    return ret_code
+
+
 def check_comics_integrity(comics_db: ComicsDatabase, titles: List[str]) -> int:
     print()
 
@@ -174,6 +213,9 @@ def check_comics_integrity(comics_db: ComicsDatabase, titles: List[str]) -> int:
         return 1
 
     if check_directory_structure(comics_db) != 0:
+        return 1
+
+    if check_no_unexpected_files(comics_db) != 0:
         return 1
 
     if not titles:
@@ -201,34 +243,11 @@ def check_single_title(comics_db: ComicsDatabase, title: str) -> int:
 def check_all_titles(comics_db: ComicsDatabase) -> int:
     ret_code = 0
 
-    dest_dirs = []
-    zip_files = []
-    zip_series_symlink_dirs = set()
-    zip_series_symlinks = []
-    zip_year_symlink_dirs = set()
-    zip_year_symlinks = []
     for title in comics_db.get_all_story_titles():
         comic = comics_db.get_comic_book(title)
 
-        dest_dirs.append((comics_db.get_ini_file(title), comic.get_dest_dir()))
-        zip_files.append(comic.get_dest_comic_zip())
-        zip_series_symlink_dirs.add(comic.get_dest_series_zip_symlink_dir())
-        zip_series_symlinks.append(comic.get_dest_series_comic_zip_symlink())
-        zip_year_symlink_dirs.add(comic.get_dest_year_zip_symlink_dir())
-        zip_year_symlinks.append(comic.get_dest_year_comic_zip_symlink())
-
         if 0 != check_out_of_date_files(comic):
             ret_code = 1
-
-    if 0 != check_unexpected_files(
-        dest_dirs,
-        zip_files,
-        zip_series_symlink_dirs,
-        zip_series_symlinks,
-        zip_year_symlink_dirs,
-        zip_year_symlinks,
-    ):
-        ret_code = 1
 
     return ret_code
 
@@ -246,6 +265,7 @@ def check_out_of_date_files(comic: ComicBook) -> int:
     out_of_date_errors.is_error = (
         len(out_of_date_errors.srce_and_dest_files_missing) > 0
         or len(out_of_date_errors.srce_and_dest_files_out_of_date) > 0
+        or len(out_of_date_errors.dest_dir_files_missing) > 0
         or len(out_of_date_errors.unexpected_dest_image_files) > 0
         or out_of_date_errors.zip_errors.missing
         or out_of_date_errors.series_zip_symlink_errors.missing
@@ -336,8 +356,6 @@ def check_unexpected_files(
     allowed_zip_year_symlink_dirs: Set[str],
     allowed_zip_year_symlinks: List[str],
 ) -> int:
-    print()
-
     ret_code = 0
 
     allowed_main_dir_files = [
@@ -411,7 +429,7 @@ def check_files_in_dir(file_type: str, the_dir: str, allowed_files: List[str]) -
     for file in os.listdir(the_dir):
         full_file = os.path.join(the_dir, file)
         if full_file not in allowed_files:
-            print(f'{ERROR_MSG_PREFIX}The {file_type} file "{full_file}" was unexpected.')
+            print(f'{ERROR_MSG_PREFIX}The {file_type} directory file "{full_file}" was unexpected.')
             ret_code = 1
 
     return ret_code
