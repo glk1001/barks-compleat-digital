@@ -2,7 +2,7 @@ import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from .comics_consts import (
     PageType,
@@ -181,10 +181,12 @@ class ComicBook:
 
         return all_files
 
-    def get_final_srce_story_files(self, page_types: List[PageType]) -> List[Tuple[str, bool]]:
+    def get_final_srce_story_files(
+        self, page_types: Union[None, List[PageType]]
+    ) -> List[Tuple[str, bool]]:
         all_files = []
         for page in self.page_images_in_order:
-            if page.page_type in page_types:
+            if not page_types or page.page_type in page_types:
                 file, modified = self.get_final_srce_story_file(page.page_filenames, page.page_type)
                 all_files.append((file, modified))
 
@@ -269,7 +271,10 @@ class ComicBook:
         return srce_upscayled_fixes_file, is_modified_file
 
     def get_final_srce_story_file(self, page_num: str, page_type: PageType) -> Tuple[str, bool]:
-        if page_type in [
+        if page_type == PageType.TITLE:
+            srce_file, is_modified = "TITLE PAGE", False
+            return srce_file, is_modified
+        elif page_type in [
             PageType.FRONT,
             PageType.COVER,
             PageType.PAINTING,

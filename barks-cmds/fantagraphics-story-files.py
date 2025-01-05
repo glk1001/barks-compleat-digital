@@ -2,7 +2,6 @@ import logging
 import sys
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
-from barks_fantagraphics.comics_consts import STORY_PAGE_TYPES
 from barks_fantagraphics.comics_utils import setup_logging
 
 cmd_args = CmdArgs("Fantagraphics source files", CmdArgNames.TITLE | CmdArgNames.VOLUME)
@@ -20,9 +19,10 @@ titles = cmd_args.get_titles()
 for title in titles:
     comic_book = comics_database.get_comic_book(title)
 
-    srce_files = comic_book.get_final_srce_story_files(STORY_PAGE_TYPES)
+    srce_files = comic_book.get_final_srce_story_files(None)
 
-    print(title)
+    print()
+    print(f'"{title}" source files:')
     for srce_file in srce_files:
         print(f'    "{srce_file[0]}"')
     print()
