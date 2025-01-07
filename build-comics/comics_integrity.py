@@ -33,6 +33,30 @@ ERROR_MSG_PREFIX = "ERROR: "
 BLANK_ERR_MSG_PREFIX = f'{" ":<{len(ERROR_MSG_PREFIX)}}'
 
 
+def check_comics_integrity(comics_db: ComicsDatabase, titles: List[str]) -> int:
+    print()
+
+    if check_comics_source_is_readonly(comics_db) != 0:
+        return 1
+
+    if check_directory_structure(comics_db) != 0:
+        return 1
+
+    if check_no_unexpected_files(comics_db) != 0:
+        return 1
+
+    if not titles:
+        ret_code = check_all_titles(comics_db)
+    else:
+        ret_code = 0
+        for title in titles:
+            ret = check_single_title(comics_db, title)
+            if ret != 0:
+                ret_code = ret
+
+    return ret_code
+
+
 @dataclass
 class ZipOutOfDateErrors:
     file: str = ""
@@ -202,30 +226,6 @@ def check_no_unexpected_files(comics_db: ComicsDatabase) -> int:
         logging.info("There are no unexpected files.")
     else:
         logging.error("There are some unexpected files.")
-
-    return ret_code
-
-
-def check_comics_integrity(comics_db: ComicsDatabase, titles: List[str]) -> int:
-    print()
-
-    if check_comics_source_is_readonly(comics_db) != 0:
-        return 1
-
-    if check_directory_structure(comics_db) != 0:
-        return 1
-
-    if check_no_unexpected_files(comics_db) != 0:
-        return 1
-
-    if not titles:
-        ret_code = check_all_titles(comics_db)
-    else:
-        ret_code = 0
-        for title in titles:
-            ret = check_single_title(comics_db, title)
-            if ret != 0:
-                ret_code = ret
 
     return ret_code
 
