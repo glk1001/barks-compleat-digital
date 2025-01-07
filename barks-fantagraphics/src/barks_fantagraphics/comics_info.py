@@ -151,6 +151,7 @@ class SourceBook:
     pub: str
     volume: int
     year: int
+    num_pages: int
 
 
 FAN = "Fantagraphics"
@@ -228,27 +229,30 @@ VOLUME_18 = f"{CB} Vol. 18 - {DD} - The Lost Peg Leg Mine ({SRC_DIGI}"
 VOLUME_19 = f"{CB} Vol. 19 - {DD} - The Black Pearls of Tabu Yama {SRC_BEAN}"
 VOLUME_20 = f"{CB} Vol. 20 - {US} - The Mines of King Solomon {SRC_BEAN}"
 SOURCE_COMICS = {
-    "FANTA_01": SourceBook(VOLUME_01, FAN, 1, 2025),
-    "FANTA_02": SourceBook(VOLUME_02, FAN, 2, 2024),
-    "FANTA_03": SourceBook(VOLUME_03, FAN, 3, 2024),
-    "FANTA_04": SourceBook(VOLUME_04, FAN, 4, 2023),
-    "FANTA_05": SourceBook(VOLUME_05, FAN, 5, 2013),
-    "FANTA_06": SourceBook(VOLUME_06, FAN, 6, 2013),
-    "FANTA_07": SourceBook(VOLUME_07, FAN, 7, 2011),
-    "FANTA_08": SourceBook(VOLUME_08, FAN, 8, 2014),
-    "FANTA_09": SourceBook(VOLUME_09, FAN, 9, 2015),
-    "FANTA_10": SourceBook(VOLUME_10, FAN, 10, 2016),
-    "FANTA_11": SourceBook(VOLUME_11, FAN, 11, 2012),
-    "FANTA_12": SourceBook(VOLUME_12, FAN, 12, 2012),
-    "FANTA_13": SourceBook(VOLUME_13, FAN, 13, 2015),
-    "FANTA_14": SourceBook(VOLUME_14, FAN, 14, 2014),
-    "FANTA_15": SourceBook(VOLUME_15, FAN, 15, 2016),
-    "FANTA_16": SourceBook(VOLUME_16, FAN, 16, 2017),
-    "FANTA_17": SourceBook(VOLUME_17, FAN, 17, 2017),
-    "FANTA_18": SourceBook(VOLUME_18, FAN, 18, 2018),
-    "FANTA_19": SourceBook(VOLUME_19, FAN, 19, 2018),
-    "FANTA_20": SourceBook(VOLUME_20, FAN, 20, 2019),
+    "FANTA_01": SourceBook(VOLUME_01, FAN, 1, 2025, 0),
+    "FANTA_02": SourceBook(VOLUME_02, FAN, 2, 2024, 245),
+    "FANTA_03": SourceBook(VOLUME_03, FAN, 3, 2024, 248),
+    "FANTA_04": SourceBook(VOLUME_04, FAN, 4, 2023, 225),
+    "FANTA_05": SourceBook(VOLUME_05, FAN, 5, 2013, 216),
+    "FANTA_06": SourceBook(VOLUME_06, FAN, 6, 2013, 232),
+    "FANTA_07": SourceBook(VOLUME_07, FAN, 7, 2011, 239),
+    "FANTA_08": SourceBook(VOLUME_08, FAN, 8, 2014, 223),
+    "FANTA_09": SourceBook(VOLUME_09, FAN, 9, 2015, 215),
+    "FANTA_10": SourceBook(VOLUME_10, FAN, 10, 2016, 231),
+    "FANTA_11": SourceBook(VOLUME_11, FAN, 11, 2012, 240),
+    "FANTA_12": SourceBook(VOLUME_12, FAN, 12, 2012, 248),
+    "FANTA_13": SourceBook(VOLUME_13, FAN, 13, 2015, 227),
+    "FANTA_14": SourceBook(VOLUME_14, FAN, 14, 2014, 240),
+    "FANTA_15": SourceBook(VOLUME_15, FAN, 15, 2016, 248),
+    "FANTA_16": SourceBook(VOLUME_16, FAN, 16, 2017, 234),
+    "FANTA_17": SourceBook(VOLUME_17, FAN, 17, 2017, 201),
+    "FANTA_18": SourceBook(VOLUME_18, FAN, 18, 2018, 202),
+    "FANTA_19": SourceBook(VOLUME_19, FAN, 19, 2018, 201),
+    "FANTA_20": SourceBook(VOLUME_20, FAN, 20, 2019, 209),
 }
+
+FIRST_VOLUME_NUMBER = 2
+LAST_VOLUME_NUMBER = len(SOURCE_COMICS)
 
 SERIES_DDA = DD + " Adventures"
 SERIES_USA = US + " Adventures"

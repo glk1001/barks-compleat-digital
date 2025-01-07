@@ -30,6 +30,8 @@ from .comics_consts import (
 from .comics_info import (
     ComicBookInfo,
     SOURCE_COMICS,
+    FIRST_VOLUME_NUMBER,
+    LAST_VOLUME_NUMBER,
     FANTAGRAPHICS_DIRNAME,
     FANTAGRAPHICS_UPSCAYLED_DIRNAME,
     FANTAGRAPHICS_RESTORED_UPSCAYLED_DIRNAME,
@@ -120,6 +122,11 @@ class ComicsDatabase:
         fanta_key = f"FANTA_{volume_num:02}"
         fanta_info = SOURCE_COMICS[fanta_key]
         return fanta_info.title
+
+    def get_num_pages_in_fantagraphics_volume(self, volume_num: int) -> int:
+        fanta_key = f"FANTA_{volume_num:02}"
+        fanta_info = SOURCE_COMICS[fanta_key]
+        return fanta_info.num_pages
 
     def _get_root_dir(self, fanta_subdir: str) -> str:
         return str(os.path.join(BARKS_ROOT_DIR, fanta_subdir))
@@ -268,7 +275,7 @@ class ComicsDatabase:
         )
 
     def make_all_fantagraphics_directories(self) -> None:
-        for volume in range(2, 21):
+        for volume in range(FIRST_VOLUME_NUMBER, LAST_VOLUME_NUMBER + 1):
             self._make_vol_dirs(self.get_fantagraphics_upscayled_volume_image_dir(volume))
             self._make_vol_dirs(self.get_fantagraphics_restored_volume_image_dir(volume))
             self._make_vol_dirs(self.get_fantagraphics_restored_upscayled_volume_image_dir(volume))
@@ -324,6 +331,7 @@ class ComicsDatabase:
         fanta_info = SOURCE_COMICS[config["info"]["source_comic"]]
 
         srce_dir = self.get_fantagraphics_volume_dir(fanta_info.volume)
+        srce_dir_num_page_files = fanta_info.num_pages
         srce_upscayled_dir = self.get_fantagraphics_upscayled_volume_dir(fanta_info.volume)
         srce_restored_dir = self.get_fantagraphics_restored_volume_dir(fanta_info.volume)
         srce_restored_upscayled_dir = self.get_fantagraphics_restored_upscayled_volume_dir(
@@ -373,6 +381,7 @@ class ComicsDatabase:
             required_dim=RequiredDimensions(),
             fanta_info=fanta_info,
             srce_dir=srce_dir,
+            srce_dir_num_page_files=srce_dir_num_page_files,
             srce_upscayled_dir=srce_upscayled_dir,
             srce_restored_dir=srce_restored_dir,
             srce_restored_upscayled_dir=srce_restored_upscayled_dir,

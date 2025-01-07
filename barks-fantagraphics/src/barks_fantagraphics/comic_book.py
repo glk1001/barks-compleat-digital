@@ -68,6 +68,7 @@ class ComicBook:
     required_dim: RequiredDimensions
     fanta_info: SourceBook
     srce_dir: str
+    srce_dir_num_page_files: int
     srce_upscayled_dir: str
     srce_restored_dir: str
     srce_restored_upscayled_dir: str
