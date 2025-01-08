@@ -63,6 +63,9 @@ def check_comics_integrity(comics_db: ComicsDatabase, titles: List[str]) -> int:
             if ret != 0:
                 ret_code = ret
 
+    if ret_code == 0:
+        print("\nThere were no problems found.\n")
+
     return ret_code
 
 
@@ -192,6 +195,11 @@ def check_standard_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
         if file == "bounded":
             continue
 
+        if not os.path.isfile(fixes_file):
+            print(f"{ERROR_MSG_PREFIX}Fixes file must be a file:" f' "{fixes_file}".')
+            ret_code = 1
+            continue
+
         # TODO: Another special case. Needed?
         if file.endswith("-fix.txt"):
             matching_fixes_file = os.path.join(fixes_dir, file[: -len("-fix.txt")] + JPG_FILE_EXT)
@@ -201,8 +209,7 @@ def check_standard_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
             continue
 
         # Must be a jpeg file.
-        file_ext = Path(file).suffix
-        if file_ext != JPG_FILE_EXT:
+        if Path(file).suffix != JPG_FILE_EXT:
             print(f'{ERROR_MSG_PREFIX}Fixes file must be a jpeg: "{fixes_file}".')
             ret_code = 1
             continue
@@ -220,6 +227,11 @@ def check_standard_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
                     f"{ERROR_MSG_PREFIX}Fixes file is outside page num range"
                     f' [{num_fanta_pages}..{MAX_FIXES_PAGE_NUM}]: "{fixes_file}".'
                 )
+                ret_code = 1
+                continue
+
+            if _not_used(page_num):
+                print(f'{ERROR_MSG_PREFIX}Fixes file is not used in any ini files: "{fixes_file}".')
                 ret_code = 1
                 continue
 
@@ -257,6 +269,14 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
         upscayled_fixes_file = os.path.join(upscayled_fixes_dir, file)
         restored_fixes_file = os.path.join(restored_fixes_dir, file)
 
+        if not os.path.isfile(upscayled_fixes_file):
+            print(
+                f"{ERROR_MSG_PREFIX}Upscayled fixes file must be a file:"
+                f' "{upscayled_fixes_file}".'
+            )
+            ret_code = 1
+            continue
+
         # TODO: Another special case. Needed?
         if file.endswith("-fix.txt"):
             matching_fixes_file = os.path.join(
@@ -271,8 +291,7 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
             continue
 
         # Must be a png file.
-        file_ext = Path(file).suffix
-        if file_ext != PNG_FILE_EXT:
+        if Path(file).suffix != PNG_FILE_EXT:
             print(
                 f"{ERROR_MSG_PREFIX}Upscayled fixes file must be a png: "
                 f'"{upscayled_fixes_file}".'
@@ -308,6 +327,11 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
     return ret_code
 
 
+# TODO: Fill this out
+def _not_used(page_num: int) -> bool:
+    return False
+
+
 def check_restored_fixes_and_additions_files(comics_db: ComicsDatabase, volume: int) -> int:
     fanta_original_image_dir = comics_db.get_fantagraphics_volume_image_dir(volume)
     num_fanta_pages = comics_db.get_num_pages_in_fantagraphics_volume(volume)
@@ -337,6 +361,14 @@ def check_restored_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
         upscayled_fixes_file = os.path.join(upscayled_fixes_dir, file)
         restored_fixes_file = os.path.join(restored_fixes_dir, file)
 
+        if not os.path.isfile(restored_fixes_file):
+            print(
+                f"{ERROR_MSG_PREFIX}Restored fixes file must be a file:"
+                f' "{restored_fixes_file}".'
+            )
+            ret_code = 1
+            continue
+
         # TODO: Another special case. Needed?
         if file.endswith("-fix.txt"):
             matching_fixes_file = os.path.join(
@@ -351,8 +383,7 @@ def check_restored_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
             continue
 
         # Must be a png file.
-        file_ext = Path(file).suffix
-        if file_ext != PNG_FILE_EXT:
+        if Path(file).suffix != PNG_FILE_EXT:
             print(
                 f"{ERROR_MSG_PREFIX}Restored fixes file must be a png:" f' "{restored_fixes_file}".'
             )
@@ -390,6 +421,11 @@ def check_restored_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
                     f"{ERROR_MSG_PREFIX}Restored fixes file is outside page num range"
                     f' [{num_fanta_pages}..{MAX_FIXES_PAGE_NUM}]: "{restored_fixes_file}".'
                 )
+                ret_code = 1
+                continue
+
+            if _not_used(page_num):
+                print(f'{ERROR_MSG_PREFIX}Fixes file is not used in any ini files: "{fixes_file}".')
                 ret_code = 1
                 continue
 
@@ -448,6 +484,9 @@ def check_directory_structure(comics_db: ComicsDatabase) -> int:
             ret_code = 1
 
         if not _found_dir(comics_db.get_fantagraphics_restored_fixes_volume_image_dir(volume)):
+            ret_code = 1
+
+        if not _found_dir(comics_db.get_fantagraphics_fixes_scraps_volume_image_dir(volume)):
             ret_code = 1
 
         if not _found_dir(comics_db.get_fantagraphics_panel_segments_volume_dir(volume)):

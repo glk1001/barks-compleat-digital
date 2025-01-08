@@ -40,6 +40,7 @@ from .comics_info import (
     FANTAGRAPHICS_FIXES_DIRNAME,
     FANTAGRAPHICS_UPSCAYLED_FIXES_DIRNAME,
     FANTAGRAPHICS_RESTORED_FIXES_DIRNAME,
+    FANTAGRAPHICS_FIXES_SCRAPS_DIRNAME,
     FANTAGRAPHICS_PANEL_SEGMENTS_DIRNAME,
     FANTAGRAPHICS_RESTORED_OCR_DIRNAME,
     get_all_comic_book_info,
@@ -274,17 +275,40 @@ class ComicsDatabase:
             )
         )
 
+    def get_fantagraphics_fixes_scraps_root_dir(self) -> str:
+        return self._get_root_dir(self.get_fantagraphics_fixes_scraps_dirname())
+
+    def get_fantagraphics_fixes_scraps_dirname(self) -> str:
+        return FANTAGRAPHICS_FIXES_SCRAPS_DIRNAME
+
+    def get_fantagraphics_fixes_scraps_volume_dir(self, volume_num: int) -> str:
+        title = self.get_fantagraphics_volume_title(volume_num)
+        return str(os.path.join(self.get_fantagraphics_fixes_scraps_root_dir(), title))
+
+    def get_fantagraphics_fixes_scraps_volume_image_dir(self, volume_num: int) -> str:
+        return str(
+            os.path.join(self.get_fantagraphics_fixes_scraps_volume_dir(volume_num), IMAGES_SUBDIR)
+        )
+
     def make_all_fantagraphics_directories(self) -> None:
         for volume in range(FIRST_VOLUME_NUMBER, LAST_VOLUME_NUMBER + 1):
-            self._make_vol_dirs(self.get_fantagraphics_upscayled_volume_image_dir(volume))
+            # Create these directories if they're already not there.
             self._make_vol_dirs(self.get_fantagraphics_restored_volume_image_dir(volume))
-            self._make_vol_dirs(self.get_fantagraphics_restored_upscayled_volume_image_dir(volume))
-            self._make_vol_dirs(self.get_fantagraphics_restored_svg_volume_image_dir(volume))
             self._make_vol_dirs(self.get_fantagraphics_restored_ocr_volume_dir(volume))
             self._make_vol_dirs(self.get_fantagraphics_fixes_volume_image_dir(volume))
             self._make_vol_dirs(self.get_fantagraphics_upscayled_fixes_volume_image_dir(volume))
             self._make_vol_dirs(self.get_fantagraphics_restored_fixes_volume_image_dir(volume))
             self._make_vol_dirs(self.get_fantagraphics_panel_segments_volume_dir(volume))
+
+            scraps_image_dir = self.get_fantagraphics_fixes_scraps_volume_image_dir(volume)
+            self._make_vol_dirs(os.path.join(scraps_image_dir, "standard"))
+            self._make_vol_dirs(os.path.join(scraps_image_dir, "upscayled"))
+            self._make_vol_dirs(os.path.join(scraps_image_dir, "restored"))
+
+        # Symlinks - just make sure these exist.
+        self._check_symlink_exists(self.get_fantagraphics_upscayled_root_dir())
+        self._check_symlink_exists(self.get_fantagraphics_restored_upscayled_root_dir())
+        self._check_symlink_exists(self.get_fantagraphics_restored_svg_root_dir())
 
     def _make_vol_dirs(self, vol_dirname: str) -> None:
         if os.path.isdir(vol_dirname):
@@ -292,6 +316,12 @@ class ComicsDatabase:
         else:
             os.makedirs(vol_dirname)
             logging.info(f'Created dir "{vol_dirname}".')
+
+    def _check_symlink_exists(self, symlink: str) -> None:
+        if not os.path.islink(symlink):
+            logging.error(f'Symlink not found: "{symlink}".')
+        else:
+            logging.debug(f'Symlink exists - all good: "{symlink}".')
 
     def get_comic_book(self, title: str, allow_issue_titles: bool = True) -> ComicBook:
         story_title = ""
