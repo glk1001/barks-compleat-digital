@@ -23,7 +23,11 @@ AUTO_CORRECTIONS = {
     "G0": "GO",
 }
 
-spell_dict = enchant.DictWithPWL("en_US", "mywords.txt")
+BARKS_OCR_SPELL_DICT = os.path.join(os.path.dirname(os.path.realpath(__file__)), "barks_words.txt")
+if not os.path.isfile(BARKS_OCR_SPELL_DICT):
+    raise Exception(f'Could not find Barks spelling dict: "{BARKS_OCR_SPELL_DICT}".')
+
+spell_dict = enchant.DictWithPWL("en_US", BARKS_OCR_SPELL_DICT)
 
 
 def words_are_ok(words_str: str) -> Tuple[bool, List[str]]:
