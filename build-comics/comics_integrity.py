@@ -51,6 +51,9 @@ def check_comics_integrity(comics_db: ComicsDatabase, titles: List[str]) -> int:
     if check_fantagraphics_files(comics_db) != 0:
         return 1
 
+    if check_ini_files_match_series_info(comics_db) != 0:
+        return 1
+
     if check_no_unexpected_files(comics_db) != 0:
         return 1
 
@@ -505,6 +508,30 @@ def _found_dir(dirname: str) -> bool:
         print(f'{ERROR_MSG_PREFIX}Could not find directory "{dirname}".')
         return False
     return True
+
+
+def check_ini_files_match_series_info(comics_db: ComicsDatabase) -> int:
+    logging.info("Checking ini file titles match series info.")
+
+    ret_code = 0
+
+    for volume in range(FIRST_VOLUME_NUMBER, LAST_VOLUME_NUMBER + 1):
+        ini_titles = set(comics_db.get_configured_titles_in_fantagraphics_volumes([volume]))
+        series_info_titles = set(comics_db.get_all_titles_in_fantagraphics_volumes([volume]))
+        for ini_title in ini_titles:
+            if ini_title not in series_info_titles:
+                print(
+                    f"{ERROR_MSG_PREFIX}For volume {volume}, ini title is not"
+                    f' in SERIES_INFO: "{ini_title}".'
+                )
+                ret_code = 1
+
+    if ret_code == 0:
+        logging.info("All ini file titles match series info.")
+    else:
+        logging.error("There are some ini file titles not in series info.")
+
+    return ret_code
 
 
 def check_no_unexpected_files(comics_db: ComicsDatabase) -> int:

@@ -350,7 +350,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Back to the Klondike": SeriesInfo(RTOM, SERIES_USA, "FANTA_12"),
     "The Horseradish Story": SeriesInfo(RTOM, SERIES_USA, "FANTA_12"),
     "The Menehune Mystery": SeriesInfo(RTOM, SERIES_USA, "FANTA_12"),
-    "The Secret of Atlantis": SeriesInfo(RTOM, SERIES_USA, "FANTA_?"),
+    "The Secret of Atlantis": SeriesInfo(RTOM, SERIES_USA, "FANTA_12"),
     "Tralla La": SeriesInfo(RTOM, SERIES_USA, "FANTA_12"),
     "The Seven Cities of Cibola": SeriesInfo(RTOM, SERIES_USA, "FANTA_14"),
     "The Mysterious Stone Ray": SeriesInfo(RTOM, SERIES_USA, "FANTA_14"),
@@ -501,7 +501,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Trapped Lightning": SeriesInfo(RTOM, SERIES_GG, "FANTA_?"),
     "Inventor of Anything": SeriesInfo(RTOM, SERIES_GG, "FANTA_?"),
     # MISC
-    SILENT_NIGHT: SeriesInfo(SLEA, SERIES_CS, "FANTA_?"),
+    SILENT_NIGHT: SeriesInfo(SLEA, SERIES_CS, "FANTA_03"),
     "The Riddle of the Red Hat": SeriesInfo(GLEA, SERIES_MISC, "FANTA_03"),
 }
 
