@@ -30,6 +30,59 @@ if not os.path.isfile(BARKS_OCR_SPELL_DICT):
 spell_dict = enchant.DictWithPWL("en_US", BARKS_OCR_SPELL_DICT)
 
 
+def ocr_titles(title_list: List[str]) -> None:
+    start = time.time()
+
+    num_png_files = 0
+    for title in title_list:
+        logging.info(f'OCRing all pages in "{title}"...')
+
+        comic = comics_database.get_comic_book(title)
+
+        srce_files = comic.get_srce_restored_svg_story_files(RESTORABLE_PAGE_TYPES)
+        dest_files = comic.get_srce_restored_ocr_story_files(RESTORABLE_PAGE_TYPES)
+
+        for srce_file, dest_file in zip(srce_files, dest_files):
+            if not ocr_comic_page(srce_file, dest_file):
+                # raise Exception("There were process errors.")
+                pass
+
+        num_png_files += len(srce_files)
+
+    logging.info(f"Time taken to OCR all {num_png_files} files: {int(time.time() - start)}s.")
+
+
+def ocr_comic_page(svg_file: str, ocr_json_file: str) -> bool:
+    png_file = svg_file + ".png"
+
+    if not os.path.isfile(png_file):
+        logging.error(f'Could not find png file "{png_file}".')
+        return False
+
+    if os.path.isfile(ocr_json_file):
+        logging.info(f'OCR file exists - skipping: "{get_abbrev_path(ocr_json_file)}".')
+        return True
+
+    logging.info(
+        f'OCRing png file "{get_abbrev_path(png_file)}"'
+        f' to "{get_abbrev_path(ocr_json_file)}"...'
+    )
+
+    bw_image = get_bw_image_from_alpha(png_file)
+    bw_image = preprocess_image(bw_image)
+    # TODO: need work_dir
+    grey_image_file = os.path.join("/tmp", Path(png_file).stem + "-grey.png")
+    cv.imwrite(grey_image_file, bw_image)
+
+    #    text_data_boxes = get_easyocr_text_box_data(grey_image_file)
+    text_data_boxes = get_paddleocr_text_box_data(grey_image_file)
+
+    with open(os.path.join(ocr_json_file), "w") as f:
+        json.dump(text_data_boxes, f, indent=4)
+
+    return True
+
+
 def words_are_ok(words_str: str) -> Tuple[bool, List[str]]:
     words_str = words_str.strip(" ")
 
@@ -186,59 +239,6 @@ def get_box_str(box: List[int]) -> str:
         f"{box[0]:04},{box[1]:04}, {box[2]:04},{box[3]:04}, "
         f"{box[4]:04},{box[5]:04}, {box[6]:04},{box[7]:04}"
     )
-
-
-def ocr_titles(title_list: List[str]) -> None:
-    start = time.time()
-
-    num_png_files = 0
-    for title in title_list:
-        logging.info(f'OCRing all pages in "{title}"...')
-
-        comic = comics_database.get_comic_book(title)
-
-        srce_files = comic.get_srce_restored_svg_story_files(RESTORABLE_PAGE_TYPES)
-        dest_files = comic.get_srce_restored_ocr_story_files(RESTORABLE_PAGE_TYPES)
-
-        for srce_file, dest_file in zip(srce_files, dest_files):
-            if not ocr_comic_page(srce_file, dest_file):
-                # raise Exception("There were process errors.")
-                pass
-
-        num_png_files += len(srce_files)
-
-    logging.info(f"Time taken to OCR all {num_png_files} files: {int(time.time() - start)}s.")
-
-
-def ocr_comic_page(svg_file: str, ocr_json_file: str) -> bool:
-    png_file = svg_file + ".png"
-
-    if not os.path.isfile(png_file):
-        logging.error(f'Could not find png file "{png_file}".')
-        return False
-
-    if os.path.isfile(ocr_json_file):
-        logging.info(f'OCR file exists - skipping: "{get_abbrev_path(ocr_json_file)}".')
-        return True
-
-    logging.info(
-        f'OCRing png file "{get_abbrev_path(png_file)}"'
-        f' to "{get_abbrev_path(ocr_json_file)}"...'
-    )
-
-    bw_image = get_bw_image_from_alpha(png_file)
-    bw_image = preprocess_image(bw_image)
-    # TODO: need work_dir
-    grey_image_file = os.path.join("/tmp", Path(png_file).stem + "-grey.png")
-    cv.imwrite(grey_image_file, bw_image)
-
-    #    text_data_boxes = get_easyocr_text_box_data(grey_image_file)
-    text_data_boxes = get_paddleocr_text_box_data(grey_image_file)
-
-    with open(os.path.join(ocr_json_file), "w") as f:
-        json.dump(text_data_boxes, f, indent=4)
-
-    return True
 
 
 if __name__ == "__main__":
