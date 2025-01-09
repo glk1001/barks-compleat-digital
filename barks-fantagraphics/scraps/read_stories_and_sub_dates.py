@@ -21,6 +21,7 @@ from src.comics_info import (
 )
 from src.comics_info import MONTH_AS_LONG_STR, get_formatted_day
 from src.consts import THIS_DIR, SUBMISSION_DATES_SUBDIR
+
 from read_stories import get_all_stories, StoryInfo
 from read_sub_dates import get_all_submitted_info, SubmittedInfo, SubmittedInfoDict
 
@@ -417,11 +418,11 @@ all_comic_book_info = sorted(all_comic_book_info, key=functools.cmp_to_key(compa
 # Now dump the sorted comic book info to a csv.
 output_file = "/tmp/barks-stories.csv"
 with open(output_file, "w") as f:
-    for info in all_comic_book_info:
-        title = info[0]
-        comic_book_info = info[1]
+    for comic_info in all_comic_book_info:
+        comic_title = comic_info[0]
+        comic_book_info = comic_info[1]
         f.write(
-            f'"{title}","{comic_book_info.issue_name}",{comic_book_info.issue_number},'
+            f'"{comic_title}","{comic_book_info.issue_name}",{comic_book_info.issue_number},'
             f"{comic_book_info.issue_year},{comic_book_info.issue_month},"
             f"{comic_book_info.submitted_year},"
             f"{comic_book_info.submitted_month},"
@@ -436,11 +437,11 @@ with open(output_file) as csv_file:
     max_title_len = 0
     max_issue_name = 0
     for row in reader:
-        title = row[0]
+        comic_title = row[0]
         issue_name = row[1]
         all_comic_book_info.append(
             (
-                title,
+                comic_title,
                 ComicBookInfo(
                     issue_name,
                     int(row[2]),
@@ -453,16 +454,16 @@ with open(output_file) as csv_file:
             )
         )
 
-        if len(title) > max_title_len:
-            max_title_len = len(title)
+        if len(comic_title) > max_title_len:
+            max_title_len = len(comic_title)
         if len(issue_name) > max_issue_name:
             max_issue_name = len(issue_name)
 
-    for info in all_comic_book_info:
-        title = info[0]
-        comic_book_info = info[1]
+    for comic_info in all_comic_book_info:
+        comic_title = comic_info[0]
+        comic_book_info = comic_info[1]
         print(
-            f'"{title:<{max_title_len}}", "{comic_book_info.issue_name:<{max_issue_name}}",'
+            f'"{comic_title:<{max_title_len}}", "{comic_book_info.issue_name:<{max_issue_name}}",'
             f" {comic_book_info.issue_number:>4},"
             f" {MONTH_AS_SHORT_STR[comic_book_info.issue_month]:>3}"
             f" {comic_book_info.issue_year:>4},"

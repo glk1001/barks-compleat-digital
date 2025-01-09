@@ -9,9 +9,7 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold, Generati
 from .gemini_ai_comic_prompts import comic_prompt
 
 
-def get_ai_predicted_groups(
-    image: Image, ocr_results: List[Dict[str, any]], api_key: str
-) -> Dict:
+def get_ai_predicted_groups(image: Image, ocr_results: List[Dict[str, any]], api_key: str) -> Dict:
     # Make the data AI-friendly
     width, height = image.size
     norm_ocr_results = _norm2ai(ocr_results, height, width)
@@ -22,9 +20,9 @@ def get_ai_predicted_groups(
     response = model.generate_content([image, prompt])
     text = response.text
 
-    #cleaned = text.replace(r'\"', '"')
+    # cleaned = text.replace(r'\"', '"')
     cleaned = text.replace(r"\'", "'")
-    #cleaned = cleaned.replace('\n', '\\n')
+    # cleaned = cleaned.replace('\n', '\\n')
     with open("/tmp/prelim-cleaned.json", "w") as f:
         f.write(cleaned)
     data = json.loads(cleaned)
@@ -32,7 +30,7 @@ def get_ai_predicted_groups(
     return data
 
 
-def _norm2ai(bounds: List[Dict[str, any]], height:int, width:int):
+def _norm2ai(bounds: List[Dict[str, any]], height: int, width: int):
     """Converts normal image bounds to AI supported Bounds"""
     norm_bounds = copy.deepcopy(bounds)
 

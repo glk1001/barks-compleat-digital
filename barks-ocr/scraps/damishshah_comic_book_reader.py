@@ -11,21 +11,22 @@ from autocorrect import Speller
 from PIL import Image
 
 d = enchant.Dict("en_US")
-spell = Speller(lang='en')
+spell = Speller(lang="en")
 
 
 # Crop image by removing a number of pixels
 def shrinkByPixels(im, pixels):
     h = im.shape[0]
     w = im.shape[1]
-    return im[pixels:h - pixels, pixels:w - pixels]
+    return im[pixels : h - pixels, pixels : w - pixels]
 
 
 # Adjust the gamma in an image by some factor
 def adjust_gamma(image, gamma=1.0):
     invGamma = 1.0 / gamma
-    table = numpy.array([((i / 255.0) ** invGamma) * 255
-                         for i in numpy.arange(0, 256)]).astype("uint8")
+    table = numpy.array([((i / 255.0) ** invGamma) * 255 for i in numpy.arange(0, 256)]).astype(
+        "uint8"
+    )
     return cv2.LUT(image, table)
 
 
@@ -47,7 +48,7 @@ def findSpeechBubbles(image):
     contourMap = {}
     finalContourList = []
 
-    #return contours
+    # return contours
 
     contourMap = filterContoursBySize(contours)
     contourMap = filterContainingContours(contourMap, hierarchy)
@@ -101,7 +102,7 @@ def cropSpeechBubbles(image, contours, padding=0):
     for contour in contours:
         rect = cv2.boundingRect(contour)
         [x, y, w, h] = rect
-        croppedImage = image[y - padding:y + h + padding, x - padding:x + w + padding]
+        croppedImage = image[y - padding : y + h + padding, x - padding : x + w + padding]
         croppedImageList.append(croppedImage)
     return croppedImageList
 
@@ -110,20 +111,20 @@ def cropSpeechBubbles(image, contours, padding=0):
 def processScript(script):
     # Some modern comics have this string on their cover page
     if "COMICS.COM" in script:
-        return ''
+        return ""
 
     # Tesseract sometimes picks up 'I' chars as '|'
-    script = script.replace('|', 'I')
+    script = script.replace("|", "I")
     # We want new lines to be spaces so we can treat each speech bubble as one line of text
-    script = script.replace('\n', ' ')
+    script = script.replace("\n", " ")
     # Remove multiple spaces from our string
     words = script.split()
-    script = ' '.join(words)
+    script = " ".join(words)
 
     for char in script:
         # Comic books tend to be written in upper case, so we remove anything other than upper case chars
         if char not in ' -QWERTYUIOPASDFGHJKLZXCVBNM,.?!""\'’1234567890':
-            script = script.replace(char, '')
+            script = script.replace(char, "")
 
     # This line removes "- " and concatenates words split on two lines
     #  One notable edge case we don't handle here, hyphenated words split on two lines
@@ -132,22 +133,22 @@ def processScript(script):
     for i in range(0, len(words)):
         # Spellcheck all words
         if not d.check(words[i]):
-            alphaWord = ''.join([j for j in words[i] if j.isalpha()])
+            alphaWord = "".join([j for j in words[i] if j.isalpha()])
             if alphaWord and not d.check(alphaWord):
                 words[i] = spell(words[i].lower()).upper()
         # Remove single chars other than 'I' and 'A'
         if len(words[i]) == 1:
-            if (words[i] != 'I' and words[i] != 'A'):
-                words[i] = ''
+            if words[i] != "I" and words[i] != "A":
+                words[i] = ""
 
     # Remove any duplicated spaces
-    script = ' '.join(words)
+    script = " ".join(words)
     words = script.split()
-    final = ' '.join(words)
+    final = " ".join(words)
 
     # Remove all two char lines other than 'NO' and 'OK'
     if len(final) == 2 and script != "NO" and script != "OK":
-        return ''
+        return ""
 
     return final
 
@@ -156,7 +157,7 @@ def processScript(script):
 def tesseract(image):
     # We could consider using tessedit_char_whitelist to limit the recognition of Tesseract.
     #   Doing that degraded OCR performance in practice
-    script = pytesseract.image_to_string(image, lang='eng')
+    script = pytesseract.image_to_string(image, lang="eng")
     return processScript(script)
 
 
@@ -166,7 +167,7 @@ def segmentPage(image, shouldShowImage=False):
 
     cv2.drawContours(image, contours, -1, (0, 0, 0), 2)
     if shouldShowImage:
-        cv2.imshow('Speech Bubble Identification', image)
+        cv2.imshow("Speech Bubble Identification", image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
@@ -183,7 +184,7 @@ def parseComicSpeechBubbles(croppedImageList, shouldShowImage=False):
         croppedImage = cv2.fastNlMeansDenoisingColored(croppedImage, None, 10, 10, 7, 15)
 
         if shouldShowImage:
-            cv2.imshow('Cropped Speech Bubble', croppedImage)
+            cv2.imshow("Cropped Speech Bubble", croppedImage)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
 
@@ -193,12 +194,12 @@ def parseComicSpeechBubbles(croppedImageList, shouldShowImage=False):
         # If we don't find any characters, try shrinking the cropped area.
         #  This occasionally helps tesseract recognize single word lines, but increases processing time.
         count = 0
-        while (script == '' and count < 3):
+        while script == "" and count < 3:
             count += 1
             croppedImage = shrinkByPixels(croppedImage, 5)
             script = tesseract(croppedImage)
 
-        if script != '' and script not in scriptList:
+        if script != "" and script not in scriptList:
             scriptList.append(script)
 
     return scriptList

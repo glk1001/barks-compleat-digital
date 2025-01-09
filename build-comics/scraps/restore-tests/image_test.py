@@ -4,7 +4,9 @@ import numpy as np
 from remove_alias_artifacts import get_median_filter
 
 
-def get_removed_color(grey_img: cv.typing.MatLike, input_image: cv.typing.MatLike) -> cv.typing.MatLike:
+def get_removed_color(
+    grey_img: cv.typing.MatLike, input_image: cv.typing.MatLike
+) -> cv.typing.MatLike:
     filtered_image = np.zeros(input_image.shape, dtype=np.int32)
     image_h, image_w = input_image.shape[0], input_image.shape[1]
 
@@ -20,19 +22,24 @@ def get_removed_color(grey_img: cv.typing.MatLike, input_image: cv.typing.MatLik
             if abs(red - 183) < 5 and abs(green - 218) < 5 and abs(blue - 222) < 5:
                 filtered_image[i][j] = (255, 255, 255)
             elif abs(red - 248) < 5 and abs(green - 242) < 5 and abs(blue - 226) < 5:
-                    filtered_image[i][j] = (255, 255, 255)
-            elif abs(red - grey) < threshold and abs(green - grey) < threshold and abs(blue - grey) < threshold:
+                filtered_image[i][j] = (255, 255, 255)
+            elif (
+                abs(red - grey) < threshold
+                and abs(green - grey) < threshold
+                and abs(blue - grey) < threshold
+            ):
                 filtered_image[i][j] = pixel
                 print(f"({i},{j}): {red},{green},{blue},{grey}")
             else:
-                filtered_image[i][j] = (255,255,255)
+                filtered_image[i][j] = (255, 255, 255)
 
     return filtered_image
+
 
 test_image = "/home/greg/Prj/github/mcomix-barks-tools/restore-tests/test-image-2.jpg"
 
 src_image = cv.imread(test_image)
-#src_image = cv.copyMakeBorder(src_image, 10, 10, 10, 10, cv.BORDER_CONSTANT, None, value = (255,255,255))
+# src_image = cv.copyMakeBorder(src_image, 10, 10, 10, 10, cv.BORDER_CONSTANT, None, value = (255,255,255))
 height, width, num_channels = src_image.shape
 print(f"width: {width}, height: {height}, channels: {num_channels}")
 

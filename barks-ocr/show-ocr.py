@@ -58,8 +58,9 @@ def ocr_annotate_title(title: str, out_dir: str) -> None:
     ocr_files = comic.get_srce_restored_ocr_story_files(RESTORABLE_PAGE_TYPES)
 
     ocr_files = [
-        os.path.join(out_dir, f"{Path(f).stem}-ocr-text-box-groups.json") for f in ocr_files
-        #os.path.join(out_dir, f"{Path(f).stem}-ocr-text-groups.json")
+        os.path.join(out_dir, f"{Path(f).stem}-ocr-text-box-groups.json")
+        for f in ocr_files
+        # os.path.join(out_dir, f"{Path(f).stem}-ocr-text-groups.json")
         for f in ocr_files
     ]
 

@@ -1,6 +1,4 @@
-
-
-comic_prompt = '''
+comic_prompt = """
 Analyze the comic image, the provided OCR text locations, and the AI text extraction result 
 carefully. Your task is to group the OCR-detected word boxes into coherent text bubbles or captions 
 within comic panels, while also cleaning and correcting OCR errors. Pay special attention to the 
@@ -81,4 +79,4 @@ Additional Guidelines:
 Analyze the image and OCR data thoroughly to produce accurate and contextually appropriate groupings
 with cleaned and corrected text that reflects the comic's essential narrative elements.
 Properly format the output json.
-'''
+"""

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-'''
+"""
 Watershed segmentation
 =========
 
@@ -19,23 +19,24 @@ Keys
   a     - toggle autoupdate
   ESC   - exit
 
-'''
+"""
 
 
 import numpy as np
 import cv2 as cv
 
+
 class App:
     def __init__(self, fn):
         self.img = cv.imread(fn)
         if self.img is None:
-            raise Exception('Failed to load image file: %s' % fn)
+            raise Exception("Failed to load image file: %s" % fn)
 
         h, w = self.img.shape[:2]
         self.markers = np.zeros((h, w), np.int32)
         self.markers_vis = self.img.copy()
         self.cur_marker = 1
-        self.colors = np.int32( list(np.ndindex(2, 2, 2)) ) * 255
+        self.colors = np.int32(list(np.ndindex(2, 2, 2))) * 255
 
         self.auto_update = True
 
@@ -50,23 +51,21 @@ class App:
         return vis
 
 
-if __name__ == '__main__':
-#    image_file = "/home/greg/Prj/github/barks-compleat-digital/restore-tests/simple-test-image.jpg"
+if __name__ == "__main__":
+    #    image_file = "/home/greg/Prj/github/barks-compleat-digital/restore-tests/simple-test-image.jpg"
     image_file = "/home/greg/Prj/github/restore-barks/experiments/test-image-2.jpg"
     src_image = cv.imread(image_file)
     gray = cv.cvtColor(src_image, cv.COLOR_BGR2GRAY)
-    ret, bin_img = cv.threshold(gray,
-                                 0, 255,
-                                 cv.THRESH_BINARY_INV + cv.THRESH_OTSU)
+    ret, bin_img = cv.threshold(gray, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU)
 
     # noise removal
     kernel = np.ones((3, 3), np.uint8)
     bin_img = cv.morphologyEx(bin_img, cv.MORPH_OPEN, kernel, iterations=2)
-#    kernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3))
-#    bin_img = cv.morphologyEx(bin_img,
-#                               cv.MORPH_CROSS,
-#                               kernel,
-#                               iterations=2)
+    #    kernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3))
+    #    bin_img = cv.morphologyEx(bin_img,
+    #                               cv.MORPH_CROSS,
+    #                               kernel,
+    #                               iterations=2)
     cv.imwrite("/tmp/junk-bin-image.jpg", bin_img)
 
     # sure background area
@@ -95,7 +94,7 @@ if __name__ == '__main__':
 
     # watershed Algorithm
     markers = cv.watershed(src_image, markers)
-    src_image[markers == -1] = [0,0,255]
+    src_image[markers == -1] = [0, 0, 255]
     cv.imwrite("/tmp/junk-watershed-img.jpg", src_image)
 
     # app = App("/home/greg/Prj/github/barks-compleat-digital/simple-test-image.jpg")

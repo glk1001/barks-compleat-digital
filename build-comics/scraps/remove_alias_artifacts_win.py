@@ -34,8 +34,8 @@ def median_filter3(original_image, mask, kernel_size: int):
 @jit(nopython=True, parallel=False)
 def median_filter_core(wrapped_image, wrapped_mask, kernel_size: int, filtered_image):
     shape = (kernel_size, kernel_size)
-    image_windows = np.lib.stride_tricks.sliding_window_view(wrapped_image, shape, axis=(0,1))
-    mask_windows = np.lib.stride_tricks.sliding_window_view(wrapped_mask, shape, axis=(0,1))
+    image_windows = np.lib.stride_tricks.sliding_window_view(wrapped_image, shape, axis=(0, 1))
+    mask_windows = np.lib.stride_tricks.sliding_window_view(wrapped_mask, shape, axis=(0, 1))
 
     image_h, image_w = filtered_image.shape[0], filtered_image.shape[1]
     for i in range(image_h):
@@ -133,9 +133,7 @@ def remove_alias_artifacts(image):
     #     )
 
     # blurred_image = cv.medianBlur(in_painted_image, MEDIAN_BLUR_APERTURE_SIZE)
-    blurred_image = median_filter3(
-        image, enlarged_black_ink_mask, MEDIAN_BLUR_APERTURE_SIZE
-    )
+    blurred_image = median_filter3(image, enlarged_black_ink_mask, MEDIAN_BLUR_APERTURE_SIZE)
     if DEBUG:
         cv.imwrite(os.path.join(DEBUG_OUTPUT_DIR, "blurred-image.jpg"), blurred_image)
 
@@ -153,7 +151,7 @@ image_file = (
     "Comics and Stories/055 The Terrible Turkey/images/05.jpg"
 )
 # image_file = "restore-tests/test-image.jpg"
-#image_file = "restore-tests/simple-test-image.jpg"
+# image_file = "restore-tests/simple-test-image.jpg"
 
 input_image = cv.imread(image_file)
 height, width, num_channels = input_image.shape

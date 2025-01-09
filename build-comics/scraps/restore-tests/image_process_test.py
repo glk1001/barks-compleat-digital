@@ -162,7 +162,7 @@ def draw_hierarchy(image, contours, hierarchy):
 
 
 def draw_contours(image, contours):
-    cv.drawContours(image, contours, -1, (0,255,0), 1)
+    cv.drawContours(image, contours, -1, (0, 255, 0), 1)
 
     # for i in range(len(contours)):
     #     # Draw the contour
@@ -176,11 +176,11 @@ def get_edges(image):
     canny_aperture_size = 7
     l2_gradient = False
     return cv.Canny(
-            image,
-            canny_lower,
-            canny_upper,
-            apertureSize=canny_aperture_size,
-            L2gradient=l2_gradient,
+        image,
+        canny_lower,
+        canny_upper,
+        apertureSize=canny_aperture_size,
+        L2gradient=l2_gradient,
     )
 
 
@@ -188,15 +188,15 @@ def get_edges(image):
 #     "/home/greg/Books/Carl Barks/The Comics/Comics and Stories/055 The Terrible Turkey/images/05.jpg"
 # )
 src_image = cv.imread("/home/greg/Prj/github/mcomix-barks-tools/simple-test-image.jpg")
-#src_image = cv.imread("/home/greg/Prj/github/mcomix-barks-tools/test-image.jpg")
-src_image = cv.copyMakeBorder(src_image, 10, 10, 10, 10, cv.BORDER_CONSTANT, None, value = (255,255,255))
+# src_image = cv.imread("/home/greg/Prj/github/mcomix-barks-tools/test-image.jpg")
+src_image = cv.copyMakeBorder(
+    src_image, 10, 10, 10, 10, cv.BORDER_CONSTANT, None, value=(255, 255, 255)
+)
 height, width, num_channels = src_image.shape
 print(f"width: {width}, height: {height}, channels: {num_channels}")
 
 gray_image = cv.cvtColor(src_image, cv.COLOR_BGR2GRAY)
-ret, bin_image = cv.threshold(gray_image,
-                            0, 255,
-                            cv.THRESH_BINARY_INV + cv.THRESH_OTSU)
+ret, bin_image = cv.threshold(gray_image, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU)
 cv.imwrite("/tmp/junk-bin-image.jpg", bin_image)
 
 # noise removal
@@ -215,10 +215,10 @@ print(f"len(edge_contours) = {len(edge_contours)}.")
 print(f"edge_contours[0].shape = {edge_contours[0].shape}.")
 print(f"edge_hierarchy.shape = {edge_hierarchy.shape}.")
 
-contours_image = np.zeros((height,width,3), np.uint8)
+contours_image = np.zeros((height, width, 3), np.uint8)
 draw_contours(contours_image, edge_contours)
 
-hierarchy_image = np.zeros((height,width,3), np.uint8)
+hierarchy_image = np.zeros((height, width, 3), np.uint8)
 draw_hierarchy(hierarchy_image, edge_contours, edge_hierarchy)
 
 contours_list = []
@@ -227,31 +227,33 @@ for i in range(0, len(edge_contours)):
     print(len(c))
     # if len(c) < 10:
     #     print(c)
-    #print(c[0][0], c[-1][0])
+    # print(c[0][0], c[-1][0])
     # print(type(c), c.shape)
     if c[0][0][0] != c[-1][0][0] or c[0][0][1] != c[-1][0][1]:
         c_list = c.tolist()
         c_list.append(c[0].tolist())
         # print(type(c_list[0]), type(c_list[-1]))
-        #print(c_list)
+        # print(c_list)
         c = np.array(c_list).reshape((-1, 1, 2))
     contours_list.append(c)
-contours_list_image = np.zeros((height,width,3), np.uint8)
+contours_list_image = np.zeros((height, width, 3), np.uint8)
 draw_contours(contours_list_image, contours_list)
 
 print(len(contours_list))
-contours_merged = np.zeros((height,width,3), np.uint8)
+contours_merged = np.zeros((height, width, 3), np.uint8)
 for c in contours_list:
     color = (random.randint(100, 255), random.randint(100, 255), random.randint(100, 255))
     cv.fillPoly(contours_merged, [c], color)
 # cv.fillPoly(contours_merged, contours_list, (0.255,0), cv.LINE_8)
 
 contours_circles = contours_image.copy()
-for i, contour in enumerate(edge_contours): # loop over one contour area
+for i, contour in enumerate(edge_contours):  # loop over one contour area
     color = (random.randint(100, 255), random.randint(100, 255), random.randint(100, 255))
-    for j, contour_point in enumerate(contour): # loop over the points
-       # draw a circle on the current contour coordinate
-       cv.circle(contours_circles, ((contour_point[0][0], contour_point[0][1])), 2, color, 1, cv.LINE_AA)
+    for j, contour_point in enumerate(contour):  # loop over the points
+        # draw a circle on the current contour coordinate
+        cv.circle(
+            contours_circles, ((contour_point[0][0], contour_point[0][1])), 2, color, 1, cv.LINE_AA
+        )
 
 cv.imwrite("/tmp/junk-edges.jpg", edges)
 cv.imwrite("/tmp/junk-hierarchy.jpg", hierarchy_image)
@@ -259,10 +261,10 @@ cv.imwrite("/tmp/junk-contours.jpg", contours_image)
 cv.imwrite("/tmp/junk-contours-circles.jpg", contours_circles)
 cv.imwrite("/tmp/junk-contours-list.jpg", contours_list_image)
 cv.imwrite("/tmp/junk-contours-merged.jpg", contours_merged)
-#sys.exit(0)
+# sys.exit(0)
 
-#alias_mask = get_color_removed_image(src_image)
-#cv.imwrite("/tmp/junk-alias.jpg", alias_mask)
+# alias_mask = get_color_removed_image(src_image)
+# cv.imwrite("/tmp/junk-alias.jpg", alias_mask)
 
 # result = cv.bitwise_or(result, result, mask=full_mask)
 # cv.imwrite("/tmp/junk.jpg", lower_mask)
@@ -270,5 +272,5 @@ cv.imwrite("/tmp/junk-contours-merged.jpg", contours_merged)
 
 cv.imwrite("/tmp/junk-src-image.jpg", src_image)
 
-out_image = np.bitwise_or(src_image, edges[:,:,np.newaxis])
+out_image = np.bitwise_or(src_image, edges[:, :, np.newaxis])
 cv.imwrite("/tmp/junk-out-image.jpg", out_image)
