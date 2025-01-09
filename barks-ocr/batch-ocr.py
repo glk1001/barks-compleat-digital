@@ -2,6 +2,7 @@ import json
 import logging
 import os.path
 import sys
+import tempfile
 import time
 from pathlib import Path
 from typing import Tuple, List
@@ -13,7 +14,7 @@ import enchant
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_image_io import get_bw_image_from_alpha
-from barks_fantagraphics.comics_utils import get_abbrev_path, setup_logging
+from barks_fantagraphics.comics_utils import get_abbrev_path, get_ocr_no_json_suffix, setup_logging
 from utils.preprocessing import preprocess_image
 
 REJECTED_WORDS = ["F", "H", "M", "W", "OO", "VV", "|", "L", "\\", "IY"]
@@ -52,35 +53,49 @@ def ocr_titles(title_list: List[str]) -> None:
     logging.info(f"Time taken to OCR all {num_png_files} files: {int(time.time() - start)}s.")
 
 
-def ocr_comic_page(svg_file: str, ocr_json_file: str) -> bool:
+def ocr_comic_page(svg_file: str, ocr_json_files: Tuple[str, str]) -> bool:
     png_file = svg_file + ".png"
 
     if not os.path.isfile(png_file):
         logging.error(f'Could not find png file "{png_file}".')
         return False
 
-    if os.path.isfile(ocr_json_file):
-        logging.info(f'OCR file exists - skipping: "{get_abbrev_path(ocr_json_file)}".')
+    if all([os.path.isfile(f) for f in ocr_json_files]):
+        for ocr_json_file in ocr_json_files:
+            logging.info(f'OCR file exists - skipping: "{get_abbrev_path(ocr_json_file)}".')
         return True
 
-    logging.info(
-        f'OCRing png file "{get_abbrev_path(png_file)}"'
-        f' to "{get_abbrev_path(ocr_json_file)}"...'
-    )
+    svg_stem = Path(svg_file).stem
+    grey_image_file = os.path.join(work_dir, svg_stem + "-grey.png")
+    make_grey_image(png_file, grey_image_file)
 
-    bw_image = get_bw_image_from_alpha(png_file)
-    bw_image = preprocess_image(bw_image)
-    # TODO: need work_dir
-    grey_image_file = os.path.join("/tmp", Path(png_file).stem + "-grey.png")
-    cv.imwrite(grey_image_file, bw_image)
+    for ocr_json_file in ocr_json_files:
+        if os.path.isfile(ocr_json_file):
+            logging.info(f'OCR file exists - skipping: "{get_abbrev_path(ocr_json_file)}".')
+            continue
 
-    #    text_data_boxes = get_easyocr_text_box_data(grey_image_file)
-    text_data_boxes = get_paddleocr_text_box_data(grey_image_file)
+        logging.info(
+            f'OCRing png file "{get_abbrev_path(png_file)}"'
+            f' to "{get_abbrev_path(ocr_json_file)}"...'
+        )
 
-    with open(os.path.join(ocr_json_file), "w") as f:
-        json.dump(text_data_boxes, f, indent=4)
+        ocr_suffix = get_ocr_no_json_suffix(ocr_json_file)
+        if ocr_suffix == ".easyocr":
+            text_data_boxes = get_easyocr_text_box_data(grey_image_file)
+        else:
+            assert ocr_suffix == ".paddleocr"
+            text_data_boxes = get_paddleocr_text_box_data(grey_image_file)
+
+        with open(os.path.join(ocr_json_file), "w") as f:
+            json.dump(text_data_boxes, f, indent=4)
 
     return True
+
+
+def make_grey_image(png_file: str, out_grey_file: str) -> None:
+    bw_image = get_bw_image_from_alpha(png_file)
+    bw_image = preprocess_image(bw_image)
+    cv.imwrite(out_grey_file, bw_image)
 
 
 def words_are_ok(words_str: str) -> Tuple[bool, List[str]]:
@@ -230,6 +245,9 @@ def get_paddleocr_text_box_data(image_file: str) -> List[Tuple[List[int], str, s
 
         text_list.append((bbox, text_str, accepted_words_str, prob))
 
+    # Undo whatever PaddleOCR did to logging.
+    setup_logging(cmd_args.get_log_level())
+
     return text_list
 
 
@@ -250,6 +268,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     setup_logging(cmd_args.get_log_level())
+
+    work_dir = tempfile.gettempdir()
 
     comics_database = cmd_args.get_comics_database()
 

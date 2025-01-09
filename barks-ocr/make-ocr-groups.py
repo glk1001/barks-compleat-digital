@@ -5,13 +5,13 @@ import sys
 from pathlib import Path
 from typing import List, Tuple, Dict
 
+from ocr.utils.geometry import Rect
+from ocr.utils.ocr_box import OcrBox, save_groups_as_json, load_groups_from_json, get_box_str
 from shapely.geometry import Polygon
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_utils import get_abbrev_path, setup_logging
-from ocr.utils.geometry import Rect
-from ocr.utils.ocr_box import OcrBox, save_groups_as_json, load_groups_from_json, get_box_str
 
 
 def make_ocr_groups_for_titles(titles: List[str], out_dir: str) -> None:
@@ -36,7 +36,9 @@ def make_ocr_groups_for_title(title: str, out_dir: str) -> None:
         text_box_groups_json_file = os.path.join(
             out_dir, Path(svg_file).stem + "-ocr-text-box-groups.json"
         )
-        if not make_ocr_groups(ocr_file, text_box_groups_file, text_box_groups_json_file):
+        easyocr_file = ocr_file[0]  # TODO: Use this too
+        paddleocr_file = ocr_file[1]
+        if not make_ocr_groups(paddleocr_file, text_box_groups_file, text_box_groups_json_file):
             raise Exception("There were process errors.")
 
 

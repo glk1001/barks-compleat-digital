@@ -174,7 +174,9 @@ class ComicBook:
 
         return all_files
 
-    def get_srce_restored_ocr_story_files(self, page_types: List[PageType]) -> List[str]:
+    def get_srce_restored_ocr_story_files(
+        self, page_types: List[PageType]
+    ) -> List[Tuple[str, str]]:
         all_files = []
         for page in self.page_images_in_order:
             if page.page_type in page_types:
@@ -226,9 +228,11 @@ class ComicBook:
     def get_srce_restored_svg_story_file(self, page_num: str) -> str:
         return str(os.path.join(self.get_srce_restored_svg_image_dir(), page_num + SVG_FILE_EXT))
 
-    def get_srce_restored_ocr_story_file(self, page_num: str) -> str:
-        # return str(os.path.join(self.srce_restored_ocr_dir, "easyocr", page_num + JSON_FILE_EXT))
-        return str(os.path.join(self.srce_restored_ocr_dir, "paddleocr", page_num + JSON_FILE_EXT))
+    def get_srce_restored_ocr_story_file(self, page_num: str) -> Tuple[str, str]:
+        return (
+            str(os.path.join(self.srce_restored_ocr_dir, page_num + ".easyocr" + JSON_FILE_EXT)),
+            str(os.path.join(self.srce_restored_ocr_dir, page_num + ".paddleocr" + JSON_FILE_EXT)),
+        )
 
     def get_srce_panel_segments_file(self, page_num: str) -> str:
         return str(os.path.join(self.panel_segments_dir, page_num + JSON_FILE_EXT))

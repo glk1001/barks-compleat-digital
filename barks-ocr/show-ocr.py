@@ -12,7 +12,7 @@ from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_image_io import get_bw_image_from_alpha
 from barks_fantagraphics.comics_info import PNG_FILE_EXT
-from barks_fantagraphics.comics_utils import get_abbrev_path, setup_logging
+from barks_fantagraphics.comics_utils import get_abbrev_path, get_ocr_no_json_suffix, setup_logging
 from utils.ocr_box import OcrBox
 
 COLORS = [
@@ -57,18 +57,26 @@ def ocr_annotate_title(title: str, out_dir: str) -> None:
     svg_files = comic.get_srce_restored_svg_story_files(RESTORABLE_PAGE_TYPES)
     ocr_files = comic.get_srce_restored_ocr_story_files(RESTORABLE_PAGE_TYPES)
 
-    ocr_files = [
-        os.path.join(out_dir, f"{Path(f).stem}-ocr-text-box-groups.json")
-        for f in ocr_files
-        # os.path.join(out_dir, f"{Path(f).stem}-ocr-text-groups.json")
-        for f in ocr_files
-    ]
-
     for svg_file, ocr_file in zip(svg_files, ocr_files):
+        svg_stem = Path(svg_file).stem
         png_file = svg_file + PNG_FILE_EXT
-        annotated_img_file = os.path.join(out_dir, Path(svg_file).stem + "-ocr-annotated.png")
-        if not ocr_annotate_file(png_file, ocr_file, annotated_img_file):
-            raise Exception("There were process errors.")
+
+        for ocr_type_file in ocr_file:
+            ocr_suffix = get_ocr_no_json_suffix(ocr_type_file)
+
+            ocr_group_file = get_ocr_group_filename(svg_stem, ocr_suffix, out_dir)
+            annotated_img_file = get_annotated_image_filename(svg_stem, ocr_suffix, out_dir)
+
+            if not ocr_annotate_file(png_file, ocr_group_file, annotated_img_file):
+                raise Exception("There were process errors.")
+
+
+def get_annotated_image_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
+    return os.path.join(out_dir, svg_stem + f"-ocr-gemini-annotated{ocr_suffix}.png")
+
+
+def get_ocr_group_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
+    return os.path.join(out_dir, svg_stem + f"-gemini-groups{ocr_suffix}.json")
 
 
 def ocr_annotate_file(
@@ -76,8 +84,6 @@ def ocr_annotate_file(
     ocr_file: str,
     annotated_img_file: str,
 ) -> bool:
-    logging.info(f'OCR annotating image "{get_abbrev_path(png_file)}"...')
-
     if not os.path.isfile(png_file):
         logging.error(f'Could not find image file "{png_file}".')
         return False
@@ -87,6 +93,8 @@ def ocr_annotate_file(
     if os.path.isfile(annotated_img_file):
         logging.info(f'Found annotation file - skipping: "{annotated_img_file}".')
         return True
+
+    logging.info(f'OCR annotating image "{get_abbrev_path(png_file)}"...')
 
     with open(ocr_file, "r") as f:
         jsn_text_data_boxes = json.load(f)

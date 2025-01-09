@@ -10,7 +10,7 @@ from PIL import Image
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_image_io import get_bw_image_from_alpha
-from barks_fantagraphics.comics_utils import get_abbrev_path, setup_logging
+from barks_fantagraphics.comics_utils import get_abbrev_path, get_ocr_no_json_suffix, setup_logging
 from utils.gemini_ai import get_ai_predicted_groups
 from utils.ocr_box import OcrBox, save_groups_as_json, load_groups_from_json, get_box_str
 from utils.preprocessing import preprocess_image
@@ -34,31 +34,50 @@ def make_gemini_ai_groups_for_title(title: str, out_dir: str) -> None:
     ocr_files = comic.get_srce_restored_ocr_story_files(RESTORABLE_PAGE_TYPES)
 
     for svg_file, ocr_file in zip(svg_files, ocr_files):
-        text_box_groups_file = os.path.join(
-            out_dir, Path(svg_file).stem + "-ocr-text-box-groups.txt"
-        )
-        text_box_groups_json_file = os.path.join(
-            out_dir, Path(svg_file).stem + "-ocr-text-box-groups.json"
-        )
-        if not make_gemini_ai_groups(
-            svg_file, ocr_file, text_box_groups_file, text_box_groups_json_file
-        ):
-            raise Exception("There were process errors.")
+        svg_stem = Path(svg_file).stem
+
+        for ocr_type_file in ocr_file:
+            ocr_suffix = get_ocr_no_json_suffix(ocr_type_file)
+
+            ocr_groups_txt_file = get_ocr_groups_txt_filename(svg_stem, ocr_suffix, out_dir)
+            ocr_groups_json_file = get_ocr_groups_json_filename(svg_stem, ocr_suffix, out_dir)
+            ocr_final_data_groups_json_file = get_ocr_final_data_groups_json_filename(
+                svg_stem, ocr_suffix, out_dir
+            )
+
+            if not make_gemini_ai_groups(
+                svg_file,
+                ocr_type_file,
+                ocr_final_data_groups_json_file,
+                ocr_groups_json_file,
+                ocr_groups_txt_file,
+            ):
+                raise Exception("There were process errors.")
 
         break  # for testing
+
+
+def get_ocr_groups_txt_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
+    return os.path.join(out_dir, svg_stem + f"-gemini-groups{ocr_suffix}.txt")
+
+
+def get_ocr_groups_json_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
+    return os.path.join(out_dir, svg_stem + f"-gemini-groups{ocr_suffix}.json")
+
+
+def get_ocr_final_data_groups_json_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
+    return os.path.join(out_dir, svg_stem + f"-gemini-final-groups{ocr_suffix}.json")
 
 
 def make_gemini_ai_groups(
     svg_file: str,
     ocr_file: str,
-    text_box_groups_file: str,
-    text_box_groups_json_file: str,
+    ocr_final_data_groups_json_file,
+    ocr_groups_json_file: str,
+    ocr_groups_txt_file: str,
 ) -> bool:
     image_name = Path(svg_file).stem
-
     png_file = svg_file + ".png"
-    logging.info(f'Making Gemini AI OCR groups for file "{get_abbrev_path(png_file)}"...')
-    logging.info(f'Using OCR file "{get_abbrev_path(ocr_file)}"...')
 
     if not os.path.isfile(png_file):
         logging.error(f'Could not find png file "{png_file}".')
@@ -67,9 +86,12 @@ def make_gemini_ai_groups(
         logging.error(f'Could not find ocr file "{ocr_file}".')
         return False
 
-    if os.path.isfile(text_box_groups_json_file):
-        logging.info(f'Found groups file - skipping: "{text_box_groups_json_file}".')
+    if os.path.isfile(ocr_groups_json_file):
+        logging.info(f'Found groups file - skipping: "{ocr_groups_json_file}".')
         return False
+
+    logging.info(f'Making Gemini AI OCR groups for file "{get_abbrev_path(png_file)}"...')
+    logging.info(f'Using OCR file "{get_abbrev_path(ocr_file)}"...')
 
     ocr_data = get_ocr_data(ocr_file)
     ocr_bound_ids = assign_ids_to_ocr_boxes(ocr_data)
@@ -85,15 +107,15 @@ def make_gemini_ai_groups(
 
     # Merge boxes into text bubbles
     ai_final_data = get_ai_final_data(ai_predicted_groups, ocr_bound_ids)
-    with open(os.path.join("/tmp", f"{image_name}-ocr-ai-final-data.json"), "w") as f:
+    with open(ocr_final_data_groups_json_file, "w") as f:
         json.dump(ai_final_data, f, indent=4)
 
     groups = get_text_groups(ai_final_data, ocr_bound_ids)
 
-    save_groups_as_json(groups, text_box_groups_json_file)
-    groups = load_groups_from_json(text_box_groups_json_file)
+    save_groups_as_json(groups, ocr_groups_json_file)
+    groups = load_groups_from_json(ocr_groups_json_file)
 
-    write_groups_to_text_file(text_box_groups_file, groups)
+    write_groups_to_text_file(ocr_groups_txt_file, groups)
 
     return True
 

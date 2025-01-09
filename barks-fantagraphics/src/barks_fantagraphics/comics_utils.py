@@ -100,3 +100,14 @@ def setup_logging(log_level) -> None:
         datefmt="%m/%d/%Y %H:%M:%S",
         level=log_level,
     )
+    # TODO: Hack to stop third-party modules screwing with our logging.
+    # Must be a better way.
+    logging.root.setLevel(log_level)
+
+
+def get_ocr_no_json_suffix(ocr_json_file: str) -> str:
+    return Path(Path(ocr_json_file).stem).suffix
+
+
+def get_ocr_json_suffix(ocr_json_file: str) -> str:
+    return get_ocr_no_json_suffix(ocr_json_file) + ".json"
