@@ -44,7 +44,7 @@ def write_bounds_to_image_file(
         logging.error(f'Could not find panel segments file "{panel_segments_file}".')
         return False
     if os.path.isfile(bounds_img_file):
-        logging.info(f'Found existing image bounds file "{bounds_img_file}" -- skipping.')
+        logging.info(f'Found existing image bounds file - skipping: "{bounds_img_file}".')
         return True
 
     logging.info(f'Loading panel segments file "{get_abbrev_path(panel_segments_file)}".')

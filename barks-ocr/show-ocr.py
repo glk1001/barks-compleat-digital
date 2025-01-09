@@ -84,7 +84,7 @@ def ocr_annotate_file(
         logging.error(f'Could not find ocr file "{ocr_file}".')
         return False
     if os.path.isfile(annotated_img_file):
-        logging.info(f'Found annotation file "{annotated_img_file}" -- skipping.')
+        logging.info(f'Found annotation file - skipping: "{annotated_img_file}".')
         return True
 
     with open(ocr_file, "r") as f:

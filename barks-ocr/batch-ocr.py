@@ -9,7 +9,6 @@ from typing import Tuple, List
 import cv2 as cv
 import easyocr
 import enchant
-from paddleocr import PaddleOCR
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
@@ -130,6 +129,9 @@ def get_easyocr_text_box_data(image_file: str) -> List[Tuple[List[int], str, str
 
 
 def get_paddleocr_text_box_data(image_file: str) -> List[Tuple[List[int], str, str, float]]:
+    # Import PaddleOCR here where it can't screw up 'logging'.
+    from paddleocr import PaddleOCR
+
     ocr = PaddleOCR(
         use_angle_cls=True,
         lang="en",
@@ -184,11 +186,9 @@ def get_box_str(box: List[int]) -> str:
 
 def ocr_titles(title_list: List[str]) -> None:
     start = time.time()
-    print("Starting")
 
     num_png_files = 0
     for title in title_list:
-        print(f'OCRing all pages in "{title}"...')
         logging.info(f'OCRing all pages in "{title}"...')
 
         comic = comics_database.get_comic_book(title)
@@ -203,28 +203,24 @@ def ocr_titles(title_list: List[str]) -> None:
 
         num_png_files += len(srce_files)
 
-    logging.info(f"\nTime taken to OCR all {num_png_files} files: {int(time.time() - start)}s.")
+    logging.info(f"Time taken to OCR all {num_png_files} files: {int(time.time() - start)}s.")
 
 
 def ocr_comic_page(svg_file: str, ocr_json_file: str) -> bool:
     png_file = svg_file + ".png"
-    print(        f'OCRing png file "{get_abbrev_path(png_file)}"'
-        f' to "{get_abbrev_path(ocr_json_file)}"...'
-)
+
+    if not os.path.isfile(png_file):
+        logging.error(f'Could not find png file "{png_file}".')
+        return False
+
+    if os.path.isfile(ocr_json_file):
+        logging.info(f'OCR file exists - skipping: "{get_abbrev_path(ocr_json_file)}".')
+        return True
+
     logging.info(
         f'OCRing png file "{get_abbrev_path(png_file)}"'
         f' to "{get_abbrev_path(ocr_json_file)}"...'
     )
-
-    if not os.path.isfile(png_file):
-        logging.error(f'Could not find png file "{png_file}".')
-        print(f'Could not find png file "{png_file}".')
-        return False
-
-    if os.path.isfile(ocr_json_file):
-        print(f'OCR file "{get_abbrev_path(ocr_json_file)}" exists - skipping..')
-        logging.info(f'OCR file "{get_abbrev_path(ocr_json_file)}" exists - skipping..')
-        return True
 
     bw_image = get_bw_image_from_alpha(png_file)
     bw_image = preprocess_image(bw_image)
@@ -232,7 +228,7 @@ def ocr_comic_page(svg_file: str, ocr_json_file: str) -> bool:
     grey_image_file = os.path.join("/tmp", Path(png_file).stem + "-grey.png")
     cv.imwrite(grey_image_file, bw_image)
 
-#    text_data_boxes = get_easyocr_text_box_data(grey_image_file)
+    #    text_data_boxes = get_easyocr_text_box_data(grey_image_file)
     text_data_boxes = get_paddleocr_text_box_data(grey_image_file)
 
     with open(os.path.join(ocr_json_file), "w") as f:
@@ -243,13 +239,13 @@ def ocr_comic_page(svg_file: str, ocr_json_file: str) -> bool:
 
 if __name__ == "__main__":
 
-    setup_logging(logging.INFO)
-
     cmd_args = CmdArgs("Ocr titles", CmdArgNames.TITLE | CmdArgNames.VOLUME)
     args_ok, error_msg = cmd_args.args_are_valid()
     if not args_ok:
         logging.error(error_msg)
         sys.exit(1)
+
+    setup_logging(cmd_args.get_log_level())
 
     comics_database = cmd_args.get_comics_database()
 

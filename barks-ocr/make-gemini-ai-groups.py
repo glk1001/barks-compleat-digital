@@ -211,8 +211,6 @@ def assign_ids_to_ocr_boxes(bounds: List[Dict[str, any]]) -> List[Dict[str, any]
 
 if __name__ == "__main__":
 
-    setup_logging(logging.INFO)
-
     cmd_args = CmdArgs(
         "Make Gemini AI OCR groups for title",
         CmdArgNames.VOLUME | CmdArgNames.TITLE | CmdArgNames.WORK_DIR,
@@ -221,6 +219,8 @@ if __name__ == "__main__":
     if not args_ok:
         logging.error(error_msg)
         sys.exit(1)
+
+    setup_logging(cmd_args.get_log_level())
 
     comics_database = cmd_args.get_comics_database()
 
