@@ -1,7 +1,7 @@
 import logging
 import os.path
 import sys
-from typing import List
+from typing import List, Tuple
 
 from barks_fantagraphics.comic_book import get_abbrev_jpg_page_list, get_safe_title, ComicBook
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
@@ -14,11 +14,16 @@ from barks_fantagraphics.comics_utils import (
 )
 
 
-def get_issue_titles(title_list: List[str]) -> List[str]:
+def get_issue_titles(title_list: List[str]) -> List[Tuple[str, bool]]:
     issue_ttls = []
     for ttl in title_list:
-        comic = comics_database.get_comic_book(ttl)
-        issue_ttls.append(get_safe_title(comic.get_comic_issue_title()))
+        title_is_configured, _ = comics_database.is_story_title(ttl)
+        if not title_is_configured:
+            comic_title = ttl
+        else:
+            comic = comics_database.get_comic_book(ttl)
+            comic_title = get_safe_title(comic.get_comic_issue_title())
+        issue_ttls.append((comic_title, title_is_configured))
 
     return issue_ttls
 
@@ -137,20 +142,29 @@ setup_logging(cmd_args.get_log_level())
 
 comics_database = cmd_args.get_comics_database()
 
-titles = cmd_args.get_titles()
+titles = cmd_args.get_titles(False)  # include unconfigured titles
 max_title_len = max([len(title) for title in titles])
 
-issue_titles = get_issue_titles(titles)
-max_issue_title_len = max([len(issue_title) for issue_title in issue_titles])
+issue_titles_info = get_issue_titles(titles)
+max_issue_title_len = max([len(title_info[0]) for title_info in issue_titles_info])
 
 title_flags = dict()
-for title, issue_title in zip(titles, issue_titles):
-    comic_book = comics_database.get_comic_book(title)
+for title, issue_title_info in zip(titles, issue_titles_info):
+    issue_title = issue_title_info[0]
+    is_configured = issue_title_info[1]
 
-    fixes_flag = "F" if has_fixes(comic_book) else " "
-    restored_or_upscayled_flag = get_restored_or_upscayled_flag(comic_book)
-    panel_bounds_or_built_flag = get_panel_bounds_or_built_flag(comic_book)
-    page_list = ", ".join(get_abbrev_jpg_page_list(comic_book))
+    if not is_configured:
+        fixes_flag = "*"
+        restored_or_upscayled_flag = " "
+        panel_bounds_or_built_flag = " "
+        page_list = " "
+    else:
+        comic_book = comics_database.get_comic_book(title)
+
+        fixes_flag = "F" if has_fixes(comic_book) else " "
+        restored_or_upscayled_flag = get_restored_or_upscayled_flag(comic_book)
+        panel_bounds_or_built_flag = get_panel_bounds_or_built_flag(comic_book)
+        page_list = ", ".join(get_abbrev_jpg_page_list(comic_book))
 
     title_flags[title] = (
         fixes_flag,
@@ -159,7 +173,8 @@ for title, issue_title in zip(titles, issue_titles):
         page_list,
     )
 
-for title, issue_title in zip(titles, issue_titles):
+for title, issue_title_info in zip(titles, issue_titles_info):
+    issue_title = issue_title_info[0]
     fixes_flag = title_flags[title][0]
     restored_or_upscayled_flag = title_flags[title][1]
     panel_bounds_or_built_flag = title_flags[title][2]

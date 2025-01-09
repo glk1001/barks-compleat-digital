@@ -292,7 +292,7 @@ def get_titles(args) -> List[str]:
 
     if args.volume is not None:
         vol_list = list(intspan(args.volume))
-        return comics_database.get_all_story_titles_in_fantagraphics_volume(vol_list)
+        return comics_database.get_configured_titles_in_fantagraphics_volumes(vol_list)
 
     return []
 

@@ -48,7 +48,7 @@ class CmdArgs:
             raise Exception(f"'{TITLE_ARG}' was not specified as an argument.")
         return self._cmd_args.title
 
-    def get_titles(self) -> List[str]:
+    def get_titles(self, configured_only=True) -> List[str]:
         if (
             CmdArgNames.TITLE not in self._required_args
             and CmdArgNames.VOLUME not in self._required_args
@@ -62,7 +62,11 @@ class CmdArgs:
 
         assert self._cmd_args.volume is not None
         vol_list = list(intspan(self._cmd_args.volume))
-        return self._comics_database.get_all_story_titles_in_fantagraphics_volume(vol_list)
+
+        if configured_only:
+            return self._comics_database.get_configured_titles_in_fantagraphics_volumes(vol_list)
+
+        return self._comics_database.get_all_titles_in_fantagraphics_volumes(vol_list)
 
     def get_work_dir(self) -> str:
         if CmdArgNames.WORK_DIR not in self._required_args:
