@@ -39,11 +39,11 @@ def make_gemini_ai_groups_for_title(title: str, out_dir: str) -> None:
         for ocr_type_file in ocr_file:
             ocr_suffix = get_ocr_no_json_suffix(ocr_type_file)
 
-            ocr_groups_txt_file = get_ocr_groups_txt_filename(svg_stem, ocr_suffix, out_dir)
-            ocr_groups_json_file = get_ocr_groups_json_filename(svg_stem, ocr_suffix, out_dir)
             ocr_final_data_groups_json_file = get_ocr_final_data_groups_json_filename(
                 svg_stem, ocr_suffix, out_dir
             )
+            ocr_groups_json_file = get_ocr_groups_json_filename(svg_stem, ocr_suffix, out_dir)
+            ocr_groups_txt_file = get_ocr_groups_txt_filename(svg_stem, ocr_suffix, out_dir)
 
             if not make_gemini_ai_groups(
                 svg_file,
@@ -140,14 +140,15 @@ def get_ai_final_data(groups, ocr_boxes_with_ids: List[Dict[str, any]]):
             box_texts[box_id] = {"text_frag": cleaned_box_text, "text_box": box}
 
         assert box_bounds
-        x_min = min(box[0] for box in box_bounds)
-        y_min = min(box[1] for box in box_bounds)
-        x_max = max(box[2] for box in box_bounds)
-        y_max = max(box[3] for box in box_bounds)
+        x_min = min(box[0][0] for box in box_bounds)
+        y_min = min(box[1][1] for box in box_bounds)
+        x_max = max(box[2][0] for box in box_bounds)
+        y_max = max(box[3][1] for box in box_bounds)
+        print(f"{group_id}: box - {box_bounds}")
 
         merged_groups[group_id] = {
             "panel_id": group["panel_id"],
-            "text_box": [x_min, y_min, x_max, y_max],
+            "text_box": [(x_min, y_min), (x_max, y_min), (x_max, y_max), (x_min, y_max)],
             "ocr_text": group["original_text"],
             "ai_text": group["cleaned_text"],
             "type": group["type"],

@@ -73,10 +73,13 @@ def ocr_annotate_title(title: str, out_dir: str) -> None:
 
 def get_annotated_image_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
     return os.path.join(out_dir, svg_stem + f"-ocr-gemini-annotated{ocr_suffix}.png")
+    #return os.path.join(out_dir, svg_stem + f"-ocr-calculated-annotated{ocr_suffix}.png")
 
 
 def get_ocr_group_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
-    return os.path.join(out_dir, svg_stem + f"-gemini-groups{ocr_suffix}.json")
+    #return os.path.join(out_dir, svg_stem + f"-gemini-groups{ocr_suffix}.json")
+    return os.path.join(out_dir, svg_stem + f"-gemini-final-groups{ocr_suffix}.json")
+    #return os.path.join(out_dir, svg_stem + f"-calculated-groups{ocr_suffix}.json")
 
 
 def ocr_annotate_file(
@@ -107,23 +110,35 @@ def ocr_annotate_file(
 
     for group in jsn_text_data_boxes:
         group_id = int(group)
-        text = " ".join([text_data["accepted_text"] for text_data, _ in jsn_text_data_boxes[group]])
-        print(f'group: {group_id:02} - text: "{text}"')
-        for text_data, dist in jsn_text_data_boxes[group]:
+
+        text_data = jsn_text_data_boxes[group]
+        ocr_box = OcrBox(
+            text_data["text_box"],
+            text_data["ocr_text"],
+            1.0,
+            text_data["ai_text"],
+        )
+        #print(f'group: {group_id:02} - text: "{text_data["ai_text"]}", box: {text_data["text_box"]}')
+        img_rects.rectangle(
+            ocr_box.min_rotated_rectangle, outline=get_color(group_id), width=7
+        )
+
+        for box_id in jsn_text_data_boxes[group]["cleaned_box_texts"]:
+            text_data = jsn_text_data_boxes[group]["cleaned_box_texts"][box_id]
             ocr_box = OcrBox(
-                text_data["box_points"],
-                text_data["ocr_text"],
-                text_data["ocr_prob"],
-                text_data["accepted_text"],
+                text_data["text_box"],
+                text_data["text_frag"],
+                0.0,
+                "N/A",
             )
 
             if ocr_box.is_approx_rect:
                 img_rects.rectangle(
-                    ocr_box.min_rotated_rectangle, outline=get_color(group_id), width=5
+                    ocr_box.min_rotated_rectangle, outline=get_color(group_id), width=4
                 )
             else:
                 box = [item for point in ocr_box.min_rotated_rectangle for item in point]
-                img_rects.polygon(box, outline=get_color(group_id), width=1)
+                img_rects.polygon(box, outline=get_color(group_id), width=2)
 
             text_data_polygons.append(ocr_box)
 

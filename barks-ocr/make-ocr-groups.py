@@ -5,13 +5,13 @@ import sys
 from pathlib import Path
 from typing import List, Tuple, Dict
 
-from ocr.utils.geometry import Rect
-from ocr.utils.ocr_box import OcrBox, save_groups_as_json, load_groups_from_json, get_box_str
+from utils.geometry import Rect
+from utils.ocr_box import OcrBox, save_groups_as_json, load_groups_from_json, get_box_str
 from shapely.geometry import Polygon
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_utils import get_abbrev_path, setup_logging
+from barks_fantagraphics.comics_utils import get_abbrev_path, get_ocr_no_json_suffix, setup_logging
 
 
 def make_ocr_groups_for_titles(titles: List[str], out_dir: str) -> None:
@@ -30,23 +30,30 @@ def make_ocr_groups_for_title(title: str, out_dir: str) -> None:
     ocr_files = comic.get_srce_restored_ocr_story_files(RESTORABLE_PAGE_TYPES)
 
     for svg_file, ocr_file in zip(svg_files, ocr_files):
-        text_box_groups_file = os.path.join(
-            out_dir, Path(svg_file).stem + "-ocr-text-box-groups.txt"
-        )
-        text_box_groups_json_file = os.path.join(
-            out_dir, Path(svg_file).stem + "-ocr-text-box-groups.json"
-        )
-        easyocr_file = ocr_file[0]  # TODO: Use this too
-        paddleocr_file = ocr_file[1]
-        if not make_ocr_groups(paddleocr_file, text_box_groups_file, text_box_groups_json_file):
-            raise Exception("There were process errors.")
+        svg_stem = Path(svg_file).stem
+
+        for ocr_type_file in ocr_file:
+            ocr_suffix = get_ocr_no_json_suffix(ocr_type_file)
+
+            ocr_groups_json_file = get_ocr_groups_json_filename(svg_stem, ocr_suffix, out_dir)
+            ocr_groups_txt_file = get_ocr_groups_txt_filename(svg_stem, ocr_suffix, out_dir)
+            # # ocr_final_data_groups_json_file = get_ocr_final_data_groups_json_filename(
+            # #     svg_stem, ocr_suffix, out_dir
+            # )
+
+            if not make_ocr_groups(ocr_type_file, ocr_groups_json_file, ocr_groups_txt_file):
+                raise Exception("There were process errors.")
 
 
-def make_ocr_groups(
-    ocr_file: str,
-    text_box_groups_file: str,
-    text_box_groups_json_file: str,
-) -> bool:
+def get_ocr_groups_txt_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
+    return os.path.join(out_dir, svg_stem + f"-calculated-groups{ocr_suffix}.txt")
+
+
+def get_ocr_groups_json_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
+    return os.path.join(out_dir, svg_stem + f"-calculated-groups{ocr_suffix}.json")
+
+
+def make_ocr_groups(ocr_file: str, ocr_groups_json_file: str, ocr_groups_txt_file: str) -> bool:
     logging.info(f'Making OCR groups for file "{get_abbrev_path(ocr_file)}"...')
 
     if not os.path.isfile(ocr_file):
@@ -69,13 +76,13 @@ def make_ocr_groups(
 
     groups = make_box_groups(text_data_polygons)
 
-    save_groups_as_json(groups, text_box_groups_json_file)
-    groups = load_groups_from_json(text_box_groups_json_file)
+    save_groups_as_json(groups, ocr_groups_json_file)
+    groups = load_groups_from_json(ocr_groups_json_file)
 
     max_text_len = max([len(t[1]) for t in jsn_text_data_boxes])
     max_acc_text_len = max([len(t[2]) for t in jsn_text_data_boxes])
 
-    with open(text_box_groups_file, "w") as f:
+    with open(ocr_groups_txt_file, "w") as f:
         for group in groups:
             for ocr_box, dist in groups[group]:
                 f.write(
