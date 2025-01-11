@@ -65,24 +65,41 @@ def ocr_annotate_title(title: str, out_dir: str) -> None:
             ocr_suffix = get_ocr_no_json_suffix(ocr_type_file)
 
             ocr_group_file = get_ocr_group_filename(svg_stem, ocr_suffix, out_dir)
-            annotated_img_file = get_annotated_image_filename(svg_stem, ocr_suffix, out_dir)
+            final_text_annotated_img_file = get_final_text_annotated_image_filename(
+                svg_stem, ocr_suffix, out_dir
+            )
+            boxes_annotated_img_file = get_boxes_annotated_image_filename(
+                svg_stem, ocr_suffix, out_dir
+            )
 
-            if not ocr_annotate_file(png_file, ocr_group_file, annotated_img_file):
+            if not ocr_annotate_image_with_final_text(
+                png_file, ocr_group_file, final_text_annotated_img_file
+            ):
+                raise Exception("There were process errors.")
+
+            if not ocr_annotate_image_with_individual_boxes(
+                png_file, ocr_group_file, boxes_annotated_img_file
+            ):
                 raise Exception("There were process errors.")
 
 
-def get_annotated_image_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
-    return os.path.join(out_dir, svg_stem + f"-ocr-gemini-annotated{ocr_suffix}.png")
-    #return os.path.join(out_dir, svg_stem + f"-ocr-calculated-annotated{ocr_suffix}.png")
+def get_final_text_annotated_image_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
+    return os.path.join(out_dir, svg_stem + f"-ocr-gemini-final-text-annotated{ocr_suffix}.png")
+    # return os.path.join(out_dir, svg_stem + f"-ocr-calculated-annotated{ocr_suffix}.png")
+
+
+def get_boxes_annotated_image_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
+    return os.path.join(out_dir, svg_stem + f"-ocr-gemini-boxes-annotated{ocr_suffix}.png")
+    # return os.path.join(out_dir, svg_stem + f"-ocr-calculated-annotated{ocr_suffix}.png")
 
 
 def get_ocr_group_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
-    #return os.path.join(out_dir, svg_stem + f"-gemini-groups{ocr_suffix}.json")
+    # return os.path.join(out_dir, svg_stem + f"-gemini-groups{ocr_suffix}.json")
     return os.path.join(out_dir, svg_stem + f"-gemini-final-groups{ocr_suffix}.json")
-    #return os.path.join(out_dir, svg_stem + f"-calculated-groups{ocr_suffix}.json")
+    # return os.path.join(out_dir, svg_stem + f"-calculated-groups{ocr_suffix}.json")
 
 
-def ocr_annotate_file(
+def ocr_annotate_image_with_final_text(
     png_file: str,
     ocr_file: str,
     annotated_img_file: str,
@@ -97,14 +114,13 @@ def ocr_annotate_file(
         logging.info(f'Found annotation file - skipping: "{annotated_img_file}".')
         return True
 
-    logging.info(f'OCR annotating image "{get_abbrev_path(png_file)}"...')
+    logging.info(f'OCR annotating image with final text: "{get_abbrev_path(png_file)}"...')
 
     with open(ocr_file, "r") as f:
         jsn_text_data_boxes = json.load(f)
 
     bw_image = get_bw_image_from_alpha(png_file)
 
-    text_data_polygons: List[OcrBox] = []
     pil_image = Image.fromarray(cv.merge([bw_image, bw_image, bw_image]))
     img_rects_draw = ImageDraw.Draw(pil_image)
     font_file = "/home/greg/Prj/fonts/verdana.ttf"
@@ -121,7 +137,7 @@ def ocr_annotate_file(
             1.0,
             text_data["ai_text"],
         )
-        #print(f'group: {group_id:02} - text: "{text_data["ai_text"]}", box: {text_data["text_box"]}')
+        # print(f'group: {group_id:02} - text: "{text_data["ai_text"]}", box: {text_data["text_box"]}')
         img_rects_draw.rectangle(
             ocr_box.min_rotated_rectangle, outline=get_color(group_id), width=7, fill="white"
         )
@@ -130,25 +146,57 @@ def ocr_annotate_file(
         top_left = ocr_box.min_rotated_rectangle[0]
         top_left = (top_left[0] + 5, top_left[1] + 5)
         img_rects_draw.text(top_left, text, fill="green", font=font, align="left")
-        #
-        # for box_id in jsn_text_data_boxes[group]["cleaned_box_texts"]:
-        #     text_data = jsn_text_data_boxes[group]["cleaned_box_texts"][box_id]
-        #     ocr_box = OcrBox(
-        #         text_data["text_box"],
-        #         text_data["text_frag"],
-        #         0.0,
-        #         "N/A",
-        #     )
-        #
-        #     if ocr_box.is_approx_rect:
-        #         img_rects_draw.rectangle(
-        #             ocr_box.min_rotated_rectangle, outline=get_color(group_id), width=4
-        #         )
-        #     else:
-        #         box = [item for point in ocr_box.min_rotated_rectangle for item in point]
-        #         img_rects_draw.polygon(box, outline=get_color(group_id), width=2)
-        #
-        #     text_data_polygons.append(ocr_box)
+
+    img_rects_draw._image.save(annotated_img_file)
+
+    return True
+
+
+def ocr_annotate_image_with_individual_boxes(
+    png_file: str,
+    ocr_file: str,
+    annotated_img_file: str,
+) -> bool:
+    if not os.path.isfile(png_file):
+        logging.error(f'Could not find image file "{png_file}".')
+        return False
+    if not os.path.isfile(ocr_file):
+        logging.error(f'Could not find ocr file "{ocr_file}".')
+        return False
+    if os.path.isfile(annotated_img_file):
+        logging.info(f'Found annotation file - skipping: "{annotated_img_file}".')
+        return True
+
+    logging.info(f'OCR annotating image with individual boxes: "{get_abbrev_path(png_file)}"...')
+
+    with open(ocr_file, "r") as f:
+        jsn_text_data_boxes = json.load(f)
+
+    bw_image = get_bw_image_from_alpha(png_file)
+#TODO: All common code above
+
+    pil_image = Image.fromarray(cv.merge([bw_image, bw_image, bw_image]))
+    img_rects_draw = ImageDraw.Draw(pil_image)
+
+    for group in jsn_text_data_boxes:
+        group_id = int(group)
+
+        for box_id in jsn_text_data_boxes[group]["cleaned_box_texts"]:
+            text_data = jsn_text_data_boxes[group]["cleaned_box_texts"][box_id]
+            ocr_box = OcrBox(
+                text_data["text_box"],
+                text_data["text_frag"],
+                0.0,
+                "N/A",
+            )
+
+            if ocr_box.is_approx_rect:
+                img_rects_draw.rectangle(
+                    ocr_box.min_rotated_rectangle, outline=get_color(group_id), width=4
+                )
+            else:
+                box = [item for point in ocr_box.min_rotated_rectangle for item in point]
+                img_rects_draw.polygon(box, outline=get_color(group_id), width=2)
 
     img_rects_draw._image.save(annotated_img_file)
 

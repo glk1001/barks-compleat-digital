@@ -5,11 +5,13 @@ from typing import List, Tuple, Dict
 import numpy as np
 from shapely import MultiPoint
 
+PointList = List[Tuple[float, float]]
+
 
 class OcrBox:
     def __init__(
         self,
-        box_points: List[Tuple[float, float]],
+        box_points: PointList,
         ocr_text: str,
         ocr_prob: float,
         accepted_text: str,
@@ -39,14 +41,14 @@ class OcrBox:
             "accepted_text": self.accepted_text,
         }
 
-    def _get_envelope(self) -> List[Tuple[float, float]]:
+    def _get_envelope(self) -> PointList:
         rect = MultiPoint(self._box_points).envelope
         coords = rect.exterior.coords
         bottom_left = coords[0]
         top_right = coords[2]
         return [bottom_left, top_right]
 
-    def _get_min_rotated_rectangle(self) -> List[Tuple[float, float]]:
+    def _get_min_rotated_rectangle(self) -> PointList:
         rect = MultiPoint(self._box_points).minimum_rotated_rectangle
         coords = rect.exterior.coords
         return [coords[0], coords[1], coords[2], coords[3]]
@@ -108,7 +110,7 @@ def save_groups_as_json(groups: Dict[int, List[Tuple[OcrBox, float]]], file: str
         json.dump(groups, f, indent=4, default=custom_ocr_box)
 
 
-def get_box_str(box_pts: List[Tuple[float, float]]) -> str:
+def get_box_str(box_pts: PointList) -> str:
     assert len(box_pts) == 4
     return (
         f"{round(box_pts[0][0]):04},{round(box_pts[0][1]):04},"

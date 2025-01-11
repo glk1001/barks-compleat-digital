@@ -12,7 +12,7 @@ from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_image_io import get_bw_image_from_alpha
 from barks_fantagraphics.comics_utils import get_abbrev_path, get_ocr_no_json_suffix, setup_logging
 from utils.gemini_ai import get_ai_predicted_groups
-from utils.ocr_box import OcrBox, save_groups_as_json, load_groups_from_json, get_box_str
+from utils.ocr_box import OcrBox, PointList, save_groups_as_json, load_groups_from_json, get_box_str
 from utils.preprocessing import preprocess_image
 
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
@@ -120,9 +120,10 @@ def make_gemini_ai_groups(
     return True
 
 
-def get_ai_final_data(groups, ocr_boxes_with_ids: List[Dict[str, any]]):
-    """Merges Bounds into Text Bubbles, Based on AI Response"""
-    id_to_bound = {bound["text_id"]: bound for bound in ocr_boxes_with_ids}
+def get_ai_final_data(
+    groups: Dict[str, any], ocr_boxes_with_ids: List[Dict[str, any]]
+) -> Dict[int, any]:
+    id_to_bound: Dict[str, PointList] = {bound["text_id"]: bound for bound in ocr_boxes_with_ids}
 
     group_id = 0  # TODO: start from 1
     merged_groups = {}
@@ -130,7 +131,7 @@ def get_ai_final_data(groups, ocr_boxes_with_ids: List[Dict[str, any]]):
         box_ids = group["box_ids"]
         cleaned_box_texts = group["split_cleaned_box_texts"]
 
-        box_bounds = []
+        box_bounds: List[PointList] = []
         box_texts = {}
         for box_id in box_ids:
             box = id_to_bound[box_id]["text_box"]
@@ -140,15 +141,11 @@ def get_ai_final_data(groups, ocr_boxes_with_ids: List[Dict[str, any]]):
             box_texts[box_id] = {"text_frag": cleaned_box_text, "text_box": box}
 
         assert box_bounds
-        x_min = min(box[0][0] for box in box_bounds)
-        y_min = min(box[1][1] for box in box_bounds)
-        x_max = max(box[2][0] for box in box_bounds)
-        y_max = max(box[3][1] for box in box_bounds)
         print(f"{group_id}: box - {box_bounds}")
 
         merged_groups[group_id] = {
             "panel_id": group["panel_id"],
-            "text_box": [(x_min, y_min), (x_max, y_min), (x_max, y_max), (x_min, y_max)],
+            "text_box": get_enclosing_box(box_bounds),
             "ocr_text": group["original_text"],
             "ai_text": group["cleaned_text"],
             "type": group["type"],
@@ -162,13 +159,22 @@ def get_ai_final_data(groups, ocr_boxes_with_ids: List[Dict[str, any]]):
     return merged_groups
 
 
+def get_enclosing_box(boxes: List[PointList]) -> PointList:
+    x_min = min(box[0][0] for box in boxes)
+    y_min = min(box[1][1] for box in boxes)
+    x_max = max(box[2][0] for box in boxes)
+    y_max = max(box[3][1] for box in boxes)
+
+    return [(x_min, y_min), (x_max, y_min), (x_max, y_max), (x_min, y_max)]
+
+
 def get_text_groups(
-    ocr_merged_data, ocr_bound_ids: List[Dict[str, any]]
-) -> Dict[int, List[Tuple[OcrBox, float]]]:
+    ocr_merged_data: Dict[int, any], ocr_bound_ids: List[Dict[str, any]]
+) -> Dict[int, List[Tuple[any, float]]]:
     groups = {}
 
     for group_id in ocr_merged_data:
-        dist = 0
+        dist = 0.0
 
         group_id = int(group_id)
         ocr_data = ocr_merged_data[group_id]
@@ -189,7 +195,7 @@ def get_text_groups(
     return groups
 
 
-def write_groups_to_text_file(file: str, groups) -> None:
+def write_groups_to_text_file(file: str, groups: Dict[int, any]) -> None:
     max_text_len = 0
     max_acc_text_len = 0
     for group in groups:
