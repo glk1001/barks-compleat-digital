@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List
 
 import cv2 as cv
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
@@ -106,7 +106,10 @@ def ocr_annotate_file(
 
     text_data_polygons: List[OcrBox] = []
     pil_image = Image.fromarray(cv.merge([bw_image, bw_image, bw_image]))
-    img_rects = ImageDraw.Draw(pil_image)
+    img_rects_draw = ImageDraw.Draw(pil_image)
+    font_file = "/home/greg/Prj/fonts/verdana.ttf"
+    font_size = 25
+    font = ImageFont.truetype(font_file, font_size)
 
     for group in jsn_text_data_boxes:
         group_id = int(group)
@@ -119,30 +122,35 @@ def ocr_annotate_file(
             text_data["ai_text"],
         )
         #print(f'group: {group_id:02} - text: "{text_data["ai_text"]}", box: {text_data["text_box"]}')
-        img_rects.rectangle(
-            ocr_box.min_rotated_rectangle, outline=get_color(group_id), width=7
+        img_rects_draw.rectangle(
+            ocr_box.min_rotated_rectangle, outline=get_color(group_id), width=7, fill="white"
         )
 
-        for box_id in jsn_text_data_boxes[group]["cleaned_box_texts"]:
-            text_data = jsn_text_data_boxes[group]["cleaned_box_texts"][box_id]
-            ocr_box = OcrBox(
-                text_data["text_box"],
-                text_data["text_frag"],
-                0.0,
-                "N/A",
-            )
+        text = text_data["ai_text"]
+        top_left = ocr_box.min_rotated_rectangle[0]
+        top_left = (top_left[0] + 5, top_left[1] + 5)
+        img_rects_draw.text(top_left, text, fill="green", font=font, align="left")
+        #
+        # for box_id in jsn_text_data_boxes[group]["cleaned_box_texts"]:
+        #     text_data = jsn_text_data_boxes[group]["cleaned_box_texts"][box_id]
+        #     ocr_box = OcrBox(
+        #         text_data["text_box"],
+        #         text_data["text_frag"],
+        #         0.0,
+        #         "N/A",
+        #     )
+        #
+        #     if ocr_box.is_approx_rect:
+        #         img_rects_draw.rectangle(
+        #             ocr_box.min_rotated_rectangle, outline=get_color(group_id), width=4
+        #         )
+        #     else:
+        #         box = [item for point in ocr_box.min_rotated_rectangle for item in point]
+        #         img_rects_draw.polygon(box, outline=get_color(group_id), width=2)
+        #
+        #     text_data_polygons.append(ocr_box)
 
-            if ocr_box.is_approx_rect:
-                img_rects.rectangle(
-                    ocr_box.min_rotated_rectangle, outline=get_color(group_id), width=4
-                )
-            else:
-                box = [item for point in ocr_box.min_rotated_rectangle for item in point]
-                img_rects.polygon(box, outline=get_color(group_id), width=2)
-
-            text_data_polygons.append(ocr_box)
-
-    img_rects._image.save(annotated_img_file)
+    img_rects_draw._image.save(annotated_img_file)
 
     return True
 
