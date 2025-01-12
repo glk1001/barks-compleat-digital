@@ -22,10 +22,10 @@ def get_ai_predicted_groups(image: Image, ocr_results: List[Dict[str, any]], api
 
     # cleaned = text.replace(r'\"', '"')
     cleaned = text.replace(r"\'", "'")
-    # cleaned = cleaned.replace('\n', '\\n')
+#    cleaned = cleaned.replace(r"\\n", "\n")
     with open("/tmp/prelim-cleaned.json", "w") as f:
         f.write(cleaned)
-    data = json.loads(cleaned)
+    data = json.loads(cleaned, strict=False)
 
     return data
 
@@ -36,7 +36,6 @@ def _norm2ai(bounds: List[Dict[str, any]], height: int, width: int):
 
     for bound in norm_bounds:
         box = bound["text_box"]
-        print(box)
         norm_box = []
         for xy in box:
             x = int((xy[0] / width) * 1000)

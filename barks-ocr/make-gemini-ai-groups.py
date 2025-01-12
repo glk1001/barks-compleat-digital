@@ -13,6 +13,7 @@ from barks_fantagraphics.comics_image_io import get_bw_image_from_alpha
 from barks_fantagraphics.comics_utils import get_abbrev_path, get_ocr_no_json_suffix, setup_logging
 from utils.gemini_ai import get_ai_predicted_groups
 from utils.ocr_box import OcrBox, PointList, save_groups_as_json, load_groups_from_json, get_box_str
+from utils.common import ProcessResult
 from utils.preprocessing import preprocess_image
 
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
@@ -33,28 +34,55 @@ def make_gemini_ai_groups_for_title(title: str, out_dir: str) -> None:
     svg_files = comic.get_srce_restored_svg_story_files(RESTORABLE_PAGE_TYPES)
     ocr_files = comic.get_srce_restored_ocr_story_files(RESTORABLE_PAGE_TYPES)
 
+    num_files_processed = 0
     for svg_file, ocr_file in zip(svg_files, ocr_files):
         svg_stem = Path(svg_file).stem
 
         for ocr_type_file in ocr_file:
             ocr_suffix = get_ocr_no_json_suffix(ocr_type_file)
 
-            ocr_final_data_groups_json_file = get_ocr_final_data_groups_json_filename(
+            ocr_final_groups_json_file = get_ocr_final_groups_json_filename(
                 svg_stem, ocr_suffix, out_dir
             )
             ocr_groups_json_file = get_ocr_groups_json_filename(svg_stem, ocr_suffix, out_dir)
             ocr_groups_txt_file = get_ocr_groups_txt_filename(svg_stem, ocr_suffix, out_dir)
 
-            if not make_gemini_ai_groups(
+            result = make_gemini_ai_groups(
                 svg_file,
                 ocr_type_file,
-                ocr_final_data_groups_json_file,
+                ocr_final_groups_json_file,
                 ocr_groups_json_file,
                 ocr_groups_txt_file,
-            ):
-                raise Exception("There were process errors.")
+            )
 
-        break  # for testing
+            if result == ProcessResult.FAILURE:
+                raise Exception("There were process errors.")
+                # pass
+            if result == ProcessResult.SUCCESS:
+                num_files_processed += 1
+
+
+def get_ocr_data(ocr_file: str) -> List[Dict[str, any]]:
+    with open(ocr_file, "r") as f:
+        ocr_raw_results = json.load(f)
+
+    ocr_data = []
+    for result in ocr_raw_results:
+        box = result[0]
+        ocr_text = result[1]
+        accepted_text = result[2]
+        ocr_prob = result[3]
+
+        assert len(box) == 8
+        text_box = [(box[0], box[1]), (box[2], box[3]), (box[4], box[5]), (box[6], box[7])]
+
+        ocr_data.append({"text_box": text_box, "text": accepted_text, "prob": ocr_prob})
+
+    return ocr_data
+
+
+def assign_ids_to_ocr_boxes(bounds: List[Dict[str, any]]) -> List[Dict[str, any]]:
+    return [{**bound, "text_id": str(i)} for i, bound in enumerate(bounds)]
 
 
 def get_ocr_groups_txt_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
@@ -65,7 +93,7 @@ def get_ocr_groups_json_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str
     return os.path.join(out_dir, svg_stem + f"-gemini-groups{ocr_suffix}.json")
 
 
-def get_ocr_final_data_groups_json_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
+def get_ocr_final_groups_json_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
     return os.path.join(out_dir, svg_stem + f"-gemini-final-groups{ocr_suffix}.json")
 
 
@@ -75,20 +103,20 @@ def make_gemini_ai_groups(
     ocr_final_data_groups_json_file,
     ocr_groups_json_file: str,
     ocr_groups_txt_file: str,
-) -> bool:
+) -> ProcessResult:
     image_name = Path(svg_file).stem
     png_file = svg_file + ".png"
 
     if not os.path.isfile(png_file):
         logging.error(f'Could not find png file "{png_file}".')
-        return False
+        return ProcessResult.FAILURE
     if not os.path.isfile(ocr_file):
         logging.error(f'Could not find ocr file "{ocr_file}".')
-        return False
+        return ProcessResult.FAILURE
 
     if os.path.isfile(ocr_groups_json_file):
         logging.info(f'Found groups file - skipping: "{ocr_groups_json_file}".')
-        return False
+        return ProcessResult.SKIPPED
 
     logging.info(f'Making Gemini AI OCR groups for file "{get_abbrev_path(png_file)}"...')
     logging.info(f'Using OCR file "{get_abbrev_path(ocr_file)}"...')
@@ -106,7 +134,7 @@ def make_gemini_ai_groups(
         json.dump(ai_predicted_groups, f, indent=4)
 
     # Merge boxes into text bubbles
-    ai_final_data = get_ai_final_data(ai_predicted_groups, ocr_bound_ids)
+    ai_final_data = get_final_ai_data(ai_predicted_groups, ocr_bound_ids)
     with open(ocr_final_data_groups_json_file, "w") as f:
         json.dump(ai_final_data, f, indent=4)
 
@@ -117,10 +145,10 @@ def make_gemini_ai_groups(
 
     write_groups_to_text_file(ocr_groups_txt_file, groups)
 
-    return True
+    return ProcessResult.SUCCESS
 
 
-def get_ai_final_data(
+def get_final_ai_data(
     groups: Dict[str, any], ocr_boxes_with_ids: List[Dict[str, any]]
 ) -> Dict[int, any]:
     id_to_bound: Dict[str, PointList] = {bound["text_id"]: bound for bound in ocr_boxes_with_ids}
@@ -141,7 +169,7 @@ def get_ai_final_data(
             box_texts[box_id] = {"text_frag": cleaned_box_text, "text_box": box}
 
         assert box_bounds
-        print(f"{group_id}: box - {box_bounds}")
+        #print(f"{group_id}: box - {box_bounds}")
 
         merged_groups[group_id] = {
             "panel_id": group["panel_id"],
@@ -215,31 +243,7 @@ def write_groups_to_text_file(file: str, groups: Dict[int, any]) -> None:
                 )
 
 
-def get_ocr_data(ocr_file: str) -> List[Dict[str, any]]:
-    with open(ocr_file, "r") as f:
-        ocr_raw_results = json.load(f)
-
-    ocr_data = []
-    for result in ocr_raw_results:
-        box = result[0]
-        ocr_text = result[1]
-        accepted_text = result[2]
-        ocr_prob = result[3]
-
-        assert len(box) == 8
-        text_box = [(box[0], box[1]), (box[2], box[3]), (box[4], box[5]), (box[6], box[7])]
-
-        ocr_data.append({"text_box": text_box, "text": accepted_text, "prob": ocr_prob})
-
-    return ocr_data
-
-
-def assign_ids_to_ocr_boxes(bounds: List[Dict[str, any]]) -> List[Dict[str, any]]:
-    return [{**bound, "text_id": str(i)} for i, bound in enumerate(bounds)]
-
-
 if __name__ == "__main__":
-
     cmd_args = CmdArgs(
         "Make Gemini AI OCR groups for title",
         CmdArgNames.VOLUME | CmdArgNames.TITLE | CmdArgNames.WORK_DIR,

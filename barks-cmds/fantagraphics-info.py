@@ -154,8 +154,8 @@ for title, issue_title_info in zip(titles, issue_titles_info):
     is_configured = issue_title_info[1]
 
     if not is_configured:
-        fixes_flag = "*"
-        restored_or_upscayled_flag = " "
+        fixes_flag = " "
+        restored_or_upscayled_flag = "*"
         panel_bounds_or_built_flag = " "
         page_list = " "
     else:

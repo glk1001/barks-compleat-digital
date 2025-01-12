@@ -1,5 +1,5 @@
 import os
-from enum import Enum
+from enum import Enum, auto
 from pathlib import Path
 
 BARKS = "Carl Barks"
@@ -23,18 +23,18 @@ INSET_FILE_EXT = ".png"
 
 
 class PageType(Enum):
-    FRONT = 1
-    TITLE = 2
-    COVER = 3
-    SPLASH = 4
-    SPLASH_NO_BORDER = 5
-    PAINTING = 6
-    PAINTING_NO_BORDER = 7
-    FRONT_MATTER = 8
-    BODY = 9
-    BACK_MATTER = 10
-    BACK_NO_PANELS = 11
-    BLANK_PAGE = 12
+    FRONT = auto()
+    TITLE = auto()
+    COVER = auto()
+    SPLASH = auto()
+    SPLASH_NO_BORDER = auto()
+    PAINTING = auto()
+    PAINTING_NO_BORDER = auto()
+    FRONT_MATTER = auto()
+    BODY = auto()
+    BACK_MATTER = auto()
+    BACK_NO_PANELS = auto()
+    BLANK_PAGE = auto()
 
 
 RESTORABLE_PAGE_TYPES = [

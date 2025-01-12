@@ -15,6 +15,7 @@ from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_image_io import get_bw_image_from_alpha
 from barks_fantagraphics.comics_utils import get_abbrev_path, get_ocr_no_json_suffix, setup_logging
+from utils.common import ProcessResult
 from utils.preprocessing import preprocess_image
 
 REJECTED_WORDS = ["F", "H", "M", "W", "OO", "VV", "|", "L", "\\", "IY"]
@@ -34,36 +35,37 @@ spell_dict = enchant.DictWithPWL("en_US", BARKS_OCR_SPELL_DICT)
 def ocr_titles(title_list: List[str]) -> None:
     start = time.time()
 
-    num_png_files = 0
+    num_files_processed = 0
     for title in title_list:
         logging.info(f'OCRing all pages in "{title}"...')
 
         comic = comics_database.get_comic_book(title)
 
         srce_files = comic.get_srce_restored_svg_story_files(RESTORABLE_PAGE_TYPES)
-        dest_files = comic.get_srce_restored_ocr_story_files(RESTORABLE_PAGE_TYPES)
+        dest_file_groups = comic.get_srce_restored_ocr_story_files(RESTORABLE_PAGE_TYPES)
 
-        for srce_file, dest_file in zip(srce_files, dest_files):
-            if not ocr_comic_page(srce_file, dest_file):
-                # raise Exception("There were process errors.")
-                pass
+        for srce_file, dest_files in zip(srce_files, dest_file_groups):
+            result = ocr_comic_page(srce_file, dest_files)
+            if result == ProcessResult.FAILURE:
+                raise Exception("There were process errors.")
+                # pass
+            if result == ProcessResult.SUCCESS:
+                num_files_processed += 1
 
-        num_png_files += len(srce_files)
-
-    logging.info(f"Time taken to OCR all {num_png_files} files: {int(time.time() - start)}s.")
+    logging.info(f"Time taken to OCR all {num_files_processed} files: {int(time.time() - start)}s.")
 
 
-def ocr_comic_page(svg_file: str, ocr_json_files: Tuple[str, str]) -> bool:
+def ocr_comic_page(svg_file: str, ocr_json_files: Tuple[str, str]) -> ProcessResult:
     png_file = svg_file + ".png"
 
     if not os.path.isfile(png_file):
         logging.error(f'Could not find png file "{png_file}".')
-        return False
+        return ProcessResult.FAILURE
 
     if all([os.path.isfile(f) for f in ocr_json_files]):
         for ocr_json_file in ocr_json_files:
             logging.info(f'OCR file exists - skipping: "{get_abbrev_path(ocr_json_file)}".')
-        return True
+        return ProcessResult.SKIPPED
 
     svg_stem = Path(svg_file).stem
     grey_image_file = os.path.join(work_dir, svg_stem + "-grey.png")
@@ -89,7 +91,7 @@ def ocr_comic_page(svg_file: str, ocr_json_files: Tuple[str, str]) -> bool:
         with open(os.path.join(ocr_json_file), "w") as f:
             json.dump(text_data_boxes, f, indent=4)
 
-    return True
+    return ProcessResult.SUCCESS
 
 
 def make_grey_image(png_file: str, out_grey_file: str) -> None:
@@ -260,7 +262,6 @@ def get_box_str(box: List[int]) -> str:
 
 
 if __name__ == "__main__":
-
     cmd_args = CmdArgs("Ocr titles", CmdArgNames.TITLE | CmdArgNames.VOLUME)
     args_ok, error_msg = cmd_args.args_are_valid()
     if not args_ok:
