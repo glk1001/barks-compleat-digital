@@ -12,6 +12,7 @@ from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_image_io import get_bw_image_from_alpha
 from barks_fantagraphics.comics_utils import get_abbrev_path, get_ocr_no_json_suffix, setup_logging
 from utils.gemini_ai import get_ai_predicted_groups
+from utils.geometry import Rect
 from utils.ocr_box import OcrBox, PointList, save_groups_as_json, load_groups_from_json, get_box_str
 from utils.common import ProcessResult
 from utils.preprocessing import preprocess_image
@@ -33,9 +34,10 @@ def make_gemini_ai_groups_for_title(title: str, out_dir: str) -> None:
     comic = comics_database.get_comic_book(title)
     svg_files = comic.get_srce_restored_svg_story_files(RESTORABLE_PAGE_TYPES)
     ocr_files = comic.get_srce_restored_ocr_story_files(RESTORABLE_PAGE_TYPES)
+    panel_segments_files = comic.get_srce_panel_segments_files(RESTORABLE_PAGE_TYPES)
 
     num_files_processed = 0
-    for svg_file, ocr_file in zip(svg_files, ocr_files):
+    for svg_file, ocr_file, panel_segments_file in zip(svg_files, ocr_files, panel_segments_files):
         svg_stem = Path(svg_file).stem
 
         for ocr_type_file in ocr_file:
@@ -50,6 +52,7 @@ def make_gemini_ai_groups_for_title(title: str, out_dir: str) -> None:
             result = make_gemini_ai_groups(
                 svg_file,
                 ocr_type_file,
+                panel_segments_file,
                 ocr_final_groups_json_file,
                 ocr_groups_json_file,
                 ocr_groups_txt_file,
@@ -60,6 +63,8 @@ def make_gemini_ai_groups_for_title(title: str, out_dir: str) -> None:
                 # pass
             if result == ProcessResult.SUCCESS:
                 num_files_processed += 1
+
+        break
 
 
 def get_ocr_data(ocr_file: str) -> List[Dict[str, any]]:
@@ -100,6 +105,7 @@ def get_ocr_final_groups_json_filename(svg_stem: str, ocr_suffix, out_dir: str) 
 def make_gemini_ai_groups(
     svg_file: str,
     ocr_file: str,
+    panel_segments_file: str,
     ocr_final_data_groups_json_file,
     ocr_groups_json_file: str,
     ocr_groups_txt_file: str,
@@ -134,7 +140,7 @@ def make_gemini_ai_groups(
         json.dump(ai_predicted_groups, f, indent=4)
 
     # Merge boxes into text bubbles
-    ai_final_data = get_final_ai_data(ai_predicted_groups, ocr_bound_ids)
+    ai_final_data = get_final_ai_data(ai_predicted_groups, ocr_bound_ids, panel_segments_file)
     with open(ocr_final_data_groups_json_file, "w") as f:
         json.dump(ai_final_data, f, indent=4)
 
@@ -149,9 +155,13 @@ def make_gemini_ai_groups(
 
 
 def get_final_ai_data(
-    groups: Dict[str, any], ocr_boxes_with_ids: List[Dict[str, any]]
+    groups: Dict[str, any], ocr_boxes_with_ids: List[Dict[str, any]], panel_segments_file: str
 ) -> Dict[int, any]:
     id_to_bound: Dict[str, PointList] = {bound["text_id"]: bound for bound in ocr_boxes_with_ids}
+
+    logging.info(f'Loading panel segments file "{get_abbrev_path(panel_segments_file)}".')
+    with open(panel_segments_file, "r") as f:
+        panel_segment_info = json.load(f)
 
     group_id = 0  # TODO: start from 1
     merged_groups = {}
@@ -169,11 +179,15 @@ def get_final_ai_data(
             box_texts[box_id] = {"text_frag": cleaned_box_text, "text_box": box}
 
         assert box_bounds
-        #print(f"{group_id}: box - {box_bounds}")
+        # print(f"{group_id}: box - {box_bounds}")
+
+        enclosing_box = get_enclosing_box(box_bounds)
+        panel_num = get_enclosing_panel_num(enclosing_box, panel_segment_info)
 
         merged_groups[group_id] = {
             "panel_id": group["panel_id"],
-            "text_box": get_enclosing_box(box_bounds),
+            "panel_num": panel_num,
+            "text_box": enclosing_box,
             "ocr_text": group["original_text"],
             "ai_text": group["cleaned_text"],
             "type": group["type"],
@@ -194,6 +208,28 @@ def get_enclosing_box(boxes: List[PointList]) -> PointList:
     y_max = max(box[3][1] for box in boxes)
 
     return [(x_min, y_min), (x_max, y_min), (x_max, y_max), (x_min, y_max)]
+
+
+def get_enclosing_panel_num(box: PointList, panel_segment_info) -> int:
+    ocr_box = OcrBox(box, "", 0, "")
+    box = ocr_box.min_rotated_rectangle
+    bottom_left = box[0]
+    top_right = box[1]
+    box_rect = Rect(
+        bottom_left[0], bottom_left[1], top_right[0] - bottom_left[0], top_right[1] - bottom_left[1]
+    )
+
+    for i, panel_box in enumerate(panel_segment_info["panels"]):
+        top_left_x = panel_box[0]
+        top_left_y = panel_box[1]
+        w = panel_box[2]
+        h = panel_box[3]
+        print(panel_box, top_left_x, top_left_y, w, h)
+        panel_rect = Rect(top_left_x, top_left_y, w, h)
+        if panel_rect.is_rect_inside_rect(box_rect):
+            return i + 1
+
+    return -1
 
 
 def get_text_groups(

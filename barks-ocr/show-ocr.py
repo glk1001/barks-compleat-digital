@@ -56,8 +56,9 @@ def ocr_annotate_title(title: str, out_dir: str) -> None:
     comic = comics_database.get_comic_book(title)
     svg_files = comic.get_srce_restored_svg_story_files(RESTORABLE_PAGE_TYPES)
     ocr_files = comic.get_srce_restored_ocr_story_files(RESTORABLE_PAGE_TYPES)
+    panel_segments_files = comic.get_srce_panel_segments_files(RESTORABLE_PAGE_TYPES)
 
-    for svg_file, ocr_file in zip(svg_files, ocr_files):
+    for svg_file, ocr_file, panel_segments_file in zip(svg_files, ocr_files, panel_segments_files):
         svg_stem = Path(svg_file).stem
         png_file = svg_file + PNG_FILE_EXT
 
@@ -76,6 +77,9 @@ def ocr_annotate_title(title: str, out_dir: str) -> None:
             ocr_annotate_image_with_individual_boxes(
                 png_file, ocr_group_file, boxes_annotated_image_file
             )
+
+            annotate_image_with_panel_bounds(panel_segments_file, final_text_annotated_image_file)
+            annotate_image_with_panel_bounds(panel_segments_file, boxes_annotated_image_file)
 
 
 def get_final_text_annotated_filename(svg_stem: str, ocr_suffix, out_dir: str) -> str:
@@ -111,6 +115,55 @@ def get_json_text_data_boxes(ocr_file: str) -> Dict[str, any]:
     return json_text_data_boxes
 
 
+def annotate_image_with_panel_bounds(
+    panel_segments_file: str,
+    annotated_img_file: str,
+) -> None:
+    if not os.path.isfile(annotated_img_file):
+        raise Exception(f'Could not find image file "{annotated_img_file}".')
+
+    write_bounds_to_image_file(annotated_img_file, panel_segments_file, annotated_img_file)
+
+
+# TODO: Duplicated from show-panel-bounds
+def write_bounds_to_image_file(
+    png_file: str, panel_segments_file: str, bounds_img_file: str
+) -> bool:
+    logging.info(f'Writing bounds for image "{get_abbrev_path(png_file)}"...')
+
+    if not os.path.isfile(png_file):
+        logging.error(f'Could not find image file "{png_file}".')
+        return False
+    if not os.path.isfile(panel_segments_file):
+        logging.error(f'Could not find panel segments file "{panel_segments_file}".')
+        return False
+
+    logging.info(f'Loading panel segments file "{get_abbrev_path(panel_segments_file)}".')
+    with open(panel_segments_file, "r") as f:
+        panel_segment_info = json.load(f)
+
+    pil_image = Image.open(png_file)
+    assert pil_image.size[0] == panel_segment_info["size"][0]
+    assert pil_image.size[1] == panel_segment_info["size"][1]
+
+    img_rects = ImageDraw.Draw(pil_image)
+    for box in panel_segment_info["panels"]:
+        x0 = box[0]
+        y0 = box[1]
+        w = box[2]
+        h = box[3]
+        x1 = x0 + (w - 1)
+        y1 = y0 + (h - 1)
+        img_rects.rectangle([x0, y0, x1, y1], outline="green", width=10)
+
+    # x_min, y_min, x_max, y_max = get_min_max_panel_values(panel_segment_info)
+    # img_rects.rectangle([x_min, y_min, x_max, y_max], outline="red", width=2)
+
+    img_rects._image.save(bounds_img_file)
+
+    return True
+
+
 def ocr_annotate_image_with_final_text(
     png_file: str,
     ocr_file: str,
@@ -141,18 +194,42 @@ def ocr_annotate_image_with_final_text(
             1.0,
             text_data["ai_text"],
         )
-        print(f'group: {group_id:02} - text: "{text_data["ai_text"]}",'
-              f' box: {text_data["text_box"]}, approx: {ocr_box.is_approx_rect}, rect: {ocr_box.min_rotated_rectangle}')
+        print(
+            f'group: {group_id:02} - text: "{text_data["ai_text"]}",'
+            f' box: {text_data["text_box"]}, approx: {ocr_box.is_approx_rect}, rect: {ocr_box.min_rotated_rectangle}'
+        )
         img_rects_draw.rectangle(
-            ocr_box.min_rotated_rectangle, outline=get_color(group_id), width=7, fill="white"
+            ocr_box.min_rotated_rectangle, outline="orchid", width=7, fill="white"
         )
 
-        text = text_data["ai_text"]
+        text = f'{text_data["ai_text"]}'
         top_left = ocr_box.min_rotated_rectangle[0]
-        top_left = (top_left[0] + 5, top_left[1] + 5)
-        img_rects_draw.text(top_left, text, fill="green", font=font, align="left")
+        top_left = (top_left[0] + 60, top_left[1] + 5)
+        img_rects_draw.text(top_left, text, fill="red", font=font, align="left")
+
+        panel_num = text_data["panel_num"]
+        if panel_num != -1:
+            info_text = f'{panel_num}:{get_text_type_abbrev(text_data["type"])}'
+            top_left = ocr_box.min_rotated_rectangle[0]
+            top_left = (top_left[0] + 10, top_left[1] - 15)
+            info_box = img_rects_draw.textbbox(top_left, info_text, font=font, align="left")
+            img_rects_draw.rectangle(info_box, fill="white")
+            img_rects_draw.text(top_left, info_text, fill="blue", font=font, align="left")
 
     img_rects_draw._image.save(annotated_img_file)
+
+
+def get_text_type_abbrev(text_type: str) -> str:
+    if text_type == "narration":
+        return "n"
+    if text_type == "background":
+        return "b"
+    if text_type == "dialogue":
+        return "s"
+    if text_type == "think":
+        return "t"
+
+    return "?"
 
 
 def ocr_annotate_image_with_individual_boxes(

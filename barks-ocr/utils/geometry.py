@@ -114,6 +114,18 @@ class Rect:
     def is_point_inside_rect(self, point):
         return self.l_top.x <= point.x <= self.r_top.x and self.l_top.y <= point.y <= self.l_bot.y
 
+        #  _____________
+        # |     ______  |
+        # |    |      | |
+        # |    |______| |
+        # |_____________|
+
+    def is_rect_inside_rect(self, rect):
+        for corner in rect:
+            if not self.is_point_inside_rect(corner):
+                return False
+        return True
+
         #  ______
         # |     _|____
         # |____|      |
