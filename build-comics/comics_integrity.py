@@ -54,11 +54,14 @@ def check_comics_integrity(comics_db: ComicsDatabase, titles: List[str]) -> int:
     if check_ini_files_match_series_info(comics_db) != 0:
         return 1
 
+    ret_code = 0
+
     if check_no_unexpected_files(comics_db) != 0:
-        return 1
+        ret_code = 1
 
     if not titles:
-        ret_code = check_all_titles(comics_db)
+        if ret_code != 0:
+            ret_code = check_all_titles(comics_db)
     else:
         ret_code = 0
         for title in titles:
@@ -101,6 +104,7 @@ class OutOfDateErrors:
     srce_and_dest_files_missing: List[Tuple[str, str]]
     srce_and_dest_files_out_of_date: List[Tuple[str, str]]
     unexpected_dest_image_files: List[str]
+    unexpected_errors: List[str]
     zip_errors: ZipOutOfDateErrors
     series_zip_symlink_errors: ZipSymlinkOutOfDateErrors
     year_zip_symlink_errors: ZipSymlinkOutOfDateErrors
@@ -119,6 +123,7 @@ def make_out_of_date_errors(title: str, ini_file: str) -> OutOfDateErrors:
         srce_and_dest_files_out_of_date=[],
         srce_and_dest_files_missing=[],
         unexpected_dest_image_files=[],
+        unexpected_errors=[],
         zip_errors=ZipOutOfDateErrors(),
         series_zip_symlink_errors=ZipSymlinkOutOfDateErrors(),
         year_zip_symlink_errors=ZipSymlinkOutOfDateErrors(),
@@ -516,8 +521,10 @@ def check_ini_files_match_series_info(comics_db: ComicsDatabase) -> int:
     ret_code = 0
 
     for volume in range(FIRST_VOLUME_NUMBER, LAST_VOLUME_NUMBER + 1):
-        ini_titles = set(comics_db.get_configured_titles_in_fantagraphics_volumes([volume]))
-        series_info_titles = set(comics_db.get_all_titles_in_fantagraphics_volumes([volume]))
+        titles_and_info = comics_db.get_configured_titles_in_fantagraphics_volumes([volume])
+        ini_titles = set([t[0] for t in titles_and_info])
+        titles_and_info = comics_db.get_all_titles_in_fantagraphics_volumes([volume])
+        series_info_titles = set([t[0] for t in titles_and_info])
         for ini_title in ini_titles:
             if ini_title not in series_info_titles:
                 print(
@@ -610,6 +617,7 @@ def check_out_of_date_files(comic: ComicBook) -> int:
         or len(out_of_date_errors.srce_and_dest_files_out_of_date) > 0
         or len(out_of_date_errors.dest_dir_files_missing) > 0
         or len(out_of_date_errors.unexpected_dest_image_files) > 0
+        or len(out_of_date_errors.unexpected_errors) > 0
         or out_of_date_errors.zip_errors.missing
         or out_of_date_errors.series_zip_symlink_errors.missing
         or out_of_date_errors.year_zip_symlink_errors.missing
@@ -634,12 +642,20 @@ def check_out_of_date_files(comic: ComicBook) -> int:
 def check_srce_and_dest_files(comic: ComicBook, errors: OutOfDateErrors) -> None:
     errors.max_srce_timestamp = 0.0
     errors.max_dest_timestamp = 0.0
-    errors.num_missing_dest_files = 0
-    errors.num_out_of_date_dest_files = 0
     errors.srce_and_dest_files_missing = []
     errors.srce_and_dest_files_out_of_date = []
+    errors.unexpected_errors = []
 
-    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
+    inset_file = comic.intro_inset_file
+    if not os.path.isfile(inset_file):
+        errors.unexpected_errors.append(f'Inset file not found: "{inset_file}"')
+        return
+
+    try:
+        srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
+    except Exception as e:
+        errors.unexpected_errors.append(str(e))
+        return
 
     check_missing_or_out_of_date_dest_files(comic, srce_and_dest_pages, errors)
     check_unexpected_dest_image_files(comic, srce_and_dest_pages, errors)
@@ -873,6 +889,7 @@ def print_check_errors(errors: OutOfDateErrors) -> None:
         or len(errors.srce_and_dest_files_out_of_date) > 0
         or len(errors.dest_dir_files_missing) > 0
         or len(errors.dest_dir_files_out_of_date) > 0
+        or len(errors.unexpected_errors) > 0
     ):
         print_out_of_date_or_missing_errors(errors)
 
@@ -1052,17 +1069,22 @@ def print_out_of_date_or_missing_errors(errors: OutOfDateErrors) -> None:
         print()
 
     if len(errors.dest_dir_files_missing) > 0:
-        for file in errors.dest_dir_files_missing:
-            print(f'{ERROR_MSG_PREFIX}The dest file "{file}" is missing.')
+        for err_msg in errors.dest_dir_files_missing:
+            print(f'{ERROR_MSG_PREFIX}The dest file "{err_msg}" is missing.')
         print()
 
     if len(errors.dest_dir_files_out_of_date) > 0:
-        for file in errors.dest_dir_files_out_of_date:
+        for err_msg in errors.dest_dir_files_out_of_date:
             print(
                 get_file_out_of_date_wrt_max_timestamp_msg(
-                    file, errors.max_dest_timestamp, ERROR_MSG_PREFIX
+                    err_msg, errors.max_dest_timestamp, ERROR_MSG_PREFIX
                 )
             )
+        print()
+
+    if len(errors.unexpected_errors) > 0:
+        for err_msg in errors.unexpected_errors:
+            print(f'{ERROR_MSG_PREFIX} For "{errors.title}", unexpected error: {err_msg}.')
         print()
 
     if (

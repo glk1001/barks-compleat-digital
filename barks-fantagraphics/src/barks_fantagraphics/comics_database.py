@@ -308,7 +308,10 @@ class ComicsDatabase:
     def make_all_fantagraphics_directories(self) -> None:
         for volume in range(FIRST_VOLUME_NUMBER, LAST_VOLUME_NUMBER + 1):
             # Create these directories if they're already not there.
+            self._make_vol_dirs(self.get_fantagraphics_upscayled_volume_image_dir(volume))
             self._make_vol_dirs(self.get_fantagraphics_restored_volume_image_dir(volume))
+            self._make_vol_dirs(self.get_fantagraphics_restored_upscayled_volume_image_dir(volume))
+            self._make_vol_dirs(self.get_fantagraphics_restored_svg_volume_image_dir(volume))
             self._make_vol_dirs(self.get_fantagraphics_restored_ocr_volume_dir(volume))
             self._make_vol_dirs(self.get_fantagraphics_fixes_volume_image_dir(volume))
             self._make_vol_dirs(self.get_fantagraphics_upscayled_fixes_volume_image_dir(volume))
@@ -338,19 +341,20 @@ class ComicsDatabase:
         else:
             logging.debug(f'Symlink exists - all good: "{symlink}".')
 
-    def get_comic_book(self, title: str, allow_issue_titles: bool = True) -> ComicBook:
+    def get_comic_book(self, title: str) -> ComicBook:
         story_title = ""
-        if allow_issue_titles:
-            found, titles, close = self.get_story_title_from_issue(title)
-            if found:
-                if len(titles) > 1:
-                    titles_str = ", ".join([f'"{t}"' for t in titles])
-                    raise Exception(
-                        f"You cannot use an issue title that has multiple titles: {titles_str}."
-                    )
-                story_title = titles[0]
-            elif close:
-                raise Exception(f'Could not find issue title "{title}". Did you mean "{close}"?')
+
+        found, titles, close = self.get_story_title_from_issue(title)
+        if found:
+            if len(titles) > 1:
+                titles_str = ", ".join([f'"{t}"' for t in titles])
+                raise Exception(
+                    f"You cannot use an issue title that has multiple titles: {titles_str}."
+                )
+            story_title = titles[0]
+        elif close:
+            raise Exception(f'Could not find issue title "{title}". Did you mean "{close}"?')
+
         if not story_title:
             found, close = self.is_story_title(title)
             if found:
@@ -366,14 +370,20 @@ class ComicsDatabase:
         config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
         config.read(ini_file)
 
-        title = config["info"]["title"]
-        issue_title = "" if "issue_title" not in config["info"] else config["info"]["issue_title"]
         file_title = config["info"]["file_title"]
-        lookup_title = get_lookup_title(title, file_title)
+        if file_title and file_title != story_title:
+            raise Exception(f'File title "{file_title}" != "{story_title}".')
+
+        issue_title = "" if "issue_title" not in config["info"] else config["info"]["issue_title"]
+        lookup_title = get_lookup_title(story_title, file_title)
         intro_inset_file = get_inset_file(ini_file, file_title)
 
         cb_info: ComicBookInfo = self._all_comic_book_info[lookup_title]
         fanta_info = SOURCE_COMICS[config["info"]["source_comic"]]
+
+        title = config["info"]["title"]
+        if not title and cb_info.is_barks_title:
+            raise Exception(f'"{story_title}" is a barks title and should be set in the ini file.')
 
         srce_dir = self.get_fantagraphics_volume_dir(fanta_info.volume)
         srce_dir_num_page_files = fanta_info.num_pages

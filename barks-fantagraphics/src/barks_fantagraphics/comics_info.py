@@ -53,6 +53,7 @@ MONTH_AS_SHORT_STR: Dict[int, str] = {
 
 @dataclass
 class ComicBookInfo:
+    is_barks_title: bool
     issue_name: str
     issue_number: int
     issue_year: int
@@ -93,13 +94,14 @@ def get_all_comic_book_info(story_info_dir: str) -> ComicBookInfoDict:
             fantagraphics_volume = SERIES_INFO[title].fanta_volume
 
             comic_book_info = ComicBookInfo(
-                row[1],
-                int(row[2]),
+                row[1] == "T",
+                row[2],
                 int(row[3]),
                 int(row[4]),
                 int(row[5]),
                 int(row[6]),
                 int(row[7]),
+                int(row[8]),
                 colorist,
                 series_name,
                 fantagraphics_volume,
