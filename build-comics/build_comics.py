@@ -555,7 +555,7 @@ def _get_title_and_fonts(
     font_size = comic.title_font_size
 
     if title.startswith(CS):
-        add_footnote = comic.file_title in CENSORED_TITLES
+        add_footnote = comic.get_ini_title() in CENSORED_TITLES
 
         title_and_fonts = _get_comics_and_stories_title_and_fonts(
             draw, title, font_file, font_size, add_footnote

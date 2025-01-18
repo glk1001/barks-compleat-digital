@@ -90,7 +90,7 @@ def write_summary_file(
         f.write(f"time of run              = {timing.start_time}\n")
         f.write(f"time taken               = {timing.get_elapsed_time_in_seconds()} seconds\n")
         f.write(f'title                    = "{comic.title}"\n')
-        f.write(f'file title               = "{comic.file_title}"\n')
+        f.write(f'ini title                = "{comic.get_ini_title()}"\n')
         f.write(f'issue title              = "{comic.issue_title}"\n')
         f.write(f'comic title              = "{comic.get_comic_title()}"\n')
         f.write(f'ini file                 = "{ini_file}"\n')
@@ -169,7 +169,7 @@ def write_readme_file(dry_run: bool, comic: ComicBook):
     else:
         with open(readme_file, "w") as f:
             f.write(f'Title:       "{get_safe_title(comic.title)}"\n')
-            f.write(f'File Title:  "{comic.file_title}"\n')
+            f.write(f'Ini Title:   "{comic.get_ini_title()}"\n')
             f.write(f'Issue Title: "{get_safe_title(comic.issue_title)}"\n')
             f.write("\n")
             now_str = datetime.now().strftime("%b %d %Y %H:%M:%S")
@@ -204,7 +204,7 @@ def write_json_metadata(dry_run: bool, comic: ComicBook, dest_pages: List[CleanP
     else:
         metadata = dict()
         metadata["title"] = get_safe_title(comic.title)
-        metadata["file_title"] = comic.file_title
+        metadata["ini_title"] = comic.get_ini_title()
         metadata["issue_title"] = get_safe_title(comic.issue_title)
         metadata["comic_title"] = get_safe_title(comic.get_comic_title())
         metadata["series_name"] = comic.series_name

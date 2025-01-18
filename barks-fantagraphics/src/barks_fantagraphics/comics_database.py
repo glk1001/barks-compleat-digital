@@ -15,7 +15,6 @@ from .comic_book import (
     get_inset_file,
     get_formatted_first_published_str,
     get_formatted_submitted_date,
-    get_lookup_title,
     get_main_publication_info,
     _get_pages_in_order,
 )
@@ -341,6 +340,9 @@ class ComicsDatabase:
         else:
             logging.debug(f'Symlink exists - all good: "{symlink}".')
 
+    def get_comic_book_info(self, title:  str) -> ComicBookInfo:
+        return self._all_comic_book_info[title]
+
     def get_comic_book(self, title: str) -> ComicBook:
         story_title = ""
 
@@ -370,15 +372,10 @@ class ComicsDatabase:
         config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
         config.read(ini_file)
 
-        file_title = config["info"]["file_title"]
-        if file_title and file_title != story_title:
-            raise Exception(f'File title "{file_title}" != "{story_title}".')
-
         issue_title = "" if "issue_title" not in config["info"] else config["info"]["issue_title"]
-        lookup_title = get_lookup_title(story_title, file_title)
-        intro_inset_file = get_inset_file(ini_file, file_title)
+        intro_inset_file = get_inset_file(ini_file)
 
-        cb_info: ComicBookInfo = self._all_comic_book_info[lookup_title]
+        cb_info: ComicBookInfo = self.get_comic_book_info(story_title)
         fanta_info = SOURCE_COMICS[config["info"]["source_comic"]]
 
         title = config["info"]["title"]
@@ -406,7 +403,7 @@ class ComicsDatabase:
         publication_date = get_formatted_first_published_str(cb_info)
         submitted_date = get_formatted_submitted_date(cb_info)
 
-        publication_text = get_main_publication_info(file_title, cb_info, fanta_info)
+        publication_text = get_main_publication_info(story_title, cb_info, fanta_info)
         if "extra_pub_info" in config["info"]:
             publication_text += "\n" + config["info"]["extra_pub_info"]
 
@@ -422,7 +419,6 @@ class ComicsDatabase:
                 config["info"].get("title_font_file", INTRO_TITLE_DEFAULT_FONT_FILE)
             ),
             title_font_size=config["info"].getint("title_font_size", INTRO_TITLE_DEFAULT_FONT_SIZE),
-            file_title=file_title,
             issue_title=issue_title,
             author_font_size=config["info"].getint(
                 "author_font_size", INTRO_AUTHOR_DEFAULT_FONT_SIZE

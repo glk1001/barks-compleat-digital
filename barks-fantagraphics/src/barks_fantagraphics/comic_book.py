@@ -57,7 +57,6 @@ class ComicBook:
     # NOTE: Need 'issue_title' to force a series title that has
     #       changed from another title. E.g., FC 495 == Uncle Scrooge #3
     issue_title: str
-    file_title: str
     author_font_size: int
     srce_min_panels_bbox_width: int
     srce_max_panels_bbox_width: int
@@ -93,6 +92,10 @@ class ComicBook:
     def __post_init__(self):
         assert self.series_name != ""
         assert self.number_in_series > 0
+        assert self.title or not self.is_barks_title()
+
+    def is_barks_title(self) -> bool:
+        return self.comic_book_info.is_barks_title
 
     def get_srce_image_dir(self) -> str:
         return os.path.join(self.srce_dir, IMAGES_SUBDIR)
@@ -395,9 +398,9 @@ class ComicBook:
     def _is_fixes_special_case(self, page_num: str, page_type: PageType) -> bool:
         if get_safe_title(self.title) == "Back to Long Ago!" and page_num == "209":
             return page_type == PageType.BACK_NO_PANELS
-        if self.file_title == "The Bill Collectors" and page_num == "227":
+        if self.get_ini_title() == "The Bill Collectors" and page_num == "227":
             return page_type == PageType.BODY
-        if self.file_title in CENSORED_TITLES:
+        if self.get_ini_title() in CENSORED_TITLES:
             return page_type == PageType.BODY
 
         return False
@@ -435,8 +438,8 @@ class ComicBook:
         )
 
     def get_dest_rel_dirname(self) -> str:
-        file_title = get_lookup_title(self.title, self.file_title)
-        return f"{self.chronological_number:03d} {file_title}"
+        dir_title = _get_lookup_title(self.title, self.get_ini_title())
+        return f"{self.chronological_number:03d} {dir_title}"
 
     def get_series_comic_title(self) -> str:
         return f"{self.series_name} {self.number_in_series}"
@@ -466,7 +469,7 @@ class ComicBook:
         return os.path.join(self.get_dest_zip_root_dir(), self.get_dest_comic_zip_filename())
 
     def get_dest_series_comic_zip_symlink_filename(self) -> str:
-        file_title = get_lookup_title(self.title, self.file_title)
+        file_title = _get_lookup_title(self.title, self.get_ini_title())
         full_title = f"{file_title} [{self.get_comic_issue_title()}]"
         return f"{self.number_in_series:03d} {full_title}.cbz"
 
@@ -481,6 +484,9 @@ class ComicBook:
             f"{self.get_dest_year_zip_symlink_dir()}",
             f"{self.get_dest_comic_zip_filename()}",
         )
+
+    def get_ini_title(self) -> str:
+        return Path(self.ini_file).stem
 
     def get_comic_title(self) -> str:
         if self.title != "":
@@ -506,7 +512,7 @@ class ComicBook:
         return f"{self.get_dest_rel_dirname()} [{self.get_comic_issue_title()}]"
 
 
-def get_lookup_title(title: str, file_title: str) -> str:
+def _get_lookup_title(title: str, file_title: str) -> str:
     if title != "":
         return get_safe_title(title)
 
@@ -573,8 +579,8 @@ def get_page_num_str(filename: str) -> str:
     return Path(filename).stem
 
 
-def get_inset_file(ini_file: str, file_title: str) -> str:
-    prefix = file_title if file_title else Path(ini_file).stem
+def get_inset_file(ini_file: str) -> str:
+    prefix = Path(ini_file).stem
     inset_filename = prefix + " Inset" + INSET_FILE_EXT
     ini_file_dir = os.path.dirname(ini_file)
 
