@@ -171,6 +171,8 @@ MC = "Boys' and Girls' March of Comics"
 FG = "Firestone Giveaway"
 CH = "Cheerios Giveaway"
 KI = "Kites Giveaway"
+USGTD = "Uncle Scrooge Goes to Disneyland"
+CID = "Christmas in Disneyland"
 
 SRC_SALEM = "(Salem-Empire)"
 SRC_DIGI = "(Digital-Empire)"
@@ -191,6 +193,8 @@ SHORT_ISSUE_NAME = {
     FG: "FG",
     CH: "CG",
     KI: "KG",
+    USGTD: "USGTD",
+    CID: "CID",
 }
 
 FANTAGRAPHICS = "Fantagraphics"
@@ -229,9 +233,17 @@ VOLUME_14 = f"{CB} Vol. 14 - {US} - The Seven Cities of Gold {SRC_DIGI}"
 VOLUME_15 = f"{CB} Vol. 15 - {DD} - The Ghost Sheriff of Last Gasp {SRC_DIGI}"
 VOLUME_16 = f"{CB} Vol. 16 - {US} - The Lost Crown of Genghis Khan {SRC_DIGI}"
 VOLUME_17 = f"{CB} Vol. 17 - {DD} - The Secret of Hondorica {SRC_DIGI}"
-VOLUME_18 = f"{CB} Vol. 18 - {DD} - The Lost Peg Leg Mine ({SRC_DIGI}"
+VOLUME_18 = f"{CB} Vol. 18 - {DD} - The Lost Peg Leg Mine {SRC_DIGI}"
 VOLUME_19 = f"{CB} Vol. 19 - {DD} - The Black Pearls of Tabu Yama {SRC_BEAN}"
 VOLUME_20 = f"{CB} Vol. 20 - {US} - The Mines of King Solomon {SRC_BEAN}"
+VOLUME_21 = f"{CB} Vol. 21 - {US} - Christmas in Duckburg {SRC_BEAN}"
+VOLUME_22 = f"{CB} Vol. 22 - {US} - The Twenty-Four Carat Moon {SRC_BEAN}"
+VOLUME_23 = f"{CB} Vol. 23 - {US} - Under the Polar Ice {SRC_BEAN}"
+VOLUME_24 = f"{CB} Vol. 24 - {US} - Island in the Sky"
+VOLUME_25 = f"{CB} Vol. 25 - {US} - Balloonatics {SRC_SALEM}"
+VOLUME_26 = f"{CB} Vol. 26 - {US} - The Golden Nugget Boat {SRC_SALEM}"
+VOLUME_27 = f"{CB} Vol. 27 - {US} - Duck Luck {SRC_SALEM}"
+VOLUME_28 = f"{CB} Vol. 28 - {US} - Cave of Ali Baba {SRC_SALEM}"
 SOURCE_COMICS = {
     "FANTA_01": SourceBook(VOLUME_01, FAN, 1, 2025, 0),
     "FANTA_02": SourceBook(VOLUME_02, FAN, 2, 2024, 245),
@@ -253,6 +265,14 @@ SOURCE_COMICS = {
     "FANTA_18": SourceBook(VOLUME_18, FAN, 18, 2018, 202),
     "FANTA_19": SourceBook(VOLUME_19, FAN, 19, 2018, 201),
     "FANTA_20": SourceBook(VOLUME_20, FAN, 20, 2019, 209),
+    "FANTA_21": SourceBook(VOLUME_21, FAN, 21, 2019, 201),
+    "FANTA_22": SourceBook(VOLUME_22, FAN, 22, 2020, 201),
+    "FANTA_23": SourceBook(VOLUME_23, FAN, 23, 2020, 201),
+    "FANTA_24": SourceBook(VOLUME_24, FAN, 24, 2021, 211),
+    "FANTA_25": SourceBook(VOLUME_25, FAN, 25, 2021, 211),
+    "FANTA_26": SourceBook(VOLUME_26, FAN, 26, 2022, 209),
+    "FANTA_27": SourceBook(VOLUME_27, FAN, 27, 2022, 203),
+    "FANTA_28": SourceBook(VOLUME_28, FAN, 28, 2023, 209),
 }
 
 FIRST_VOLUME_NUMBER = 2
@@ -282,6 +302,7 @@ SLEA = "Susan Daigle-Leach"
 DIGI = "Digikore Studios"
 BIGD = "Big Doors Studios"
 JRC = "Joseph Robert Cowles"
+TOZ = "Tom Ziuko"
 
 
 @dataclass
@@ -336,6 +357,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "The Pixilated Parrot": SeriesInfo(RTOM, SERIES_DDA, "FANTA_09"),
     "The Magic Hourglass": SeriesInfo(RTOM, SERIES_DDA, "FANTA_09"),
     "Big-Top Bedlam": SeriesInfo(RTOM, SERIES_DDA, "FANTA_09"),
+    "You Can't Guess!": SeriesInfo(RTOM, SERIES_DDA, "FANTA_09"),
     "Dangerous Disguise": SeriesInfo(RTOM, SERIES_DDA, "FANTA_10"),
     "No Such Varmint": SeriesInfo(RTOM, SERIES_DDA, "FANTA_10"),
     "In Old California!": SeriesInfo(JRC, SERIES_DDA, "FANTA_10"),
@@ -345,6 +367,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Trick or Treat": SeriesInfo(RTOM, SERIES_DDA, "FANTA_13"),
     "Secret of Hondorica": SeriesInfo(RTOM, SERIES_DDA, "FANTA_17"),
     "Forbidden Valley": SeriesInfo(RTOM, SERIES_DDA, "FANTA_19"),
+    "The Titanic Ants!": SeriesInfo(RTOM, SERIES_DDA, "FANTA_19"),
     # US
     "Only a Poor Old Man": SeriesInfo(RTOM, SERIES_USA, "FANTA_12"),
     "Back to the Klondike": SeriesInfo(RTOM, SERIES_USA, "FANTA_12"),
@@ -364,6 +387,9 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "The Second-Richest Duck": SeriesInfo(RTOM, SERIES_USA, "FANTA_16"),
     "Back to Long Ago!": SeriesInfo(RTOM, SERIES_USA, "FANTA_16"),
     "A Cold Bargain": SeriesInfo(RTOM, SERIES_USA, "FANTA_16"),
+    "Land of the Pygmy Indians": SeriesInfo(RTOM, SERIES_USA, "FANTA_16"),
+    "The Fantastic River Race": SeriesInfo(RTOM, SERIES_MISC, "FANTA_16"),
+    "The Black Pearls of Tabu Yama": SeriesInfo(RTOM, SERIES_MISC, "FANTA_19"),
     # WDCS
     "The Victory Garden": SeriesInfo("?", SERIES_CS, "FANTA_01"),
     "The Rabbit's Foot": SeriesInfo("?", SERIES_CS, "FANTA_01"),
@@ -469,13 +495,78 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Houseboat Holiday": SeriesInfo(RTOM, SERIES_CS, "FANTA_11"),
     "Gemstone Hunters": SeriesInfo(RTOM, SERIES_CS, "FANTA_11"),
     "Spending Money": SeriesInfo(RTOM, SERIES_CS, "FANTA_11"),
+    "The Hypno-Gun": SeriesInfo(RTOM, SERIES_CS, "FANTA_13"),
+    "Omelet": SeriesInfo(RTOM, SERIES_CS, "FANTA_13"),
+    "A Charitable Chore": SeriesInfo(RTOM, SERIES_CS, "FANTA_13"),
+    "Turkey with All the Schemings": SeriesInfo(RTOM, SERIES_CS, "FANTA_13"),
+    "Flip Decision": SeriesInfo(RTOM, SERIES_CS, "FANTA_13"),
+    "My Lucky Valentine": SeriesInfo(RTOM, SERIES_CS, "FANTA_13"),
     "The Easter Election": SeriesInfo(RTOM, SERIES_CS, "FANTA_13"),
     "The Talking Dog": SeriesInfo(RTOM, SERIES_CS, "FANTA_13"),
-    "Worm Weary": SeriesInfo(RTOM, SERIES_CS, "FANTA_13"),
     "Much Ado about Quackly Hall": SeriesInfo(RTOM, SERIES_CS, "FANTA_13"),
+    "Worm Weary": SeriesInfo(RTOM, SERIES_CS, "FANTA_13"),
     "Some Heir Over the Rainbow": SeriesInfo(RTOM, SERIES_CS, "FANTA_13"),
     "The Master Rainmaker": SeriesInfo(RTOM, SERIES_CS, "FANTA_13"),
     "The Money Stairs": SeriesInfo(RTOM, SERIES_CS, "FANTA_13"),
+    "Bee Bumbles": SeriesInfo(RTOM, SERIES_CS, "FANTA_13"),
+    "Wispy Willie": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "The Hammy Camel": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "Turkey Trot at One Whistle": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "Raffle Reversal": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "Fix-up Mix-up": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "Flour Follies": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "The Price of Fame": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "Midgets Madness": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "Salmon Derby": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "Cheltenham's Choice": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "Rants About Ants": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "Travelling Truants": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "Too Safe Safe": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "Search for the Cuspidoria": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "New Year's Revolutions": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "Iceboat to Beaver Island": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "The Daffy Taffy Pull": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "The Ghost Sheriff of Last Gasp": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "A Descent Interval": SeriesInfo(RTOM, SERIES_CS, "FANTA_15"),
+    "Donald's Raucous Role": SeriesInfo(RTOM, SERIES_CS, "FANTA_17"),
+    "Good Canoes and Bad Canoes": SeriesInfo(RTOM, SERIES_CS, "FANTA_17"),
+    "The Chickadee Challenge": SeriesInfo(RTOM, SERIES_CS, "FANTA_17"),
+    "The Unorthodox Ox": SeriesInfo(RTOM, SERIES_CS, "FANTA_17"),
+    "Trouble Indemnity": SeriesInfo(RTOM, SERIES_CS, "FANTA_17"),
+    "The Custard Gun": SeriesInfo(TOZ, SERIES_CS, "FANTA_17"),
+    "Three Un-Ducks": SeriesInfo(RTOM, SERIES_CS, "FANTA_17"),
+    "Secret Resolutions": SeriesInfo(RTOM, SERIES_CS, "FANTA_17"),
+    "The Ice Taxis": SeriesInfo(TOZ, SERIES_CS, "FANTA_17"),
+    "Searching for a Successor": SeriesInfo(TOZ, SERIES_CS, "FANTA_17"),
+    "The Olympic Hopeful": SeriesInfo(TOZ, SERIES_CS, "FANTA_17"),
+    "Gopher Goof-Ups": SeriesInfo(TOZ, SERIES_CS, "FANTA_17"),
+    "In the Swim": SeriesInfo(TOZ, SERIES_CS, "FANTA_17"),
+    "Camping Confusion": SeriesInfo(TOZ, SERIES_CS, "FANTA_17"),
+    "The Master": SeriesInfo(TOZ, SERIES_CS, "FANTA_18"),
+    "A Whale of a Story": SeriesInfo(RTOM, SERIES_CS, "FANTA_18"),
+    "Smoke Writer in the Sky": SeriesInfo(RTOM, SERIES_CS, "FANTA_18"),
+    "The Runaway Train": SeriesInfo(RTOM, SERIES_CS, "FANTA_18"),
+    "Statues of Limitations": SeriesInfo(RTOM, SERIES_CS, "FANTA_18"),
+    "Borderline Hero": SeriesInfo(RTOM, SERIES_CS, "FANTA_18"),
+    "Fearsome Flowers": SeriesInfo(RTOM, SERIES_CS, "FANTA_18"),
+    "Knight in Shining Armor": SeriesInfo(RTOM, SERIES_CS, "FANTA_18"),
+    "Donald's Pet Service": SeriesInfo(RTOM, SERIES_CS, "FANTA_18"),
+    "In Kakimaw Country": SeriesInfo(RTOM, SERIES_CS, "FANTA_18"),
+    "Losing Face": SeriesInfo(TOZ, SERIES_CS, "FANTA_18"),
+    "The Day Duckburg Got Dyed": SeriesInfo(TOZ, SERIES_CS, "FANTA_18"),
+    "Gyro's Imagination Invention": SeriesInfo(TOZ, SERIES_CS, "FANTA_18"),
+    "Red Apple Sap": SeriesInfo(RTOM, SERIES_CS, "FANTA_18"),
+    "Special Delivery": SeriesInfo(RTOM, SERIES_CS, "FANTA_18"),
+    "The Code of Duckburg": SeriesInfo(RTOM, SERIES_CS, "FANTA_18"),
+    "Sagmore Springs Hotel": SeriesInfo(GLEA, SERIES_CS, "FANTA_19"),
+    "The Tenderfoot Trap": SeriesInfo(GLEA, SERIES_CS, "FANTA_19"),
+    "Rocket Race Around the World": SeriesInfo(GLEA, SERIES_CS, "FANTA_19"),
+    "Wishing Stone Island": SeriesInfo(SLEA, SERIES_CS, "FANTA_19"),
+    "Dodging Miss Daisy": SeriesInfo(RTOM, SERIES_CS, "FANTA_19"),
+    "The Half-Baked Baker": SeriesInfo(GLEA, SERIES_CS, "FANTA_19"),
+    "The Persistent Postman": SeriesInfo(RTOM, SERIES_CS, "FANTA_19"),
+    "Mocking Bird Ridge": SeriesInfo(RTOM, SERIES_CS, "FANTA_19"),
+    "Old Froggie Catapult": SeriesInfo(RTOM, SERIES_CS, "FANTA_19"),
     # DD SHORTS
     "The Hard Loser": SeriesInfo(SLEA, SERIES_DDS, "FANTA_02"),
     "The Firebug": SeriesInfo(DIGI, SERIES_DDS, "FANTA_03"),
@@ -488,6 +579,10 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Toyland": SeriesInfo(RTOM, SERIES_DDS, "FANTA_07"),
     "New Toys": SeriesInfo(RTOM, SERIES_DDS, "FANTA_08"),
     "Hobblin' Goblins": SeriesInfo(RTOM, SERIES_DDS, "FANTA_13"),
+    "Donald Duck Tells About Kites": SeriesInfo(RTOM, SERIES_DDS, "FANTA_15"),
+    "Dogcatcher Duck": SeriesInfo(RTOM, SERIES_DDS, "FANTA_17"),
+    "The Lost Peg Leg Mine": SeriesInfo(TOZ, SERIES_DDS, "FANTA_18"),
+    "Water Ski Race": SeriesInfo(RTOM, SERIES_DDS, "FANTA_19"),
     # US SHORTS
     "Somethin' Fishy Here": SeriesInfo(RTOM, SERIES_USS, "FANTA_12"),
     "The Round Money Bin": SeriesInfo(RTOM, SERIES_USS, "FANTA_12"),
@@ -497,11 +592,14 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "The Tuckered Tiger": SeriesInfo(RTOM, SERIES_USS, "FANTA_14"),
     "Heirloom Watch": SeriesInfo(RTOM, SERIES_USS, "FANTA_14"),
     "Faulty Fortune": SeriesInfo(RTOM, SERIES_USS, "FANTA_16"),
+    "Migrating Millions": SeriesInfo(RTOM, SERIES_USS, "FANTA_16"),
+    "The Colossalest Surprise Quiz Show": SeriesInfo(RTOM, SERIES_USS, "FANTA_16"),
     # GG
     "Trapped Lightning": SeriesInfo(RTOM, SERIES_GG, "FANTA_?"),
     "Inventor of Anything": SeriesInfo(RTOM, SERIES_GG, "FANTA_?"),
     # MISC
     SILENT_NIGHT: SeriesInfo(SLEA, SERIES_CS, "FANTA_03"),
+    "The Milkman": SeriesInfo(RTOM, SERIES_CS, "FANTA_19"),
     "The Riddle of the Red Hat": SeriesInfo(GLEA, SERIES_MISC, "FANTA_03"),
 }
 
