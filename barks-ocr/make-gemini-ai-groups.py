@@ -20,8 +20,8 @@ from utils.preprocessing import preprocess_image
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 
 
-def make_gemini_ai_groups_for_titles(titles: List[str], out_dir: str) -> None:
-    for title in titles:
+def make_gemini_ai_groups_for_titles(title_list: List[str], out_dir: str) -> None:
+    for title in title_list:
         make_gemini_ai_groups_for_title(title, out_dir)
 
 
@@ -293,4 +293,7 @@ if __name__ == "__main__":
 
     comics_database = cmd_args.get_comics_database()
 
-    make_gemini_ai_groups_for_titles(cmd_args.get_titles(), cmd_args.get_work_dir())
+    titles_and_info = cmd_args.get_titles_and_info()
+    titles = [t[0] for t in titles_and_info]
+
+    make_gemini_ai_groups_for_titles(titles, cmd_args.get_work_dir())

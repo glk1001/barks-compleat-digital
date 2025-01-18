@@ -14,15 +14,15 @@ setup_logging(cmd_args.get_log_level())
 
 comics_database = cmd_args.get_comics_database()
 
-titles = cmd_args.get_titles()
+titles_and_info = cmd_args.get_titles_and_info()
 
-for title in titles:
-    comic_book = comics_database.get_comic_book(title)
+for title_and_info in titles_and_info:
+    comic_book = comics_database.get_comic_book(title_and_info[0])
 
     srce_files = comic_book.get_final_srce_story_files(None)
 
     print()
-    print(f'"{title}" source files:')
+    print(f'"{title_and_info[0]}" source files:')
     for srce_file in srce_files:
         print(f'    "{srce_file[0]}"')
     print()

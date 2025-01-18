@@ -7,7 +7,7 @@ from typing import Any, Dict
 from barks_fantagraphics.comics_info import JPG_FILE_EXT, PNG_FILE_EXT
 from barks_fantagraphics.comics_utils import get_abbrev_path
 from barks_fantagraphics.panel_segmentation import KumikoPanelSegmentation, get_min_max_panel_values
-from src.image_io import open_pil_image_for_reading
+from .image_io import open_pil_image_for_reading
 
 
 class BoundingBoxProcessor(object):

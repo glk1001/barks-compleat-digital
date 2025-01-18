@@ -10,6 +10,7 @@ from barks_fantagraphics.comics_utils import (
     dest_file_is_older_than_srce,
     get_timestamp,
     get_max_timestamp,
+    get_titles_sorted_by_submission_date,
     setup_logging,
 )
 
@@ -142,7 +143,8 @@ setup_logging(cmd_args.get_log_level())
 
 comics_database = cmd_args.get_comics_database()
 
-titles = cmd_args.get_titles(False)  # include unconfigured titles
+titles_and_info = cmd_args.get_titles_and_info(False)  # include unconfigured titles
+titles = get_titles_sorted_by_submission_date(titles_and_info)
 max_title_len = max([len(title) for title in titles])
 
 issue_titles_info = get_issue_titles(titles)

@@ -1,11 +1,28 @@
 import logging
 import os
 import re
-from datetime import datetime
+from datetime import datetime, date
 from pathlib import Path
-from typing import Union, List
+from typing import Union, List, Tuple
 
 from .comics_consts import BARKS_ROOT_DIR
+from .comics_info import ComicBookInfo
+
+
+def get_titles_sorted_by_submission_date(
+    titles_and_info: List[Tuple[str, ComicBookInfo]]
+) -> List[str]:
+
+    def get_submitted_date(title_and_info: Tuple[str, ComicBookInfo]) -> date:
+        comic_info = title_and_info[1]
+        submitted_day = 1 if comic_info.submitted_day == -1 else comic_info.submitted_day
+        return date(
+            comic_info.submitted_year,
+            comic_info.submitted_month,
+            submitted_day,
+        )
+
+    return [t[0] for t in sorted(titles_and_info, key=get_submitted_date)]
 
 
 def get_work_dir(work_dir_root: str) -> str:

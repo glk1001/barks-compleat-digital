@@ -101,17 +101,21 @@ class ComicsDatabase:
     def get_all_story_titles(self) -> List[str]:
         return sorted(self._story_titles)
 
-    def get_all_titles_in_fantagraphics_volumes(self, volume_nums: List[int]) -> List[str]:
+    def get_all_titles_in_fantagraphics_volumes(
+        self, volume_nums: List[int]
+    ) -> List[Tuple[str, ComicBookInfo]]:
         story_titles = []
         for volume_num in volume_nums:
             fanta_key = f"FANTA_{volume_num:02}"
             for title, comic_info in self._all_comic_book_info.items():
                 if comic_info.fantagraphics_volume == fanta_key:
-                    story_titles.append(title)
+                    story_titles.append((title, comic_info))
 
         return sorted(story_titles)
 
-    def get_configured_titles_in_fantagraphics_volumes(self, volume_nums: List[int]) -> List[str]:
+    def get_configured_titles_in_fantagraphics_volumes(
+        self, volume_nums: List[int]
+    ) -> List[Tuple[str, ComicBookInfo]]:
         config = ConfigParser(interpolation=ExtendedInterpolation())
         story_titles = []
         for volume_num in volume_nums:
@@ -121,7 +125,8 @@ class ComicsDatabase:
                 config.read(ini_file)
                 if config["info"]["source_comic"] == fanta_key:
                     story_title = Path(ini_file).stem
-                    story_titles.append(story_title)
+                    comic_info = self._all_comic_book_info[story_title]
+                    story_titles.append((story_title, comic_info))
 
         return sorted(story_titles)
 

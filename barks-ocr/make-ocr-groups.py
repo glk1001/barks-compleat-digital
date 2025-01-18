@@ -14,8 +14,8 @@ from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_utils import get_abbrev_path, get_ocr_no_json_suffix, setup_logging
 
 
-def make_ocr_groups_for_titles(titles: List[str], out_dir: str) -> None:
-    for title in titles:
+def make_ocr_groups_for_titles(title_list: List[str], out_dir: str) -> None:
+    for title in title_list:
         make_ocr_groups_for_title(title, out_dir)
 
 
@@ -161,4 +161,7 @@ if __name__ == "__main__":
 
     comics_database = cmd_args.get_comics_database()
 
-    make_ocr_groups_for_titles(cmd_args.get_titles(), cmd_args.get_work_dir())
+    titles_and_info = cmd_args.get_titles_and_info()
+    titles = [t[0] for t in titles_and_info]
+
+    make_ocr_groups_for_titles(titles, cmd_args.get_work_dir())

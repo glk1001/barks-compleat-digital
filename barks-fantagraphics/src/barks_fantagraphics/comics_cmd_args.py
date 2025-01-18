@@ -5,6 +5,7 @@ from typing import List, Tuple
 from intspan import intspan
 
 from .comics_database import ComicsDatabase, get_default_comics_database_dir
+from .comics_info import ComicBookInfo
 
 LOG_LEVEL_ARG = "--log-level"
 COMICS_DATABASE_DIR_ARG = "--comics-database-dir"
@@ -48,7 +49,7 @@ class CmdArgs:
             raise Exception(f"'{TITLE_ARG}' was not specified as an argument.")
         return self._cmd_args.title
 
-    def get_titles(self, configured_only=True) -> List[str]:
+    def get_titles_and_info(self, configured_only=True) -> List[Tuple[str, ComicBookInfo]]:
         if (
             CmdArgNames.TITLE not in self._required_args
             and CmdArgNames.VOLUME not in self._required_args

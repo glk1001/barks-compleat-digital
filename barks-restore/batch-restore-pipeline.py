@@ -165,6 +165,7 @@ os.makedirs(work_dir, exist_ok=True)
 
 comics_database = cmd_args.get_comics_database()
 
-titles = cmd_args.get_titles()
+titles_and_info = cmd_args.get_titles_and_info()
+titles = [t[0] for t in titles_and_info]
 
 restore(titles)
