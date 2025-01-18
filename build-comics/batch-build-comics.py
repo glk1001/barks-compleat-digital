@@ -15,6 +15,7 @@ from barks_fantagraphics.comic_book import ComicBook
 from barks_fantagraphics.comics_consts import PageType
 from barks_fantagraphics.comics_database import ComicsDatabase, get_default_comics_database_dir
 from barks_fantagraphics.comics_utils import (
+    get_titles_sorted_by_submission_date,
     get_relpath,
     get_timestamp,
     get_timestamp_as_str,
@@ -154,16 +155,20 @@ def process_comic_book_titles(
 def process_comic_book(options: CmdOptions, comic: ComicBook) -> int:
     process_timing = Timing(datetime.now())
 
-    srce_and_dest_pages, max_dest_timestamp = build_comic_book(options.dry_run, comic)
+    try:
+        srce_and_dest_pages, max_dest_timestamp = build_comic_book(options.dry_run, comic)
 
-    process_timing.end_time = datetime.now()
-    logging.info(
-        f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds"
-    )
+        process_timing.end_time = datetime.now()
+        logging.info(
+            f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds"
+        )
 
-    write_summary_file(
-        options.dry_run, comic, srce_and_dest_pages, max_dest_timestamp, process_timing
-    )
+        write_summary_file(
+            options.dry_run, comic, srce_and_dest_pages, max_dest_timestamp, process_timing
+        )
+    except Exception as e:
+        logging.error(e)
+        return 1
 
     return 0
 
@@ -293,7 +298,7 @@ def get_titles(args) -> List[str]:
     if args.volume is not None:
         vol_list = list(intspan(args.volume))
         titles_and_info = comics_database.get_configured_titles_in_fantagraphics_volumes(vol_list)
-        titles = [t[0] for t in titles_and_info]
+        titles = get_titles_sorted_by_submission_date(titles_and_info)
         return titles
 
     return []
