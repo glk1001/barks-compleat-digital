@@ -16,17 +16,17 @@ from barks_fantagraphics.comics_utils import (
 
 
 def get_issue_titles(title_list: List[str]) -> List[Tuple[str, bool]]:
-    issue_ttls = []
+    comic_issue_titles = []
     for ttl in title_list:
         title_is_configured, _ = comics_database.is_story_title(ttl)
         if not title_is_configured:
-            comic_title = ttl
+            comic_issue_title = ttl
         else:
             comic = comics_database.get_comic_book(ttl)
-            comic_title = get_safe_title(comic.get_comic_issue_title())
-        issue_ttls.append((comic_title, title_is_configured))
+            comic_issue_title = get_safe_title(comic.get_comic_issue_title())
+        comic_issue_titles.append((comic_issue_title, title_is_configured))
 
-    return issue_ttls
+    return comic_issue_titles
 
 
 def is_upscayled(comic: ComicBook) -> bool:
@@ -145,17 +145,20 @@ comics_database = cmd_args.get_comics_database()
 
 titles_and_info = cmd_args.get_titles_and_info(False)  # include unconfigured titles
 titles = get_titles_sorted_by_submission_date(titles_and_info)
-max_title_len = max([len(title) for title in titles])
 
 issue_titles_info = get_issue_titles(titles)
-max_issue_title_len = max([len(title_info[0]) for title_info in issue_titles_info])
+
+max_title_len = 0
+max_issue_title_len = 0
 
 title_flags = dict()
-for title, issue_title_info in zip(titles, issue_titles_info):
+for title, title_and_info, issue_title_info in zip(titles, titles_and_info, issue_titles_info):
+    title_info = title_and_info[1]
     issue_title = issue_title_info[0]
     is_configured = issue_title_info[1]
 
     if not is_configured:
+        display_title = title if title_info.is_barks_title else f"({title})"
         fixes_flag = " "
         restored_or_upscayled_flag = "*"
         panel_bounds_or_built_flag = " "
@@ -163,12 +166,18 @@ for title, issue_title_info in zip(titles, issue_titles_info):
     else:
         comic_book = comics_database.get_comic_book(title)
 
+        display_title = title if comic_book.is_barks_title() else f"({title})"
+
         fixes_flag = "F" if has_fixes(comic_book) else " "
         restored_or_upscayled_flag = get_restored_or_upscayled_flag(comic_book)
         panel_bounds_or_built_flag = get_panel_bounds_or_built_flag(comic_book)
         page_list = ", ".join(get_abbrev_jpg_page_list(comic_book))
 
+    max_title_len = max(max_title_len, len(display_title))
+    max_issue_title_len = max(max_issue_title_len, len(issue_title))
+
     title_flags[title] = (
+        display_title,
         fixes_flag,
         restored_or_upscayled_flag,
         panel_bounds_or_built_flag,
@@ -177,13 +186,14 @@ for title, issue_title_info in zip(titles, issue_titles_info):
 
 for title, issue_title_info in zip(titles, issue_titles_info):
     issue_title = issue_title_info[0]
-    fixes_flag = title_flags[title][0]
-    restored_or_upscayled_flag = title_flags[title][1]
-    panel_bounds_or_built_flag = title_flags[title][2]
-    page_list = title_flags[title][3]
+    display_title = title_flags[title][0]
+    fixes_flag = title_flags[title][1]
+    restored_or_upscayled_flag = title_flags[title][2]
+    panel_bounds_or_built_flag = title_flags[title][3]
+    page_list = title_flags[title][4]
 
     print(
-        f'Title: "{title:<{max_title_len}}", {issue_title:<{max_issue_title_len}},'
+        f'Title: "{display_title:<{max_title_len}}", {issue_title:<{max_issue_title_len}},'
         f" {fixes_flag} {restored_or_upscayled_flag} {panel_bounds_or_built_flag},"
         f" jpgs: {page_list}"
     )

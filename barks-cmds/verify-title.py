@@ -1,8 +1,35 @@
 import logging
 import sys
 
+from barks_fantagraphics.comic_book import get_safe_title
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_utils import setup_logging
+
+
+def get_display_title(ttl: str) -> str:
+    title_is_configured, _ = comics_database.is_story_title(ttl)
+    if not title_is_configured:
+        disp_title = ttl
+    else:
+        comic_info = comics_database.get_comic_book_info(ttl)
+        if comic_info.is_barks_title:
+            disp_title = ttl
+        else:
+            disp_title = f"({ttl})"
+
+    return disp_title
+
+
+def get_issue_title(ttl: str) -> str:
+    title_is_configured, _ = comics_database.is_story_title(ttl)
+    if not title_is_configured:
+        comic_issue_title = ttl
+    else:
+        comic = comics_database.get_comic_book(ttl)
+        comic_issue_title = get_safe_title(comic.get_comic_issue_title())
+
+    return comic_issue_title
+
 
 cmd_args = CmdArgs("Verify title", CmdArgNames.TITLE)
 args_ok, error_msg = cmd_args.args_are_valid()
@@ -24,7 +51,9 @@ elif close:
 else:
     found, close = comics_database.is_story_title(title)
     if found:
-        print(f'This is a valid title: "{title}".')
+        display_title = get_display_title(title)
+        issue_title = get_issue_title(title)
+        print(f'This is a valid title: "{display_title}" [{issue_title}].')
     elif close:
         print(f'"{title}" is not a valid title. Did you mean: "{close}".')
     else:
