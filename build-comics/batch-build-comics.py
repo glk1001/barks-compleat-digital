@@ -4,7 +4,6 @@ import logging
 import os.path
 import shlex
 import sys
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Tuple, Union, List
 
@@ -27,24 +26,17 @@ from pages import get_srce_and_dest_pages_in_order, get_page_num_str
 from timing import Timing
 
 
-@dataclass
-class CmdOptions:
-    dry_run: bool = False
-
-
-def print_all_cmds(options: CmdOptions, comics_db: ComicsDatabase) -> int:
+def print_all_cmds(comics_db: ComicsDatabase) -> int:
     for title in comics_db.get_all_story_titles():
-        if 0 != print_cmd(options, comics_db, title):
+        if 0 != print_cmd(comics_db, title):
             return 1
 
     return 0
 
 
-def print_cmd(options: CmdOptions, comics_db: ComicsDatabase, story_title: str) -> int:
-    dry_run_arg = "" if not options.dry_run else f" {DRY_RUN_ARG}"
+def print_cmd(comics_db: ComicsDatabase, story_title: str) -> int:
     print(
         f"python3 {__file__} {BUILD_ARG}"
-        f"{dry_run_arg}"
         f' {COMICS_DATABASE_DIR_ARG} "{comics_db.get_comics_database_dir()}"'
         f" {TITLE_ARG} {shlex.quote(story_title)}"
     )
@@ -135,7 +127,6 @@ def get_filepath_with_date(file: str, timestamp: float, out_of_date_marker: str)
 
 
 def process_comic_book_titles(
-    options: CmdOptions,
     comics_db: ComicsDatabase,
     titles: List[str],
 ) -> int:
@@ -145,27 +136,25 @@ def process_comic_book_titles(
 
     for title in titles:
         comic = comics_db.get_comic_book(title)
-        ret = process_comic_book(options, comic)
+        ret = process_comic_book(comic)
         if ret != 0:
             ret_code = ret
 
     return ret_code
 
 
-def process_comic_book(options: CmdOptions, comic: ComicBook) -> int:
+def process_comic_book(comic: ComicBook) -> int:
     process_timing = Timing(datetime.now())
 
     try:
-        srce_and_dest_pages, max_dest_timestamp = build_comic_book(options.dry_run, comic)
+        srce_and_dest_pages, max_dest_timestamp = build_comic_book(comic)
 
         process_timing.end_time = datetime.now()
         logging.info(
             f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds"
         )
 
-        write_summary_file(
-            options.dry_run, comic, srce_and_dest_pages, max_dest_timestamp, process_timing
-        )
+        write_summary_file(comic, srce_and_dest_pages, max_dest_timestamp, process_timing)
     except Exception as e:
         logging.error(e)
         return 1
@@ -177,7 +166,6 @@ LOG_LEVEL_ARG = "--log-level"
 COMICS_DATABASE_DIR_ARG = "--comics-database-dir"
 VOLUME_ARG = "--volume"
 TITLE_ARG = "--title"
-DRY_RUN_ARG = "--dry-run"
 JUST_ZIP_ARG = "--just-zip"
 JUST_SYMLINKS_ARG = "--just-symlinks"
 
@@ -217,9 +205,6 @@ def get_args():
         JUST_SYMLINKS_ARG, action="store_true", required=False, default=False
     )
     build_comics_parser.add_argument(
-        DRY_RUN_ARG, action="store_true", required=False, default=False
-    )
-    build_comics_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
 
@@ -232,7 +217,6 @@ def get_args():
         type=str,
         default=get_default_comics_database_dir(),
     )
-    list_cmds_parser.add_argument(DRY_RUN_ARG, action="store_true", required=False, default=False)
     list_cmds_parser.add_argument(
         LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
     )
@@ -304,30 +288,23 @@ def get_titles(args) -> List[str]:
     return []
 
 
-def get_cmd_options(args) -> CmdOptions:
-    return CmdOptions(
-        dry_run=hasattr(args, "dry_run") and args.dry_run,
-    )
-
-
 if __name__ == "__main__":
     cmd_args = get_args()
 
     setup_logging(cmd_args.log_level)
 
-    cmd_options = get_cmd_options(cmd_args)
     comics_database = ComicsDatabase(cmd_args.comics_database_dir)
 
     if cmd_args.cmd_name == CHECK_INTEGRITY_ARG:
         exit_code = check_comics_integrity(comics_database, get_titles(cmd_args))
     elif cmd_args.cmd_name == LIST_CMDS_ARG:
-        exit_code = print_all_cmds(cmd_options, comics_database)
+        exit_code = print_all_cmds(comics_database)
     elif cmd_args.cmd_name == SHOW_MODS_ARG:
         exit_code = show_all_mods(comics_database)
     elif cmd_args.cmd_name == SHOW_SOURCE_ARG:
         exit_code = show_source_files(comics_database, cmd_args.title)
     elif cmd_args.cmd_name == BUILD_ARG:
-        exit_code = process_comic_book_titles(cmd_options, comics_database, get_titles(cmd_args))
+        exit_code = process_comic_book_titles(comics_database, get_titles(cmd_args))
     else:
         raise Exception(f'ERROR: Unknown cmd_arg "{cmd_args.cmd_name}".')
 

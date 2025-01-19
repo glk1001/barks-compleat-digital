@@ -5,8 +5,6 @@ from barks_fantagraphics.comics_consts import PageType
 
 THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
-DRY_RUN_STR = "DRY_RUN"
-
 DEST_JPG_QUALITY = 95
 DEST_JPG_COMPRESS_LEVEL = 9
 MIN_HD_SRCE_HEIGHT = 3000

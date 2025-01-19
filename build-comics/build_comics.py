@@ -26,7 +26,6 @@ from barks_fantagraphics.comics_image_io import METADATA_PROPERTY_GROUP
 from barks_fantagraphics.comics_info import CS, CENSORED_TITLES
 from barks_fantagraphics.comics_utils import get_clean_path, get_relpath, get_abbrev_path
 from consts import (
-    DRY_RUN_STR,
     DEST_TARGET_WIDTH,
     DEST_TARGET_X_MARGIN,
     DEST_TARGET_HEIGHT,
@@ -80,17 +79,17 @@ SPLASH_BORDER_COLOR = (128, 0, 0)
 SPLASH_BORDER_WIDTH = 10
 
 
-def build_comic_book(dry_run: bool, comic: ComicBook) -> Tuple[SrceAndDestPages, float]:
-    srce_and_dest_pages = _create_comic_book(dry_run, comic)
+def build_comic_book(comic: ComicBook) -> Tuple[SrceAndDestPages, float]:
+    srce_and_dest_pages = _create_comic_book(comic)
     max_dest_timestamp = get_max_timestamp(srce_and_dest_pages.dest_pages)
 
-    zip_comic_book(dry_run, comic)
-    create_symlinks_to_comic_zip(dry_run, comic)
+    zip_comic_book(comic)
+    create_symlinks_to_comic_zip(comic)
 
     return srce_and_dest_pages, max_dest_timestamp
 
 
-def _create_comic_book(dry_run: bool, comic: ComicBook) -> SrceAndDestPages:
+def _create_comic_book(comic: ComicBook) -> SrceAndDestPages:
     pages = get_srce_and_dest_pages_in_order(comic)
 
     set_srce_panel_bounding_boxes(comic, pages.srce_pages)
@@ -99,9 +98,9 @@ def _create_comic_book(dry_run: bool, comic: ComicBook) -> SrceAndDestPages:
 
     log_comic_book_params(comic)
 
-    _create_dest_dirs(dry_run, comic)
-    _process_pages(dry_run, comic, pages)
-    _process_additional_files(dry_run, comic, pages)
+    _create_dest_dirs(comic)
+    _process_pages(comic, pages)
+    _process_additional_files(comic, pages)
 
     return pages
 
@@ -110,31 +109,24 @@ _process_page_error = False
 
 
 def _process_pages(
-    dry_run: bool,
     comic: ComicBook,
     pages: SrceAndDestPages,
 ):
-    _delete_all_files_in_directory(dry_run, comic.get_dest_dir())
-    _delete_all_files_in_directory(dry_run, comic.get_dest_image_dir())
+    _delete_all_files_in_directory(comic.get_dest_dir())
+    _delete_all_files_in_directory(comic.get_dest_image_dir())
 
     global _process_page_error
     _process_page_error = False
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
         for srce_page, dest_page in zip(pages.srce_pages, pages.dest_pages):
-            executor.submit(_process_page, dry_run, comic, srce_page, dest_page)
+            executor.submit(_process_page, comic, srce_page, dest_page)
 
     if _process_page_error:
         raise Exception("There were errors while processing pages.")
 
 
-def _delete_all_files_in_directory(dry_run: bool, directory_path: str):
-    if dry_run:
-        logging.info(
-            f"{DRY_RUN_STR}: Deleting all files in directory" f' "{get_relpath(directory_path)}".'
-        )
-        return
-
+def _delete_all_files_in_directory(directory_path: str):
     logging.debug(f'Deleting all files in directory "{get_relpath(directory_path)}".')
 
     with os.scandir(directory_path) as files:
@@ -177,7 +169,6 @@ def _set_required_dimensions(
 
 
 def _process_page(
-    dry_run: bool,
     comic: ComicBook,
     srce_page: CleanPage,
     dest_page: CleanPage,
@@ -204,20 +195,14 @@ def _process_page(
         )
         dest_page_image = _get_dest_page_image(comic, srce_page_image, srce_page, dest_page)
 
-        if dry_run:
-            logging.info(
-                f"{DRY_RUN_STR}: Save changes to image"
-                f' "{get_abbrev_path(dest_page.page_filename)}".'
-            )
-        else:
-            dest_page_image.save(
-                dest_page.page_filename,
-                optimize=True,
-                compress_level=DEST_JPG_COMPRESS_LEVEL,
-                quality=DEST_JPG_QUALITY,
-                comment="\n".join(_get_dest_jpg_comments(srce_page, dest_page)),
-            )
-            logging.info(f'Saved changes to image "{get_abbrev_path(dest_page.page_filename)}".')
+        dest_page_image.save(
+            dest_page.page_filename,
+            optimize=True,
+            compress_level=DEST_JPG_COMPRESS_LEVEL,
+            quality=DEST_JPG_QUALITY,
+            comment="\n".join(_get_dest_jpg_comments(srce_page, dest_page)),
+        )
+        logging.info(f'Saved changes to image "{get_abbrev_path(dest_page.page_filename)}".')
 
         logging.info("")
     except Exception as e:
@@ -756,27 +741,18 @@ def _write_page_number(comic: ComicBook, dest_page_image: Image, dest_page: Clea
     )
 
 
-def _process_additional_files(dry_run: bool, comic: ComicBook, pages: SrceAndDestPages):
-    if dry_run:
-        logging.info(f'{DRY_RUN_STR}: shutil.copy2("{comic.ini_file}", "{comic.get_dest_dir()}")')
-    else:
-        shutil.copy2(comic.ini_file, comic.get_dest_dir())
+def _process_additional_files(comic: ComicBook, pages: SrceAndDestPages):
+    shutil.copy2(comic.ini_file, comic.get_dest_dir())
 
-    write_readme_file(dry_run, comic)
-    write_metadata_file(dry_run, comic, pages.dest_pages)
-    write_json_metadata(dry_run, comic, pages.dest_pages)
-    write_srce_dest_map(dry_run, comic, pages)
-    write_dest_panels_bboxes(dry_run, comic, pages.dest_pages)
+    write_readme_file(comic)
+    write_metadata_file(comic, pages.dest_pages)
+    write_json_metadata(comic, pages.dest_pages)
+    write_srce_dest_map(comic, pages)
+    write_dest_panels_bboxes(comic, pages.dest_pages)
 
 
-def _create_dest_dirs(dry_run: bool, comic: ComicBook):
+def _create_dest_dirs(comic: ComicBook):
     if not os.path.isdir(comic.get_dest_image_dir()):
-        if dry_run:
-            logging.info(
-                f"{DRY_RUN_STR} Would have made directory"
-                f' "{get_relpath(comic.get_dest_image_dir())}".'
-            )
-            return
         os.makedirs(comic.get_dest_image_dir())
 
     if not os.path.isdir(comic.get_dest_image_dir()):

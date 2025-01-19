@@ -575,7 +575,7 @@ def check_no_unexpected_files(comics_db: ComicsDatabase) -> int:
     if ret_code == 0:
         logging.info("There are no unexpected files.")
     else:
-        logging.error("There are some unexpected files.")
+        logging.error("There are some unexpected or missing files.")
 
     return ret_code
 
