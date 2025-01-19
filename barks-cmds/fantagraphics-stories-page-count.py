@@ -15,11 +15,11 @@ setup_logging(cmd_args.get_log_level())
 
 comics_database = cmd_args.get_comics_database()
 
-titles_and_info = cmd_args.get_titles_and_info()
+titles = cmd_args.get_titles()
 
 page_count = 0
-for title_and_info in titles_and_info:
-    comic_book = comics_database.get_comic_book(title_and_info[0])
+for title in titles:
+    comic_book = comics_database.get_comic_book(title)
     page_count += len(get_jpg_page_list(comic_book))
 
-print(f"{len(titles_and_info)} titles, {page_count} pages")
+print(f"{len(titles)} titles, {page_count} pages")

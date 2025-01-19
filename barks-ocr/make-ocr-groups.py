@@ -5,13 +5,13 @@ import sys
 from pathlib import Path
 from typing import List, Tuple, Dict
 
-from utils.geometry import Rect
-from utils.ocr_box import OcrBox, save_groups_as_json, load_groups_from_json, get_box_str
 from shapely.geometry import Polygon
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_utils import get_abbrev_path, get_ocr_no_json_suffix, setup_logging
+from utils.geometry import Rect
+from utils.ocr_box import OcrBox, save_groups_as_json, load_groups_from_json, get_box_str
 
 
 def make_ocr_groups_for_titles(title_list: List[str], out_dir: str) -> None:
@@ -161,7 +161,4 @@ if __name__ == "__main__":
 
     comics_database = cmd_args.get_comics_database()
 
-    titles_and_info = cmd_args.get_titles_and_info()
-    titles = [t[0] for t in titles_and_info]
-
-    make_ocr_groups_for_titles(titles, cmd_args.get_work_dir())
+    make_ocr_groups_for_titles(cmd_args.get_titles(), cmd_args.get_work_dir())

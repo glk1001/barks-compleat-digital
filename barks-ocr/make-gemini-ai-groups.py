@@ -11,10 +11,10 @@ from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_image_io import get_bw_image_from_alpha
 from barks_fantagraphics.comics_utils import get_abbrev_path, get_ocr_no_json_suffix, setup_logging
+from utils.common import ProcessResult
 from utils.gemini_ai import get_ai_predicted_groups
 from utils.geometry import Rect
 from utils.ocr_box import OcrBox, PointList, save_groups_as_json, load_groups_from_json, get_box_str
-from utils.common import ProcessResult
 from utils.preprocessing import preprocess_image
 
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
@@ -293,7 +293,4 @@ if __name__ == "__main__":
 
     comics_database = cmd_args.get_comics_database()
 
-    titles_and_info = cmd_args.get_titles_and_info()
-    titles = [t[0] for t in titles_and_info]
-
-    make_gemini_ai_groups_for_titles(titles, cmd_args.get_work_dir())
+    make_gemini_ai_groups_for_titles(cmd_args.get_titles(), cmd_args.get_work_dir())

@@ -64,7 +64,4 @@ if not args_ok:
 
 comics_database = cmd_args.get_comics_database()
 
-titles_and_info = cmd_args.get_titles_and_info()
-titles = [t[0] for t in titles_and_info]
-
-svgs_to_pngs(titles)
+svgs_to_pngs(cmd_args.get_titles())

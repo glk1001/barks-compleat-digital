@@ -274,7 +274,4 @@ if __name__ == "__main__":
 
     comics_database = cmd_args.get_comics_database()
 
-    titles_and_info = cmd_args.get_titles_and_info()
-    titles = [t[0] for t in titles_and_info]
-
-    ocr_titles(titles)
+    ocr_titles(cmd_args.get_titles())

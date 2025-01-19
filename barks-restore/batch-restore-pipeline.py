@@ -10,7 +10,10 @@ import psutil
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_utils import get_abbrev_path, setup_logging
+from barks_fantagraphics.comics_utils import (
+    get_abbrev_path,
+    setup_logging,
+)
 from src.restore_pipeline import RestorePipeline, check_for_errors
 
 SCALE = 4
@@ -165,7 +168,4 @@ os.makedirs(work_dir, exist_ok=True)
 
 comics_database = cmd_args.get_comics_database()
 
-titles_and_info = cmd_args.get_titles_and_info()
-titles = [t[0] for t in titles_and_info]
-
-restore(titles)
+restore(cmd_args.get_titles())

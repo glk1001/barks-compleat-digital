@@ -6,7 +6,10 @@ from typing import List
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_utils import get_abbrev_path, setup_logging
+from barks_fantagraphics.comics_utils import (
+    get_abbrev_path,
+    setup_logging,
+)
 from src.upscale_image import upscale_image_file
 
 SCALE = 4
@@ -63,7 +66,4 @@ if not args_ok:
 
 comics_database = cmd_args.get_comics_database()
 
-titles_and_info = cmd_args.get_titles_and_info()
-titles = [t[0] for t in titles_and_info]
-
-upscayl(titles)
+upscayl(cmd_args.get_titles())

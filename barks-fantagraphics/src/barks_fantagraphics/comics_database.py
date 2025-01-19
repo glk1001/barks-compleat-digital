@@ -340,7 +340,7 @@ class ComicsDatabase:
         else:
             logging.debug(f'Symlink exists - all good: "{symlink}".')
 
-    def get_comic_book_info(self, title:  str) -> ComicBookInfo:
+    def get_comic_book_info(self, title: str) -> ComicBookInfo:
         return self._all_comic_book_info[title]
 
     def get_comic_book(self, title: str) -> ComicBook:
@@ -381,6 +381,10 @@ class ComicsDatabase:
         title = config["info"]["title"]
         if not title and cb_info.is_barks_title:
             raise Exception(f'"{story_title}" is a barks title and should be set in the ini file.')
+        if title and not cb_info.is_barks_title:
+            raise Exception(
+                f'"{story_title}" is a not barks title and should not be set in the ini file.'
+            )
 
         srce_dir = self.get_fantagraphics_volume_dir(fanta_info.volume)
         srce_dir_num_page_files = fanta_info.num_pages

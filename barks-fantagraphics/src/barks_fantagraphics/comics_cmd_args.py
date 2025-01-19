@@ -1,4 +1,5 @@
 import argparse
+from dataclasses import dataclass
 from enum import Flag, auto
 from typing import List, Tuple
 
@@ -6,6 +7,7 @@ from intspan import intspan
 
 from .comics_database import ComicsDatabase, get_default_comics_database_dir
 from .comics_info import ComicBookInfo
+from .comics_utils import get_titles_sorted_by_submission_date
 
 LOG_LEVEL_ARG = "--log-level"
 COMICS_DATABASE_DIR_ARG = "--comics-database-dir"
@@ -23,12 +25,24 @@ class CmdArgNames(Flag):
     PAGE = auto()
 
 
+@dataclass
+class ExtraArg:
+    name: str
+    action: str
+    type: any
+    default: any
+
+
 class CmdArgs:
     def __init__(
-        self, description: str, required_args: CmdArgNames = CmdArgNames.COMICS_DATABASE_DIR
+        self,
+        description: str,
+        required_args: CmdArgNames = CmdArgNames.COMICS_DATABASE_DIR,
+        extra_args: List[ExtraArg] = None,
     ):
         self._description = description
         self._required_args = required_args
+        self.extra_args = extra_args if extra_args else []
         self._error_msg = ""
         self._cmd_args = self._get_args()
         self._comics_database = ComicsDatabase(self._cmd_args.comics_database_dir)
@@ -49,6 +63,14 @@ class CmdArgs:
             raise Exception(f"'{TITLE_ARG}' was not specified as an argument.")
         return self._cmd_args.title
 
+    def get_titles(self, submission_date_sorted=True, configured_only=True) -> List[str]:
+        titles_and_info = self.get_titles_and_info(configured_only)
+
+        if submission_date_sorted:
+            return get_titles_sorted_by_submission_date(titles_and_info)
+
+        return [t[0] for t in titles_and_info]
+
     def get_titles_and_info(self, configured_only=True) -> List[Tuple[str, ComicBookInfo]]:
         if (
             CmdArgNames.TITLE not in self._required_args
@@ -59,7 +81,8 @@ class CmdArgs:
             )
 
         if self._cmd_args.title:
-            return [self._cmd_args.title]
+            cb_info = self._comics_database.get_comic_book_info(self._cmd_args.title)
+            return [(self._cmd_args.title, cb_info)]
 
         assert self._cmd_args.volume is not None
         vol_list = list(intspan(self._cmd_args.volume))
@@ -94,6 +117,9 @@ class CmdArgs:
 
         assert self._cmd_args.page is not None
         return list(intspan(self._cmd_args.page))
+
+    def get_extra_arg(self, name: str) -> any:
+        return getattr(self._cmd_args, name[2:])
 
     def _get_args(self):
         parser = argparse.ArgumentParser(description=self._description)
@@ -134,6 +160,15 @@ class CmdArgs:
             type=str,
             required=False,
         )
+
+        for extra in self.extra_args:
+            parser.add_argument(
+                extra.name,
+                action=extra.action,
+                type=extra.type,
+                default=extra.default,
+                required=False,
+            )
 
         args = parser.parse_args()
 
