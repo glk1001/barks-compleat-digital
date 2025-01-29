@@ -187,6 +187,15 @@ class ComicBook:
 
         return all_files
 
+    def get_original_srce_story_files(self, page_types: Union[None, List[PageType]]) -> List[str]:
+        all_files = []
+        for page in self.page_images_in_order:
+            if not page_types or page.page_type in page_types:
+                file = self.get_original_srce_story_file(page.page_filenames, page.page_type)
+                all_files.append(file)
+
+        return all_files
+
     def get_final_srce_story_files(
         self, page_types: Union[None, List[PageType]]
     ) -> List[Tuple[str, bool]]:
@@ -277,6 +286,12 @@ class ComicBook:
         is_modified_file = page_type in [PageType.COVER, PageType.BODY]
 
         return srce_upscayled_fixes_file, is_modified_file
+
+    def get_original_srce_story_file(self, page_num: str, page_type: PageType) -> str:
+        if page_type == PageType.TITLE:
+            return "TITLE PAGE"
+
+        return str(os.path.join(self.get_srce_image_dir(), page_num + JPG_FILE_EXT))
 
     def get_final_srce_story_file(self, page_num: str, page_type: PageType) -> Tuple[str, bool]:
         if page_type == PageType.TITLE:
