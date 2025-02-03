@@ -44,8 +44,6 @@ class RestorePipeline:
             raise Exception(f'Work directory not found: "{self.work_dir}".')
         if not os.path.isdir(self.out_dir):
             raise Exception(f'Restored directory not found: "{self.out_dir}".')
-        if not os.path.exists(self.srce_file):
-            raise Exception(f'Srce file not found: "{self.srce_file}".')
         if not os.path.exists(self.srce_upscale_file):
             raise Exception(f'Upscayl file not found: "{self.srce_upscale_file}".')
 
@@ -223,9 +221,13 @@ class RestorePipeline:
         try:
             logging.info(f'\nResizing restored file to "{self.dest_restored_file}"...')
 
+            srce_file = (
+                "N/A" if not os.path.isfile(self.srce_file) else get_clean_path(self.srce_file)
+            )
+
             # TODO: Save other params used in process.
             restored_file_metadata = {
-                "Source file": f'"{get_clean_path(self.srce_file)}"',
+                "Source file": f'"{srce_file}"',
                 "Upscayl file": f'"{get_clean_path(self.srce_upscale_file)}"',
                 "Upscayl scale": str(self.scale),
             }

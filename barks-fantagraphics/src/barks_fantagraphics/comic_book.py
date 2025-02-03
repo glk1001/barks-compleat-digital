@@ -284,9 +284,15 @@ class ComicBook:
             logging.info(
                 f"NOTE: Using upscayled fixes srce file:"
                 f' "{get_abbrev_path(srce_upscayled_fixes_file)}".'
+                f" (Page type: '{page_type.name}'.)"
             )
             if page_type not in [PageType.COVER, PageType.BODY]:
                 raise Exception(f"Expected upscayled fixes page to be COVER or BODY: '{page_num}'.")
+        elif self._is_fixes_special_case(page_num, page_type):
+            logging.info(
+                    f"NOTE: Special case - using ADDED upscayled fixes srce file for"
+                    f' {page_type.name} page: "{get_abbrev_path(srce_upscayled_fixes_file)}".'
+            )
         else:
             logging.info(
                 f"NOTE: Using added srce upscayled file of type {page_type.name}:"
@@ -419,11 +425,18 @@ class ComicBook:
 
         return srce_restored_fixes_file, is_modified_file
 
+    @staticmethod
+    def is_fixes_special_case(volume: int, page_num: str) -> bool:
+        if volume == 16 and page_num == "209":
+            return True
+        if volume == 4 and page_num == "227":
+            return True
+
+        return False
+
     def _is_fixes_special_case(self, page_num: str, page_type: PageType) -> bool:
-        if get_safe_title(self.title) == "Back to Long Ago!" and page_num == "209":
-            return page_type == PageType.BACK_NO_PANELS
-        if self.get_ini_title() == "The Bill Collectors" and page_num == "227":
-            return page_type == PageType.BODY
+        if self.is_fixes_special_case(self.fanta_info.volume, page_num):
+            return True
         if self.get_ini_title() in CENSORED_TITLES:
             return page_type == PageType.BODY
 

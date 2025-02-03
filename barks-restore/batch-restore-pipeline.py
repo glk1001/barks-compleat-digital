@@ -64,8 +64,6 @@ def restore_title(title: str) -> None:
         dest_restored_upscayled_files,
         dest_restored_svg_files,
     ):
-        if not os.path.isfile(srce_file[0]):
-            raise Exception(f'Could not find srce file: "{srce_file[0]}".')
         if not os.path.isfile(srce_upscayl_file[0]):
             logging.error(f'Could not find srce upscayl file - skipping: "{srce_upscayl_file[0]}".')
             continue
@@ -107,7 +105,7 @@ part1_max_workers = None
 
 
 def run_restore_part1(proc: RestorePipeline):
-    logging.info(f'Starting restore part 1 for "{proc.srce_file.name}".')
+    logging.info(f'Starting restore part 1 for "{proc.srce_upscale_file.name}".')
     proc.do_part1()
 
 
@@ -115,7 +113,7 @@ part2_max_workers = 1 if psutil.virtual_memory().total < SMALL_RAM else 6
 
 
 def run_restore_part2(proc: RestorePipeline):
-    logging.info(f'Starting restore part 2 for "{proc.srce_file.name}".')
+    logging.info(f'Starting restore part 2 for "{proc.srce_upscale_file.name}".')
     proc.do_part2_memory_hungry()
 
 
@@ -123,7 +121,7 @@ part3_max_workers = None
 
 
 def run_restore_part3(proc: RestorePipeline):
-    logging.info(f'Starting restore part 3 for "{proc.srce_file.name}".')
+    logging.info(f'Starting restore part 3 for "{proc.srce_upscale_file.name}".')
     proc.do_part3()
 
 
@@ -131,7 +129,7 @@ part4_max_workers = 1 if psutil.virtual_memory().total < SMALL_RAM else 5
 
 
 def run_restore_part4(proc: RestorePipeline):
-    logging.info(f'Starting restore part 4 for "{proc.srce_file.name}".')
+    logging.info(f'Starting restore part 4 for "{proc.srce_upscale_file.name}".')
     proc.do_part4_memory_hungry()
 
 

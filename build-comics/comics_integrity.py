@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Tuple, Set
 
-from barks_fantagraphics.comic_book import ComicBook, get_page_str, get_safe_title
+from barks_fantagraphics.comic_book import ComicBook, get_page_num_str, get_page_str, get_safe_title
 from barks_fantagraphics.comics_consts import (
     THE_CHRONOLOGICAL_DIRS_DIR,
     THE_CHRONOLOGICAL_DIR,
@@ -308,7 +308,9 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
             continue
 
         # Upscayled fixes cannot be additions?
-        if not os.path.isfile(original_file):
+        if not os.path.isfile(original_file) and not ComicBook.is_fixes_special_case(
+            volume, get_page_num_str(original_file)
+        ):
             print(
                 f"{ERROR_MSG_PREFIX}Upscayled fixes file does not have matching original file:"
                 f' "{upscayled_fixes_file}".'
@@ -1145,7 +1147,8 @@ def get_restored_srce_dependencies(
     underlying_files.append((srce_page.page_filename, srce_page_timestamp))
 
     if srce_page.page_type in [PageType.FRONT_MATTER, PageType.BODY, PageType.BACK_MATTER]:
-        underlying_files.append((srce_upscayl_file, srce_upscayl_timestamp))
-        underlying_files.append((srce_with_fixes_file, get_timestamp(srce_with_fixes_file)))
+        if not comic._is_fixes_special_case(get_page_str(srce_page.page_num), srce_page.page_type):
+            underlying_files.append((srce_upscayl_file, srce_upscayl_timestamp))
+            underlying_files.append((srce_with_fixes_file, get_timestamp(srce_with_fixes_file)))
 
     return underlying_files
