@@ -341,6 +341,17 @@ class ComicsDatabase:
             logging.debug(f'Symlink exists - all good: "{symlink}".')
 
     def get_comic_book_info(self, title: str) -> ComicBookInfo:
+        found, titles, close = self.get_story_title_from_issue(title)
+        if found:
+            if len(titles) > 1:
+                titles_str = ", ".join([f'"{t}"' for t in titles])
+                raise Exception(
+                    f"You cannot use an issue title that has multiple titles: {titles_str}."
+                )
+            title = titles[0]
+        elif close:
+            raise Exception(f'Could not find issue title "{title}". Did you mean "{close}"?')
+
         return self._all_comic_book_info[title]
 
     def get_comic_book(self, title: str) -> ComicBook:
