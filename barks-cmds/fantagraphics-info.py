@@ -3,7 +3,7 @@ import os.path
 import sys
 from typing import List, Tuple, Dict
 
-from barks_fantagraphics.comic_book import get_abbrev_jpg_page_list, get_safe_title, ComicBook
+from barks_fantagraphics.comic_book import get_abbrev_jpg_page_list, ComicBook
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames, ExtraArg
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_info import ComicBookInfo
@@ -11,7 +11,7 @@ from barks_fantagraphics.comics_utils import (
     dest_file_is_older_than_srce,
     get_timestamp,
     get_max_timestamp,
-    get_titles_sorted_by_submission_date,
+    get_titles_and_info_sorted_by_submission_date,
     setup_logging,
 )
 
@@ -37,18 +37,20 @@ BUILD_STATE_FLAGS = [
 ]
 
 
-def get_issue_titles(title_list: List[str]) -> List[Tuple[str, bool]]:
-    comic_issue_titles = []
-    for ttl in title_list:
+def get_issue_titles(
+    title_info_list: List[Tuple[str, ComicBookInfo]]
+) -> List[Tuple[str, str, ComicBookInfo, bool]]:
+    comic_issue_title_info_list = []
+    for title_info in title_info_list:
+        ttl = title_info[0]
+        cb_info = title_info[1]
         title_is_configured, _ = comics_database.is_story_title(ttl)
-        if not title_is_configured:
-            comic_issue_title = ttl
-        else:
-            comic = comics_database.get_comic_book(ttl)
-            comic_issue_title = get_safe_title(comic.get_comic_issue_title())
-        comic_issue_titles.append((comic_issue_title, title_is_configured))
+        comic_issue_title = cb_info.get_issue_title()
+        comic_issue_title_info_list.append(
+            (ttl, comic_issue_title, title_info[1], title_is_configured)
+        )
 
-    return comic_issue_titles
+    return comic_issue_title_info_list
 
 
 def is_upscayled(comic: ComicBook) -> bool:
@@ -158,20 +160,17 @@ def get_build_state_flag(comic: ComicBook) -> str:
 
 
 def get_title_flags(
-    title_list: List[str],
-    titles_and_info_list: List[Tuple[str, ComicBookInfo]],
-    issue_titles_info_list: List[Tuple[str, bool]],
+    issue_titles_info_list: List[Tuple[str, str, ComicBookInfo, bool]]
 ) -> Tuple[Dict[str, Tuple[str, str, str, str]], int, int]:
     max_ttl_len = 0
     max_issue_ttl_len = 0
     ttl_flags = dict()
 
-    for ttl, ttl_and_info, issue_ttl_info in zip(
-        title_list, titles_and_info_list, issue_titles_info_list
-    ):
-        ttl_info = ttl_and_info[1]
-        issue_ttl = issue_ttl_info[0]
-        is_configured = issue_ttl_info[1]
+    for issue_ttl_info in issue_titles_info_list:
+        ttl = issue_ttl_info[0]
+        issue_ttl = issue_ttl_info[1]
+        ttl_info = issue_ttl_info[2]
+        is_configured = issue_ttl_info[3]
 
         if not is_configured:
             display_ttl = ttl if ttl_info.is_barks_title else f"({ttl})"
@@ -249,27 +248,33 @@ comics_database = cmd_args.get_comics_database()
 
 fixes_filter = get_fixes_filter(cmd_args)
 built_filter = get_built_filter(cmd_args)
+multiple_volumes = len(cmd_args.get_volumes()) > 1
 
 titles_and_info = cmd_args.get_titles_and_info(configured_only=False)
-titles = get_titles_sorted_by_submission_date(titles_and_info)
-issue_titles_info = get_issue_titles(titles)
+titles_and_info = get_titles_and_info_sorted_by_submission_date(titles_and_info)
+issue_titles_info = get_issue_titles(titles_and_info)
 
-title_flags, max_title_len, max_issue_title_len = get_title_flags(
-    titles, titles_and_info, issue_titles_info
-)
+title_flags, max_title_len, max_issue_title_len = get_title_flags(issue_titles_info)
 
-for title, issue_title_info in zip(titles, issue_titles_info):
+for issue_title_info in issue_titles_info:
+    title = issue_title_info[0]
+    comic_book_info = issue_title_info[2]
+
     if title not in title_flags:
         continue
 
-    issue_title = issue_title_info[0]
+    issue_title = issue_title_info[1]
     display_title = title_flags[title][0]
     fixes_flag = title_flags[title][1]
     build_state_flag = title_flags[title][2]
     page_list = title_flags[title][3]
+    volume = comic_book_info.fantagraphics_volume
+
+    volume_str = "" if not multiple_volumes else f" {volume}, "
 
     print(
         f'Title: "{display_title:<{max_title_len}}", {issue_title:<{max_issue_title_len}},'
+        f"{volume_str}"
         f" {fixes_flag} {build_state_flag},"
         f" jpgs: {page_list}"
     )

@@ -1,5 +1,6 @@
 import collections
 import csv
+import logging
 import os
 from dataclasses import dataclass
 from datetime import date
@@ -87,6 +88,7 @@ def get_all_comic_book_info(story_info_dir: str) -> ComicBookInfoDict:
         for row in reader:
             title = row[0]
             if title not in SERIES_INFO:
+                logging.debug(f'Title "{title}" not in SERIES_INFO.')
                 continue
 
             colorist = SERIES_INFO[title].colorist
