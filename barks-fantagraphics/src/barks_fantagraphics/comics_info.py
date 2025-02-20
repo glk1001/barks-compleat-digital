@@ -152,6 +152,10 @@ def check_story_submitted_order(stories: ComicBookInfoDict):
         prev_submitted_date = submitted_date
 
 
+def get_fanta_volume_str(volume: int) -> str:
+    return f"FANTA_{volume:02}"
+
+
 @dataclass
 class SourceBook:
     title: str
@@ -249,34 +253,34 @@ VOLUME_26 = f"{CB} Vol. 26 - {US} - The Golden Nugget Boat {SRC_SALEM}"
 VOLUME_27 = f"{CB} Vol. 27 - {US} - Duck Luck {SRC_SALEM}"
 VOLUME_28 = f"{CB} Vol. 28 - {US} - Cave of Ali Baba {SRC_SALEM}"
 SOURCE_COMICS = {
-    "FANTA_01": SourceBook(VOLUME_01, FAN, 1, 2025, 0),
-    "FANTA_02": SourceBook(VOLUME_02, FAN, 2, 2024, 245),
-    "FANTA_03": SourceBook(VOLUME_03, FAN, 3, 2024, 248),
-    "FANTA_04": SourceBook(VOLUME_04, FAN, 4, 2023, 225),
-    "FANTA_05": SourceBook(VOLUME_05, FAN, 5, 2013, 216),
-    "FANTA_06": SourceBook(VOLUME_06, FAN, 6, 2013, 232),
-    "FANTA_07": SourceBook(VOLUME_07, FAN, 7, 2011, 239),
-    "FANTA_08": SourceBook(VOLUME_08, FAN, 8, 2014, 223),
-    "FANTA_09": SourceBook(VOLUME_09, FAN, 9, 2015, 215),
-    "FANTA_10": SourceBook(VOLUME_10, FAN, 10, 2016, 231),
-    "FANTA_11": SourceBook(VOLUME_11, FAN, 11, 2012, 240),
-    "FANTA_12": SourceBook(VOLUME_12, FAN, 12, 2012, 248),
-    "FANTA_13": SourceBook(VOLUME_13, FAN, 13, 2015, 227),
-    "FANTA_14": SourceBook(VOLUME_14, FAN, 14, 2014, 240),
-    "FANTA_15": SourceBook(VOLUME_15, FAN, 15, 2016, 248),
-    "FANTA_16": SourceBook(VOLUME_16, FAN, 16, 2017, 234),
-    "FANTA_17": SourceBook(VOLUME_17, FAN, 17, 2017, 201),
-    "FANTA_18": SourceBook(VOLUME_18, FAN, 18, 2018, 202),
-    "FANTA_19": SourceBook(VOLUME_19, FAN, 19, 2018, 201),
-    "FANTA_20": SourceBook(VOLUME_20, FAN, 20, 2019, 209),
-    "FANTA_21": SourceBook(VOLUME_21, FAN, 21, 2019, 201),
-    "FANTA_22": SourceBook(VOLUME_22, FAN, 22, 2020, 201),
-    "FANTA_23": SourceBook(VOLUME_23, FAN, 23, 2020, 201),
-    "FANTA_24": SourceBook(VOLUME_24, FAN, 24, 2021, 211),
-    "FANTA_25": SourceBook(VOLUME_25, FAN, 25, 2021, 211),
-    "FANTA_26": SourceBook(VOLUME_26, FAN, 26, 2022, 209),
-    "FANTA_27": SourceBook(VOLUME_27, FAN, 27, 2022, 203),
-    "FANTA_28": SourceBook(VOLUME_28, FAN, 28, 2023, 209),
+    f"{get_fanta_volume_str(1)}": SourceBook(VOLUME_01, FAN, 1, 2025, 0),
+    f"{get_fanta_volume_str(2)}": SourceBook(VOLUME_02, FAN, 2, 2024, 245),
+    f"{get_fanta_volume_str(3)}": SourceBook(VOLUME_03, FAN, 3, 2024, 248),
+    f"{get_fanta_volume_str(4)}": SourceBook(VOLUME_04, FAN, 4, 2023, 225),
+    f"{get_fanta_volume_str(5)}": SourceBook(VOLUME_05, FAN, 5, 2013, 216),
+    f"{get_fanta_volume_str(6)}": SourceBook(VOLUME_06, FAN, 6, 2013, 232),
+    f"{get_fanta_volume_str(7)}": SourceBook(VOLUME_07, FAN, 7, 2011, 239),
+    f"{get_fanta_volume_str(8)}": SourceBook(VOLUME_08, FAN, 8, 2014, 223),
+    f"{get_fanta_volume_str(9)}": SourceBook(VOLUME_09, FAN, 9, 2015, 215),
+    f"{get_fanta_volume_str(10)}": SourceBook(VOLUME_10, FAN, 10, 2016, 231),
+    f"{get_fanta_volume_str(11)}": SourceBook(VOLUME_11, FAN, 11, 2012, 240),
+    f"{get_fanta_volume_str(12)}": SourceBook(VOLUME_12, FAN, 12, 2012, 248),
+    f"{get_fanta_volume_str(13)}": SourceBook(VOLUME_13, FAN, 13, 2015, 227),
+    f"{get_fanta_volume_str(14)}": SourceBook(VOLUME_14, FAN, 14, 2014, 240),
+    f"{get_fanta_volume_str(15)}": SourceBook(VOLUME_15, FAN, 15, 2016, 248),
+    f"{get_fanta_volume_str(16)}": SourceBook(VOLUME_16, FAN, 16, 2017, 234),
+    f"{get_fanta_volume_str(17)}": SourceBook(VOLUME_17, FAN, 17, 2017, 201),
+    f"{get_fanta_volume_str(18)}": SourceBook(VOLUME_18, FAN, 18, 2018, 202),
+    f"{get_fanta_volume_str(19)}": SourceBook(VOLUME_19, FAN, 19, 2018, 201),
+    f"{get_fanta_volume_str(20)}": SourceBook(VOLUME_20, FAN, 20, 2019, 209),
+    f"{get_fanta_volume_str(21)}": SourceBook(VOLUME_21, FAN, 21, 2019, 201),
+    f"{get_fanta_volume_str(22)}": SourceBook(VOLUME_22, FAN, 22, 2020, 201),
+    f"{get_fanta_volume_str(23)}": SourceBook(VOLUME_23, FAN, 23, 2020, 201),
+    f"{get_fanta_volume_str(24)}": SourceBook(VOLUME_24, FAN, 24, 2021, 211),
+    f"{get_fanta_volume_str(25)}": SourceBook(VOLUME_25, FAN, 25, 2021, 211),
+    f"{get_fanta_volume_str(26)}": SourceBook(VOLUME_26, FAN, 26, 2022, 209),
+    f"{get_fanta_volume_str(27)}": SourceBook(VOLUME_27, FAN, 27, 2022, 203),
+    f"{get_fanta_volume_str(28)}": SourceBook(VOLUME_28, FAN, 28, 2023, 209),
 }
 
 FIRST_VOLUME_NUMBER = 2

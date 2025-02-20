@@ -43,6 +43,7 @@ from .comics_info import (
     FANTAGRAPHICS_PANEL_SEGMENTS_DIRNAME,
     FANTAGRAPHICS_RESTORED_OCR_DIRNAME,
     get_all_comic_book_info,
+    get_fanta_volume_str,
 )
 from .comics_utils import get_relpath
 
@@ -105,7 +106,7 @@ class ComicsDatabase:
     ) -> List[Tuple[str, ComicBookInfo]]:
         story_titles = []
         for volume_num in volume_nums:
-            fanta_key = f"FANTA_{volume_num:02}"
+            fanta_key = get_fanta_volume_str(volume_num)
             for title, comic_info in self._all_comic_book_info.items():
                 if comic_info.fantagraphics_volume == fanta_key:
                     story_titles.append((title, comic_info))
