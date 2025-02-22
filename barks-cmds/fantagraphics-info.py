@@ -133,9 +133,13 @@ def is_built(comic: ComicBook) -> bool:
 
 
 def all_files_exist(file_list: List[str]) -> bool:
+    if not file_list:
+        return False
+
     for file in file_list:
         if not os.path.isfile(file):
             return False
+
     return True
 
 
