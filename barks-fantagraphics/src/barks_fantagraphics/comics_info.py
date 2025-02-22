@@ -332,7 +332,8 @@ SERIES_INFO_START_NUMBERS: Dict[str, int] = {
 }
 
 SILENT_NIGHT = "Silent Night"
-CENSORED_TITLES = [SILENT_NIGHT]
+THE_MILKMAN = "The Milkman"
+CENSORED_TITLES = [SILENT_NIGHT, THE_MILKMAN]
 
 SILENT_NIGHT_PUBLICATION_ISSUE = "Gemstone's Christmas Parade, No.3, 2005"
 
@@ -607,7 +608,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Inventor of Anything": SeriesInfo(RTOM, SERIES_GG, "FANTA_?"),
     # MISC
     SILENT_NIGHT: SeriesInfo(SLEA, SERIES_CS, "FANTA_03"),
-    "The Milkman": SeriesInfo(RTOM, SERIES_CS, "FANTA_19"),
+    THE_MILKMAN: SeriesInfo(RTOM, SERIES_CS, "FANTA_19"),
     "The Riddle of the Red Hat": SeriesInfo(GLEA, SERIES_MISC, "FANTA_03"),
 }
 

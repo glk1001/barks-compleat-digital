@@ -23,6 +23,7 @@ from .comics_info import (
     ISSUE_NAME_AS_TITLE,
     MONTH_AS_LONG_STR,
     CENSORED_TITLES,
+    THE_MILKMAN,
     SILENT_NIGHT,
     SILENT_NIGHT_PUBLICATION_ISSUE,
     ComicBookInfo,
@@ -576,6 +577,16 @@ def get_main_publication_info(
             + f"\n"
             + f"The story was also not published in the Fantagraphics CBDL but\n"
             + f"fortunately did appear in {SILENT_NIGHT_PUBLICATION_ISSUE}\n"
+            + f"Color restoration by {cb_info.colorist}"
+        )
+        return publication_text
+    if file_title == THE_MILKMAN:
+        # Originally intended for WDCS 215
+        publication_text = (
+            f"(*) Rejected by Western editors in 1957, this story was originally\n"
+            f" intended for publication in {get_formatted_first_published_str(cb_info)}\n"
+            + f"Submitted to Western Publishing{get_formatted_submitted_date(cb_info)}\n"
+            + f"\n"
             + f"Color restoration by {cb_info.colorist}"
         )
         return publication_text
