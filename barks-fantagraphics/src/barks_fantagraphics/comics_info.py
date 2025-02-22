@@ -181,6 +181,7 @@ CH = "Cheerios Giveaway"
 KI = "Kites Giveaway"
 USGTD = "Uncle Scrooge Goes to Disneyland"
 CID = "Christmas in Disneyland"
+MMA = "Mickey Mouse Almanac"
 
 SRC_SALEM = "(Salem-Empire)"
 SRC_DIGI = "(Digital-Empire)"
@@ -203,6 +204,7 @@ SHORT_ISSUE_NAME = {
     KI: "KG",
     USGTD: "USGTD",
     CID: "CID",
+    MMA: "MMA",
 }
 
 FANTAGRAPHICS = "Fantagraphics"
@@ -399,6 +401,10 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Land of the Pygmy Indians": SeriesInfo(RTOM, SERIES_USA, "FANTA_16"),
     "The Fantastic River Race": SeriesInfo(RTOM, SERIES_MISC, "FANTA_16"),
     "The Black Pearls of Tabu Yama": SeriesInfo(RTOM, SERIES_MISC, "FANTA_19"),
+    "The Mines of King Solomon": SeriesInfo(RTOM, SERIES_USA, "FANTA_20"),
+    "City of Golden Roofs": SeriesInfo(RTOM, SERIES_USA, "FANTA_20"),
+    "The Money Well": SeriesInfo(RTOM, SERIES_USA, "FANTA_20"),
+    "The Golden River": SeriesInfo(RTOM, SERIES_USA, "FANTA_20"),
     # WDCS
     "The Victory Garden": SeriesInfo("?", SERIES_CS, "FANTA_01"),
     "The Rabbit's Foot": SeriesInfo("?", SERIES_CS, "FANTA_01"),
@@ -603,9 +609,21 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Faulty Fortune": SeriesInfo(RTOM, SERIES_USS, "FANTA_16"),
     "Migrating Millions": SeriesInfo(RTOM, SERIES_USS, "FANTA_16"),
     "The Colossalest Surprise Quiz Show": SeriesInfo(RTOM, SERIES_USS, "FANTA_16"),
+    "September Scrimmage": SeriesInfo(GLEA, SERIES_USS, "FANTA_20"),
     # GG
-    "Trapped Lightning": SeriesInfo(RTOM, SERIES_GG, "FANTA_?"),
-    "Inventor of Anything": SeriesInfo(RTOM, SERIES_GG, "FANTA_?"),
+    "Trapped Lightning": SeriesInfo(TOZ, SERIES_GG, "FANTA_20"),
+    "Inventor of Anything": SeriesInfo(RTOM, SERIES_GG, "FANTA_20"),
+    "The Cat Box": SeriesInfo(RTOM, SERIES_GG, "FANTA_20"),
+    "Grandma's Present": SeriesInfo(GLEA, SERIES_GG, "FANTA_20"),
+    "Forecasting Follies": SeriesInfo(RTOM, SERIES_GG, "FANTA_20"),
+    "Fishing Mystery": SeriesInfo(RTOM, SERIES_GG, "FANTA_20"),
+    "Picnic": SeriesInfo(SLEA, SERIES_GG, "FANTA_20"),
+    "The Sure-Fire Gold Finder": SeriesInfo(SLEA, SERIES_GG, "FANTA_20"),
+    "Gyro Builds a Better House": SeriesInfo(RTOM, SERIES_GG, "FANTA_20"),
+    "August Accident": SeriesInfo(GLEA, SERIES_GG, "FANTA_20"),
+    "Roscoe the Robot": SeriesInfo(GLEA, SERIES_GG, "FANTA_20"),
+    "Getting Thor": SeriesInfo(SLEA, SERIES_GG, "FANTA_20"),
+    "The Know-It-All Machine": SeriesInfo(SLEA, SERIES_GG, "FANTA_20"),
     # MISC
     SILENT_NIGHT: SeriesInfo(SLEA, SERIES_CS, "FANTA_03"),
     THE_MILKMAN: SeriesInfo(RTOM, SERIES_CS, "FANTA_19"),

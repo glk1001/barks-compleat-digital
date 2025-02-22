@@ -307,7 +307,7 @@ Heirloom Watch,"T","Uncle Scrooge",10,1955,6,1954,11,11
 "The Master","M","Comics and Stories",192,1956,9,1955,9,22
 "A Whale of a Story","M","Comics and Stories",193,1956,10,1955,9,29
 "Smoke Writer in the Sky","M","Comics and Stories",194,1956,11,1955,9,29
-"Inventor of Anything","M","Uncle Scrooge",14,1956,6,1955,10,1
+"Inventor of Anything","T","Uncle Scrooge",14,1956,6,1955,10,1
 "The Lost Crown of Genghis Khan!","T","Uncle Scrooge",14,1956,6,1955,11,3
 "Luncheon Lament","M","Uncle Scrooge",14,1956,6,1955,11,17
 "The Runaway Train","M","Comics and Stories",195,1956,12,1955,11,23
@@ -323,7 +323,7 @@ Heirloom Watch,"T","Uncle Scrooge",10,1955,6,1954,11,11
 "Buffo or Bust","M","Uncle Scrooge",15,1956,9,1956,2,23
 "Pound for Sound","M","Uncle Scrooge",15,1956,9,1956,2,23
 "Fertile Assets","M","Uncle Scrooge",16,1956,12,1956,2,23
-"Grandma's Present","M","Christmas Parade",8,1956,12,1956,3,1
+"Grandma's Present","T","Christmas Parade",8,1956,12,1956,3,1
 "Knight in Shining Armor","M","Comics and Stories",198,1957,3,1956,3,15
 "Fearsome Flowers","M","Comics and Stories",214,1958,7,1956,3,15
 "Donald's Pet Service","M","Comics and Stories",200,1957,5,1956,4,5
@@ -340,6 +340,7 @@ Heirloom Watch,"T","Uncle Scrooge",10,1955,6,1954,11,11
 "The Lost Peg Leg Mine","T","Donald Duck",52,1957,3,1956,6,14
 "Losing Face","M","Comics and Stories",204,1957,9,1956,6,21
 "The Day Duckburg Got Dyed","M","Comics and Stories",201,1957,6,1956,7,5
+"Picnic","T","Vacation Parade",8,1957,7,1956,7,12
 "Fishing Mystery","M","Uncle Scrooge",17,1957,3,1956,8,-1
 "A Cold Bargain","T","Uncle Scrooge",17,1957,3,1956,8,2
 "Gyro's Imagination Invention","M","Comics and Stories",199,1957,4,1956,9,20
@@ -357,6 +358,8 @@ Heirloom Watch,"T","Uncle Scrooge",10,1955,6,1954,11,11
 "Gyro Builds a Better House","M","Uncle Scrooge",19,1957,9,1957,2,28
 "History Tossed","M","Uncle Scrooge",19,1957,9,1957,2,28
 "The Black Pearls of Tabu Yama","M","Christmas in Disneyland",1,1957,10,1957,3,14
+"August Accident","T","Mickey Mouse Almanac",1,1957,12,1957,3,21
+"September Scrimmage","T","Mickey Mouse Almanac",1,1957,12,1957,3,21
 "Wishing Stone Island","M","Comics and Stories",211,1958,4,1957,4,18
 "Rocket Race Around the World","M","Comics and Stories",212,1958,5,1957,4,18
 "Roscoe the Robot","M","Uncle Scrooge",20,1957,12,1957,4,25
@@ -371,7 +374,7 @@ Heirloom Watch,"T","Uncle Scrooge",10,1955,6,1954,11,11
 "The Persistent Postman","M","Comics and Stories",209,1958,2,1957,7,25
 "The Half-Baked Baker","M","Comics and Stories",210,1958,3,1957,7,25
 "Dodging Miss Daisy","M","Comics and Stories",213,1958,6,1957,7,25
-"The Money Well","M","Uncle Scrooge",21,1958,3,1957,8,22
+"The Money Well","T","Uncle Scrooge",21,1958,3,1957,8,22
 "The Milkman","M","Comics and Stories",215,1958,8,1957,9,19
 "Mocking Bird Ridge","M","Comics and Stories",215,1958,8,1957,9,19
 "Old Froggie Catapult","M","Comics and Stories",216,1958,9,1957,10,1
@@ -381,7 +384,7 @@ Heirloom Watch,"T","Uncle Scrooge",10,1955,6,1954,11,11
 "Water Ski Race","M","Donald Duck",60,1958,7,1957,10,31
 "The Balmy Swami","M","Uncle Scrooge",31,1960,9,1957,10,31
 "The Windy Story","M","Uncle Scrooge",37,1962,3,1957,10,31
-"The Golden River","M","Uncle Scrooge",22,1958,6,1957,11,21
+"The Golden River","T","Uncle Scrooge",22,1958,6,1957,11,21
 "Moola on the Move","M","Uncle Scrooge",23,1958,9,1957,12,5
 "Thumbs Up","M","Uncle Scrooge",33,1961,3,1957,12,5
 "The Know-It-All Machine","M","Uncle Scrooge",22,1958,3,1957,12,12
