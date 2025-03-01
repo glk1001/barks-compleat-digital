@@ -3,16 +3,16 @@ import os
 from typing import List, Tuple
 
 from barks_fantagraphics.comic_book import ComicBook, get_page_str
+from barks_fantagraphics.pages import CleanPage, SrceAndDestPages
+from barks_fantagraphics.pages import PAGES_WITHOUT_PANELS
+from barks_fantagraphics.panel_bounding_boxes import BoundingBox, get_panels_bounding_box_from_file
 from consts import (
     PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN,
     DEST_TARGET_WIDTH,
     DEST_TARGET_HEIGHT,
     DEST_TARGET_X_MARGIN,
-    PAGES_WITHOUT_PANELS,
 )
 from image_io import open_image_for_reading
-from pages import CleanPage, SrceAndDestPages
-from panel_bounding_boxes import BoundingBox, get_panels_bounding_box_from_file
 
 
 def get_required_panels_bbox_width_height(

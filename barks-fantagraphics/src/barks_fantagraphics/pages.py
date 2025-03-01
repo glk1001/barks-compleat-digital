@@ -1,3 +1,4 @@
+import inspect
 import os
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Union
@@ -5,16 +6,52 @@ from typing import List, Tuple, Dict, Union
 from barks_fantagraphics.comic_book import OriginalPage, ComicBook
 from barks_fantagraphics.comics_consts import PageType
 from barks_fantagraphics.comics_utils import get_timestamp
-from consts import (
-    ROMAN_NUMERALS,
-    TITLE_EMPTY_FILENAME,
-    EMPTY_FILENAME,
-    DEST_FILE_EXT,
-    FRONT_MATTER_PAGES,
+from barks_fantagraphics.panel_bounding_boxes import BoundingBox
+
+THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+
+TITLE_EMPTY_FILENAME = "title_empty"
+EMPTY_FILENAME = "empty"
+DEST_FILE_EXT = ".jpg"
+ROMAN_NUMERALS = {
+    1: "i",
+    2: "ii",
+    3: "iii",
+    4: "iv",
+    5: "v",
+    6: "vi",
+    7: "vii",
+    8: "viii",
+    9: "ix",
+    10: "x",
+}
+
+EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "empty_page.png")
+TITLE_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
+EMPTY_IMAGE_FILES = {
     EMPTY_IMAGE_FILEPATH,
     TITLE_EMPTY_IMAGE_FILEPATH,
-)
-from panel_bounding_boxes import BoundingBox
+}
+
+FRONT_PAGES = [
+    PageType.FRONT,
+    PageType.TITLE,
+    PageType.COVER,
+    PageType.SPLASH,
+    PageType.SPLASH_NO_BORDER,
+    PageType.PAINTING,
+    PageType.PAINTING_NO_BORDER,
+]
+FRONT_MATTER_PAGES = FRONT_PAGES + [PageType.FRONT_MATTER]
+PAGES_WITHOUT_PANELS = FRONT_PAGES + [PageType.BACK_NO_PANELS, PageType.BLANK_PAGE]
+SPLASH_PAGES = [
+    PageType.SPLASH,
+    PageType.SPLASH_NO_BORDER,
+]
+PAINTING_PAGES = [
+    PageType.PAINTING,
+    PageType.PAINTING_NO_BORDER,
+]
 
 
 class CleanPage:

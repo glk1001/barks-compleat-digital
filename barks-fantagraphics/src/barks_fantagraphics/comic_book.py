@@ -291,8 +291,8 @@ class ComicBook:
                 raise Exception(f"Expected upscayled fixes page to be COVER or BODY: '{page_num}'.")
         elif self._is_fixes_special_case(page_num, page_type):
             logging.info(
-                    f"NOTE: Special case - using ADDED upscayled fixes srce file for"
-                    f' {page_type.name} page: "{get_abbrev_path(srce_upscayled_fixes_file)}".'
+                f"NOTE: Special case - using ADDED upscayled fixes srce file for"
+                f' {page_type.name} page: "{get_abbrev_path(srce_upscayled_fixes_file)}".'
             )
         else:
             logging.info(

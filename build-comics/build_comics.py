@@ -25,6 +25,17 @@ from barks_fantagraphics.comics_consts import (
 from barks_fantagraphics.comics_image_io import METADATA_PROPERTY_GROUP
 from barks_fantagraphics.comics_info import CS, CENSORED_TITLES
 from barks_fantagraphics.comics_utils import get_clean_path, get_relpath, get_abbrev_path
+from barks_fantagraphics.pages import (
+    CleanPage,
+    SrceAndDestPages,
+    get_max_timestamp,
+    get_page_num_str,
+    get_srce_and_dest_pages_in_order,
+    PAGES_WITHOUT_PANELS,
+    PAINTING_PAGES,
+    SPLASH_PAGES,
+    EMPTY_IMAGE_FILEPATH,
+)
 from consts import (
     DEST_TARGET_WIDTH,
     DEST_TARGET_X_MARGIN,
@@ -32,21 +43,10 @@ from consts import (
     MIN_HD_SRCE_HEIGHT,
     DEST_JPG_COMPRESS_LEVEL,
     DEST_JPG_QUALITY,
-    PAGES_WITHOUT_PANELS,
-    PAINTING_PAGES,
-    SPLASH_PAGES,
     DEST_TARGET_ASPECT_RATIO,
     FOOTNOTE_CHAR,
-    EMPTY_IMAGE_FILEPATH,
 )
 from image_io import open_image_for_reading
-from pages import (
-    CleanPage,
-    SrceAndDestPages,
-    get_max_timestamp,
-    get_page_num_str,
-    get_srce_and_dest_pages_in_order,
-)
 from panel_bounding import (
     set_srce_panel_bounding_boxes,
     set_dest_panel_bounding_boxes,

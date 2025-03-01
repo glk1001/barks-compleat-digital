@@ -9,6 +9,13 @@ from barks_fantagraphics.comics_consts import (
     get_font_path,
 )
 from barks_fantagraphics.comics_utils import get_clean_path, get_timestamp_str, get_timestamp_as_str
+from barks_fantagraphics.pages import (
+    CleanPage,
+    SrceAndDestPages,
+    get_srce_dest_map,
+    get_page_num_str,
+)
+from barks_fantagraphics.pages import FRONT_MATTER_PAGES, SPLASH_PAGES, PAINTING_PAGES
 from consts import (
     DEST_JPG_QUALITY,
     DEST_JPG_COMPRESS_LEVEL,
@@ -24,15 +31,6 @@ from consts import (
     DEST_TARGET_HEIGHT,
     DEST_TARGET_X_MARGIN,
     DEST_TARGET_ASPECT_RATIO,
-    FRONT_MATTER_PAGES,
-    SPLASH_PAGES,
-    PAINTING_PAGES,
-)
-from pages import (
-    CleanPage,
-    SrceAndDestPages,
-    get_srce_dest_map,
-    get_page_num_str,
 )
 from timing import Timing
 

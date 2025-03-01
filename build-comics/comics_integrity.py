@@ -21,12 +21,12 @@ from barks_fantagraphics.comics_info import (
     PNG_FILE_EXT,
 )
 from barks_fantagraphics.comics_utils import get_relpath, get_timestamp, get_timestamp_as_str
-from consts import DEST_NON_IMAGE_FILES
-from pages import (
+from barks_fantagraphics.pages import (
     CleanPage,
     SrceAndDestPages,
     get_srce_and_dest_pages_in_order,
 )
+from consts import DEST_NON_IMAGE_FILES
 from utils import (
     DATE_SEP,
     DATE_TIME_SEP,

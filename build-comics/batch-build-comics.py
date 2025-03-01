@@ -20,9 +20,9 @@ from barks_fantagraphics.comics_utils import (
     get_timestamp_as_str,
     setup_logging,
 )
+from barks_fantagraphics.pages import get_srce_and_dest_pages_in_order, get_page_num_str
 from build_comics import build_comic_book
 from comics_integrity import check_comics_integrity, get_restored_srce_dependencies
-from pages import get_srce_and_dest_pages_in_order, get_page_num_str
 from timing import Timing
 
 
