@@ -9,10 +9,11 @@ from typing import List, Tuple
 from .comic_book import (
     ComicBook,
     ComicBookDirs,
+    ComicDimensions,
+    RequiredDimensions,
     OriginalPage,
     INTRO_TITLE_DEFAULT_FONT_SIZE,
     INTRO_AUTHOR_DEFAULT_FONT_SIZE,
-    RequiredDimensions,
     get_inset_file,
     get_formatted_first_published_str,
     get_formatted_submitted_date,
@@ -462,12 +463,7 @@ class ComicsDatabase:
             author_font_size=config["info"].getint(
                 "author_font_size", INTRO_AUTHOR_DEFAULT_FONT_SIZE
             ),
-            srce_min_panels_bbox_width=-1,
-            srce_max_panels_bbox_width=-1,
-            srce_min_panels_bbox_height=-1,
-            srce_max_panels_bbox_height=-1,
-            srce_av_panels_bbox_width=-1,
-            srce_av_panels_bbox_height=-1,
+            srce_dim=ComicDimensions(),
             required_dim=RequiredDimensions(),
             fanta_info=fanta_info,
             srce_dir_num_page_files=srce_dir_num_page_files,

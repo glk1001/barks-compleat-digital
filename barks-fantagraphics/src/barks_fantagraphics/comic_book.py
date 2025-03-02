@@ -50,6 +50,16 @@ class RequiredDimensions:
 
 
 @dataclass
+class ComicDimensions:
+    min_panels_bbox_width: int = -1
+    max_panels_bbox_width: int = -1
+    min_panels_bbox_height: int = -1
+    max_panels_bbox_height: int = -1
+    av_panels_bbox_width: int = -1
+    av_panels_bbox_height: int = -1
+
+
+@dataclass
 class ComicBookDirs:
     srce_dir: str
     srce_upscayled_dir: str
@@ -74,12 +84,7 @@ class ComicBook:
     issue_title: str
     author_font_size: int
 
-    srce_min_panels_bbox_width: int
-    srce_max_panels_bbox_width: int
-    srce_min_panels_bbox_height: int
-    srce_max_panels_bbox_height: int
-    srce_av_panels_bbox_width: int
-    srce_av_panels_bbox_height: int
+    srce_dim: ComicDimensions
     required_dim: RequiredDimensions
 
     fanta_info: SourceBook

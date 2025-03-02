@@ -45,8 +45,8 @@ def write_summary_file(
 
     calc_panels_bbox_height = int(
         round(
-            (comic.srce_av_panels_bbox_height * comic.required_dim.panels_bbox_width)
-            / comic.srce_av_panels_bbox_width
+            (comic.srce_dim.av_panels_bbox_height * comic.required_dim.panels_bbox_width)
+            / comic.srce_dim.av_panels_bbox_width
         )
     )
 
@@ -119,12 +119,12 @@ def write_summary_file(
         f.write(f"DEST_TARGET_ASPECT_RATIO = {DEST_TARGET_ASPECT_RATIO:.2f}\n")
         f.write(f"DEST_JPG_QUALITY         = {DEST_JPG_QUALITY}\n")
         f.write(f"DEST_JPG_COMPRESS_LEVEL  = {DEST_JPG_COMPRESS_LEVEL}\n")
-        f.write(f"srce min panels bbox wid = {comic.srce_min_panels_bbox_width}\n")
-        f.write(f"srce max panels bbox wid = {comic.srce_max_panels_bbox_width}\n")
-        f.write(f"srce av panels bbox wid  = {comic.srce_av_panels_bbox_width}\n")
-        f.write(f"srce min panels bbox hgt = {comic.srce_min_panels_bbox_height}\n")
-        f.write(f"srce max panels bbox_hgt = {comic.srce_max_panels_bbox_height}\n")
-        f.write(f"srce av panels bbox hgt  = {comic.srce_av_panels_bbox_height}\n")
+        f.write(f"srce min panels bbox wid = {comic.srce_dim.min_panels_bbox_width}\n")
+        f.write(f"srce max panels bbox wid = {comic.srce_dim.max_panels_bbox_width}\n")
+        f.write(f"srce av panels bbox wid  = {comic.srce_dim.av_panels_bbox_width}\n")
+        f.write(f"srce min panels bbox hgt = {comic.srce_dim.min_panels_bbox_height}\n")
+        f.write(f"srce max panels bbox_hgt = {comic.srce_dim.max_panels_bbox_height}\n")
+        f.write(f"srce av panels bbox hgt  = {comic.srce_dim.av_panels_bbox_height}\n")
         f.write(f"req panels bbox width    = {comic.required_dim.panels_bbox_width}\n")
         f.write(f"req panels bbox height   = {comic.required_dim.panels_bbox_height}\n")
         f.write(f"calc panels bbox height  = {calc_panels_bbox_height}\n")
@@ -196,12 +196,12 @@ def write_json_metadata(comic: ComicBook, dest_pages: List[CleanPage]):
     metadata["publication_date"] = comic.publication_date
     metadata["submitted_date"] = comic.submitted_date
     metadata["submitted_year"] = comic.submitted_year
-    metadata["srce_min_panels_bbox_width"] = comic.srce_min_panels_bbox_width
-    metadata["srce_max_panels_bbox_width"] = comic.srce_max_panels_bbox_width
-    metadata["srce_av_panels_bbox_width"] = comic.srce_av_panels_bbox_width
-    metadata["srce_min_panels_bbox_height"] = comic.srce_min_panels_bbox_height
-    metadata["srce_max_panels_bbox_height"] = comic.srce_max_panels_bbox_height
-    metadata["srce_av_panels_bbox_height"] = comic.srce_av_panels_bbox_height
+    metadata["srce_min_panels_bbox_width"] = comic.srce_dim.min_panels_bbox_width
+    metadata["srce_max_panels_bbox_width"] = comic.srce_dim.max_panels_bbox_width
+    metadata["srce_av_panels_bbox_width"] = comic.srce_dim.av_panels_bbox_width
+    metadata["srce_min_panels_bbox_height"] = comic.srce_dim.min_panels_bbox_height
+    metadata["srce_max_panels_bbox_height"] = comic.srce_dim.max_panels_bbox_height
+    metadata["srce_av_panels_bbox_height"] = comic.srce_dim.av_panels_bbox_height
     metadata["required_dim"] = [
         comic.required_dim.panels_bbox_width,
         comic.required_dim.panels_bbox_height,

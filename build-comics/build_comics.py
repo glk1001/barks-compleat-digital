@@ -764,8 +764,8 @@ def log_comic_book_params(comic: ComicBook):
 
     calc_panels_bbox_height = int(
         round(
-            (comic.srce_av_panels_bbox_height * comic.required_dim.panels_bbox_width)
-            / comic.srce_av_panels_bbox_width
+            (comic.srce_dim.av_panels_bbox_height * comic.required_dim.panels_bbox_width)
+            / comic.srce_dim.av_panels_bbox_width
         )
     )
 
@@ -780,12 +780,12 @@ def log_comic_book_params(comic: ComicBook):
     logging.info(f"Dest aspect ratio:    {DEST_TARGET_ASPECT_RATIO :.2f}.")
     logging.info(f"Dest jpeg quality:    {DEST_JPG_QUALITY}.")
     logging.info(f"Dest compress level:  {DEST_JPG_COMPRESS_LEVEL}.")
-    logging.info(f"Srce min bbox wid:    {comic.srce_min_panels_bbox_width}.")
-    logging.info(f"Srce max bbox wid:    {comic.srce_max_panels_bbox_width}.")
-    logging.info(f"Srce min bbox hgt:    {comic.srce_min_panels_bbox_height}.")
-    logging.info(f"Srce max bbox hgt:    {comic.srce_max_panels_bbox_height}.")
-    logging.info(f"Srce av bbox wid:     {comic.srce_av_panels_bbox_width}.")
-    logging.info(f"Srce av bbox hgt:     {comic.srce_av_panels_bbox_height}.")
+    logging.info(f"Srce min bbox wid:    {comic.srce_dim.min_panels_bbox_width}.")
+    logging.info(f"Srce max bbox wid:    {comic.srce_dim.max_panels_bbox_width}.")
+    logging.info(f"Srce min bbox hgt:    {comic.srce_dim.min_panels_bbox_height}.")
+    logging.info(f"Srce max bbox hgt:    {comic.srce_dim.max_panels_bbox_height}.")
+    logging.info(f"Srce av bbox wid:     {comic.srce_dim.av_panels_bbox_width}.")
+    logging.info(f"Srce av bbox hgt:     {comic.srce_dim.av_panels_bbox_height}.")
     logging.info(f"Req panels bbox wid:  {comic.required_dim.panels_bbox_width}.")
     logging.info(f"Req panels bbox hgt:  {comic.required_dim.panels_bbox_height}.")
     logging.info(f"Calc panels bbox ht:  {calc_panels_bbox_height}.")

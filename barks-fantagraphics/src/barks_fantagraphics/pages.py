@@ -181,10 +181,10 @@ def get_srce_dest_map(
     srce_dest_map["srce_dirname"] = os.path.basename(comic.dirs.srce_dir)
     srce_dest_map["dest_dirname"] = comic.get_dest_rel_dirname()
 
-    srce_dest_map["srce_min_panels_bbox_width"] = comic.srce_min_panels_bbox_width
-    srce_dest_map["srce_max_panels_bbox_width"] = comic.srce_max_panels_bbox_width
-    srce_dest_map["srce_min_panels_bbox_height"] = comic.srce_min_panels_bbox_height
-    srce_dest_map["srce_max_panels_bbox_height"] = comic.srce_max_panels_bbox_height
+    srce_dest_map["srce_min_panels_bbox_width"] = comic.srce_dim.min_panels_bbox_width
+    srce_dest_map["srce_max_panels_bbox_width"] = comic.srce_dim.max_panels_bbox_width
+    srce_dest_map["srce_min_panels_bbox_height"] = comic.srce_dim.min_panels_bbox_height
+    srce_dest_map["srce_max_panels_bbox_height"] = comic.srce_dim.max_panels_bbox_height
     srce_dest_map["dest_required_bbox_width"] = comic.required_dim.panels_bbox_width
     srce_dest_map["dest_required_bbox_height"] = comic.required_dim.panels_bbox_height
 
