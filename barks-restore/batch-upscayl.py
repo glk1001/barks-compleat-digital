@@ -24,7 +24,7 @@ def upscayl(title_list: List[str]) -> None:
 
         comic = comics_database.get_comic_book(title)
 
-        srce_files = comic.get_srce_with_fixes_story_files(RESTORABLE_PAGE_TYPES)
+        srce_files = comic.get_final_srce_original_story_files(RESTORABLE_PAGE_TYPES)
         upscayl_files = comic.get_srce_upscayled_story_files(RESTORABLE_PAGE_TYPES)
 
         for srce_file, dest_file in zip(srce_files, upscayl_files):

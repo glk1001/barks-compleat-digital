@@ -509,9 +509,9 @@ class ComicsDatabase:
             raise NotADirectoryError(
                 f'Could not find srce fixes directory "{comic.dirs.srce_fixes_dir}".'
             )
-        if not os.path.isdir(comic.get_srce_fixes_image_dir()):
+        if not os.path.isdir(comic.get_srce_original_fixes_image_dir()):
             raise NotADirectoryError(
-                f'Could not find srce fixes image directory "{comic.get_srce_fixes_image_dir()}".'
+                f'Could not find srce fixes image directory "{comic.get_srce_original_fixes_image_dir()}".'
             )
         if not os.path.isdir(comic.dirs.srce_restored_fixes_dir):
             raise NotADirectoryError(
@@ -521,7 +521,7 @@ class ComicsDatabase:
         if not os.path.isdir(comic.get_srce_restored_fixes_image_dir()):
             raise NotADirectoryError(
                 f"Could not find srce restored fixes image directory"
-                f' "{comic.get_srce_fixes_image_dir()}".'
+                f' "{comic.get_srce_original_fixes_image_dir()}".'
             )
 
         return comic

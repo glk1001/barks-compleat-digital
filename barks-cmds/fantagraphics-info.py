@@ -66,7 +66,7 @@ def has_inset_file(comic: ComicBook) -> bool:
 
 
 def has_fixes(comic: ComicBook) -> bool:
-    mods = [f[1] for f in comic.get_srce_with_fixes_story_files(RESTORABLE_PAGE_TYPES)]
+    mods = [f[1] for f in comic.get_final_srce_original_story_files(RESTORABLE_PAGE_TYPES)]
     if any(mods):
         return True
 

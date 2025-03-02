@@ -1,10 +1,22 @@
 import logging
 import sys
 from pathlib import Path
+from typing import List
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_utils import get_abbrev_path, setup_logging
 from barks_fantagraphics.pages import get_srce_and_dest_pages_in_order
+
+
+def print_sources(indent: int, source_list: List[str]) -> None:
+    if not source_list:
+        print()
+        return
+
+    print(f'"{get_abbrev_path(source_list[0])}"')
+    for srce in source_list[1:]:
+        print(" " * indent + f'"{get_abbrev_path(srce)}"')
+
 
 cmd_args = CmdArgs("Fantagraphics source files", CmdArgNames.TITLE | CmdArgNames.VOLUME)
 args_ok, error_msg = cmd_args.args_are_valid()
@@ -32,9 +44,14 @@ for title in titles:
     print(f'"{title}" source files:')
     for srce_page, dest_page in zip(srce_pages, dest_pages):
         dest_page_num = Path(dest_page.page_filename).stem
-        page_type = dest_page.page_type.name
+        srce_page_num = Path(srce_page.page_filename).stem
+        page_type_str = dest_page.page_type.name
+
+        sources = comic_book.get_story_file_sources(srce_page_num)
         print(
-            f'    "{dest_page_num} ({dest_page.page_num:02}) - {page_type:{max_len_page_type}}":'
-            f' "{get_abbrev_path(srce_page.page_filename)}"'
+            f"    {dest_page_num}"
+            f" ({dest_page.page_num:02}) - {page_type_str:{max_len_page_type}}: ",
+            end="",
         )
+        print_sources(4 + 2 + 5 + 2 + 3 + max_len_page_type + 2, sources)
     print()

@@ -65,8 +65,8 @@ def show_diffs_for_title(ttl: str, out_dir: str) -> None:
 
     comic = comics_database.get_comic_book(ttl)
 
-    srce_files = comic.get_original_srce_story_files(RESTORABLE_PAGE_TYPES)
-    fixes_files = comic.get_srce_with_fixes_story_files(RESTORABLE_PAGE_TYPES)
+    srce_files = comic.get_srce_original_story_files(RESTORABLE_PAGE_TYPES)
+    fixes_files = comic.get_final_srce_original_story_files(RESTORABLE_PAGE_TYPES)
     show_diffs_for_files(ttl + "-orig", os.path.join(out_dir, "orig"), srce_files, fixes_files)
 
     srce_upscayl_files = comic.get_srce_upscayled_story_files(RESTORABLE_PAGE_TYPES)
@@ -76,7 +76,7 @@ def show_diffs_for_title(ttl: str, out_dir: str) -> None:
     )
 
     srce_restored_files = comic.get_srce_restored_story_files(RESTORABLE_PAGE_TYPES)
-    fixes_restored_files = comic.get_srce_restored_with_fixes_story_files(RESTORABLE_PAGE_TYPES)
+    fixes_restored_files = comic.get_final_srce_story_files(RESTORABLE_PAGE_TYPES)
     show_diffs_for_files(
         ttl + "-restored",
         os.path.join(out_dir, "restored"),

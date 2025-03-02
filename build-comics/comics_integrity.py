@@ -308,7 +308,8 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
             continue
 
         # Upscayled fixes cannot be additions?
-        if not os.path.isfile(original_file) and not ComicBook.is_fixes_special_case(
+        # TODO: Will need comic object here to get censored titles
+        if not os.path.isfile(original_file) and not ComicBook.is_fixes_special_case_added(
             volume, get_page_num_str(original_file)
         ):
             print(
@@ -1123,7 +1124,7 @@ def get_restored_srce_dependencies(
     srce_page_timestamp = get_timestamp(srce_page.page_filename)
 
     srce_upscayl_file = comic.get_srce_upscayled_story_file(page_num_str)
-    srce_with_fixes_file = comic.get_srce_with_fixes_story_file(page_num_str, srce_page.page_type)[
+    srce_with_fixes_file = comic.get_final_srce_original_story_file(page_num_str, srce_page.page_type)[
         0
     ]
     srce_upscayl_timestamp = (
@@ -1138,7 +1139,7 @@ def get_restored_srce_dependencies(
 
     if srce_page.page_type in [PageType.FRONT_MATTER, PageType.BODY, PageType.BACK_MATTER]:
         underlying_files.append((srce_panel_segments_file, srce_panel_segments_timestamp))
-        panel_bounds_file = comic.get_fixes_panel_bounds_file(srce_page.page_num)
+        panel_bounds_file = comic.get_final_fixes_panel_bounds_file(srce_page.page_num)
         if panel_bounds_file:
             underlying_files.append((panel_bounds_file, get_timestamp(panel_bounds_file)))
 
@@ -1147,7 +1148,7 @@ def get_restored_srce_dependencies(
     underlying_files.append((srce_page.page_filename, srce_page_timestamp))
 
     if srce_page.page_type in [PageType.FRONT_MATTER, PageType.BODY, PageType.BACK_MATTER]:
-        if not comic._is_fixes_special_case(get_page_str(srce_page.page_num), srce_page.page_type):
+        if not comic._is_added_fixes_special_case(get_page_str(srce_page.page_num), srce_page.page_type):
             underlying_files.append((srce_upscayl_file, srce_upscayl_timestamp))
             underlying_files.append((srce_with_fixes_file, get_timestamp(srce_with_fixes_file)))
 
