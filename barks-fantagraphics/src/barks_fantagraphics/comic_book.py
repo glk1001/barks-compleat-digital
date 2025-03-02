@@ -50,25 +50,8 @@ class RequiredDimensions:
 
 
 @dataclass
-class ComicBook:
-    ini_file: str
-    title: str
-    title_font_file: str
-    title_font_size: int
-    # NOTE: Need 'issue_title' to force a series title that has
-    #       changed from another title. E.g., FC 495 == Uncle Scrooge #3
-    issue_title: str
-    author_font_size: int
-    srce_min_panels_bbox_width: int
-    srce_max_panels_bbox_width: int
-    srce_min_panels_bbox_height: int
-    srce_max_panels_bbox_height: int
-    srce_av_panels_bbox_width: int
-    srce_av_panels_bbox_height: int
-    required_dim: RequiredDimensions
-    fanta_info: SourceBook
+class ComicBookDirs:
     srce_dir: str
-    srce_dir_num_page_files: int
     srce_upscayled_dir: str
     srce_restored_dir: str
     srce_restored_upscayled_dir: str
@@ -78,6 +61,31 @@ class ComicBook:
     srce_upscayled_fixes_dir: str
     srce_restored_fixes_dir: str  # TODO: Get rid of this????
     panel_segments_dir: str
+
+
+@dataclass
+class ComicBook:
+    ini_file: str
+    title: str
+    title_font_file: str
+    title_font_size: int
+    # NOTE: Need 'issue_title' to force a series title that has
+    #       changed from another title. E.g., FC 495 == Uncle Scrooge #3
+    issue_title: str
+    author_font_size: int
+
+    srce_min_panels_bbox_width: int
+    srce_max_panels_bbox_width: int
+    srce_min_panels_bbox_height: int
+    srce_max_panels_bbox_height: int
+    srce_av_panels_bbox_width: int
+    srce_av_panels_bbox_height: int
+    required_dim: RequiredDimensions
+
+    fanta_info: SourceBook
+    srce_dir_num_page_files: int
+    dirs: ComicBookDirs
+
     series_name: str
     number_in_series: int
     chronological_number: int
@@ -86,6 +94,7 @@ class ComicBook:
     submitted_date: str
     submitted_year: int
     publication_text: str
+
     comic_book_info: ComicBookInfo
     config_page_images: List[OriginalPage]
     page_images_in_order: List[OriginalPage]
@@ -98,35 +107,39 @@ class ComicBook:
     def is_barks_title(self) -> bool:
         return self.comic_book_info.is_barks_title
 
+    @staticmethod
+    def __get_image_subdir(dirpath: str) -> str:
+        return os.path.join(dirpath, IMAGES_SUBDIR)
+
     def get_srce_image_dir(self) -> str:
-        return os.path.join(self.srce_dir, IMAGES_SUBDIR)
+        return self.__get_image_subdir(self.dirs.srce_dir)
 
     def get_srce_upscayled_image_dir(self) -> str:
-        return os.path.join(self.srce_upscayled_dir, IMAGES_SUBDIR)
+        return self.__get_image_subdir(self.dirs.srce_upscayled_dir)
 
     def get_srce_restored_image_dir(self) -> str:
-        return os.path.join(self.srce_restored_dir, IMAGES_SUBDIR)
+        return self.__get_image_subdir(self.dirs.srce_restored_dir)
 
     def get_srce_restored_upscayled_image_dir(self) -> str:
-        return os.path.join(self.srce_restored_upscayled_dir, IMAGES_SUBDIR)
+        return self.__get_image_subdir(self.dirs.srce_restored_upscayled_dir)
 
     def get_srce_restored_svg_image_dir(self) -> str:
-        return os.path.join(self.srce_restored_svg_dir, IMAGES_SUBDIR)
+        return self.__get_image_subdir(self.dirs.srce_restored_svg_dir)
 
     def get_srce_restored_ocr_image_dir(self) -> str:
-        return os.path.join(self.srce_restored_ocr_dir, IMAGES_SUBDIR)
+        return self.__get_image_subdir(self.dirs.srce_restored_ocr_dir)
 
     def get_srce_fixes_image_dir(self) -> str:
-        return os.path.join(self.srce_fixes_dir, IMAGES_SUBDIR)
+        return self.__get_image_subdir(self.dirs.srce_fixes_dir)
 
     def get_srce_upscayled_fixes_image_dir(self) -> str:
-        return os.path.join(self.srce_upscayled_fixes_dir, IMAGES_SUBDIR)
+        return self.__get_image_subdir(self.dirs.srce_upscayled_fixes_dir)
+
+    def get_srce_restored_fixes_image_dir(self) -> str:
+        return self.__get_image_subdir(self.dirs.srce_restored_fixes_dir)
 
     def get_srce_fixes_bounded_dir(self) -> str:
         return os.path.join(self.get_srce_fixes_image_dir(), BOUNDED_SUBDIR)
-
-    def get_srce_restored_fixes_image_dir(self) -> str:
-        return os.path.join(self.srce_restored_fixes_dir, IMAGES_SUBDIR)
 
     def get_srce_restored_fixes_bounded_dir(self) -> str:
         return os.path.join(self.get_srce_restored_fixes_image_dir(), BOUNDED_SUBDIR)
@@ -255,12 +268,22 @@ class ComicBook:
 
     def get_srce_restored_ocr_story_file(self, page_num: str) -> Tuple[str, str]:
         return (
-            str(os.path.join(self.srce_restored_ocr_dir, page_num + ".easyocr" + JSON_FILE_EXT)),
-            str(os.path.join(self.srce_restored_ocr_dir, page_num + ".paddleocr" + JSON_FILE_EXT)),
+            str(
+                os.path.join(
+                    self.dirs.srce_restored_ocr_dir,
+                    page_num + ".easyocr" + JSON_FILE_EXT,
+                )
+            ),
+            str(
+                os.path.join(
+                    self.dirs.srce_restored_ocr_dir,
+                    page_num + ".paddleocr" + JSON_FILE_EXT,
+                )
+            ),
         )
 
     def get_srce_panel_segments_file(self, page_num: str) -> str:
-        return str(os.path.join(self.panel_segments_dir, page_num + JSON_FILE_EXT))
+        return str(os.path.join(self.dirs.panel_segments_dir, page_num + JSON_FILE_EXT))
 
     def get_srce_upscayled_with_fixes_story_file(
         self, page_num: str, page_type: PageType
@@ -466,7 +489,8 @@ class ComicBook:
         return ""
 
     # TODO: Should dest stuff be elsewhere??
-    def get_dest_root_dir(self) -> str:
+    @staticmethod
+    def get_dest_root_dir() -> str:
         return THE_CHRONOLOGICAL_DIRS_DIR
 
     def get_dest_dir(self) -> str:
@@ -485,7 +509,8 @@ class ComicBook:
     def get_dest_image_dir(self) -> str:
         return os.path.join(self.get_dest_dir(), IMAGES_SUBDIR)
 
-    def get_dest_zip_root_dir(self) -> str:
+    @staticmethod
+    def get_dest_zip_root_dir() -> str:
         return THE_CHRONOLOGICAL_DIR
 
     def get_dest_series_zip_symlink_dir(self) -> str:

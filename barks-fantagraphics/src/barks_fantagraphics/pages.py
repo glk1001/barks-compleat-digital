@@ -178,7 +178,7 @@ def get_srce_dest_map(
     pages: SrceAndDestPages,
 ) -> Dict[str, Union[str, int, Dict[str, str]]]:
     srce_dest_map = dict()
-    srce_dest_map["srce_dirname"] = os.path.basename(comic.srce_dir)
+    srce_dest_map["srce_dirname"] = os.path.basename(comic.dirs.srce_dir)
     srce_dest_map["dest_dirname"] = comic.get_dest_rel_dirname()
 
     srce_dest_map["srce_min_panels_bbox_width"] = comic.srce_min_panels_bbox_width

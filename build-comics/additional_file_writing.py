@@ -63,12 +63,12 @@ def write_summary_file(
     ]
 
     ini_file = get_clean_path(comic.ini_file)
-    srce_dir = get_clean_path(comic.srce_dir)
-    srce_upscayled_dir = get_clean_path(comic.srce_upscayled_dir)
-    srce_restored_dir = get_clean_path(comic.srce_restored_dir)
-    srce_fixes_dir = get_clean_path(comic.srce_fixes_dir)
-    srce_upscayled_fixes_dir = get_clean_path(comic.srce_upscayled_fixes_dir)
-    srce_restored_fixes_dir = get_clean_path(comic.srce_restored_fixes_dir)
+    srce_dir = get_clean_path(comic.dirs.srce_dir)
+    srce_upscayled_dir = get_clean_path(comic.dirs.srce_upscayled_dir)
+    srce_restored_dir = get_clean_path(comic.dirs.srce_restored_dir)
+    srce_fixes_dir = get_clean_path(comic.dirs.srce_fixes_dir)
+    srce_upscayled_fixes_dir = get_clean_path(comic.dirs.srce_upscayled_fixes_dir)
+    srce_restored_fixes_dir = get_clean_path(comic.dirs.srce_restored_fixes_dir)
     dest_dir = get_clean_path(comic.get_dest_dir())
     dest_comic_zip = get_clean_path(comic.get_dest_comic_zip())
     dest_series_zip_symlink = get_clean_path(comic.get_dest_series_comic_zip_symlink())
@@ -191,7 +191,7 @@ def write_json_metadata(comic: ComicBook, dest_pages: List[CleanPage]):
     metadata["comic_title"] = get_safe_title(comic.get_comic_title())
     metadata["series_name"] = comic.series_name
     metadata["number_in_series"] = comic.number_in_series
-    metadata["srce_dir"] = get_clean_path(comic.srce_dir)
+    metadata["srce_dir"] = get_clean_path(comic.dirs.srce_dir)
     metadata["dest_dir"] = get_clean_path(comic.get_dest_dir())
     metadata["publication_date"] = comic.publication_date
     metadata["submitted_date"] = comic.submitted_date
