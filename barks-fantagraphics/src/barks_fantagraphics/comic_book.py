@@ -253,52 +253,46 @@ class ComicBook:
         return all_files
 
     def get_srce_upscayled_story_file(self, page_num: str) -> str:
-        return str(os.path.join(self.get_srce_upscayled_image_dir(), page_num + PNG_FILE_EXT))
+        return os.path.join(self.get_srce_upscayled_image_dir(), page_num + PNG_FILE_EXT)
 
     def get_srce_restored_story_file(self, page_num: str) -> str:
-        return str(os.path.join(self.get_srce_restored_image_dir(), page_num + PNG_FILE_EXT))
+        return os.path.join(self.get_srce_restored_image_dir(), page_num + PNG_FILE_EXT)
 
     def get_srce_restored_upscayled_story_file(self, page_num: str) -> str:
-        return str(
-            os.path.join(self.get_srce_restored_upscayled_image_dir(), page_num + PNG_FILE_EXT)
-        )
+        return os.path.join(self.get_srce_restored_upscayled_image_dir(), page_num + PNG_FILE_EXT)
 
     def get_srce_restored_svg_story_file(self, page_num: str) -> str:
-        return str(os.path.join(self.get_srce_restored_svg_image_dir(), page_num + SVG_FILE_EXT))
+        return os.path.join(self.get_srce_restored_svg_image_dir(), page_num + SVG_FILE_EXT)
 
     def get_srce_restored_ocr_story_file(self, page_num: str) -> Tuple[str, str]:
         return (
-            str(
-                os.path.join(
-                    self.dirs.srce_restored_ocr_dir,
-                    page_num + ".easyocr" + JSON_FILE_EXT,
-                )
+            os.path.join(
+                self.dirs.srce_restored_ocr_dir,
+                page_num + ".easyocr" + JSON_FILE_EXT,
             ),
-            str(
-                os.path.join(
-                    self.dirs.srce_restored_ocr_dir,
-                    page_num + ".paddleocr" + JSON_FILE_EXT,
-                )
+            os.path.join(
+                self.dirs.srce_restored_ocr_dir,
+                page_num + ".paddleocr" + JSON_FILE_EXT,
             ),
         )
 
     def get_srce_panel_segments_file(self, page_num: str) -> str:
-        return str(os.path.join(self.dirs.panel_segments_dir, page_num + JSON_FILE_EXT))
+        return os.path.join(self.dirs.panel_segments_dir, page_num + JSON_FILE_EXT)
 
     def get_srce_upscayled_with_fixes_story_file(
         self, page_num: str, page_type: PageType
     ) -> Tuple[str, bool]:
         srce_upscayled_file = self.get_srce_upscayled_story_file(page_num)
 
-        srce_upscayled_fixes_file = str(
-            os.path.join(self.get_srce_upscayled_fixes_image_dir(), page_num + JPG_FILE_EXT)
+        srce_upscayled_fixes_file = os.path.join(
+            self.get_srce_upscayled_fixes_image_dir(), page_num + JPG_FILE_EXT
         )
         if os.path.isfile(srce_upscayled_fixes_file):
             raise Exception(
                 f'Upscayled fixes file must be .png not .jpg: "{srce_upscayled_fixes_file}".'
             )
-        srce_upscayled_fixes_file = str(
-            os.path.join(self.get_srce_upscayled_fixes_image_dir(), page_num + PNG_FILE_EXT)
+        srce_upscayled_fixes_file = os.path.join(
+            self.get_srce_upscayled_fixes_image_dir(), page_num + PNG_FILE_EXT
         )
 
         if not os.path.isfile(srce_upscayled_fixes_file):
@@ -330,13 +324,13 @@ class ComicBook:
         return srce_upscayled_fixes_file, is_modified_file
 
     def get_original_srce_story_file(self, page_num: str) -> str:
-        return str(os.path.join(self.get_srce_image_dir(), page_num + JPG_FILE_EXT))
+        return os.path.join(self.get_srce_image_dir(), page_num + JPG_FILE_EXT)
 
     def get_final_srce_story_file(self, page_num: str, page_type: PageType) -> Tuple[str, bool]:
         if page_type == PageType.TITLE:
-            srce_file, is_modified = "TITLE PAGE", False
-            return srce_file, is_modified
-        elif page_type in [
+            return "TITLE PAGE", False
+
+        if page_type in [
             PageType.FRONT,
             PageType.COVER,
             PageType.PAINTING,
@@ -357,10 +351,8 @@ class ComicBook:
     def get_srce_with_fixes_story_file(
         self, page_num: str, page_type: PageType
     ) -> Tuple[str, bool]:
-        srce_file = str(os.path.join(self.get_srce_image_dir(), page_num + JPG_FILE_EXT))
-        srce_fixes_file = str(
-            os.path.join(self.get_srce_fixes_image_dir(), page_num + JPG_FILE_EXT)
-        )
+        srce_file = os.path.join(self.get_srce_image_dir(), page_num + JPG_FILE_EXT)
+        srce_fixes_file = os.path.join(self.get_srce_fixes_image_dir(), page_num + JPG_FILE_EXT)
         if not os.path.isfile(srce_fixes_file):
             return srce_file, False
 
@@ -394,24 +386,24 @@ class ComicBook:
     def get_srce_restored_with_fixes_file(
         self, page_num: str, page_type: PageType
     ) -> Tuple[str, bool]:
-        srce_restored_file = str(
-            os.path.join(self.get_srce_restored_image_dir(), page_num + JPG_FILE_EXT)
+        srce_restored_file = os.path.join(
+            self.get_srce_restored_image_dir(), page_num + JPG_FILE_EXT
         )
         if os.path.isfile(srce_restored_file):
             raise Exception(f'Restored files should be png not jpg: "{srce_restored_file}".')
-        srce_restored_fixes_file = str(
-            os.path.join(self.get_srce_restored_fixes_image_dir(), page_num + JPG_FILE_EXT)
+        srce_restored_fixes_file = os.path.join(
+            self.get_srce_restored_fixes_image_dir(), page_num + JPG_FILE_EXT
         )
         if os.path.isfile(srce_restored_fixes_file):
             raise Exception(
                 f'Restored fixes files should be png not jpg: "{srce_restored_fixes_file}".'
             )
 
-        srce_restored_file = str(
-            os.path.join(self.get_srce_restored_image_dir(), page_num + PNG_FILE_EXT)
+        srce_restored_file = os.path.join(
+            self.get_srce_restored_image_dir(), page_num + PNG_FILE_EXT
         )
-        srce_restored_fixes_file = str(
-            os.path.join(self.get_srce_restored_fixes_image_dir(), page_num + PNG_FILE_EXT)
+        srce_restored_fixes_file = os.path.join(
+            self.get_srce_restored_fixes_image_dir(), page_num + PNG_FILE_EXT
         )
 
         if not os.path.isfile(srce_restored_fixes_file):
@@ -657,7 +649,7 @@ def get_inset_file(ini_file: str) -> str:
     inset_filename = prefix + " Inset" + INSET_FILE_EXT
     ini_file_dir = os.path.dirname(ini_file)
 
-    return str(os.path.join(ini_file_dir, inset_filename))
+    return os.path.join(ini_file_dir, inset_filename)
 
 
 def get_formatted_first_published_str(info: ComicBookInfo) -> str:
