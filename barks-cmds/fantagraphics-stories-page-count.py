@@ -20,6 +20,9 @@ titles = cmd_args.get_titles()
 page_count = 0
 for title in titles:
     comic_book = comics_database.get_comic_book(title)
-    page_count += len(get_jpg_page_list(comic_book))
+    num_pages = len(get_jpg_page_list(comic_book))
+    if num_pages == 0:
+        raise Exception(f'For title "{title}", the page count is zero.')
+    page_count += num_pages
 
 print(f"{len(titles)} titles, {page_count} pages")

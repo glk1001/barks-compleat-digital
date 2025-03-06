@@ -4,7 +4,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Tuple, Set
 
-from barks_fantagraphics.comic_book import ComicBook, get_page_num_str, get_page_str, get_safe_title
+from barks_fantagraphics.comic_book import (
+    ComicBook,
+    get_page_num_str,
+    get_page_str,
+    get_safe_title,
+    get_jpg_page_list,
+)
 from barks_fantagraphics.comics_consts import (
     THE_CHRONOLOGICAL_DIRS_DIR,
     THE_CHRONOLOGICAL_DIR,
@@ -587,7 +593,10 @@ def check_single_title(comics_db: ComicsDatabase, title: str) -> int:
     ret_code = 0
 
     comic = comics_db.get_comic_book(title)
-    if 0 != check_out_of_date_files(comic):
+
+    if 0 != check_comic_structure(comic):
+        ret_code = 1
+    elif 0 != check_out_of_date_files(comic):
         ret_code = 1
 
     return ret_code
@@ -599,10 +608,26 @@ def check_all_titles(comics_db: ComicsDatabase) -> int:
     for title in comics_db.get_all_story_titles():
         comic = comics_db.get_comic_book(title)
 
+        if 0 != check_comic_structure(comic):
+            ret_code = 1
+            continue
+
         if 0 != check_out_of_date_files(comic):
             ret_code = 1
 
     return ret_code
+
+
+def check_comic_structure(comic: ComicBook) -> int:
+    title = get_safe_title(comic.get_comic_title())
+
+    num_pages = len(get_jpg_page_list(comic))
+    if num_pages == 0:
+        print(f'\n{ERROR_MSG_PREFIX}For "{title}", the page count is zero.')
+        return 1
+
+    logging.info(f'There are no structural problems with "{title}".')
+    return 0
 
 
 def check_out_of_date_files(comic: ComicBook) -> int:
@@ -637,7 +662,7 @@ def check_out_of_date_files(comic: ComicBook) -> int:
     ret_code = 1 if out_of_date_errors.is_error else 0
 
     if ret_code == 0:
-        logging.info(f'There are no problems with "{title}".')
+        logging.info(f'There are no out of date problems with "{title}".')
 
     return ret_code
 
