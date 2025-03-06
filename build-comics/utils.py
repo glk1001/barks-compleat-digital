@@ -86,7 +86,7 @@ def get_file_out_of_date_with_other_file_msg(file: str, other_file: str, msg_pre
         f"{blank_prefix}is out of date with\n"
         f'{blank_prefix}file "{get_abbrev_path(other_file)}":\n'
         f"{blank_prefix}'{get_timestamp_str(file, DATE_SEP, DATE_TIME_SEP, HOUR_SEP)}'"
-        f" < '{get_timestamp_str(other_file, " - ", DATE_TIME_SEP, HOUR_SEP)}'."
+        f" < '{get_timestamp_str(other_file, "-", DATE_TIME_SEP, HOUR_SEP)}'."
     )
 
 

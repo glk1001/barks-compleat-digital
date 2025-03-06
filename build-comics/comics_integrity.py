@@ -1080,7 +1080,7 @@ def print_out_of_date_or_missing_errors(errors: OutOfDateErrors) -> None:
         for err_msg in errors.dest_dir_files_out_of_date:
             print(
                 get_file_out_of_date_wrt_max_timestamp_msg(
-                    err_msg, errors.max_dest_timestamp, ERROR_MSG_PREFIX
+                    err_msg, errors.max_srce_timestamp, ERROR_MSG_PREFIX
                 )
             )
         print()
@@ -1124,9 +1124,9 @@ def get_restored_srce_dependencies(
     srce_page_timestamp = get_timestamp(srce_page.page_filename)
 
     srce_upscayl_file = comic.get_srce_upscayled_story_file(page_num_str)
-    srce_with_fixes_file = comic.get_final_srce_original_story_file(page_num_str, srce_page.page_type)[
-        0
-    ]
+    srce_with_fixes_file = comic.get_final_srce_original_story_file(
+        page_num_str, srce_page.page_type
+    )[0]
     srce_upscayl_timestamp = (
         get_timestamp(srce_upscayl_file) if os.path.isfile(srce_upscayl_file) else -1
     )
@@ -1148,7 +1148,9 @@ def get_restored_srce_dependencies(
     underlying_files.append((srce_page.page_filename, srce_page_timestamp))
 
     if srce_page.page_type in [PageType.FRONT_MATTER, PageType.BODY, PageType.BACK_MATTER]:
-        if not comic._is_added_fixes_special_case(get_page_str(srce_page.page_num), srce_page.page_type):
+        if not comic._is_added_fixes_special_case(
+            get_page_str(srce_page.page_num), srce_page.page_type
+        ):
             underlying_files.append((srce_upscayl_file, srce_upscayl_timestamp))
             underlying_files.append((srce_with_fixes_file, get_timestamp(srce_with_fixes_file)))
 
