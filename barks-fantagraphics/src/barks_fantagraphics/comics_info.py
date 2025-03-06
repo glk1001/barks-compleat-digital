@@ -601,7 +601,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     # US SHORTS
     "Somethin' Fishy Here": SeriesInfo(RTOM, SERIES_USS, "FANTA_12"),
     "The Round Money Bin": SeriesInfo(RTOM, SERIES_USS, "FANTA_12"),
-    "Billion Dollar Pigeon": SeriesInfo(RTOM, SERIES_USS, "FANTA_14"),
+    "Million Dollar Pigeon": SeriesInfo(RTOM, SERIES_USS, "FANTA_14"),
     "Outfoxed Fox": SeriesInfo(RTOM, SERIES_USS, "FANTA_12"),
     "A Campaign of Note": SeriesInfo(RTOM, SERIES_USS, "FANTA_14"),
     "The Tuckered Tiger": SeriesInfo(RTOM, SERIES_USS, "FANTA_14"),
