@@ -3,6 +3,7 @@ import os
 from typing import List, Tuple
 
 from barks_fantagraphics.comic_book import ComicBook, get_page_str
+from barks_fantagraphics.comics_utils import dest_file_is_older_than_srce
 from barks_fantagraphics.pages import CleanPage, SrceAndDestPages
 from barks_fantagraphics.pages import PAGES_WITHOUT_PANELS
 from barks_fantagraphics.panel_bounding_boxes import BoundingBox, get_panels_bounding_box_from_file
@@ -140,6 +141,11 @@ def get_panels_bounding_box(comic: ComicBook, srce_page: CleanPage) -> BoundingB
     if not os.path.isfile(srce_panels_segment_info_file):
         raise Exception(
             f'Could not find panels segments info file "{srce_panels_segment_info_file}".'
+        )
+    if dest_file_is_older_than_srce(srce_page.page_filename, srce_panels_segment_info_file):
+        raise Exception(
+            f'Panels segments info file "{srce_panels_segment_info_file}"'
+            f' is older than srce image file "{srce_page.page_filename}".'
         )
 
     return get_panels_bounding_box_from_file(srce_panels_segment_info_file)
