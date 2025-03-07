@@ -245,7 +245,7 @@ extra_args: List[ExtraArg] = [
     ExtraArg(BUILT_ARG, action="store", type=str, default=""),
 ]
 
-cmd_args = CmdArgs("Fantagraphics info", CmdArgNames.VOLUME, extra_args)
+cmd_args = CmdArgs("Fantagraphics info", CmdArgNames.TITLE | CmdArgNames.VOLUME, extra_args)
 args_ok, error_msg = cmd_args.args_are_valid()
 if not args_ok:
     logging.error(error_msg)
@@ -257,7 +257,7 @@ comics_database = cmd_args.get_comics_database()
 
 fixes_filter = get_fixes_filter(cmd_args)
 built_filter = get_built_filter(cmd_args)
-multiple_volumes = len(cmd_args.get_volumes()) > 1
+display_volumes = not cmd_args.one_or_more_volumes() or len(cmd_args.get_volumes()) > 1
 
 titles_and_info = cmd_args.get_titles_and_info(configured_only=False)
 titles_and_info = get_titles_and_info_sorted_by_submission_date(titles_and_info)
@@ -280,12 +280,11 @@ for issue_title_info in issue_titles_info:
     page_list = title_flags[title][4]
     volume = comic_book_info.fantagraphics_volume
 
-    volume_str = "" if not multiple_volumes else f" {volume}, "
+    volume_str = "" if not display_volumes else f" {volume}, "
 
     print(
         f'Title: "{display_title:<{max_title_len}}", {issue_title:<{max_issue_title_len}},'
         f"{volume_str}"
         f" {fixes_flag} {build_state_flag}, "
-        f" pages: {num_pages:2d},"
-        f" jpgs: {page_list}"
+        f" {num_pages:2d} jpgs: {page_list}"
     )

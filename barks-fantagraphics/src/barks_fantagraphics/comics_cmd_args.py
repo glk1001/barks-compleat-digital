@@ -97,6 +97,9 @@ class CmdArgs:
             raise Exception(f"'{WORK_DIR_ARG}' was not specified as an argument.")
         return self._cmd_args.work_dir
 
+    def one_or_more_volumes(self) -> bool:
+        return self._cmd_args.volume is not None
+
     def get_volume(self) -> str:
         volumes = self.get_volumes()
         if len(volumes) > 1:
