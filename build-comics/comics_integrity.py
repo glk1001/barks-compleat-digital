@@ -9,7 +9,7 @@ from barks_fantagraphics.comic_book import (
     get_page_num_str,
     get_page_str,
     get_safe_title,
-    get_jpg_page_list,
+    get_total_num_pages,
 )
 from barks_fantagraphics.comics_consts import (
     THE_CHRONOLOGICAL_DIRS_DIR,
@@ -621,9 +621,9 @@ def check_all_titles(comics_db: ComicsDatabase) -> int:
 def check_comic_structure(comic: ComicBook) -> int:
     title = get_safe_title(comic.get_comic_title())
 
-    num_pages = len(get_jpg_page_list(comic))
-    if num_pages == 0:
-        print(f'\n{ERROR_MSG_PREFIX}For "{title}", the page count is zero.')
+    num_pages = get_total_num_pages(comic)
+    if num_pages <= 1:
+        print(f'\n{ERROR_MSG_PREFIX}For "{title}", the page count is too small.')
         return 1
 
     logging.info(f'There are no structural problems with "{title}".')

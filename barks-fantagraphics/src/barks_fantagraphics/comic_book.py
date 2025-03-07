@@ -682,3 +682,7 @@ def get_jpg_page_of_type_list(comic: ComicBook, page_types: List[PageType]) -> L
             all_pages.append(page.page_filenames)
 
     return all_pages
+
+
+def get_total_num_pages(comic: ComicBook) -> int:
+    return len(comic.page_images_in_order)

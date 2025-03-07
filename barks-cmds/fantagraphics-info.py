@@ -3,7 +3,7 @@ import os.path
 import sys
 from typing import List, Tuple, Dict
 
-from barks_fantagraphics.comic_book import get_abbrev_jpg_page_list, ComicBook
+from barks_fantagraphics.comic_book import ComicBook, get_abbrev_jpg_page_list, get_total_num_pages
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames, ExtraArg
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_info import ComicBookInfo
@@ -165,7 +165,7 @@ def get_build_state_flag(comic: ComicBook) -> str:
 
 def get_title_flags(
     issue_titles_info_list: List[Tuple[str, str, ComicBookInfo, bool]]
-) -> Tuple[Dict[str, Tuple[str, str, str, str]], int, int]:
+) -> Tuple[Dict[str, Tuple[str, str, str, int, str]], int, int]:
     max_ttl_len = 0
     max_issue_ttl_len = 0
     ttl_flags = dict()
@@ -180,6 +180,7 @@ def get_title_flags(
             display_ttl = ttl if ttl_info.is_barks_title else f"({ttl})"
             fixes_flg = EMPTY_FLAG
             build_state_flg = NOT_CONFIGURED_FLAG
+            num_pgs = -1
             page_lst = ""
         else:
             comic_book = comics_database.get_comic_book(ttl)
@@ -188,6 +189,9 @@ def get_title_flags(
             fixes_flg = FIXES_FLAG if has_fixes(comic_book) else EMPTY_FLAG
             build_state_flg = get_build_state_flag(comic_book)
             page_lst = ", ".join(get_abbrev_jpg_page_list(comic_book))
+            num_pgs = get_total_num_pages(comic_book)
+            if num_pgs <= 1:
+                raise Exception(f'For title "{ttl}", the page count is to small.')
 
         if fixes_flg not in fixes_filter:
             continue
@@ -201,6 +205,7 @@ def get_title_flags(
             display_ttl,
             fixes_flg,
             build_state_flg,
+            num_pgs,
             page_lst,
         )
 
@@ -271,7 +276,8 @@ for issue_title_info in issue_titles_info:
     display_title = title_flags[title][0]
     fixes_flag = title_flags[title][1]
     build_state_flag = title_flags[title][2]
-    page_list = title_flags[title][3]
+    num_pages = title_flags[title][3]
+    page_list = title_flags[title][4]
     volume = comic_book_info.fantagraphics_volume
 
     volume_str = "" if not multiple_volumes else f" {volume}, "
@@ -279,6 +285,7 @@ for issue_title_info in issue_titles_info:
     print(
         f'Title: "{display_title:<{max_title_len}}", {issue_title:<{max_issue_title_len}},'
         f"{volume_str}"
-        f" {fixes_flag} {build_state_flag},"
+        f" {fixes_flag} {build_state_flag}, "
+        f" pages: {num_pages:2d},"
         f" jpgs: {page_list}"
     )
