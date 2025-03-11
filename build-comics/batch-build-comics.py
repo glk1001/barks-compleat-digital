@@ -104,10 +104,17 @@ def show_source_files(comics_db: ComicsDatabase, title: str) -> int:
         print()
         prev_timestamp = get_timestamp(dest_page.page_filename)
         print(get_filepath_with_date(dest_page.page_filename, prev_timestamp, " "))
-        for file, timestamp in get_restored_srce_dependencies(comic, srce_page):
-            out_of_date_marker = "*" if (timestamp < 0) or (timestamp > prev_timestamp) else " "
-            print(f"{get_filepath_with_date(file, timestamp, out_of_date_marker)}")
-            prev_timestamp = timestamp
+        for dependency in get_restored_srce_dependencies(comic, srce_page):
+            out_of_date_marker = (
+                "*"
+                if (dependency.timestamp < 0) or (dependency.timestamp > prev_timestamp)
+                else " "
+            )
+            file_info = get_filepath_with_date(
+                dependency.file, dependency.timestamp, out_of_date_marker
+            )
+            print(file_info)
+            prev_timestamp = dependency.timestamp
     #   max_dest_timestamp = get_max_timestamp(srce_and_dest_pages.dest_pages)
 
     return 0
