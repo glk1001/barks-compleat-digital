@@ -142,17 +142,21 @@ def _set_required_dimensions(
     (
         required_panels_bbox_width,
         required_panels_bbox_height,
-        comic.srce_min_panels_bbox_width,
-        comic.srce_max_panels_bbox_width,
-        comic.srce_min_panels_bbox_height,
-        comic.srce_max_panels_bbox_height,
-        comic.srce_av_panels_bbox_width,
-        comic.srce_av_panels_bbox_height,
+        comic.srce_dim.min_panels_bbox_width,
+        comic.srce_dim.max_panels_bbox_width,
+        comic.srce_dim.min_panels_bbox_height,
+        comic.srce_dim.max_panels_bbox_height,
+        comic.srce_dim.av_panels_bbox_width,
+        comic.srce_dim.av_panels_bbox_height,
     ) = get_required_panels_bbox_width_height(srce_pages)
 
     assert required_panels_bbox_width == int(
         round((DEST_TARGET_WIDTH - (2 * DEST_TARGET_X_MARGIN)))
     )
+    assert comic.srce_dim.max_panels_bbox_width > comic.srce_dim.min_panels_bbox_width > 0
+    assert comic.srce_dim.max_panels_bbox_height > comic.srce_dim.min_panels_bbox_height > 0
+    assert comic.srce_dim.max_panels_bbox_width > comic.srce_dim.av_panels_bbox_width > 0
+    assert comic.srce_dim.max_panels_bbox_height > comic.srce_dim.av_panels_bbox_height > 0
 
     comic.required_dim.panels_bbox_width = required_panels_bbox_width
     comic.required_dim.panels_bbox_height = required_panels_bbox_height
@@ -160,8 +164,12 @@ def _set_required_dimensions(
     page_num_y_centre = int(round(0.5 * (0.5 * (DEST_TARGET_HEIGHT - required_panels_bbox_height))))
     comic.required_dim.page_num_y_bottom = int(page_num_y_centre - (PAGE_NUM_HEIGHT / 2))
 
-    logging.debug(f"Set srce average panels bbox width to {comic.srce_av_panels_bbox_width}.")
-    logging.debug(f"Set srce average panels bbox height to {comic.srce_av_panels_bbox_height}.")
+    logging.debug(
+        f"Set srce average panels bbox width to {comic.srce_dim.av_panels_bbox_width}."
+    )
+    logging.debug(
+        f"Set srce average panels bbox height to {comic.srce_dim.av_panels_bbox_height}."
+    )
     logging.debug(f"Set required panels bbox width to {comic.required_dim.panels_bbox_width}.")
     logging.debug(f"Set required panels bbox height to {comic.required_dim.panels_bbox_height}.")
     logging.debug(f"Set page num y bottom to {comic.required_dim.page_num_y_bottom}.")
@@ -235,15 +243,15 @@ def _get_dest_jpg_comments(srce_page: CleanPage, dest_page: CleanPage) -> List[s
 def _get_dest_page_image(
     comic: ComicBook, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
 ) -> Image:
-    _log_page_info("Srce", srce_page_image, srce_page)
-    _log_page_info("Dest", None, dest_page)
+    _log_page_info(f"{srce_page.page_num}-Srce", srce_page_image, srce_page)
+    _log_page_info(f"{srce_page.page_num}-Dest", None, dest_page)
 
-    if dest_page.page_type in PAGES_WITHOUT_PANELS:
+    if dest_page.page_type not in PAGES_WITHOUT_PANELS:
+        dest_page_image = _get_dest_main_page_image(comic, srce_page_image, srce_page, dest_page)
+    else:
         dest_page_image = _get_dest_non_body_page_image(
             comic, srce_page_image, srce_page, dest_page
         )
-    else:
-        dest_page_image = _get_dest_main_page_image(comic, srce_page_image, srce_page, dest_page)
 
     rgb_dest_page_image = dest_page_image.convert("RGB")
 

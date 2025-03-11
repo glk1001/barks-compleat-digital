@@ -168,6 +168,8 @@ def get_dest_panels_bounding_box(comic: ComicBook, srce_page: CleanPage) -> Boun
     srce_panels_bbox_width = srce_page.panels_bbox.get_width()
     srce_panels_bbox_height = srce_page.panels_bbox.get_height()
 
+    assert comic.srce_dim.av_panels_bbox_height > 0
+
     if srce_panels_bbox_height >= (
         comic.srce_dim.av_panels_bbox_height - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN
     ):
@@ -180,8 +182,8 @@ def get_dest_panels_bounding_box(comic: ComicBook, srce_page: CleanPage) -> Boun
             f'For "{os.path.basename(srce_page.page_filename)}",'
             f" panels bbox height {srce_panels_bbox_height}"
             f" < {comic.srce_dim.av_panels_bbox_height - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN}"
-            f" (average height {comic.srce_dim.av_panels_bbox_height}"
-            f" - error {PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN})."
+            f" (= average height:{comic.srce_dim.av_panels_bbox_height}"
+            f" - error:{PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN})."
             f" So setting required bbox height to {required_panels_height},"
             f" not {comic.required_dim.panels_bbox_height}."
         )
