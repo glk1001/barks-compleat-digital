@@ -153,10 +153,10 @@ def _set_required_dimensions(
     assert required_panels_bbox_width == int(
         round((DEST_TARGET_WIDTH - (2 * DEST_TARGET_X_MARGIN)))
     )
-    assert comic.srce_dim.max_panels_bbox_width > comic.srce_dim.min_panels_bbox_width > 0
-    assert comic.srce_dim.max_panels_bbox_height > comic.srce_dim.min_panels_bbox_height > 0
-    assert comic.srce_dim.max_panels_bbox_width > comic.srce_dim.av_panels_bbox_width > 0
-    assert comic.srce_dim.max_panels_bbox_height > comic.srce_dim.av_panels_bbox_height > 0
+    assert comic.srce_dim.max_panels_bbox_width >= comic.srce_dim.min_panels_bbox_width > 0
+    assert comic.srce_dim.max_panels_bbox_height >= comic.srce_dim.min_panels_bbox_height > 0
+    assert comic.srce_dim.max_panels_bbox_width >= comic.srce_dim.av_panels_bbox_width > 0
+    assert comic.srce_dim.max_panels_bbox_height >= comic.srce_dim.av_panels_bbox_height > 0
 
     comic.required_dim.panels_bbox_width = required_panels_bbox_width
     comic.required_dim.panels_bbox_height = required_panels_bbox_height

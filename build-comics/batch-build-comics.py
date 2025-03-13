@@ -4,6 +4,7 @@ import logging
 import os.path
 import shlex
 import sys
+import traceback
 from datetime import datetime
 from typing import Tuple, Union, List
 
@@ -162,6 +163,13 @@ def process_comic_book(comic: ComicBook) -> int:
         )
 
         write_summary_file(comic, srce_and_dest_pages, max_dest_timestamp, process_timing)
+    except AssertionError as e:
+        _, _, tb = sys.exc_info()
+        tb_info = traceback.extract_tb(tb)
+        filename, line, func, text = tb_info[-1]
+        err_msg = f'Assert failed at "{filename}:{line}" for statement "{text}".'
+        logging.error(err_msg)
+        return 1
     except Exception as e:
         logging.error(e)
         return 1
