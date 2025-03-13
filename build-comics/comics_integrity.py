@@ -116,7 +116,9 @@ class OutOfDateErrors:
     year_zip_symlink_errors: ZipSymlinkOutOfDateErrors
     is_error: bool = False
     max_srce_timestamp: float = 0.0
+    max_srce_file: str = ""
     max_dest_timestamp: float = 0.0
+    max_dest_file: str = ""
     ini_timestamp: float = 0.0
 
 
@@ -712,10 +714,12 @@ def check_missing_or_out_of_date_dest_files(
                     prev_timestamp = dependency.timestamp
                     prev_file = dependency.file
                 if errors.max_srce_timestamp < dependency.timestamp:
+                    errors.max_srce_file = dependency.file
                     errors.max_srce_timestamp = dependency.timestamp
 
             dest_timestamp = get_timestamp(dest_page.page_filename)
             if errors.max_dest_timestamp < dest_timestamp:
+                errors.max_dest_file = dest_page.page_filename
                 errors.max_dest_timestamp = dest_timestamp
 
 
@@ -950,7 +954,7 @@ def print_check_errors(errors: OutOfDateErrors) -> None:
         print(
             f'{ERROR_MSG_PREFIX}For "{errors.title}", the zip file\n'
             f'{BLANK_ERR_MSG_PREFIX}"{errors.zip_errors.file}"\n'
-            f"{BLANK_ERR_MSG_PREFIX}is out of date with the max srce file timestamp:\n"
+            f'{BLANK_ERR_MSG_PREFIX}is out of date with the srce file "{errors.max_srce_file}"\n'
             f"{BLANK_ERR_MSG_PREFIX}'{zip_file_timestamp}' < '{max_srce_timestamp}'."
         )
 
@@ -1106,7 +1110,7 @@ def print_out_of_date_or_missing_errors(errors: OutOfDateErrors) -> None:
         for err_msg in errors.dest_dir_files_out_of_date:
             print(
                 get_file_out_of_date_wrt_max_timestamp_msg(
-                    err_msg, errors.max_srce_timestamp, ERROR_MSG_PREFIX
+                    err_msg, errors.max_srce_file, errors.max_srce_timestamp, ERROR_MSG_PREFIX
                 )
             )
         print()

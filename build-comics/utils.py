@@ -41,13 +41,19 @@ def dest_file_is_out_of_date_wrt_srce(srce_file: str, dest_file: str) -> bool:
     return False
 
 
-def zip_file_is_out_of_date_wrt_dest(zip_file: str, max_dest_timestamp: float) -> bool:
+def zip_file_is_out_of_date_wrt_dest(
+    zip_file: str, max_dest_file: str, max_dest_timestamp: float
+) -> bool:
     if not os.path.isfile(zip_file):
         logging.debug(f'Dest zip file "{zip_file}" not found.')
         return False
 
     if file_is_older_than_timestamp(zip_file, max_dest_timestamp):
-        logging.debug(get_file_out_of_date_wrt_max_timestamp_msg(zip_file, max_dest_timestamp, ""))
+        logging.debug(
+            get_file_out_of_date_wrt_max_timestamp_msg(
+                zip_file, max_dest_file, max_dest_timestamp, ""
+            )
+        )
         return True
 
     return False
@@ -86,18 +92,18 @@ def get_file_out_of_date_with_other_file_msg(file: str, other_file: str, msg_pre
         f"{blank_prefix}is out of date with\n"
         f'{blank_prefix}file "{get_abbrev_path(other_file)}":\n'
         f"{blank_prefix}'{get_timestamp_str(file, DATE_SEP, DATE_TIME_SEP, HOUR_SEP)}'"
-        f" < '{get_timestamp_str(other_file, "-", DATE_TIME_SEP, HOUR_SEP)}'."
+        f" < '{get_timestamp_str(other_file, DATE_SEP, DATE_TIME_SEP, HOUR_SEP)}'."
     )
 
 
 def get_file_out_of_date_wrt_max_timestamp_msg(
-    file: str, max_timestamp: float, msg_prefix: str
+    file: str, max_file: str, max_timestamp: float, msg_prefix: str
 ) -> str:
     blank_prefix = f'{" ":<{len(msg_prefix)}}'
 
     return (
         f'{msg_prefix}File "{get_abbrev_path(file)}"\n'
-        f"{blank_prefix}is out of date WRT max timestamp:\n"
+        f'{blank_prefix}is out of date WRT max file: "{get_abbrev_path(max_file)}"\n'
         f"{blank_prefix}'{get_timestamp_str(file, DATE_SEP, DATE_TIME_SEP, HOUR_SEP)}'"
         f" < '{get_timestamp_as_str(max_timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP)}'."
     )
