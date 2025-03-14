@@ -191,6 +191,7 @@ ISSUE_NAME_AS_TITLE = {
     US: "Uncle\nScrooge",
     FG: "Firestone\nGiveaway",
     USGTD: "Uncle Scrooge\nGoes to\nDisneyland",
+    CID: "Christmas\nin\nDisneyland",
 }
 SHORT_ISSUE_NAME = {
     DD: "DD",
@@ -401,7 +402,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "A Cold Bargain": SeriesInfo(RTOM, SERIES_USA, "FANTA_16"),
     "Land of the Pygmy Indians": SeriesInfo(RTOM, SERIES_USA, "FANTA_16"),
     "The Fantastic River Race": SeriesInfo(RTOM, SERIES_USA, "FANTA_16"),
-    "The Black Pearls of Tabu Yama": SeriesInfo(RTOM, SERIES_MISC, "FANTA_19"),
+    "The Black Pearls of Tabu Yama": SeriesInfo(RTOM, SERIES_DDA, "FANTA_19"),
     "The Mines of King Solomon": SeriesInfo(RTOM, SERIES_USA, "FANTA_20"),
     "City of Golden Roofs": SeriesInfo(RTOM, SERIES_USA, "FANTA_20"),
     "The Money Well": SeriesInfo(RTOM, SERIES_USA, "FANTA_20"),
