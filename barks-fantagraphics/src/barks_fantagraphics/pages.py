@@ -3,7 +3,7 @@ import os
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Union
 
-from barks_fantagraphics.comic_book import OriginalPage, ComicBook
+from barks_fantagraphics.comic_book import OriginalPage, ComicBook, get_page_str
 from barks_fantagraphics.comics_consts import PageType
 from barks_fantagraphics.comics_utils import get_timestamp
 from barks_fantagraphics.panel_bounding_boxes import BoundingBox
@@ -169,6 +169,14 @@ def get_checked_srce_file(comic: ComicBook, page: CleanPage) -> Tuple[str, bool]
         srce_file, is_modified_file = comic.get_final_srce_story_file(
             page.page_filename, page.page_type
         )
+        if not is_modified_file:
+            _, is_modified_file = comic.get_final_srce_upscayled_story_file(
+                page.page_filename, page.page_type
+            )
+        if not is_modified_file:
+            _, is_modified_file = comic.get_final_srce_original_story_file(
+                page.page_filename, page.page_type
+            )
 
     return srce_file, is_modified_file
 
@@ -198,3 +206,73 @@ def get_srce_dest_map(
     srce_dest_map["pages"] = dest_page_map
 
     return srce_dest_map
+
+
+@dataclass
+class SrceDependency:
+    file: str
+    timestamp: float
+    independent: bool
+
+
+def get_restored_srce_dependencies(comic: ComicBook, srce_page: CleanPage) -> List[SrceDependency]:
+    page_num_str = get_page_str(srce_page.page_num)
+
+    srce_page_timestamp = get_timestamp(srce_page.page_filename)
+
+    srce_upscayl_file = comic.get_srce_upscayled_story_file(page_num_str)
+    srce_with_fixes_file = comic.get_final_srce_original_story_file(
+        page_num_str, srce_page.page_type
+    )[0]
+    srce_upscayl_timestamp = (
+        get_timestamp(srce_upscayl_file) if os.path.isfile(srce_upscayl_file) else -1
+    )
+    srce_panel_segments_file = comic.get_srce_panel_segments_file(page_num_str)
+    srce_panel_segments_timestamp = (
+        get_timestamp(srce_panel_segments_file) if os.path.isfile(srce_panel_segments_file) else -1
+    )
+
+    underlying_files = []
+
+    if srce_page.page_type == PageType.TITLE:
+        underlying_files.append(
+            SrceDependency(comic.ini_file, get_timestamp(comic.ini_file), independent=True)
+        )
+        underlying_files.append(
+            SrceDependency(
+                comic.intro_inset_file, get_timestamp(comic.intro_inset_file), independent=True
+            )
+        )
+    else:
+        if srce_page.page_type in [PageType.FRONT_MATTER, PageType.BODY, PageType.BACK_MATTER]:
+            underlying_files.append(
+                SrceDependency(
+                    srce_panel_segments_file, srce_panel_segments_timestamp, independent=False
+                )
+            )
+            panel_bounds_file = comic.get_final_fixes_panel_bounds_file(srce_page.page_num)
+            if panel_bounds_file:
+                underlying_files.append(
+                    SrceDependency(
+                        panel_bounds_file, get_timestamp(panel_bounds_file), independent=True
+                    )
+                )
+
+        underlying_files.append(
+            SrceDependency(srce_page.page_filename, srce_page_timestamp, independent=False)
+        )
+
+        if srce_page.page_type in [PageType.FRONT_MATTER, PageType.BODY, PageType.BACK_MATTER]:
+            if not comic._is_added_fixes_special_case(
+                get_page_str(srce_page.page_num), srce_page.page_type
+            ):
+                underlying_files.append(
+                    SrceDependency(srce_upscayl_file, srce_upscayl_timestamp, independent=False)
+                )
+                underlying_files.append(
+                    SrceDependency(
+                        srce_with_fixes_file, get_timestamp(srce_with_fixes_file), independent=False
+                    )
+                )
+
+    return underlying_files

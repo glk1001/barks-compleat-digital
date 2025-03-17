@@ -30,10 +30,13 @@ def panel_bounds(title_list: List[str]) -> None:
 
         if not os.path.isdir(comic.get_srce_original_fixes_image_dir()):
             raise Exception(
-                f'Could not find panel bounds directory "{comic.get_srce_original_fixes_image_dir()}".'
+                f'Could not find panel bounds directory '
+                f'"{comic.get_srce_original_fixes_image_dir()}".'
             )
         # TODO: Put this in barks_fantagraphics
-        srce_panels_bounds_override_dir = os.path.join(comic.get_srce_original_fixes_image_dir(), "bounded")
+        srce_panels_bounds_override_dir = os.path.join(
+            comic.get_srce_original_fixes_image_dir(), "bounded"
+        )
 
         with concurrent.futures.ProcessPoolExecutor() as executor:
             for srce_file, dest_file in zip(srce_files, dest_files):

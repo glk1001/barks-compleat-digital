@@ -186,7 +186,7 @@ class ComicBook:
         self, page_types: List[PageType]
     ) -> List[Tuple[str, bool]]:
         return self.__get_story_files_with_mods(
-            page_types, self.__get_final_srce_upscayled_story_file
+            page_types, self.get_final_srce_upscayled_story_file
         )
 
     def get_final_srce_story_files(
@@ -267,7 +267,7 @@ class ComicBook:
             "original", page_num, page_type, srce_file, srce_fixes_file
         )
 
-    def __get_final_srce_upscayled_story_file(
+    def get_final_srce_upscayled_story_file(
         self, page_num: str, page_type: PageType
     ) -> Tuple[str, bool]:
         srce_upscayled_file = self.get_srce_upscayled_story_file(page_num)
@@ -356,7 +356,7 @@ class ComicBook:
                 f' for {page_type.name} page: "{get_abbrev_path(fixes_file)}".'
             )
         else:
-            # Fixes file is an ADDED file - must be a COVER or BODY page.
+            # Fixes file is an ADDED file - must not be a COVER or BODY page.
             logging.info(
                 f"NOTE: Using ADDED {file_type} fixes file of type {page_type.name}:"
                 f' "{get_abbrev_path(fixes_file)}".'
@@ -366,7 +366,7 @@ class ComicBook:
                     f"Expected ADDED {file_type} page to be NOT COVER OR BODY: '{page_num}'."
                 )
 
-        is_modified_file = page_type in [PageType.COVER, PageType.BODY]
+        is_modified_file = page_type in STORY_PAGE_TYPES
 
         return fixes_file, is_modified_file
 

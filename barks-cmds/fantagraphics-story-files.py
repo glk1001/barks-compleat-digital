@@ -1,11 +1,20 @@
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import List
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
-from barks_fantagraphics.comics_utils import get_abbrev_path, setup_logging
-from barks_fantagraphics.pages import get_srce_and_dest_pages_in_order
+from barks_fantagraphics.comics_utils import (
+    get_abbrev_path,
+    setup_logging,
+    get_timestamp,
+    get_timestamp_as_str,
+)
+from barks_fantagraphics.pages import (
+    get_srce_and_dest_pages_in_order,
+    get_restored_srce_dependencies,
+)
 
 
 def print_sources(indent: int, source_list: List[str]) -> None:
@@ -13,9 +22,22 @@ def print_sources(indent: int, source_list: List[str]) -> None:
         print()
         return
 
-    print(f'"{get_abbrev_path(source_list[0])}"')
+    print(f'"{source_list[0]}"')
     for srce in source_list[1:]:
-        print(" " * indent + f'"{get_abbrev_path(srce)}"')
+        print(" " * indent + f'"{srce}"')
+
+
+def get_filepath_with_date(file: str, timestamp: float, out_of_date_marker: str) -> str:
+    missing_timestamp = "FILE MISSING          "  # same length as timestamp str
+
+    if os.path.isfile(file):
+        file_str = get_abbrev_path(file)
+        file_timestamp = get_timestamp_as_str(timestamp, "-", date_time_sep=" ", hr_sep=":")
+    else:
+        file_str = file
+        file_timestamp = missing_timestamp
+
+    return f'{file_timestamp}:{out_of_date_marker}"{file_str}"'
 
 
 cmd_args = CmdArgs("Fantagraphics source files", CmdArgNames.TITLE | CmdArgNames.VOLUME)
@@ -46,8 +68,21 @@ for title in titles:
         dest_page_num = Path(dest_page.page_filename).stem
         srce_page_num = Path(srce_page.page_filename).stem
         page_type_str = dest_page.page_type.name
+        prev_timestamp = get_timestamp(dest_page.page_filename)
 
-        sources = comic_book.get_story_file_sources(srce_page_num)
+        sources = [get_filepath_with_date(dest_page.page_filename, prev_timestamp, " ")]
+        for dependency in get_restored_srce_dependencies(comic_book, srce_page):
+            out_of_date_str = (
+                "*"
+                if (dependency.timestamp < 0) or (dependency.timestamp > prev_timestamp)
+                else " "
+            )
+            file_info = get_filepath_with_date(
+                dependency.file, dependency.timestamp, out_of_date_str
+            )
+            sources.append(file_info)
+            prev_timestamp = dependency.timestamp
+
         print(
             f"    {dest_page_num}"
             f" ({dest_page.page_num:02}) - {page_type_str:{max_len_page_type}}: ",
