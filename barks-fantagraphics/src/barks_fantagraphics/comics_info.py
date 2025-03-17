@@ -182,6 +182,7 @@ KI = "Kites Giveaway"
 USGTD = "Uncle Scrooge Goes to Disneyland"
 CID = "Christmas in Disneyland"
 MMA = "Mickey Mouse Almanac"
+SF = "Summer Fun"
 
 SRC_SALEM = "(Salem-Empire)"
 SRC_DIGI = "(Digital-Empire)"
@@ -207,6 +208,7 @@ SHORT_ISSUE_NAME = {
     USGTD: "USGTD",
     CID: "CID",
     MMA: "MMA",
+    SF: "SF",
 }
 
 FANTAGRAPHICS = "Fantagraphics"
@@ -248,7 +250,7 @@ VOLUME_17 = f"{CB} Vol. 17 - {DD} - The Secret of Hondorica {SRC_DIGI}"
 VOLUME_18 = f"{CB} Vol. 18 - {DD} - The Lost Peg Leg Mine {SRC_DIGI}"
 VOLUME_19 = f"{CB} Vol. 19 - {DD} - The Black Pearls of Tabu Yama {SRC_BEAN}"
 VOLUME_20 = f"{CB} Vol. 20 - {US} - The Mines of King Solomon {SRC_BEAN}"
-VOLUME_21 = f"{CB} Vol. 21 - {US} - Christmas in Duckburg {SRC_BEAN}"
+VOLUME_21 = f"{CB} Vol. 21 - {DD} - Christmas in Duckburg {SRC_BEAN}"
 VOLUME_22 = f"{CB} Vol. 22 - {US} - The Twenty-Four Carat Moon {SRC_BEAN}"
 VOLUME_23 = f"{CB} Vol. 23 - {US} - Under the Polar Ice {SRC_BEAN}"
 VOLUME_24 = f"{CB} Vol. 24 - {US} - Island in the Sky"
@@ -315,6 +317,7 @@ DIGI = "Digikore Studios"
 BIGD = "Big Doors Studios"
 JRC = "Joseph Robert Cowles"
 TOZ = "Tom Ziuko"
+EROS = "Erik Rosengarten"
 
 
 @dataclass
@@ -381,6 +384,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Secret of Hondorica": SeriesInfo(RTOM, SERIES_DDA, "FANTA_17"),
     "Forbidden Valley": SeriesInfo(RTOM, SERIES_DDA, "FANTA_19"),
     "The Titanic Ants!": SeriesInfo(RTOM, SERIES_DDA, "FANTA_19"),
+    "Christmas in Duckburg": SeriesInfo(RTOM, SERIES_DDA, "FANTA_21"),
     # US
     "Only a Poor Old Man": SeriesInfo(RTOM, SERIES_USA, "FANTA_12"),
     "Back to the Klondike": SeriesInfo(RTOM, SERIES_USA, "FANTA_12"),
@@ -584,6 +588,17 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "The Persistent Postman": SeriesInfo(RTOM, SERIES_CS, "FANTA_19"),
     "Mocking Bird Ridge": SeriesInfo(RTOM, SERIES_CS, "FANTA_19"),
     "Old Froggie Catapult": SeriesInfo(RTOM, SERIES_CS, "FANTA_19"),
+    "Dramatic Donald": SeriesInfo(RTOM, SERIES_CS, "FANTA_21"),
+    "Noble Porpoises": SeriesInfo(RTOM, SERIES_CS, "FANTA_21"),
+    "Tracking Sandy": SeriesInfo(DIGI, SERIES_CS, "FANTA_21"),
+    "The Littlest Chicken Thief": SeriesInfo(DIGI, SERIES_CS, "FANTA_21"),
+    "The Beachcombers' Picnic": SeriesInfo(DIGI, SERIES_CS, "FANTA_21"),
+    "The Master Mover": SeriesInfo(DIGI, SERIES_CS, "FANTA_21"),
+    "Rocket-Roasted Christmas Turkey": SeriesInfo(DIGI, SERIES_CS, "FANTA_21"),
+    "Spring Fever": SeriesInfo(DIGI, SERIES_CS, "FANTA_21"),
+    "The Lovelorn Fireman": SeriesInfo(RTOM, SERIES_CS, "FANTA_21"),
+    "The Floating Island": SeriesInfo(DIGI, SERIES_CS, "FANTA_21"),
+    "The Black Forest Rescue": SeriesInfo(EROS, SERIES_CS, "FANTA_21"),
     # DD SHORTS
     "The Hard Loser": SeriesInfo(SLEA, SERIES_DDS, "FANTA_02"),
     "The Firebug": SeriesInfo(DIGI, SERIES_DDS, "FANTA_03"),
@@ -600,6 +615,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Dogcatcher Duck": SeriesInfo(RTOM, SERIES_DDS, "FANTA_17"),
     "The Lost Peg Leg Mine": SeriesInfo(TOZ, SERIES_DDS, "FANTA_18"),
     "Water Ski Race": SeriesInfo(RTOM, SERIES_DDS, "FANTA_19"),
+    "Jungle Hi-Jinks": SeriesInfo(GLEA, SERIES_DDS, "FANTA_21"),
     # US SHORTS
     "Somethin' Fishy Here": SeriesInfo(RTOM, SERIES_USS, "FANTA_12"),
     "The Round Money Bin": SeriesInfo(RTOM, SERIES_USS, "FANTA_12"),
@@ -630,6 +646,10 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     SILENT_NIGHT: SeriesInfo(SLEA, SERIES_CS, "FANTA_03"),
     THE_MILKMAN: SeriesInfo(RTOM, SERIES_CS, "FANTA_19"),
     "The Riddle of the Red Hat": SeriesInfo(GLEA, SERIES_MISC, "FANTA_03"),
+    "The Flying Farmhand": SeriesInfo(RTOM, SERIES_MISC, "FANTA_21"),
+    "A Honey of a Hen": SeriesInfo(DIGI, SERIES_MISC, "FANTA_21"),
+    "The Weather Watchers": SeriesInfo(DIGI, SERIES_MISC, "FANTA_21"),
+    "The Sheepish Cowboys": SeriesInfo(DIGI, SERIES_MISC, "FANTA_21"),
 }
 
 
