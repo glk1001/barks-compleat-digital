@@ -287,6 +287,8 @@ class ComicBook:
     def get_final_srce_story_file(self, page_num: str, page_type: PageType) -> Tuple[str, bool]:
         if page_type == PageType.TITLE:
             return "TITLE PAGE", False
+        if page_type == PageType.BLANK_PAGE:
+            return "EMPTY PAGE", False
 
         if page_type in [
             PageType.FRONT,

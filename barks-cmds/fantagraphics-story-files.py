@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 from typing import List
 
-from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
+from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames, ExtraArg
 from barks_fantagraphics.comics_utils import (
     get_abbrev_path,
     setup_logging,
@@ -40,7 +40,11 @@ def get_filepath_with_date(file: str, timestamp: float, out_of_date_marker: str)
     return f'{file_timestamp}:{out_of_date_marker}"{file_str}"'
 
 
-cmd_args = CmdArgs("Fantagraphics source files", CmdArgNames.TITLE | CmdArgNames.VOLUME)
+MODS_ARG = "--mods"
+
+extra_args: List[ExtraArg] = [ExtraArg(MODS_ARG, action="store_true", type=None, default=False)]
+
+cmd_args = CmdArgs("Fantagraphics source files", CmdArgNames.TITLE | CmdArgNames.VOLUME, extra_args)
 args_ok, error_msg = cmd_args.args_are_valid()
 if not args_ok:
     logging.error(error_msg)
@@ -49,6 +53,7 @@ if not args_ok:
 setup_logging(cmd_args.get_log_level())
 
 comics_database = cmd_args.get_comics_database()
+mods_only = cmd_args.get_extra_arg(MODS_ARG)
 
 titles = cmd_args.get_titles()
 
@@ -64,6 +69,7 @@ for title in titles:
 
     print()
     print(f'"{title}" source files:')
+
     for srce_page, dest_page in zip(srce_pages, dest_pages):
         dest_page_num = Path(dest_page.page_filename).stem
         srce_page_num = Path(srce_page.page_filename).stem
@@ -71,7 +77,10 @@ for title in titles:
         prev_timestamp = get_timestamp(dest_page.page_filename)
 
         sources = [get_filepath_with_date(dest_page.page_filename, prev_timestamp, " ")]
+        is_modded = False
         for dependency in get_restored_srce_dependencies(comic_book, srce_page):
+            if dependency.modded:
+                is_modded = True
             out_of_date_str = (
                 "*"
                 if (dependency.timestamp < 0) or (dependency.timestamp > prev_timestamp)
@@ -83,10 +92,12 @@ for title in titles:
             sources.append(file_info)
             prev_timestamp = dependency.timestamp
 
-        print(
-            f"    {dest_page_num}"
-            f" ({dest_page.page_num:02}) - {page_type_str:{max_len_page_type}}: ",
-            end="",
-        )
-        print_sources(4 + 2 + 5 + 2 + 3 + max_len_page_type + 2, sources)
+        if not mods_only or is_modded:
+            print(
+                f"    {dest_page_num}"
+                f" ({dest_page.page_num:02}) - {page_type_str:{max_len_page_type}}: ",
+                end="",
+            )
+            print_sources(4 + 2 + 5 + 2 + 3 + max_len_page_type + 2, sources)
+
     print()

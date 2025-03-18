@@ -165,13 +165,16 @@ class CmdArgs:
         )
 
         for extra in self.extra_args:
-            parser.add_argument(
-                extra.name,
-                action=extra.action,
-                type=extra.type,
-                default=extra.default,
-                required=False,
-            )
+            if extra.type is None:
+                parser.add_argument(extra.name, action=extra.action, required=False)
+            else:
+                parser.add_argument(
+                    extra.name,
+                    action=extra.action,
+                    type=extra.type,
+                    default=extra.default,
+                    required=False,
+                )
 
         args = parser.parse_args()
 
