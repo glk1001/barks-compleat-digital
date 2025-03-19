@@ -158,7 +158,7 @@ def check_fantagraphics_files(comics_db: ComicsDatabase) -> int:
     if ret_code == 0:
         logging.info("All Fantagraphics files are OK.")
     else:
-        logging.error("There are issues with some Fantagraphics files.")
+        logging.error("There were issues with some Fantagraphics files.")
 
     return ret_code
 
@@ -512,7 +512,7 @@ def check_directory_structure(comics_db: ComicsDatabase) -> int:
     if ret_code == 0:
         logging.info("The directory structure is correct.")
     else:
-        logging.error("There are issues with the directory structure.")
+        logging.error("There were issues with the directory structure.")
 
     return ret_code
 
@@ -545,7 +545,7 @@ def check_ini_files_match_series_info(comics_db: ComicsDatabase) -> int:
     if ret_code == 0:
         logging.info("All ini file titles match series info.")
     else:
-        logging.error("There are some ini file titles not in series info.")
+        logging.error("There were some ini file titles not in series info.")
 
     return ret_code
 
@@ -584,7 +584,7 @@ def check_no_unexpected_files(comics_db: ComicsDatabase) -> int:
     if ret_code == 0:
         logging.info("There are no unexpected files.")
     else:
-        logging.error("There are some unexpected or missing files.")
+        logging.error("There were some unexpected or missing files.")
 
     return ret_code
 
@@ -1124,7 +1124,7 @@ def print_out_of_date_or_missing_errors(errors: OutOfDateErrors) -> None:
     ):
         print(
             f'{ERROR_MSG_PREFIX} For "{errors.title}",'
-            f" there are {len(errors.srce_and_dest_files_missing)} missing dest files"
+            f" there were {len(errors.srce_and_dest_files_missing)} missing dest files"
             f" and {len(errors.srce_and_dest_files_out_of_date)} out of date"
             f" dest files.\n"
         )
@@ -1132,13 +1132,13 @@ def print_out_of_date_or_missing_errors(errors: OutOfDateErrors) -> None:
         if len(errors.srce_and_dest_files_missing) > 0:
             print(
                 f'{ERROR_MSG_PREFIX} For "{errors.title}",'
-                f" there are {len(errors.srce_and_dest_files_missing)} missing"
+                f" there were {len(errors.srce_and_dest_files_missing)} missing"
                 f" dest files.\n"
             )
 
         if len(errors.srce_and_dest_files_out_of_date) > 0:
             print(
                 f'{ERROR_MSG_PREFIX} For "{errors.title}",'
-                f" there are {len(errors.srce_and_dest_files_out_of_date)} out of"
+                f" there were {len(errors.srce_and_dest_files_out_of_date)} out of"
                 f" date dest files.\n"
             )

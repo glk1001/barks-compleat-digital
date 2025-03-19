@@ -14,6 +14,7 @@ from .comics_consts import (
     THE_YEARS_COMICS_DIR,
     INSET_FILE_EXT,
     STORY_PAGE_TYPES,
+    STORY_PAGE_TYPES_STR_LIST,
 )
 from .comics_info import (
     JPG_FILE_EXT,
@@ -347,9 +348,10 @@ class ComicBook:
                 logging.info(
                     f'NOTE: Using EDITED {file_type} fixes file: "{get_abbrev_path(fixes_file)}".'
                 )
-                if page_type not in [PageType.COVER, PageType.BODY]:
+                if page_type not in STORY_PAGE_TYPES:
                     raise Exception(
-                        f"Expected EDITED {file_type} fixes page to be COVER or BODY: '{page_num}'."
+                        f"EDITED {file_type} fixes page '{page_num}',"
+                        f" must be in \"{', '.join(STORY_PAGE_TYPES_STR_LIST)}\""
                     )
         elif self._is_added_fixes_special_case(page_num, page_type):
             # Fixes file is a special case ADDED file.
@@ -363,9 +365,10 @@ class ComicBook:
                 f"NOTE: Using ADDED {file_type} fixes file of type {page_type.name}:"
                 f' "{get_abbrev_path(fixes_file)}".'
             )
-            if page_type in [PageType.COVER, PageType.BODY]:
+            if page_type in STORY_PAGE_TYPES:
                 raise Exception(
-                    f"Expected ADDED {file_type} page to be NOT COVER OR BODY: '{page_num}'."
+                    f"ADDED {file_type} page '{page_num}',"
+                    f" must NOT be in \"{', '.join(STORY_PAGE_TYPES_STR_LIST)}\""
                 )
 
         is_modified_file = page_type in STORY_PAGE_TYPES
@@ -383,7 +386,11 @@ class ComicBook:
 
     @staticmethod
     def is_fixes_special_case_added(volume: int, page_num: str) -> bool:
-        if volume == 4 and page_num == "227":  # Bill collectors
+        if volume == 4 and page_num == "227":  # Restored Bill Collectors
+            return True
+        if volume == 7 and page_num == "240":  # Copied from volume 8, page 31
+            return True
+        if volume == 7 and page_num == "241":  # Copied from volume 8, page 32
             return True
 
         return False
