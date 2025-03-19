@@ -48,8 +48,6 @@ def get_mod_type(comic: ComicBook, srce: CleanPage) -> str:
         return "O"
     if os.path.isfile(comic.get_srce_upscayled_fixes_story_file(page_num)):
         return "U"
-    if os.path.isfile(comic.get_srce_restored_fixes_story_file(page_num)):
-        return "R"
 
     raise Exception(f'Expected to find a fixes file for "{srce.page_filename}".')
 

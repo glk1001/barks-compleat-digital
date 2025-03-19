@@ -164,12 +164,8 @@ def _set_required_dimensions(
     page_num_y_centre = int(round(0.5 * (0.5 * (DEST_TARGET_HEIGHT - required_panels_bbox_height))))
     comic.required_dim.page_num_y_bottom = int(page_num_y_centre - (PAGE_NUM_HEIGHT / 2))
 
-    logging.debug(
-        f"Set srce average panels bbox width to {comic.srce_dim.av_panels_bbox_width}."
-    )
-    logging.debug(
-        f"Set srce average panels bbox height to {comic.srce_dim.av_panels_bbox_height}."
-    )
+    logging.debug(f"Set srce average panels bbox width to {comic.srce_dim.av_panels_bbox_width}.")
+    logging.debug(f"Set srce average panels bbox height to {comic.srce_dim.av_panels_bbox_height}.")
     logging.debug(f"Set required panels bbox width to {comic.required_dim.panels_bbox_width}.")
     logging.debug(f"Set required panels bbox height to {comic.required_dim.panels_bbox_height}.")
     logging.debug(f"Set page num y bottom to {comic.required_dim.page_num_y_bottom}.")
@@ -804,7 +800,6 @@ def log_comic_book_params(comic: ComicBook):
     logging.info(f'Srce restored dir:    "{get_abbrev_path(comic.dirs.srce_restored_dir)}".')
     logging.info(f'Srce fixes dir:       "{get_abbrev_path(comic.dirs.srce_fixes_dir)}".')
     logging.info(f'Srce upscayled fixes: "{get_abbrev_path(comic.dirs.srce_upscayled_fixes_dir)}".')
-    logging.info(f'Srce restored fixes:  "{get_abbrev_path(comic.dirs.srce_restored_fixes_dir)}".')
     logging.info(f'Srce segments dir:    "{get_abbrev_path(comic.dirs.panel_segments_dir)}".')
     logging.info(f'Dest dir:             "{get_abbrev_path(comic.get_dest_dir())}".')
     logging.info(f'Dest comic zip:       "{get_abbrev_path(comic.get_dest_comic_zip())}".')

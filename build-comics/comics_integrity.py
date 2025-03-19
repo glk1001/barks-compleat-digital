@@ -16,6 +16,7 @@ from barks_fantagraphics.comics_consts import (
     THE_YEARS_COMICS_DIR,
     THE_COMICS_DIR,
     IMAGES_SUBDIR,
+    BARKS_ROOT_DIR,
 )
 from barks_fantagraphics.comics_database import ComicsDatabase
 from barks_fantagraphics.comics_info import (
@@ -139,7 +140,9 @@ def make_out_of_date_errors(title: str, ini_file: str) -> OutOfDateErrors:
 def check_comics_source_is_readonly(comics_db: ComicsDatabase) -> int:
     logging.info("Checking Fantagraphics original directories are readonly.")
 
-    ret_code = check_folder_and_contents_are_readonly(comics_db.get_fantagraphics_original_dir())
+    ret_code = check_folder_and_contents_are_readonly(
+        comics_db.get_fantagraphics_original_root_dir()
+    )
 
     if ret_code == 0:
         logging.info("All Fantagraphics original directories are readonly.")
@@ -171,8 +174,6 @@ def check_all_fixes_and_additions_files(comics_db: ComicsDatabase) -> int:
 
     for volume in range(FIRST_VOLUME_NUMBER, LAST_VOLUME_NUMBER + 1):
         if check_standard_fixes_and_additions_files(comics_db, volume) != 0:
-            ret_code = 1
-        if check_restored_fixes_and_additions_files(comics_db, volume) != 0:
             ret_code = 1
         if check_upscayled_fixes_and_additions_files(comics_db, volume) != 0:
             ret_code = 1
@@ -250,25 +251,32 @@ def check_standard_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
             ret_code = 1
             continue
 
+        if os.path.isfile(jpg_fixes_file):
+            fixes_file = jpg_fixes_file
+        else:
+            fixes_file = png_fixes_file
+
         if not os.path.isfile(original_file):
             # If it's an added file it must have a valid page number.
             page_num = Path(file).stem
             if not page_num.isnumeric():
-                print(f"{ERROR_MSG_PREFIX}Invalid fixes file:" f' "{jpg_fixes_file}".')
+                print(f"{ERROR_MSG_PREFIX}Invalid fixes file:" f' "{fixes_file}".')
                 ret_code = 1
                 continue
             page_num = int(page_num)
             if page_num <= num_fanta_pages or page_num > MAX_FIXES_PAGE_NUM:
                 print(
                     f"{ERROR_MSG_PREFIX}Fixes file is outside page num range"
-                    f' [{num_fanta_pages}..{MAX_FIXES_PAGE_NUM}]: "{jpg_fixes_file}".'
+                    f' [{num_fanta_pages}..{MAX_FIXES_PAGE_NUM}]: "{fixes_file}".'
                 )
                 ret_code = 1
                 continue
 
+            # If it's an added file it must be used in some ini file.
             if _not_used(page_num):
                 print(
-                    f'{ERROR_MSG_PREFIX}Fixes file is not used in any ini files: "{jpg_fixes_file}".'
+                    f"{ERROR_MSG_PREFIX}Fixes file is"
+                    f' not used in any ini files: "{fixes_file}".'
                 )
                 ret_code = 1
                 continue
@@ -279,7 +287,6 @@ def check_standard_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
 def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume: int) -> int:
     fanta_original_image_dir = comics_db.get_fantagraphics_volume_image_dir(volume)
     fixes_dir = comics_db.get_fantagraphics_fixes_volume_image_dir(volume)
-    restored_fixes_dir = comics_db.get_fantagraphics_restored_fixes_volume_image_dir(volume)
 
     ret_code = 0
 
@@ -305,7 +312,6 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
         original_file = os.path.join(fanta_original_image_dir, file_stem + JPG_FILE_EXT)
         fixes_file = os.path.join(fixes_dir, file)
         upscayled_fixes_file = os.path.join(upscayled_fixes_dir, file)
-        restored_fixes_file = os.path.join(restored_fixes_dir, file)
 
         if not os.path.isfile(upscayled_fixes_file):
             print(
@@ -357,120 +363,12 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
             ret_code = 1
             continue
 
-        if os.path.isfile(restored_fixes_file):
-            print(
-                f"{ERROR_MSG_PREFIX}Upscayled fixes file cannot have a matching restored fixes"
-                f' file: "{upscayled_fixes_file}".'
-            )
-            ret_code = 1
-            continue
-
     return ret_code
 
 
 # TODO: Fill this out
 def _not_used(page_num: int) -> bool:
     return False
-
-
-def check_restored_fixes_and_additions_files(comics_db: ComicsDatabase, volume: int) -> int:
-    fanta_original_image_dir = comics_db.get_fantagraphics_volume_image_dir(volume)
-    num_fanta_pages = comics_db.get_num_pages_in_fantagraphics_volume(volume)
-    fixes_dir = comics_db.get_fantagraphics_fixes_volume_image_dir(volume)
-    upscayled_fixes_dir = comics_db.get_fantagraphics_upscayled_fixes_volume_image_dir(volume)
-
-    ret_code = 0
-
-    # Basic 'restored fixes' check.
-    restored_fixes_root_dir = comics_db.get_fantagraphics_restored_fixes_volume_dir(volume)
-    if _get_num_files_in_dir(restored_fixes_root_dir) != 1:
-        print(f'{ERROR_MSG_PREFIX}Directory "{restored_fixes_root_dir}" has too many files.')
-        ret_code = 1
-        return ret_code
-
-    restored_fixes_dir = comics_db.get_fantagraphics_restored_fixes_volume_image_dir(volume)
-    if not os.path.isdir(fixes_dir):
-        print(f'{ERROR_MSG_PREFIX}Could not find restored fixes directory "{restored_fixes_dir}".')
-        ret_code = 1
-        return ret_code
-
-    # Restored fixes files.
-    for file in os.listdir(restored_fixes_dir):
-        file_stem = Path(file).stem
-        original_file = os.path.join(fanta_original_image_dir, file_stem + JPG_FILE_EXT)
-        fixes_file = os.path.join(fixes_dir, file)
-        upscayled_fixes_file = os.path.join(upscayled_fixes_dir, file)
-        restored_fixes_file = os.path.join(restored_fixes_dir, file)
-
-        if not os.path.isfile(restored_fixes_file):
-            print(
-                f"{ERROR_MSG_PREFIX}Restored fixes file must be a file:"
-                f' "{restored_fixes_file}".'
-            )
-            ret_code = 1
-            continue
-
-        # TODO: Another special case. Needed?
-        if file.endswith("-fix.txt"):
-            matching_fixes_file = os.path.join(
-                restored_fixes_dir, file[: -len("-fix.txt")] + PNG_FILE_EXT
-            )
-            if not os.path.isfile(matching_fixes_file):
-                print(
-                    f"{ERROR_MSG_PREFIX}Restored fixes text file has no match:"
-                    f' "{restored_fixes_file}".'
-                )
-                ret_code = 1
-            continue
-
-        # Must be a png file.
-        if Path(file).suffix != PNG_FILE_EXT:
-            print(
-                f"{ERROR_MSG_PREFIX}Restored fixes file must be a png:" f' "{restored_fixes_file}".'
-            )
-            ret_code = 1
-            continue
-
-        if os.path.isfile(fixes_file):
-            print(
-                f"{ERROR_MSG_PREFIX}Restored fixes file cannot have a matching fixes"
-                f' file: "{restored_fixes_file}".'
-            )
-            ret_code = 1
-            continue
-
-        if os.path.isfile(upscayled_fixes_file):
-            print(
-                f"{ERROR_MSG_PREFIX}Restored fixes file cannot have a matching upscayled"
-                f' fixes file: "{restored_fixes_file}".'
-            )
-            ret_code = 1
-            continue
-
-        if not os.path.isfile(original_file):
-            # If it's an added file it must have a valid page number.
-            page_num = Path(file).stem
-            if not page_num.isnumeric():
-                print(
-                    f"{ERROR_MSG_PREFIX}Invalid restored fixes file:" f' "{restored_fixes_file}".'
-                )
-                ret_code = 1
-                continue
-            page_num = int(page_num)
-            if page_num <= num_fanta_pages or page_num > MAX_FIXES_PAGE_NUM:
-                print(
-                    f"{ERROR_MSG_PREFIX}Restored fixes file is outside page num range"
-                    f' [{num_fanta_pages}..{MAX_FIXES_PAGE_NUM}]: "{restored_fixes_file}".'
-                )
-                ret_code = 1
-                continue
-
-            if _not_used(page_num):
-                print(f'{ERROR_MSG_PREFIX}Fixes file is not used in any ini files: "{fixes_file}".')
-                ret_code = 1
-                continue
-
-    return ret_code
 
 
 def _get_num_files_in_dir(dirname: str) -> int:
@@ -522,9 +420,6 @@ def check_directory_structure(comics_db: ComicsDatabase) -> int:
             ret_code = 1
 
         if not _found_dir(comics_db.get_fantagraphics_upscayled_fixes_volume_image_dir(volume)):
-            ret_code = 1
-
-        if not _found_dir(comics_db.get_fantagraphics_restored_fixes_volume_image_dir(volume)):
             ret_code = 1
 
         if not _found_dir(comics_db.get_fantagraphics_fixes_scraps_volume_image_dir(volume)):
@@ -579,6 +474,31 @@ def check_no_unexpected_files(comics_db: ComicsDatabase) -> int:
 
     ret_code = 0
 
+    EXTRA_SRCE_DIRS = [
+        comics_db.get_root_dir("Fantagraphics-censorship-fixes"),
+        comics_db.get_root_dir("Articles"),
+        comics_db.get_root_dir("Books"),
+        comics_db.get_root_dir("CBL_Index"),
+        comics_db.get_root_dir("Comics Scans"),
+        comics_db.get_root_dir("Glk Covers"),
+        comics_db.get_root_dir("Misc"),
+        comics_db.get_root_dir("Paintings"),
+        comics_db.get_root_dir("Silent Night (Gemstone)"),
+        THE_COMICS_DIR,
+    ]
+    srce_dirs = EXTRA_SRCE_DIRS
+    for volume in range(FIRST_VOLUME_NUMBER, LAST_VOLUME_NUMBER + 1):
+        srce_dirs.append(comics_db.get_fantagraphics_original_root_dir())
+        srce_dirs.append(comics_db.get_fantagraphics_upscayled_root_dir())
+        srce_dirs.append(comics_db.get_fantagraphics_restored_root_dir())
+        srce_dirs.append(comics_db.get_fantagraphics_restored_upscayled_root_dir())
+        srce_dirs.append(comics_db.get_fantagraphics_restored_svg_root_dir())
+        srce_dirs.append(comics_db.get_fantagraphics_restored_ocr_root_dir())
+        srce_dirs.append(comics_db.get_fantagraphics_fixes_root_dir())
+        srce_dirs.append(comics_db.get_fantagraphics_upscayled_fixes_root_dir())
+        srce_dirs.append(comics_db.get_fantagraphics_fixes_scraps_root_dir())
+        srce_dirs.append(comics_db.get_fantagraphics_panel_segments_root_dir())
+
     dest_dirs = []
     zip_files = []
     zip_series_symlink_dirs = set()
@@ -596,6 +516,7 @@ def check_no_unexpected_files(comics_db: ComicsDatabase) -> int:
         zip_year_symlinks.append(comic.get_dest_year_comic_zip_symlink())
 
     if 0 != check_unexpected_files(
+        srce_dirs,
         dest_dirs,
         zip_files,
         zip_series_symlink_dirs,
@@ -763,6 +684,7 @@ def check_unexpected_dest_image_files(
 
 
 def check_unexpected_files(
+    srce_dirs_list: List[str],
     dest_dirs_info_list: List[Tuple[str, str]],
     allowed_zip_files: List[str],
     allowed_zip_series_symlink_dirs: Set[str],
@@ -771,6 +693,9 @@ def check_unexpected_files(
     allowed_zip_year_symlinks: List[str],
 ) -> int:
     ret_code = 0
+
+    if 0 != check_files_in_dir("main", BARKS_ROOT_DIR, srce_dirs_list):
+        ret_code = 1
 
     allowed_main_dir_files = [
         THE_CHRONOLOGICAL_DIRS_DIR,

@@ -70,7 +70,6 @@ class ComicBookDirs:
     srce_restored_ocr_dir: str
     srce_fixes_dir: str
     srce_upscayled_fixes_dir: str
-    srce_restored_fixes_dir: str  # TODO: Get rid of this????
     panel_segments_dir: str
 
 
@@ -141,14 +140,8 @@ class ComicBook:
     def get_srce_upscayled_fixes_image_dir(self) -> str:
         return self.__get_image_subdir(self.dirs.srce_upscayled_fixes_dir)
 
-    def get_srce_restored_fixes_image_dir(self) -> str:
-        return self.__get_image_subdir(self.dirs.srce_restored_fixes_dir)
-
     def get_srce_original_fixes_bounded_dir(self) -> str:
         return os.path.join(self.get_srce_original_fixes_image_dir(), BOUNDED_SUBDIR)
-
-    def get_srce_restored_fixes_bounded_dir(self) -> str:
-        return os.path.join(self.get_srce_restored_fixes_image_dir(), BOUNDED_SUBDIR)
 
     def get_srce_original_story_files(self, page_types: List[PageType]) -> List[str]:
         return self.__get_story_files(page_types, self.__get_srce_original_story_file)
@@ -267,9 +260,6 @@ class ComicBook:
     def get_srce_upscayled_fixes_story_file(self, page_num: str) -> str:
         return os.path.join(self.get_srce_upscayled_fixes_image_dir(), page_num + PNG_FILE_EXT)
 
-    def get_srce_restored_fixes_story_file(self, page_num: str) -> str:
-        return os.path.join(self.get_srce_restored_fixes_image_dir(), page_num + PNG_FILE_EXT)
-
     def get_final_srce_original_story_file(
         self, page_num: str, page_type: PageType
     ) -> Tuple[str, bool]:
@@ -303,19 +293,13 @@ class ComicBook:
         if page_type == PageType.BLANK_PAGE:
             return "EMPTY PAGE", False
 
-        if page_type in [
-            PageType.FRONT,
-            PageType.COVER,
-            PageType.PAINTING,
-            PageType.BACK_NO_PANELS,
-        ]:
-            srce_file, is_modified = self.get_final_srce_original_story_file(page_num, page_type)
-            if os.path.isfile(srce_file):
-                return srce_file, is_modified
-
         srce_restored_file, is_modified = self.__get_final_srce_restored_file(page_num, page_type)
         if os.path.isfile(srce_restored_file):
             return srce_restored_file, is_modified
+
+        srce_file, is_modified = self.get_final_srce_original_story_file(page_num, page_type)
+        if os.path.isfile(srce_file):
+            return srce_file, is_modified
 
         raise Exception(f'Could not find restored source file "{srce_restored_file}".')
 
@@ -327,20 +311,8 @@ class ComicBook:
         )
         if os.path.isfile(srce_restored_file):
             raise Exception(f'Restored files should be png not jpg: "{srce_restored_file}".')
-        srce_restored_fixes_file = os.path.join(
-            self.get_srce_restored_fixes_image_dir(), page_num + JPG_FILE_EXT
-        )
-        if os.path.isfile(srce_restored_fixes_file):
-            raise Exception(
-                f'Restored fixes files should be png not jpg: "{srce_restored_fixes_file}".'
-            )
 
-        srce_restored_file = self.__get_srce_restored_story_file(page_num)
-        srce_restored_fixes_file = self.get_srce_restored_fixes_story_file(page_num)
-
-        return self.__get_final_story_file(
-            "restored", page_num, page_type, srce_restored_file, srce_restored_fixes_file
-        )
+        return self.__get_srce_restored_story_file(page_num), False
 
     def __get_final_story_file(
         self, file_type: str, page_num: str, page_type: PageType, primary_file: str, fixes_file: str
@@ -425,7 +397,6 @@ class ComicBook:
 
     def get_story_file_sources(self, page_num: str) -> List[str]:
         srce_restored_file = self.__get_srce_restored_story_file(page_num)
-        srce_restored_fixes_file = self.get_srce_restored_fixes_story_file(page_num)
         srce_upscayled_file = self.get_srce_upscayled_story_file(page_num)
         srce_upscayled_fixes_file = self.get_srce_upscayled_fixes_story_file(page_num)
         srce_original_file = self.__get_srce_original_story_file(page_num)
@@ -433,9 +404,7 @@ class ComicBook:
 
         sources = []
 
-        if os.path.isfile(srce_restored_fixes_file):
-            sources.append(srce_restored_fixes_file)
-        elif os.path.isfile(srce_restored_file):
+        if os.path.isfile(srce_restored_file):
             sources.append(srce_restored_file)
 
         if os.path.isfile(srce_upscayled_fixes_file):
@@ -454,21 +423,9 @@ class ComicBook:
         panels_bounds_file = os.path.join(
             self.get_srce_original_fixes_bounded_dir(), get_page_str(page_num) + JPG_FILE_EXT
         )
-        panels_bounds_restored_file = os.path.join(
-            self.get_srce_restored_fixes_bounded_dir(), get_page_str(page_num) + PNG_FILE_EXT
-        )
 
         if os.path.isfile(panels_bounds_file):
-            if os.path.isfile(panels_bounds_restored_file):
-                raise Exception(
-                    f"Cannot have fixes and restored fixes bounds files: "
-                    f'"{panels_bounds_file}" and'
-                    f'"{panels_bounds_restored_file}".'
-                )
             return panels_bounds_file
-
-        if os.path.isfile(panels_bounds_restored_file):
-            return panels_bounds_restored_file
 
         return ""
 
