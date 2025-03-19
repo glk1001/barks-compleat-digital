@@ -250,7 +250,19 @@ class ComicBook:
         return os.path.join(self.dirs.panel_segments_dir, page_num + JSON_FILE_EXT)
 
     def get_srce_original_fixes_story_file(self, page_num: str) -> str:
-        return os.path.join(self.get_srce_original_fixes_image_dir(), page_num + JPG_FILE_EXT)
+        jpg_fixes_file = os.path.join(
+            self.get_srce_original_fixes_image_dir(), page_num + JPG_FILE_EXT
+        )
+        png_fixes_file = os.path.join(
+            self.get_srce_original_fixes_image_dir(), page_num + PNG_FILE_EXT
+        )
+        if os.path.isfile(jpg_fixes_file) and os.path.isfile(png_fixes_file):
+            raise Exception(f'Cannot have both .jpg and .png fixes file "{jpg_fixes_file}"')
+
+        if os.path.isfile(jpg_fixes_file):
+            return jpg_fixes_file
+
+        return png_fixes_file
 
     def get_srce_upscayled_fixes_story_file(self, page_num: str) -> str:
         return os.path.join(self.get_srce_upscayled_fixes_image_dir(), page_num + PNG_FILE_EXT)
@@ -388,9 +400,11 @@ class ComicBook:
     def is_fixes_special_case_added(volume: int, page_num: str) -> bool:
         if volume == 4 and page_num == "227":  # Restored Bill Collectors
             return True
-        if volume == 7 and page_num == "240":  # Copied from volume 8, page 31
+        if volume == 7 and page_num == "240":  # Copied from volume 8, jpeg 31
             return True
-        if volume == 7 and page_num == "241":  # Copied from volume 8, page 32
+        if volume == 7 and page_num == "241":  # Copied from volume 8, jpeg 32
+            return True
+        if volume == 16 and page_num == "235":  # Copied from volume 14, jpeg 145
             return True
 
         return False
