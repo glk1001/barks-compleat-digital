@@ -249,20 +249,20 @@ class ComicBook:
     def get_srce_panel_segments_file(self, page_num: str) -> str:
         return os.path.join(self.dirs.panel_segments_dir, page_num + JSON_FILE_EXT)
 
-    def __get_srce_original_fixes_story_file(self, page_num: str) -> str:
+    def get_srce_original_fixes_story_file(self, page_num: str) -> str:
         return os.path.join(self.get_srce_original_fixes_image_dir(), page_num + JPG_FILE_EXT)
 
-    def __get_srce_upscayled_fixes_story_file(self, page_num: str) -> str:
+    def get_srce_upscayled_fixes_story_file(self, page_num: str) -> str:
         return os.path.join(self.get_srce_upscayled_fixes_image_dir(), page_num + PNG_FILE_EXT)
 
-    def __get_srce_restored_fixes_story_file(self, page_num: str) -> str:
+    def get_srce_restored_fixes_story_file(self, page_num: str) -> str:
         return os.path.join(self.get_srce_restored_fixes_image_dir(), page_num + PNG_FILE_EXT)
 
     def get_final_srce_original_story_file(
         self, page_num: str, page_type: PageType
     ) -> Tuple[str, bool]:
         srce_file = self.__get_srce_original_story_file(page_num)
-        srce_fixes_file = self.__get_srce_original_fixes_story_file(page_num)
+        srce_fixes_file = self.get_srce_original_fixes_story_file(page_num)
 
         return self.__get_final_story_file(
             "original", page_num, page_type, srce_file, srce_fixes_file
@@ -279,7 +279,7 @@ class ComicBook:
             raise Exception(
                 f'Upscayled fixes file must be .png not .jpg: "{srce_upscayled_fixes_file}".'
             )
-        srce_upscayled_fixes_file = self.__get_srce_upscayled_fixes_story_file(page_num)
+        srce_upscayled_fixes_file = self.get_srce_upscayled_fixes_story_file(page_num)
 
         return self.__get_final_story_file(
             "upscayled", page_num, page_type, srce_upscayled_file, srce_upscayled_fixes_file
@@ -324,7 +324,7 @@ class ComicBook:
             )
 
         srce_restored_file = self.__get_srce_restored_story_file(page_num)
-        srce_restored_fixes_file = self.__get_srce_restored_fixes_story_file(page_num)
+        srce_restored_fixes_file = self.get_srce_restored_fixes_story_file(page_num)
 
         return self.__get_final_story_file(
             "restored", page_num, page_type, srce_restored_file, srce_restored_fixes_file
@@ -411,11 +411,11 @@ class ComicBook:
 
     def get_story_file_sources(self, page_num: str) -> List[str]:
         srce_restored_file = self.__get_srce_restored_story_file(page_num)
-        srce_restored_fixes_file = self.__get_srce_restored_fixes_story_file(page_num)
+        srce_restored_fixes_file = self.get_srce_restored_fixes_story_file(page_num)
         srce_upscayled_file = self.get_srce_upscayled_story_file(page_num)
-        srce_upscayled_fixes_file = self.__get_srce_upscayled_fixes_story_file(page_num)
+        srce_upscayled_fixes_file = self.get_srce_upscayled_fixes_story_file(page_num)
         srce_original_file = self.__get_srce_original_story_file(page_num)
-        srce_original_fixes_file = self.__get_srce_original_fixes_story_file(page_num)
+        srce_original_fixes_file = self.get_srce_original_fixes_story_file(page_num)
 
         sources = []
 
