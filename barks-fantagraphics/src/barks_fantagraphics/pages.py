@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import List, Tuple, Dict, Union
 
 from barks_fantagraphics.comic_book import OriginalPage, ComicBook, get_page_str
-from barks_fantagraphics.comics_consts import PageType
+from barks_fantagraphics.comics_consts import PageType, RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_utils import get_timestamp
 from barks_fantagraphics.panel_bounding_boxes import BoundingBox
 
@@ -237,6 +237,16 @@ def get_restored_srce_dependencies(comic: ComicBook, srce_page: CleanPage) -> Li
         page_num_str, srce_page.page_type
     )
     srce_restored_timestamp = get_timestamp(srce_restored_file)
+    srce_restored_upscayled_file = comic.get_srce_restored_upscayled_story_file(page_num_str)
+    srce_restored_upscayled_timestamp = (
+        get_timestamp(srce_restored_upscayled_file)
+        if os.path.isfile(srce_restored_upscayled_file)
+        else -1
+    )
+    srce_restored_svg_file = comic.get_srce_restored_svg_story_file(page_num_str)
+    srce_restored_svg_timestamp = (
+        get_timestamp(srce_restored_svg_file) if os.path.isfile(srce_restored_svg_file) else -1
+    )
     srce_upscayl_file, upscayl_modded = comic.get_final_srce_upscayled_story_file(
         page_num_str, srce_page.page_type
     )
@@ -251,7 +261,7 @@ def get_restored_srce_dependencies(comic: ComicBook, srce_page: CleanPage) -> Li
     )
 
     underlying_files = []
-    if srce_page.page_type in [PageType.FRONT_MATTER, PageType.BODY, PageType.BACK_MATTER]:
+    if srce_page.page_type in RESTORABLE_PAGE_TYPES:
         underlying_files.append(
             SrceDependency(
                 srce_panel_segments_file, srce_panel_segments_timestamp, independent=False
@@ -271,10 +281,22 @@ def get_restored_srce_dependencies(comic: ComicBook, srce_page: CleanPage) -> Li
         )
     )
 
-    if srce_page.page_type in [PageType.FRONT_MATTER, PageType.BODY, PageType.BACK_MATTER]:
+    if srce_page.page_type in RESTORABLE_PAGE_TYPES:
         if not comic._is_added_fixes_special_case(
             get_page_str(srce_page.page_num), srce_page.page_type
         ):
+            underlying_files.append(
+                SrceDependency(
+                    srce_restored_upscayled_file,
+                    srce_restored_upscayled_timestamp,
+                    independent=False,
+                )
+            )
+            underlying_files.append(
+                SrceDependency(
+                    srce_restored_svg_file, srce_restored_svg_timestamp, independent=False
+                )
+            )
             underlying_files.append(
                 SrceDependency(
                     srce_upscayl_file,

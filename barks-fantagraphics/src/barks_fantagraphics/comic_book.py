@@ -13,6 +13,7 @@ from .comics_consts import (
     THE_COMICS_DIR,
     THE_YEARS_COMICS_DIR,
     INSET_FILE_EXT,
+    RESTORABLE_PAGE_TYPES,
     STORY_PAGE_TYPES,
     STORY_PAGE_TYPES_STR_LIST,
 )
@@ -153,10 +154,10 @@ class ComicBook:
         return self.__get_story_files(page_types, self.__get_srce_restored_story_file)
 
     def get_srce_restored_upscayled_story_files(self, page_types: List[PageType]) -> List[str]:
-        return self.__get_story_files(page_types, self.__get_srce_restored_upscayled_story_file)
+        return self.__get_story_files(page_types, self.get_srce_restored_upscayled_story_file)
 
     def get_srce_restored_svg_story_files(self, page_types: List[PageType]) -> List[str]:
-        return self.__get_story_files(page_types, self.__get_srce_restored_svg_story_file)
+        return self.__get_story_files(page_types, self.get_srce_restored_svg_story_file)
 
     def get_srce_restored_ocr_story_files(
         self, page_types: List[PageType]
@@ -221,10 +222,10 @@ class ComicBook:
     def __get_srce_restored_story_file(self, page_num: str) -> str:
         return os.path.join(self.get_srce_restored_image_dir(), page_num + PNG_FILE_EXT)
 
-    def __get_srce_restored_upscayled_story_file(self, page_num: str) -> str:
+    def get_srce_restored_upscayled_story_file(self, page_num: str) -> str:
         return os.path.join(self.get_srce_restored_upscayled_image_dir(), page_num + PNG_FILE_EXT)
 
-    def __get_srce_restored_svg_story_file(self, page_num: str) -> str:
+    def get_srce_restored_svg_story_file(self, page_num: str) -> str:
         return os.path.join(self.get_srce_restored_svg_image_dir(), page_num + SVG_FILE_EXT)
 
     def __get_srce_restored_ocr_story_file(self, page_num: str) -> Tuple[str, str]:
@@ -293,15 +294,27 @@ class ComicBook:
         if page_type == PageType.BLANK_PAGE:
             return "EMPTY PAGE", False
 
-        srce_restored_file, is_modified = self.__get_final_srce_restored_file(page_num, page_type)
-        if os.path.isfile(srce_restored_file):
-            return srce_restored_file, is_modified
+        if page_type in RESTORABLE_PAGE_TYPES:
+            srce_restored_file = os.path.join(
+                self.get_srce_restored_image_dir(), page_num + JPG_FILE_EXT
+            )
+            if os.path.isfile(srce_restored_file):
+                raise Exception(f'Restored files should be png not jpg: "{srce_restored_file}".')
+
+            srce_restored_file = self.__get_srce_restored_story_file(page_num)
+            if os.path.isfile(srce_restored_file):
+                return srce_restored_file, False
+
+            raise Exception(
+                f'Could not find restored source file "{srce_restored_file}"'
+                f' of type "{page_type.name}"'
+            )
 
         srce_file, is_modified = self.get_final_srce_original_story_file(page_num, page_type)
         if os.path.isfile(srce_file):
             return srce_file, is_modified
 
-        raise Exception(f'Could not find restored source file "{srce_restored_file}".')
+        raise Exception(f'Could not find source file "{srce_file}" of type "{page_type.name}"')
 
     def __get_final_srce_restored_file(
         self, page_num: str, page_type: PageType
