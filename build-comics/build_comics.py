@@ -75,8 +75,9 @@ PAGE_NUM_HEIGHT = 40
 PAGE_NUM_FONT_SIZE = 30
 PAGE_NUM_COLOR = (10, 10, 10)
 
-SPLASH_BORDER_COLOR = (128, 0, 0)
+SPLASH_BORDER_COLOR = (0, 0, 0)
 SPLASH_BORDER_WIDTH = 10
+SPLASH_MARGIN = DEST_TARGET_X_MARGIN
 
 
 def build_comic_book(comic: ComicBook) -> Tuple[SrceAndDestPages, float]:
@@ -316,23 +317,36 @@ def _get_dest_painting_page_image(painting_image: Image, srce_page: CleanPage) -
 
 
 def _get_dest_splash_page_image(splash_image: Image, srce_page: CleanPage) -> Image:
-    if srce_page.page_type == PageType.SPLASH:
-        _draw_border_around_image(splash_image)
+    assert srce_page.page_type == PageType.SPLASH
+
+    splash_width = splash_image.width
+    splash_height = splash_image.height
+
+    smaller_splash_image = splash_image.resize(
+        size=(splash_width - (2 * SPLASH_MARGIN), splash_height - (2 * SPLASH_MARGIN)),
+        resample=Image.Resampling.BICUBIC,
+    )
+    _draw_border_around_image(smaller_splash_image)
 
     dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
+
+    splash_image = dest_page_image.resize(size=(splash_width, splash_height))
+    splash_image.paste(smaller_splash_image, (SPLASH_MARGIN, SPLASH_MARGIN))
 
     return _get_dest_centred_page_image(splash_image, srce_page, dest_page_image)
 
 
 def _draw_border_around_image(image: Image):
+    x_min = 0
+    y_min = 0
     x_max = image.width - 1
     y_max = image.height - 1
     border = [
-        (0, 0),
-        (x_max, 0),
+        (x_min, y_min),
+        (x_max, y_min),
         (x_max, y_max),
-        (0, y_max),
-        (0, 0),
+        (x_min, y_max),
+        (x_min, y_min),
     ]
     draw = ImageDraw.Draw(image)
     draw.line(border, fill=SPLASH_BORDER_COLOR, width=SPLASH_BORDER_WIDTH)
