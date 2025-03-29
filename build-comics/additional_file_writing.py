@@ -15,7 +15,7 @@ from barks_fantagraphics.pages import (
     get_srce_dest_map,
     get_page_num_str,
 )
-from barks_fantagraphics.pages import FRONT_MATTER_PAGES, SPLASH_PAGES, PAINTING_PAGES
+from barks_fantagraphics.pages import FRONT_MATTER_PAGES, PAINTING_PAGES
 from consts import (
     DEST_JPG_QUALITY,
     DEST_JPG_COMPRESS_LEVEL,
@@ -225,7 +225,7 @@ def get_page_counts(dest_pages: List[CleanPage]) -> Dict[str, int]:
 
     painting_page_count = len([p for p in dest_pages if p.page_type in PAINTING_PAGES])
 
-    splash_page_count = len([p for p in dest_pages if p.page_type in SPLASH_PAGES])
+    splash_page_count = len([p for p in dest_pages if p.page_type == PageType.SPLASH])
 
     front_matter_page_count = len([p for p in dest_pages if p.page_type == PageType.FRONT_MATTER])
 

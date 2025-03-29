@@ -27,7 +27,6 @@ class PageType(Enum):
     TITLE = auto()
     COVER = auto()
     SPLASH = auto()
-    SPLASH_NO_BORDER = auto()
     PAINTING = auto()
     PAINTING_NO_BORDER = auto()
     FRONT_MATTER = auto()
