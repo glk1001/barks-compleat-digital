@@ -677,5 +677,13 @@ def get_jpg_page_of_type_list(comic: ComicBook, page_types: List[PageType]) -> L
     return all_pages
 
 
+def get_has_front(comic: ComicBook) -> bool:
+    return comic.page_images_in_order[0].page_type == PageType.FRONT
+
+
+def get_num_splashes(comic: ComicBook) -> int:
+    return len(get_jpg_page_of_type_list(comic, [PageType.SPLASH]))
+
+
 def get_total_num_pages(comic: ComicBook) -> int:
     return len(comic.page_images_in_order)

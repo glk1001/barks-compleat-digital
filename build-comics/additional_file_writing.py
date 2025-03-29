@@ -250,6 +250,7 @@ def get_page_counts(dest_pages: List[CleanPage]) -> Dict[str, int]:
         + blank_page_count
     )
 
+    page_counts["front"] = front_page_count
     page_counts["painting"] = painting_page_count
     page_counts["title"] = title_page_count
     page_counts["cover"] = cover_page_count

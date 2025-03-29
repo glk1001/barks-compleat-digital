@@ -1,9 +1,16 @@
 import logging
 import os.path
 import sys
+from dataclasses import dataclass
 from typing import List, Tuple, Dict
 
-from barks_fantagraphics.comic_book import ComicBook, get_abbrev_jpg_page_list, get_total_num_pages
+from barks_fantagraphics.comic_book import (
+    ComicBook,
+    get_abbrev_jpg_page_list,
+    get_total_num_pages,
+    get_num_splashes,
+    get_has_front,
+)
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames, ExtraArg
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_info import ComicBookInfo
@@ -163,9 +170,20 @@ def get_build_state_flag(comic: ComicBook) -> str:
     return flag
 
 
+@dataclass
+class Flags:
+    display_title: str
+    fixes_flag: str
+    build_state_flag: str
+    num_pages: int
+    page_list: str
+    has_front: bool
+    num_splashes: int
+
+
 def get_title_flags(
     issue_titles_info_list: List[Tuple[str, str, ComicBookInfo, bool]]
-) -> Tuple[Dict[str, Tuple[str, str, str, int, str]], int, int]:
+) -> Tuple[Dict[str, Flags], int, int]:
     max_ttl_len = 0
     max_issue_ttl_len = 0
     ttl_flags = dict()
@@ -182,6 +200,8 @@ def get_title_flags(
             build_state_flg = NOT_CONFIGURED_FLAG
             num_pgs = -1
             page_lst = ""
+            has_front = False
+            num_splashes = 0
         else:
             comic_book = comics_database.get_comic_book(ttl)
 
@@ -192,6 +212,8 @@ def get_title_flags(
             num_pgs = get_total_num_pages(comic_book)
             if num_pgs <= 1:
                 raise Exception(f'For title "{ttl}", the page count is to small.')
+            has_front = get_has_front(comic_book)
+            num_splashes = get_num_splashes(comic_book)
 
         if fixes_flg not in fixes_filter:
             continue
@@ -201,12 +223,14 @@ def get_title_flags(
         max_ttl_len = max(max_ttl_len, len(display_ttl))
         max_issue_ttl_len = max(max_issue_ttl_len, len(issue_ttl))
 
-        ttl_flags[ttl] = (
+        ttl_flags[ttl] = Flags(
             display_ttl,
             fixes_flg,
             build_state_flg,
             num_pgs,
             page_lst,
+            has_front,
+            num_splashes,
         )
 
     return ttl_flags, max_ttl_len, max_issue_ttl_len
@@ -273,18 +297,17 @@ for issue_title_info in issue_titles_info:
         continue
 
     issue_title = issue_title_info[1]
-    display_title = title_flags[title][0]
-    fixes_flag = title_flags[title][1]
-    build_state_flag = title_flags[title][2]
-    num_pages = title_flags[title][3]
-    page_list = title_flags[title][4]
-    volume = comic_book_info.fantagraphics_volume
-
-    volume_str = "" if not display_volumes else f" {volume}, "
+    flags = title_flags[title]
+    volume_str = "" if not display_volumes else f" {comic_book_info.fantagraphics_volume}, "
+    num_front = 1 if flags.has_front else 0
+    front_str = f"f:{num_front}"
+    splash_str = f"s:{flags.num_splashes}"
 
     print(
-        f'Title: "{display_title:<{max_title_len}}", {issue_title:<{max_issue_title_len}},'
+        f'"{flags.display_title:<{max_title_len}}", {issue_title:<{max_issue_title_len}},'
         f"{volume_str}"
-        f" {fixes_flag} {build_state_flag}, "
-        f" {num_pages:2d} jpgs: {page_list}"
+        f" {flags.fixes_flag} {flags.build_state_flag}, "
+        f" {flags.num_pages:2d} pp,"
+        f" {front_str},{splash_str},"
+        f" jpgs: {flags.page_list}"
     )
