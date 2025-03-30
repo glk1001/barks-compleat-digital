@@ -3,10 +3,10 @@ import os
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Union
 
-from barks_fantagraphics.comic_book import OriginalPage, ComicBook, get_page_str
-from barks_fantagraphics.comics_consts import PageType, RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_utils import get_timestamp
-from barks_fantagraphics.panel_bounding_boxes import BoundingBox
+from .comic_book import OriginalPage, ComicBook, get_page_str
+from .comics_consts import PageType, RESTORABLE_PAGE_TYPES
+from .comics_utils import get_timestamp
+from .panel_bounding_boxes import BoundingBox
 
 THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 

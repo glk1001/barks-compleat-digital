@@ -2,14 +2,27 @@ import json
 import logging
 import os
 import subprocess
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Tuple
 
 from PIL import Image
 
-from barks_fantagraphics.comics_utils import get_abbrev_path
+from .comics_utils import get_abbrev_path
 
 BIG_NUM = 10000
+
+
+@dataclass
+class KumikoBound:
+    left: int
+    top: int
+    width: int
+    height: int
+
+
+def get_kumiko_panel_bound(raw_bound: Tuple[int, int, int, int]) -> KumikoBound:
+    return KumikoBound(raw_bound[0], raw_bound[1], raw_bound[2], raw_bound[3])
 
 
 def get_min_max_panel_values(segment_info: Dict[str, Any]) -> Tuple[int, int, int, int]:
@@ -18,14 +31,18 @@ def get_min_max_panel_values(segment_info: Dict[str, Any]) -> Tuple[int, int, in
     x_max = 0
     y_max = 0
 
-    for kumiko_panel_bound in segment_info["panels"]:
-        panel_width = kumiko_panel_bound[2]
-        panel_height = kumiko_panel_bound[3]
+    for raw_kumiko_bound in segment_info["panels"]:
+        kumiko_bound = get_kumiko_panel_bound(raw_kumiko_bound)
 
-        x0 = kumiko_panel_bound[0]
-        y0 = kumiko_panel_bound[1]
-        x1 = x0 + (panel_width - 1)
-        y1 = y0 + (panel_height - 1)
+        assert kumiko_bound.left >= 0
+        assert kumiko_bound.top >= 0
+        assert kumiko_bound.width > 0
+        assert kumiko_bound.height > 0
+
+        x0 = kumiko_bound.left
+        y0 = kumiko_bound.top
+        x1 = x0 + (kumiko_bound.width - 1)
+        y1 = y0 + (kumiko_bound.height - 1)
 
         x_min = min(x_min, x0)
         y_min = min(y_min, y0)

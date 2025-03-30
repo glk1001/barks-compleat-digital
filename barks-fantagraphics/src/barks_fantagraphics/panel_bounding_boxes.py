@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass
 from typing import Tuple
 
-from barks_fantagraphics.comics_utils import get_abbrev_path
+from .comics_utils import get_abbrev_path
 
 # from PIL import ImageDraw
 

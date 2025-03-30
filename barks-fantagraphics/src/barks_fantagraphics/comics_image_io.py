@@ -1,3 +1,4 @@
+import logging
 from typing import Dict
 
 import cv2 as cv
@@ -12,6 +13,17 @@ SAVE_JPG_QUALITY = 95
 SAVE_JPG_COMPRESS_LEVEL = 9
 
 METADATA_PROPERTY_GROUP = "BARKS"
+
+
+def open_pil_image_for_reading(file: str) -> Image:
+    current_log_level = logging.getLogger().level
+    try:
+        logging.getLogger().setLevel(logging.INFO)
+        image = Image.open(file, "r")
+    finally:
+        logging.getLogger().setLevel(current_log_level)
+
+    return image
 
 
 def get_bw_image_from_alpha(rgba_file: str) -> cv.typing.MatLike:

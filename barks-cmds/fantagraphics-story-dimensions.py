@@ -3,21 +3,16 @@ import logging
 import os
 import sys
 from dataclasses import dataclass
-from typing import Union, Tuple
 
 from PIL import Image
 
-from barks_fantagraphics.comic_book import ComicBook, get_page_str, ComicDimensions
+from barks_fantagraphics.comic_book import ComicBook, ComicDimensions
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
-from barks_fantagraphics.comics_consts import STORY_PAGE_TYPES
-from barks_fantagraphics.comics_info import get_fanta_volume_str
 from barks_fantagraphics.comics_utils import (
     setup_logging,
 )
 from barks_fantagraphics.pages import (
-    get_page_num_str,
     get_srce_and_dest_pages_in_order,
-    CleanPage,
     PageType,
 )
 
@@ -85,10 +80,16 @@ for title in dimensions_dict.keys():
     story_dims = dimensions_dict[title]
 
     srce_dims = story_dims.srce_dims
-    bboxes_str = (f"{srce_dims.min_panels_bbox_width:4},{srce_dims.max_panels_bbox_width}"
-                  f" {srce_dims.min_panels_bbox_height:4},{srce_dims.max_panels_bbox_height}"
-                  f" {srce_dims.av_panels_bbox_width:4},{srce_dims.av_panels_bbox_height}")
+    bboxes_str = (
+        f"{srce_dims.min_panels_bbox_width:4},{srce_dims.max_panels_bbox_width}"
+        f" {srce_dims.min_panels_bbox_height:4},{srce_dims.max_panels_bbox_height}"
+        f" {srce_dims.av_panels_bbox_width:4},{srce_dims.av_panels_bbox_height}"
+    )
 
-    front_str = "" if story_dims.front_width == -1 else f"Front: {story_dims.front_width:4} x {story_dims.front_height:4}"
+    front_str = (
+        ""
+        if story_dims.front_width == -1
+        else f"Front: {story_dims.front_width:4} x {story_dims.front_height:4}"
+    )
 
     print(f"{title_str:<{max_title_len + 1}} BBoxes: {bboxes_str}  {front_str}")

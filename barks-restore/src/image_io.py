@@ -1,4 +1,3 @@
-import logging
 import os
 from io import BytesIO
 from typing import List, Dict
@@ -19,17 +18,6 @@ from barks_fantagraphics.comics_info import JPG_FILE_EXT, PNG_FILE_EXT
 from .gmic_exe import run_gmic
 
 Image.MAX_IMAGE_PIXELS = None
-
-
-def open_pil_image_for_reading(file: str) -> Image:
-    current_log_level = logging.getLogger().level
-    try:
-        logging.getLogger().setLevel(logging.INFO)
-        image = Image.open(file, "r")
-    finally:
-        logging.getLogger().setLevel(current_log_level)
-
-    return image
 
 
 def svg_file_to_png(svg_file: str, png_file: str):

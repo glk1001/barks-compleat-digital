@@ -8,7 +8,7 @@ from typing import List
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_utils import get_abbrev_path, setup_logging
-from src.panel_bounding_boxes import BoundingBoxProcessor
+from barks_fantagraphics.panel_bounding_box_processor import BoundingBoxProcessor
 
 
 def panel_bounds(title_list: List[str]) -> None:
@@ -30,7 +30,7 @@ def panel_bounds(title_list: List[str]) -> None:
 
         if not os.path.isdir(comic.get_srce_original_fixes_image_dir()):
             raise Exception(
-                f'Could not find panel bounds directory '
+                f"Could not find panel bounds directory "
                 f'"{comic.get_srce_original_fixes_image_dir()}".'
             )
         # TODO: Put this in barks_fantagraphics

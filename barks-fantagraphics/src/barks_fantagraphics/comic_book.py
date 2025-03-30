@@ -113,6 +113,9 @@ class ComicBook:
     def is_barks_title(self) -> bool:
         return self.comic_book_info.is_barks_title
 
+    def get_fanta_volume(self) -> int:
+        return self.fanta_info.volume
+
     @staticmethod
     def __get_image_subdir(dirpath: str) -> str:
         return os.path.join(dirpath, IMAGES_SUBDIR)
