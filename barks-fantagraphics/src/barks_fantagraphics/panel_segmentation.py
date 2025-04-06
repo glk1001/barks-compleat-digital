@@ -58,8 +58,9 @@ def get_min_max_panel_values(segment_info: Dict[str, Any]) -> Tuple[int, int, in
 
 
 class KumikoPanelSegmentation:
-    def __init__(self, work_dir: str):
+    def __init__(self, work_dir: str, no_panel_expansion: bool = False):
         self.__work_dir = work_dir
+        self.__no_panel_expansion = no_panel_expansion
 
     def get_panels_segment_info(self, srce_image: Image, srce_filename: str) -> Dict[str, Any]:
         logging.debug(
@@ -80,12 +81,13 @@ class KumikoPanelSegmentation:
 
         return segment_info
 
-    @staticmethod
-    def __run_kumiko(page_filename: str) -> Dict[str, Any]:
+    def __run_kumiko(self, page_filename: str) -> Dict[str, Any]:
         kumiko_home_dir = os.path.join(str(Path.home()), "Prj/github/kumiko")
         kumiko_python_path = os.path.join(kumiko_home_dir, ".venv/bin/python3")
         kumiko_script_path = os.path.join(kumiko_home_dir, "kumiko")
         run_args = [kumiko_python_path, kumiko_script_path, "-i", page_filename]
+        if self.__no_panel_expansion:
+            run_args.append("--no-panel-expansion")
         logging.debug(f"Running kumiko: {' '.join(run_args)}.")
         result = subprocess.run(
             run_args,

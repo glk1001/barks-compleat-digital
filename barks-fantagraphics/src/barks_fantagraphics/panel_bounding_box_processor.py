@@ -11,8 +11,8 @@ from .panel_segmentation import KumikoPanelSegmentation, get_min_max_panel_value
 
 
 class BoundingBoxProcessor(object):
-    def __init__(self, work_dir: str):
-        self.__kumiko = KumikoPanelSegmentation(work_dir)
+    def __init__(self, work_dir: str, no_panel_expansion:bool=False):
+        self.__kumiko = KumikoPanelSegmentation(work_dir, no_panel_expansion)
 
     def get_panels_segment_info_from_kumiko(
         self,
