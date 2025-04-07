@@ -297,7 +297,7 @@ class ComicBook:
         if page_type == PageType.BLANK_PAGE:
             return "EMPTY PAGE", False
 
-        if page_type in RESTORABLE_PAGE_TYPES:
+        if self.get_ini_title() != SILENT_NIGHT and page_type in RESTORABLE_PAGE_TYPES:
             srce_restored_file = os.path.join(
                 self.get_srce_restored_image_dir(), page_num + JPG_FILE_EXT
             )
@@ -556,10 +556,6 @@ def get_main_publication_info(
             f"(*) Rejected by Western editors in 1945, this story was originally\n"
             f" intended for publication in {get_formatted_first_published_str(cb_info)}\n"
             + f"Submitted to Western Publishing{get_formatted_submitted_date(cb_info)}\n"
-            + f"\n"
-            + f"The story was also not published in the Fantagraphics CBDL but\n"
-            + f"fortunately did appear in {SILENT_NIGHT_PUBLICATION_ISSUE}\n"
-            + f"Color restoration by {cb_info.colorist}"
         )
         return publication_text
     if file_title == THE_MILKMAN:
