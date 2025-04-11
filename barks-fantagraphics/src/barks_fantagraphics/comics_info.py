@@ -350,6 +350,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Too Many Pets": SeriesInfo(GLEA, SERIES_DDA, "FANTA_02"),
     "Frozen Gold": SeriesInfo(GLEA, SERIES_DDA, "FANTA_02"),
     "Mystery of the Swamp": SeriesInfo(BIGD, SERIES_DDA, "FANTA_03"),
+    "The Firebug": SeriesInfo(DIGI, SERIES_DDA, "FANTA_03"),
     "The Terror of the River!!": SeriesInfo(SLEA, SERIES_DDA, "FANTA_04"),
     "Maharajah Donald": SeriesInfo(GLEA, SERIES_DDA, "FANTA_04"),
     "Volcano Valley": SeriesInfo(RTOM, SERIES_DDA, "FANTA_05"),
@@ -383,7 +384,6 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "Secret of Hondorica": SeriesInfo(RTOM, SERIES_DDA, "FANTA_17"),
     "Forbidden Valley": SeriesInfo(RTOM, SERIES_DDA, "FANTA_19"),
     "The Titanic Ants!": SeriesInfo(RTOM, SERIES_DDA, "FANTA_19"),
-    "Christmas in Duckburg": SeriesInfo(RTOM, SERIES_DDA, "FANTA_21"),
     # US
     "Only a Poor Old Man": SeriesInfo(RTOM, SERIES_USA, "FANTA_12"),
     "Back to the Klondike": SeriesInfo(RTOM, SERIES_USA, "FANTA_12"),
@@ -600,7 +600,6 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     "The Black Forest Rescue": SeriesInfo(EROS, SERIES_CS, "FANTA_21"),
     # DD SHORTS
     "The Hard Loser": SeriesInfo(SLEA, SERIES_DDS, "FANTA_02"),
-    "The Firebug": SeriesInfo(DIGI, SERIES_DDS, "FANTA_03"),
     "Seals Are So Smart!": SeriesInfo(GLEA, SERIES_DDS, "FANTA_04"),
     "The Peaceful Hills": SeriesInfo(SLEA, SERIES_DDS, "FANTA_04"),
     "Donald Duck's Best Christmas": SeriesInfo(DIGI, SERIES_DDS, "FANTA_03"),
@@ -644,6 +643,7 @@ SERIES_INFO: Dict[str, SeriesInfo] = {
     THE_MILKMAN: SeriesInfo(RTOM, SERIES_CS, "FANTA_19"),
     "The Riddle of the Red Hat": SeriesInfo(GLEA, SERIES_MISC, "FANTA_03"),
     "Donald Duck Tells About Kites": SeriesInfo(RTOM, SERIES_MISC, "FANTA_15"),
+    "Christmas in Duckburg": SeriesInfo(RTOM, SERIES_MISC, "FANTA_21"),
     "Jungle Hi-Jinks": SeriesInfo(GLEA, SERIES_MISC, "FANTA_21"),
     "The Flying Farmhand": SeriesInfo(RTOM, SERIES_MISC, "FANTA_21"),
     "A Honey of a Hen": SeriesInfo(DIGI, SERIES_MISC, "FANTA_21"),

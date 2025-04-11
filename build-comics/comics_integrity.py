@@ -109,7 +109,7 @@ class OutOfDateErrors:
     srce_and_dest_files_missing: List[Tuple[str, str]]
     srce_and_dest_files_out_of_date: List[Tuple[str, str]]
     unexpected_dest_image_files: List[str]
-    unexpected_errors: List[str]
+    exception_errors: List[str]
     zip_errors: ZipOutOfDateErrors
     series_zip_symlink_errors: ZipSymlinkOutOfDateErrors
     year_zip_symlink_errors: ZipSymlinkOutOfDateErrors
@@ -130,7 +130,7 @@ def make_out_of_date_errors(title: str, ini_file: str) -> OutOfDateErrors:
         srce_and_dest_files_out_of_date=[],
         srce_and_dest_files_missing=[],
         unexpected_dest_image_files=[],
-        unexpected_errors=[],
+        exception_errors=[],
         zip_errors=ZipOutOfDateErrors(),
         series_zip_symlink_errors=ZipSymlinkOutOfDateErrors(),
         year_zip_symlink_errors=ZipSymlinkOutOfDateErrors(),
@@ -586,20 +586,20 @@ def check_out_of_date_files(comic: ComicBook) -> int:
     check_additional_files(comic, out_of_date_errors)
 
     out_of_date_errors.is_error = (
-        len(out_of_date_errors.srce_and_dest_files_missing) > 0
-        or len(out_of_date_errors.srce_and_dest_files_out_of_date) > 0
-        or len(out_of_date_errors.dest_dir_files_missing) > 0
-        or len(out_of_date_errors.unexpected_dest_image_files) > 0
-        or len(out_of_date_errors.unexpected_errors) > 0
-        or out_of_date_errors.zip_errors.missing
-        or out_of_date_errors.series_zip_symlink_errors.missing
-        or out_of_date_errors.year_zip_symlink_errors.missing
-        or out_of_date_errors.zip_errors.out_of_date_wrt_srce
-        or out_of_date_errors.zip_errors.out_of_date_wrt_dest
-        or out_of_date_errors.series_zip_symlink_errors.out_of_date_wrt_zip
-        or out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_zip
-        or out_of_date_errors.series_zip_symlink_errors.out_of_date_wrt_ini
-        or out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_ini
+            len(out_of_date_errors.srce_and_dest_files_missing) > 0
+            or len(out_of_date_errors.srce_and_dest_files_out_of_date) > 0
+            or len(out_of_date_errors.dest_dir_files_missing) > 0
+            or len(out_of_date_errors.unexpected_dest_image_files) > 0
+            or len(out_of_date_errors.exception_errors) > 0
+            or out_of_date_errors.zip_errors.missing
+            or out_of_date_errors.series_zip_symlink_errors.missing
+            or out_of_date_errors.year_zip_symlink_errors.missing
+            or out_of_date_errors.zip_errors.out_of_date_wrt_srce
+            or out_of_date_errors.zip_errors.out_of_date_wrt_dest
+            or out_of_date_errors.series_zip_symlink_errors.out_of_date_wrt_zip
+            or out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_zip
+            or out_of_date_errors.series_zip_symlink_errors.out_of_date_wrt_ini
+            or out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_ini
     )
 
     print_check_errors(out_of_date_errors)
@@ -617,17 +617,17 @@ def check_srce_and_dest_files(comic: ComicBook, errors: OutOfDateErrors) -> None
     errors.max_dest_timestamp = 0.0
     errors.srce_and_dest_files_missing = []
     errors.srce_and_dest_files_out_of_date = []
-    errors.unexpected_errors = []
+    errors.exception_errors = []
 
     inset_file = comic.intro_inset_file
     if not os.path.isfile(inset_file):
-        errors.unexpected_errors.append(f'Inset file not found: "{inset_file}"')
+        errors.exception_errors.append(f'Inset file not found: "{inset_file}"')
         return
 
     try:
         srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
     except Exception as e:
-        errors.unexpected_errors.append(str(e))
+        errors.exception_errors.append(str(e))
         return
 
     check_missing_or_out_of_date_dest_files(comic, srce_and_dest_pages, errors)
@@ -869,7 +869,7 @@ def print_check_errors(errors: OutOfDateErrors) -> None:
         or len(errors.srce_and_dest_files_out_of_date) > 0
         or len(errors.dest_dir_files_missing) > 0
         or len(errors.dest_dir_files_out_of_date) > 0
-        or len(errors.unexpected_errors) > 0
+        or len(errors.exception_errors) > 0
     ):
         print_out_of_date_or_missing_errors(errors)
 
@@ -1062,9 +1062,9 @@ def print_out_of_date_or_missing_errors(errors: OutOfDateErrors) -> None:
             )
         print()
 
-    if len(errors.unexpected_errors) > 0:
-        for err_msg in errors.unexpected_errors:
-            print(f'{ERROR_MSG_PREFIX} For "{errors.title}", unexpected error: {err_msg}.')
+    if len(errors.exception_errors) > 0:
+        for err_msg in errors.exception_errors:
+            print(f'{ERROR_MSG_PREFIX} For "{errors.title}", there was an error: {err_msg}.')
         print()
 
     if (
