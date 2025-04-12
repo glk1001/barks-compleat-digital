@@ -2,6 +2,8 @@ import concurrent.futures
 import logging
 import os
 import shutil
+import sys
+import traceback
 from datetime import datetime
 from typing import Tuple, List
 
@@ -209,8 +211,12 @@ def _process_page(
         logging.info(f'Saved changes to image "{get_abbrev_path(dest_page.page_filename)}".')
 
         logging.info("")
-    except Exception as e:
-        logging.error(f'Error in process page: "{e}".')
+    except Exception:
+        _, _, tb = sys.exc_info()
+        tb_info = traceback.extract_tb(tb)
+        filename, line, func, text = tb_info[-1]
+        err_msg = f'Error in process page at "{filename}:{line}" for statement "{text}".'
+        logging.error(err_msg)
         global _process_page_error
         _process_page_error = True
 
@@ -307,11 +313,14 @@ def _get_dest_cover_page_image(srce_page_image: Image, srce_page: CleanPage) -> 
 
 
 def _get_dest_painting_page_image(painting_image: Image, srce_page: CleanPage) -> Image:
-    if srce_page.page_type == PageType.PAINTING:
-        _draw_border_around_image(painting_image)
+    assert srce_page.page_type in PAINTING_PAGES
 
+    if srce_page.page_type in [PageType.PAINTING_NO_BORDER, PageType.BACK_PAINTING_NO_BORDER]:
+        return _get_dest_black_bars_page_image(painting_image, srce_page)
+
+    assert srce_page.page_type in [PageType.PAINTING, PageType.BACK_PAINTING]
+    _draw_border_around_image(painting_image)
     dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
-
     return _get_dest_centred_page_image(painting_image, srce_page, dest_page_image)
 
 
