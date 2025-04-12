@@ -5,9 +5,12 @@ from pathlib import Path
 from src.upscale_image import upscale_image_file
 
 if __name__ == "__main__":
-    scale = 4
-
     input_image_file = sys.argv[1]
+
+    scale = 4
+    if len(sys.argv) >= 3:
+        scale = int(sys.argv[2])
+        assert 2 <= scale <= 12
 
     input_image_dir = os.path.dirname(input_image_file)
     input_image_stem = Path(input_image_file).stem
