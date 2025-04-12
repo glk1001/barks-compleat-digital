@@ -42,11 +42,22 @@ FRONT_PAGES = [
     PageType.PAINTING_NO_BORDER,
 ]
 FRONT_MATTER_PAGES = FRONT_PAGES + [PageType.FRONT_MATTER]
-PAGES_WITHOUT_PANELS = FRONT_PAGES + [PageType.BACK_NO_PANELS, PageType.BLANK_PAGE]
+BACK_MATTER_PAGES = [
+    PageType.BACK_MATTER,
+    PageType.BACK_NO_PANELS,
+    PageType.BACK_PAINTING,
+    PageType.BACK_PAINTING_NO_BORDER,
+    PageType.BLANK_PAGE,
+]
 PAINTING_PAGES = [
     PageType.PAINTING,
     PageType.PAINTING_NO_BORDER,
+    PageType.BACK_PAINTING,
+    PageType.BACK_PAINTING_NO_BORDER,
 ]
+PAGES_WITHOUT_PANELS = set(
+    FRONT_PAGES + PAINTING_PAGES + [PageType.BACK_NO_PANELS, PageType.BLANK_PAGE]
+)
 
 
 class CleanPage:
@@ -79,12 +90,15 @@ def get_page_num_str(page: CleanPage) -> str:
 
 
 def get_page_number_str(page: CleanPage, page_number: int) -> str:
-    if page.page_type not in FRONT_MATTER_PAGES:
-        return str(page_number)
+    if page.page_type in [PageType.PAINTING_NO_BORDER, PageType.BACK_PAINTING_NO_BORDER]:
+        return ""
     if page.page_type == PageType.FRONT:
         assert page_number == 0
         return ""
+    if page.page_type not in FRONT_MATTER_PAGES:
+        return str(page_number)
 
+    assert page_number in ROMAN_NUMERALS
     return ROMAN_NUMERALS[page_number]
 
 
@@ -96,22 +110,34 @@ def get_srce_and_dest_pages_in_order(comic: ComicBook) -> SrceAndDestPages:
 
     file_section_num = 1
     file_page_num = 0
-    start_front_matter = True
-    start_body = False
+    in_front_matter = True
+    in_body = False
+    in_back_matter = False
     page_num = 0
     for page in required_pages:
-        if start_front_matter and page.page_type == PageType.BODY:
-            start_front_matter = False
-            start_body = True
+        if in_front_matter and page.page_type == PageType.BODY:
+            in_front_matter = False
+            in_body = True
             file_section_num += 1
             file_page_num = 1
             page_num = 1
-        elif start_body and page.page_type != PageType.BODY:
-            start_body = False
+        elif in_body and page.page_type != PageType.BODY:
+            in_body = False
+            in_back_matter = True
             file_section_num += 1
             file_page_num = 1
             page_num += 1
         elif page.page_type != PageType.FRONT:
+            if in_front_matter and page.page_type not in FRONT_MATTER_PAGES:
+                raise Exception(
+                    f"Processing front matter but page type is incorrect:"
+                    f' "{page.page_type}" - "{page.page_filename}"'
+                )
+            if in_back_matter and page.page_type not in BACK_MATTER_PAGES:
+                raise Exception(
+                    f"Processing back matter but page type is incorrect:"
+                    f' "{page.page_type}" - "{page.page_filename}"'
+                )
             file_page_num += 1
             page_num += 1
 
