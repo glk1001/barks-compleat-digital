@@ -1,6 +1,7 @@
 import logging
 import os
 from dataclasses import dataclass
+from enum import Enum, auto
 from pathlib import Path
 from typing import List, Tuple, Union, Callable
 
@@ -27,7 +28,6 @@ from .comics_info import (
     CENSORED_TITLES,
     THE_MILKMAN,
     SILENT_NIGHT,
-    SILENT_NIGHT_PUBLICATION_ISSUE,
     ComicBookInfo,
     SourceBook,
     get_formatted_day,
@@ -72,6 +72,11 @@ class ComicBookDirs:
     srce_fixes_dir: str
     srce_upscayled_fixes_dir: str
     panel_segments_dir: str
+
+
+class FixesType(Enum):
+    ORIGINAL = auto()
+    UPSCAYLED = auto()
 
 
 @dataclass
@@ -271,13 +276,13 @@ class ComicBook:
         srce_fixes_file = self.get_srce_original_fixes_story_file(page_num)
 
         return self.__get_final_story_file(
-            "original", page_num, page_type, srce_file, srce_fixes_file
+            FixesType.ORIGINAL, page_num, page_type, srce_file, srce_fixes_file
         )
 
     def get_final_srce_upscayled_story_file(
         self, page_num: str, page_type: PageType
     ) -> Tuple[str, bool]:
-        srce_upscayled_file = self.get_srce_upscayled_story_file(page_num)
+        srce_file = self.__get_srce_original_story_file(page_num)
         srce_upscayled_fixes_file = os.path.join(
             self.get_srce_upscayled_fixes_image_dir(), page_num + JPG_FILE_EXT
         )
@@ -286,10 +291,21 @@ class ComicBook:
                 f'Upscayled fixes file must be .png not .jpg: "{srce_upscayled_fixes_file}".'
             )
         srce_upscayled_fixes_file = self.get_srce_upscayled_fixes_story_file(page_num)
+        srce_upscayled_file = self.get_srce_upscayled_story_file(page_num)
 
-        return self.__get_final_story_file(
-            "upscayled", page_num, page_type, srce_upscayled_file, srce_upscayled_fixes_file
+        final_file, is_modified = self.__get_final_story_file(
+            FixesType.UPSCAYLED, page_num, page_type, srce_file, srce_upscayled_fixes_file
         )
+
+        if not is_modified:
+            final_file = srce_upscayled_file
+        elif os.path.isfile(srce_upscayled_file):
+            raise Exception(
+                f"Cannot have an upscayled file and a fixes file:"
+                f' "{srce_upscayled_file}" and "{srce_upscayled_fixes_file}".'
+            )
+
+        return final_file, is_modified
 
     def get_final_srce_story_file(self, page_num: str, page_type: PageType) -> Tuple[str, bool]:
         if page_type == PageType.TITLE:
@@ -331,7 +347,12 @@ class ComicBook:
         return self.__get_srce_restored_story_file(page_num), False
 
     def __get_final_story_file(
-        self, file_type: str, page_num: str, page_type: PageType, primary_file: str, fixes_file: str
+        self,
+        file_type: FixesType,
+        page_num: str,
+        page_type: PageType,
+        primary_file: str,
+        fixes_file: str,
     ) -> Tuple[str, bool]:
         if not os.path.isfile(fixes_file):
             return primary_file, False
@@ -341,33 +362,35 @@ class ComicBook:
             # Fixes file is an EDITED file.
             if self.__is_edited_fixes_special_case(page_num):
                 logging.info(
-                    f"NOTE: Special case - using EDITED {page_type.name} {file_type} fixes file:"
+                    f"NOTE: Special case - using EDITED {page_type.name}"
+                    f" {file_type.name} fixes file:"
                     f' "{get_abbrev_path(fixes_file)}".'
                 )
             else:
                 logging.info(
-                    f'NOTE: Using EDITED {file_type} fixes file: "{get_abbrev_path(fixes_file)}".'
+                    f"NOTE: Using EDITED {file_type.name}"
+                    f' fixes file: "{get_abbrev_path(fixes_file)}".'
                 )
                 if page_type not in STORY_PAGE_TYPES:
                     raise Exception(
-                        f"EDITED {file_type} fixes page '{page_num}',"
+                        f"EDITED {file_type.name} fixes page '{page_num}',"
                         f" must be in \"{', '.join(STORY_PAGE_TYPES_STR_LIST)}\""
                     )
         elif self._is_added_fixes_special_case(page_num, page_type):
             # Fixes file is a special case ADDED file.
             logging.info(
-                f"NOTE: Special case - using ADDED {file_type} fixes file"
+                f"NOTE: Special case - using ADDED {file_type.name} fixes file"
                 f' for {page_type.name} page: "{get_abbrev_path(fixes_file)}".'
             )
         else:
             # Fixes file is an ADDED file - must not be a COVER or BODY page.
             logging.info(
-                f"NOTE: Using ADDED {file_type} fixes file of type {page_type.name}:"
+                f"NOTE: Using ADDED {file_type.name} fixes file of type {page_type.name}:"
                 f' "{get_abbrev_path(fixes_file)}".'
             )
             if page_type in STORY_PAGE_TYPES:
                 raise Exception(
-                    f"ADDED {file_type} page '{page_num}',"
+                    f"ADDED {file_type.name} page '{page_num}',"
                     f" must NOT be in \"{', '.join(STORY_PAGE_TYPES_STR_LIST)}\""
                 )
 

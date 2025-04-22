@@ -14,6 +14,7 @@ from barks_fantagraphics.pages import (
     SrceAndDestPages,
     get_srce_dest_map,
     get_page_num_str,
+    BACK_MATTER_SINGLE_PAGES,
 )
 from barks_fantagraphics.pages import FRONT_MATTER_PAGES, PAINTING_PAGES
 from consts import (
@@ -165,17 +166,19 @@ def write_readme_file(comic: ComicBook):
 
 def write_metadata_file(comic: ComicBook, dest_pages: List[CleanPage]):
     metadata_file = os.path.join(comic.get_dest_dir(), METADATA_FILENAME)
+    body_start_page_num = -1
     with open(metadata_file, "w") as f:
         f.write(f"[{DOUBLE_PAGES_SECTION}]\n")
         orig_page_num = 0
         for page in dest_pages:
             orig_page_num += 1
-            if page.page_type not in FRONT_MATTER_PAGES:
-                break
+            if page.page_type not in FRONT_MATTER_PAGES and body_start_page_num == -1:
+                body_start_page_num = orig_page_num
+            if page.page_type not in (FRONT_MATTER_PAGES + BACK_MATTER_SINGLE_PAGES):
+                continue
             f.write(f"{orig_page_num} = False" + "\n")
         f.write("\n")
 
-        body_start_page_num = orig_page_num
         f.write(f"[{PAGE_NUMBERS_SECTION}]\n")
         f.write(f"body_start = {body_start_page_num}\n")
 
