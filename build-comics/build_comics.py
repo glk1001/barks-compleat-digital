@@ -34,6 +34,7 @@ from barks_fantagraphics.pages import (
     get_page_num_str,
     get_srce_and_dest_pages_in_order,
     PAGES_WITHOUT_PANELS,
+    BACK_NO_PANELS_PAGES,
     PAINTING_PAGES,
     EMPTY_IMAGE_FILEPATH,
 )
@@ -284,7 +285,7 @@ def _get_dest_non_body_page_image(
         return _get_dest_painting_page_image(srce_page_image, srce_page)
     if dest_page.page_type == PageType.SPLASH:
         return _get_dest_splash_page_image(srce_page_image, srce_page)
-    if dest_page.page_type == PageType.BACK_NO_PANELS:
+    if dest_page.page_type in BACK_NO_PANELS_PAGES:
         return _get_dest_no_panels_page_image(comic, srce_page_image, srce_page, dest_page)
     if dest_page.page_type == PageType.BLANK_PAGE:
         return _get_dest_blank_page_image(srce_page_image)

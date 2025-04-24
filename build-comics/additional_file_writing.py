@@ -14,7 +14,7 @@ from barks_fantagraphics.pages import (
     SrceAndDestPages,
     get_srce_dest_map,
     get_page_num_str,
-    BACK_MATTER_SINGLE_PAGES,
+    ROMAN_NUMERALS,
 )
 from barks_fantagraphics.pages import FRONT_MATTER_PAGES, PAINTING_PAGES
 from consts import (
@@ -28,6 +28,7 @@ from consts import (
     JSON_METADATA_FILENAME,
     DOUBLE_PAGES_SECTION,
     PAGE_NUMBERS_SECTION,
+    DOUBLE_PAGES,
     DEST_TARGET_WIDTH,
     DEST_TARGET_HEIGHT,
     DEST_TARGET_X_MARGIN,
@@ -166,21 +167,39 @@ def write_readme_file(comic: ComicBook):
 
 def write_metadata_file(comic: ComicBook, dest_pages: List[CleanPage]):
     metadata_file = os.path.join(comic.get_dest_dir(), METADATA_FILENAME)
+
+    double_pages = {}
+    page_num_str = {}
     body_start_page_num = -1
+    orig_page_num = 0
+    left = True
+    for page in dest_pages:
+        orig_page_num += 1
+        if page.page_type not in FRONT_MATTER_PAGES and body_start_page_num == -1:
+            body_start_page_num = orig_page_num
+        if body_start_page_num == -1:
+            page_num_str[orig_page_num] = ROMAN_NUMERALS[orig_page_num]
+        else:
+            page_num_str[orig_page_num] = str(orig_page_num - body_start_page_num + 1)
+        if page.page_type in DOUBLE_PAGES:
+            if left:
+                double_pages[orig_page_num] = (orig_page_num, orig_page_num + 1)
+            else:
+                double_pages[orig_page_num] = (orig_page_num - 1, orig_page_num)
+            left = not left
+
     with open(metadata_file, "w") as f:
         f.write(f"[{DOUBLE_PAGES_SECTION}]\n")
-        orig_page_num = 0
-        for page in dest_pages:
-            orig_page_num += 1
-            if page.page_type not in FRONT_MATTER_PAGES and body_start_page_num == -1:
-                body_start_page_num = orig_page_num
-            if page.page_type not in (FRONT_MATTER_PAGES + BACK_MATTER_SINGLE_PAGES):
-                continue
-            f.write(f"{orig_page_num} = False" + "\n")
+        for page in double_pages:
+            left_page = double_pages[page][0]
+            right_page = double_pages[page][1]
+            f.write(f"{page}: {left_page},{right_page}" + "\n")
         f.write("\n")
 
         f.write(f"[{PAGE_NUMBERS_SECTION}]\n")
-        f.write(f"body_start = {body_start_page_num}\n")
+        for page in page_num_str:
+            f.write(f"{page}: {page_num_str[page]}" + "\n")
+        f.write("\n")
 
 
 def write_json_metadata(comic: ComicBook, dest_pages: List[CleanPage]):
@@ -234,8 +253,14 @@ def get_page_counts(dest_pages: List[CleanPage]) -> Dict[str, int]:
 
     story_page_count = len([p for p in dest_pages if p.page_type == PageType.BODY])
 
+    # TODO: What about paintings???
     back_matter_page_count = len(
-        [p for p in dest_pages if p.page_type in [PageType.BACK_MATTER, PageType.BACK_NO_PANELS]]
+        [
+            p
+            for p in dest_pages
+            if p.page_type
+            in [PageType.BACK_MATTER, PageType.BACK_NO_PANELS, PageType.BACK_NO_PANELS_DOUBLE]
+        ]
     )
 
     blank_page_count = len([p for p in dest_pages if p.page_type == PageType.BLANK_PAGE])

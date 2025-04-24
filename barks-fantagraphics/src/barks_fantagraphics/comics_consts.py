@@ -33,6 +33,7 @@ class PageType(Enum):
     BODY = auto()
     BACK_MATTER = auto()
     BACK_NO_PANELS = auto()
+    BACK_NO_PANELS_DOUBLE = auto()
     BACK_PAINTING = auto()
     BACK_PAINTING_NO_BORDER = auto()
     BLANK_PAGE = auto()
