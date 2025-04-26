@@ -18,7 +18,7 @@ from .comics_consts import (
     STORY_PAGE_TYPES,
     STORY_PAGE_TYPES_STR_LIST,
 )
-from .comics_info import (
+from .fanta_comics_info import (
     JPG_FILE_EXT,
     PNG_FILE_EXT,
     SVG_FILE_EXT,
@@ -28,7 +28,7 @@ from .comics_info import (
     CENSORED_TITLES,
     THE_MILKMAN,
     SILENT_NIGHT,
-    ComicBookInfo,
+    FantaComicBookInfo,
     SourceBook,
     get_formatted_day,
 )
@@ -106,7 +106,7 @@ class ComicBook:
     submitted_year: int
     publication_text: str
 
-    comic_book_info: ComicBookInfo
+    comic_book_info: FantaComicBookInfo
     config_page_images: List[OriginalPage]
     page_images_in_order: List[OriginalPage]
 
@@ -571,7 +571,7 @@ def get_safe_title(title: str) -> str:
 
 
 def get_main_publication_info(
-    file_title: str, cb_info: ComicBookInfo, fanta_info: SourceBook
+    file_title: str, cb_info: FantaComicBookInfo, fanta_info: SourceBook
 ) -> str:
     if file_title == SILENT_NIGHT:
         # Originally intended for WDCS 64
@@ -636,7 +636,7 @@ def get_inset_file(ini_file: str) -> str:
     return os.path.join(ini_file_dir, inset_filename)
 
 
-def get_formatted_first_published_str(info: ComicBookInfo) -> str:
+def get_formatted_first_published_str(info: FantaComicBookInfo) -> str:
     issue = f"{info.issue_name} #{info.issue_number}"
 
     if info.issue_month == -1:
@@ -647,7 +647,7 @@ def get_formatted_first_published_str(info: ComicBookInfo) -> str:
     return f"{issue}, {issue_date}"
 
 
-def get_formatted_submitted_date(info: ComicBookInfo) -> str:
+def get_formatted_submitted_date(info: FantaComicBookInfo) -> str:
     if info.submitted_day == -1:
         return f", {MONTH_AS_LONG_STR[info.submitted_month]} {info.submitted_year}"
 

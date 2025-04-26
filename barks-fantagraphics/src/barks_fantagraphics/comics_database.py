@@ -28,10 +28,10 @@ from .comics_consts import (
     INTRO_TITLE_DEFAULT_FONT_FILE,
     STORY_TITLES_DIR,
 )
-from .comics_info import (
-    ComicBookInfo,
+from .fanta_comics_info import (
+    FantaComicBookInfo,
     SourceBook,
-    SOURCE_COMICS,
+    FANTA_SOURCE_COMICS,
     FIRST_VOLUME_NUMBER,
     LAST_VOLUME_NUMBER,
     FANTAGRAPHICS_DIRNAME,
@@ -105,7 +105,7 @@ class ComicsDatabase:
 
     def get_all_titles_in_fantagraphics_volumes(
         self, volume_nums: List[int]
-    ) -> List[Tuple[str, ComicBookInfo]]:
+    ) -> List[Tuple[str, FantaComicBookInfo]]:
         story_titles = []
         for volume_num in volume_nums:
             fanta_key = get_fanta_volume_str(volume_num)
@@ -117,7 +117,7 @@ class ComicsDatabase:
 
     def get_configured_titles_in_fantagraphics_volumes(
         self, volume_nums: List[int]
-    ) -> List[Tuple[str, ComicBookInfo]]:
+    ) -> List[Tuple[str, FantaComicBookInfo]]:
         config = ConfigParser(interpolation=ExtendedInterpolation())
         story_titles = []
         for volume_num in volume_nums:
@@ -139,13 +139,13 @@ class ComicsDatabase:
     @staticmethod
     def get_fantagraphics_volume_title(volume_num: int) -> str:
         fanta_key = f"FANTA_{volume_num:02}"
-        fanta_info = SOURCE_COMICS[fanta_key]
+        fanta_info = FANTA_SOURCE_COMICS[fanta_key]
         return fanta_info.title
 
     @staticmethod
     def get_num_pages_in_fantagraphics_volume(volume_num: int) -> int:
         fanta_key = f"FANTA_{volume_num:02}"
-        fanta_info = SOURCE_COMICS[fanta_key]
+        fanta_info = FANTA_SOURCE_COMICS[fanta_key]
         return fanta_info.num_pages
 
     def _get_comic_book_dirs(self, fanta_info: SourceBook) -> ComicBookDirs:
@@ -356,7 +356,7 @@ class ComicsDatabase:
         else:
             logging.debug(f'Symlink exists - all good: "{symlink}".')
 
-    def get_comic_book_info(self, title: str) -> ComicBookInfo:
+    def get_comic_book_info(self, title: str) -> FantaComicBookInfo:
         found, titles, close = self.get_story_title_from_issue(title)
         if found:
             if len(titles) > 1:
@@ -402,8 +402,8 @@ class ComicsDatabase:
         issue_title = "" if "issue_title" not in config["info"] else config["info"]["issue_title"]
         intro_inset_file = get_inset_file(ini_file)
 
-        cb_info: ComicBookInfo = self.get_comic_book_info(story_title)
-        fanta_info = SOURCE_COMICS[config["info"]["source_comic"]]
+        cb_info: FantaComicBookInfo = self.get_comic_book_info(story_title)
+        fanta_info = FANTA_SOURCE_COMICS[config["info"]["source_comic"]]
 
         title = config["info"]["title"]
         if not title and cb_info.is_barks_title:

@@ -25,7 +25,7 @@ from barks_fantagraphics.comics_consts import (
     PAGE_NUM_FONT_FILE,
 )
 from barks_fantagraphics.comics_image_io import METADATA_PROPERTY_GROUP
-from barks_fantagraphics.comics_info import CS, CENSORED_TITLES
+from barks_fantagraphics.fanta_comics_info import CS, CENSORED_TITLES
 from barks_fantagraphics.comics_utils import get_clean_path, get_relpath, get_abbrev_path
 from barks_fantagraphics.pages import (
     CleanPage,

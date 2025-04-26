@@ -13,7 +13,7 @@ from barks_fantagraphics.comic_book import (
 )
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames, ExtraArg
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_info import ComicBookInfo
+from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
 from barks_fantagraphics.comics_utils import (
     dest_file_is_older_than_srce,
     get_timestamp,
@@ -45,8 +45,8 @@ BUILD_STATE_FLAGS = [
 
 
 def get_issue_titles(
-    title_info_list: List[Tuple[str, ComicBookInfo]]
-) -> List[Tuple[str, str, ComicBookInfo, bool]]:
+    title_info_list: List[Tuple[str, FantaComicBookInfo]]
+) -> List[Tuple[str, str, FantaComicBookInfo, bool]]:
     comic_issue_title_info_list = []
     for title_info in title_info_list:
         ttl = title_info[0]
@@ -182,7 +182,7 @@ class Flags:
 
 
 def get_title_flags(
-    issue_titles_info_list: List[Tuple[str, str, ComicBookInfo, bool]]
+    issue_titles_info_list: List[Tuple[str, str, FantaComicBookInfo, bool]]
 ) -> Tuple[Dict[str, Flags], int, int]:
     max_ttl_len = 0
     max_issue_ttl_len = 0

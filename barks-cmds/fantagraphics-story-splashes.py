@@ -6,7 +6,7 @@ from typing import List, Tuple
 
 from barks_fantagraphics.comic_book import ComicBook, get_page_str
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
-from barks_fantagraphics.comics_info import get_fanta_volume_str
+from barks_fantagraphics.fanta_comics_info import get_fanta_volume_str
 from barks_fantagraphics.comics_utils import setup_logging
 from barks_fantagraphics.pages import PageType, get_srce_and_dest_pages_in_order
 from barks_fantagraphics.panel_segmentation import BIG_NUM, get_kumiko_panel_bound
@@ -50,7 +50,7 @@ def has_splash_page(panels: List[Tuple[int, int, int, int]]) -> bool:
     min_height = BIG_NUM
     for index, panel in enumerate(panels):
         bound = get_kumiko_panel_bound(panel)
-#        print(bound)
+        #        print(bound)
 
         min_width = min(min_width, bound.width)
         min_height = min(min_height, bound.height)

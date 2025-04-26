@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_image_io import get_bw_image_from_alpha
-from barks_fantagraphics.comics_info import PNG_FILE_EXT
+from barks_fantagraphics.fanta_comics_info import PNG_FILE_EXT
 from barks_fantagraphics.comics_utils import get_abbrev_path, setup_logging
 from barks_fantagraphics.panel_segmentation import get_min_max_panel_values
 

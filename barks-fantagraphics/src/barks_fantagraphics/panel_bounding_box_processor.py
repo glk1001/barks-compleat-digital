@@ -5,13 +5,13 @@ from pathlib import Path
 from typing import Any, Dict
 
 from .comics_image_io import open_pil_image_for_reading
-from .comics_info import JPG_FILE_EXT, PNG_FILE_EXT
+from .fanta_comics_info import JPG_FILE_EXT, PNG_FILE_EXT
 from .comics_utils import get_abbrev_path
 from .panel_segmentation import KumikoPanelSegmentation, get_min_max_panel_values
 
 
 class BoundingBoxProcessor(object):
-    def __init__(self, work_dir: str, no_panel_expansion:bool=False):
+    def __init__(self, work_dir: str, no_panel_expansion: bool = False):
         self.__kumiko = KumikoPanelSegmentation(work_dir, no_panel_expansion)
 
     def get_panels_segment_info_from_kumiko(

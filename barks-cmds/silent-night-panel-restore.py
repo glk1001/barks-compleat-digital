@@ -282,7 +282,7 @@ if __name__ == "__main__":
     work_dir = "/tmp/panels-fix"
     os.makedirs(work_dir, exist_ok=True)
 
-#    output_file = os.path.join(output_dir, f"{Path(input_image_file).stem}.jpg")
+    #    output_file = os.path.join(output_dir, f"{Path(input_image_file).stem}.jpg")
     output_file = os.path.join(output_dir, f"{Path(input_image_file).stem}.png")
 
     fix_panels(input_image_file, output_file)

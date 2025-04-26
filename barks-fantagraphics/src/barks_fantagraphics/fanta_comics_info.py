@@ -53,7 +53,7 @@ MONTH_AS_SHORT_STR: Dict[int, str] = {
 
 
 @dataclass
-class ComicBookInfo:
+class FantaComicBookInfo:
     is_barks_title: bool
     issue_name: str
     issue_number: int
@@ -73,14 +73,14 @@ class ComicBookInfo:
         return f"{short_issue_name} {self.issue_number}"
 
 
-ComicBookInfoDict = OrderedDict[str, ComicBookInfo]
+FantaComicBookInfoDict = OrderedDict[str, FantaComicBookInfo]
 
 
-def get_all_comic_book_info(story_info_dir: str) -> ComicBookInfoDict:
+def get_all_comic_book_info(story_info_dir: str) -> FantaComicBookInfoDict:
     stories_filename = os.path.join(story_info_dir, PUBLICATION_INFO_SUBDIR, STORIES_INFO_FILENAME)
 
     current_number_in_series = SERIES_INFO_START_NUMBERS.copy()
-    all_info: ComicBookInfoDict = collections.OrderedDict()
+    all_info: FantaComicBookInfoDict = collections.OrderedDict()
 
     chronological_number = 1
     with open(stories_filename, "r") as csv_file:
@@ -95,20 +95,20 @@ def get_all_comic_book_info(story_info_dir: str) -> ComicBookInfoDict:
             series_name = SERIES_INFO[title].series_name
             fantagraphics_volume = SERIES_INFO[title].fanta_volume
 
-            comic_book_info = ComicBookInfo(
-                row[1] == "T",
-                row[2],
-                int(row[3]),
-                int(row[4]),
-                int(row[5]),
-                int(row[6]),
-                int(row[7]),
-                int(row[8]),
-                colorist,
-                series_name,
-                fantagraphics_volume,
-                current_number_in_series[series_name],
-                chronological_number,
+            comic_book_info = FantaComicBookInfo(
+                is_barks_title=row[1] == "T",
+                issue_name=row[2],
+                issue_number=int(row[3]),
+                issue_year=int(row[4]),
+                issue_month=int(row[5]),
+                submitted_year=int(row[6]),
+                submitted_month=int(row[7]),
+                submitted_day=int(row[8]),
+                colorist=colorist,
+                series_name=series_name,
+                fantagraphics_volume=fantagraphics_volume,
+                number_in_series=current_number_in_series[series_name],
+                chronological_number=chronological_number,
             )
 
             all_info[title] = comic_book_info
@@ -121,7 +121,7 @@ def get_all_comic_book_info(story_info_dir: str) -> ComicBookInfoDict:
     return all_info
 
 
-def check_story_submitted_order(stories: ComicBookInfoDict):
+def check_story_submitted_order(stories: FantaComicBookInfoDict):
     prev_chronological_number = -1
     prev_title = ""
     prev_submitted_date = date(1940, 1, 1)
@@ -257,7 +257,7 @@ VOLUME_25 = f"{CB} Vol. 25 - {US} - Balloonatics {SRC_SALEM}"
 VOLUME_26 = f"{CB} Vol. 26 - {US} - The Golden Nugget Boat {SRC_SALEM}"
 VOLUME_27 = f"{CB} Vol. 27 - {US} - Duck Luck {SRC_SALEM}"
 VOLUME_28 = f"{CB} Vol. 28 - {US} - Cave of Ali Baba {SRC_SALEM}"
-SOURCE_COMICS = {
+FANTA_SOURCE_COMICS = {
     f"{get_fanta_volume_str(1)}": SourceBook(VOLUME_01, FAN, 1, 2025, 0),
     f"{get_fanta_volume_str(2)}": SourceBook(VOLUME_02, FAN, 2, 2024, 245),
     f"{get_fanta_volume_str(3)}": SourceBook(VOLUME_03, FAN, 3, 2024, 248),
@@ -289,7 +289,7 @@ SOURCE_COMICS = {
 }
 
 FIRST_VOLUME_NUMBER = 2
-LAST_VOLUME_NUMBER = len(SOURCE_COMICS)
+LAST_VOLUME_NUMBER = len(FANTA_SOURCE_COMICS)
 
 SERIES_DDA = DD + " Adventures"
 SERIES_USA = US + " Adventures"

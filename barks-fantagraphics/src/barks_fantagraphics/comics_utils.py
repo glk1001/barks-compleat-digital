@@ -6,24 +6,24 @@ from pathlib import Path
 from typing import Union, List, Tuple
 
 from .comics_consts import BARKS_ROOT_DIR
-from .comics_info import ComicBookInfo
+from .fanta_comics_info import FantaComicBookInfo
 
 
 def get_titles_sorted_by_submission_date(
-    titles_and_info: List[Tuple[str, ComicBookInfo]]
+    titles_and_info: List[Tuple[str, FantaComicBookInfo]]
 ) -> List[str]:
 
     return [t[0] for t in sorted(titles_and_info, key=get_submitted_date)]
 
 
 def get_titles_and_info_sorted_by_submission_date(
-    titles_and_info: List[Tuple[str, ComicBookInfo]]
-) -> List[Tuple[str, ComicBookInfo]]:
+    titles_and_info: List[Tuple[str, FantaComicBookInfo]]
+) -> List[Tuple[str, FantaComicBookInfo]]:
 
     return sorted(titles_and_info, key=get_submitted_date)
 
 
-def get_submitted_date(title_and_info: Tuple[str, ComicBookInfo]) -> date:
+def get_submitted_date(title_and_info: Tuple[str, FantaComicBookInfo]) -> date:
     comic_info = title_and_info[1]
     submitted_day = 1 if comic_info.submitted_day == -1 else comic_info.submitted_day
     return date(

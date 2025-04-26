@@ -6,7 +6,7 @@ from typing import Union, Tuple
 from barks_fantagraphics.comic_book import ComicBook, get_page_str
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import STORY_PAGE_TYPES
-from barks_fantagraphics.comics_info import get_fanta_volume_str
+from barks_fantagraphics.fanta_comics_info import get_fanta_volume_str
 from barks_fantagraphics.comics_utils import (
     setup_logging,
 )

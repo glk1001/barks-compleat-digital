@@ -14,7 +14,7 @@ from barks_fantagraphics.comics_image_io import (
     SAVE_JPG_COMPRESS_LEVEL,
     add_png_metadata,
 )
-from barks_fantagraphics.comics_info import JPG_FILE_EXT, PNG_FILE_EXT
+from barks_fantagraphics.fanta_comics_info import JPG_FILE_EXT, PNG_FILE_EXT
 from .gmic_exe import run_gmic
 
 Image.MAX_IMAGE_PIXELS = None

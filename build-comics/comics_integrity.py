@@ -19,7 +19,7 @@ from barks_fantagraphics.comics_consts import (
     BARKS_ROOT_DIR,
 )
 from barks_fantagraphics.comics_database import ComicsDatabase
-from barks_fantagraphics.comics_info import (
+from barks_fantagraphics.fanta_comics_info import (
     FIRST_VOLUME_NUMBER,
     LAST_VOLUME_NUMBER,
     JPG_FILE_EXT,
@@ -587,20 +587,20 @@ def check_out_of_date_files(comic: ComicBook) -> int:
     check_additional_files(comic, out_of_date_errors)
 
     out_of_date_errors.is_error = (
-            len(out_of_date_errors.srce_and_dest_files_missing) > 0
-            or len(out_of_date_errors.srce_and_dest_files_out_of_date) > 0
-            or len(out_of_date_errors.dest_dir_files_missing) > 0
-            or len(out_of_date_errors.unexpected_dest_image_files) > 0
-            or len(out_of_date_errors.exception_errors) > 0
-            or out_of_date_errors.zip_errors.missing
-            or out_of_date_errors.series_zip_symlink_errors.missing
-            or out_of_date_errors.year_zip_symlink_errors.missing
-            or out_of_date_errors.zip_errors.out_of_date_wrt_srce
-            or out_of_date_errors.zip_errors.out_of_date_wrt_dest
-            or out_of_date_errors.series_zip_symlink_errors.out_of_date_wrt_zip
-            or out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_zip
-            or out_of_date_errors.series_zip_symlink_errors.out_of_date_wrt_ini
-            or out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_ini
+        len(out_of_date_errors.srce_and_dest_files_missing) > 0
+        or len(out_of_date_errors.srce_and_dest_files_out_of_date) > 0
+        or len(out_of_date_errors.dest_dir_files_missing) > 0
+        or len(out_of_date_errors.unexpected_dest_image_files) > 0
+        or len(out_of_date_errors.exception_errors) > 0
+        or out_of_date_errors.zip_errors.missing
+        or out_of_date_errors.series_zip_symlink_errors.missing
+        or out_of_date_errors.year_zip_symlink_errors.missing
+        or out_of_date_errors.zip_errors.out_of_date_wrt_srce
+        or out_of_date_errors.zip_errors.out_of_date_wrt_dest
+        or out_of_date_errors.series_zip_symlink_errors.out_of_date_wrt_zip
+        or out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_zip
+        or out_of_date_errors.series_zip_symlink_errors.out_of_date_wrt_ini
+        or out_of_date_errors.year_zip_symlink_errors.out_of_date_wrt_ini
     )
 
     print_check_errors(out_of_date_errors)

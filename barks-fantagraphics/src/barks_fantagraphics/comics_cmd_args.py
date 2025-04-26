@@ -6,7 +6,7 @@ from typing import List, Tuple
 from intspan import intspan
 
 from .comics_database import ComicsDatabase, get_default_comics_database_dir
-from .comics_info import ComicBookInfo
+from .fanta_comics_info import FantaComicBookInfo
 from .comics_utils import get_titles_sorted_by_submission_date
 
 LOG_LEVEL_ARG = "--log-level"
@@ -71,7 +71,7 @@ class CmdArgs:
 
         return [t[0] for t in titles_and_info]
 
-    def get_titles_and_info(self, configured_only=True) -> List[Tuple[str, ComicBookInfo]]:
+    def get_titles_and_info(self, configured_only=True) -> List[Tuple[str, FantaComicBookInfo]]:
         if (
             CmdArgNames.TITLE not in self._required_args
             and CmdArgNames.VOLUME not in self._required_args
