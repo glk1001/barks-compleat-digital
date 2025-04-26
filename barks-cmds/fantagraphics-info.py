@@ -195,7 +195,7 @@ def get_title_flags(
         is_configured = issue_ttl_info[3]
 
         if not is_configured:
-            display_ttl = ttl if ttl_info.is_barks_title else f"({ttl})"
+            display_ttl = ttl if ttl_info.comic_book_info.is_barks_title else f"({ttl})"
             fixes_flg = EMPTY_FLAG
             build_state_flg = NOT_CONFIGURED_FLAG
             num_pgs = -1

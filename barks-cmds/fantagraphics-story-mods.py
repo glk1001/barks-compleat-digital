@@ -35,7 +35,7 @@ def get_srce_dest_mods_map(comic: ComicBook) -> Union[None, Tuple[str, str]]:
         for srce in srce_and_dest_pages.srce_pages
         if srce.page_is_modified and srce.page_type in STORY_PAGE_TYPES
     ]
-    fanta_vol = get_fanta_volume_str(comic.fanta_info.volume)
+    fanta_vol = get_fanta_volume_str(comic.fanta_book.volume)
     mod_srce_pages_str = f"{fanta_vol} - {','.join(modified_srce_pages)}"
 
     return mod_dest_pages_str, mod_srce_pages_str

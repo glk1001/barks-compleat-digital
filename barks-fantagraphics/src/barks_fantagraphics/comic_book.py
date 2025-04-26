@@ -18,21 +18,20 @@ from .comics_consts import (
     STORY_PAGE_TYPES,
     STORY_PAGE_TYPES_STR_LIST,
 )
+from .comics_info import ISSUE_NAME_AS_TITLE
+from .comics_utils import get_abbrev_path, get_formatted_day
 from .fanta_comics_info import (
     JPG_FILE_EXT,
     PNG_FILE_EXT,
     SVG_FILE_EXT,
     JSON_FILE_EXT,
-    ISSUE_NAME_AS_TITLE,
     MONTH_AS_LONG_STR,
     CENSORED_TITLES,
     THE_MILKMAN,
     SILENT_NIGHT,
     FantaComicBookInfo,
-    SourceBook,
-    get_formatted_day,
+    FantaBook,
 )
-from .comics_utils import get_abbrev_path
 
 INTRO_TITLE_DEFAULT_FONT_SIZE = 155
 INTRO_AUTHOR_DEFAULT_FONT_SIZE = 90
@@ -93,7 +92,7 @@ class ComicBook:
     srce_dim: ComicDimensions
     required_dim: RequiredDimensions
 
-    fanta_info: SourceBook
+    fanta_book: FantaBook
     srce_dir_num_page_files: int
     dirs: ComicBookDirs
 
@@ -106,7 +105,7 @@ class ComicBook:
     submitted_year: int
     publication_text: str
 
-    comic_book_info: FantaComicBookInfo
+    fanta_info: FantaComicBookInfo
     config_page_images: List[OriginalPage]
     page_images_in_order: List[OriginalPage]
 
@@ -116,10 +115,10 @@ class ComicBook:
         assert self.title or not self.is_barks_title()
 
     def is_barks_title(self) -> bool:
-        return self.comic_book_info.is_barks_title
+        return self.fanta_info.comic_book_info.is_barks_title
 
     def get_fanta_volume(self) -> int:
-        return self.fanta_info.volume
+        return self.fanta_book.volume
 
     @staticmethod
     def __get_image_subdir(dirpath: str) -> str:
@@ -421,13 +420,13 @@ class ComicBook:
         return False
 
     def __is_edited_fixes_special_case(self, page_num: str) -> bool:
-        if self.fanta_info.volume == 16 and page_num == "209":
+        if self.fanta_book.volume == 16 and page_num == "209":
             return True
 
         return False
 
     def _is_added_fixes_special_case(self, page_num: str, page_type: PageType) -> bool:
-        if self.is_fixes_special_case_added(self.fanta_info.volume, page_num):
+        if self.is_fixes_special_case_added(self.fanta_book.volume, page_num):
             return True
         if self.get_ini_title() in CENSORED_TITLES:
             return page_type == PageType.BODY
@@ -540,16 +539,16 @@ class ComicBook:
         return self.__get_comic_title_from_issue_name()
 
     def __get_comic_title_from_issue_name(self) -> str:
-        issue_name = self.comic_book_info.issue_name
+        issue_name = self.fanta_info.comic_book_info.issue_name
         if issue_name not in ISSUE_NAME_AS_TITLE:
             issue_name += "\n"
         else:
             issue_name = ISSUE_NAME_AS_TITLE[issue_name] + " #"
 
-        return f"{issue_name}{self.comic_book_info.issue_number}"
+        return f"{issue_name}{self.fanta_info.comic_book_info.issue_number}"
 
     def get_comic_issue_title(self) -> str:
-        return self.comic_book_info.get_issue_title()
+        return self.fanta_info.get_issue_title()
 
     def get_title_with_issue_num(self) -> str:
         return f"{self.get_dest_rel_dirname()} [{self.get_comic_issue_title()}]"
@@ -571,34 +570,34 @@ def get_safe_title(title: str) -> str:
 
 
 def get_main_publication_info(
-    file_title: str, cb_info: FantaComicBookInfo, fanta_info: SourceBook
+    file_title: str, fanta_info: FantaComicBookInfo, fanta_book: FantaBook
 ) -> str:
     if file_title == SILENT_NIGHT:
         # Originally intended for WDCS 64
         publication_text = (
             f"(*) Rejected by Western editors in 1945, this story was originally\n"
-            f" intended for publication in {get_formatted_first_published_str(cb_info)}\n"
-            + f"Submitted to Western Publishing{get_formatted_submitted_date(cb_info)}\n"
+            f" intended for publication in {get_formatted_first_published_str(fanta_info)}\n"
+            + f"Submitted to Western Publishing{get_formatted_submitted_date(fanta_info)}\n"
         )
         return publication_text
     if file_title == THE_MILKMAN:
         # Originally intended for WDCS 215
         publication_text = (
             f"(*) Rejected by Western editors in 1957, this story was originally\n"
-            f" intended for publication in {get_formatted_first_published_str(cb_info)}\n"
-            + f"Submitted to Western Publishing{get_formatted_submitted_date(cb_info)}\n"
+            f" intended for publication in {get_formatted_first_published_str(fanta_info)}\n"
+            + f"Submitted to Western Publishing{get_formatted_submitted_date(fanta_info)}\n"
             + f"\n"
-            + f"Color restoration by {cb_info.colorist}"
+            + f"Color restoration by {fanta_info.colorist}"
         )
         return publication_text
 
     publication_text = (
-        f"First published in {get_formatted_first_published_str(cb_info)}\n"
-        + f"Submitted to Western Publishing{get_formatted_submitted_date(cb_info)}\n"
+        f"First published in {get_formatted_first_published_str(fanta_info)}\n"
+        + f"Submitted to Western Publishing{get_formatted_submitted_date(fanta_info)}\n"
         + f"\n"
-        + f"This edition published in {fanta_info.pub} CBDL,"
-        + f" Volume {fanta_info.volume}, {fanta_info.year}\n"
-        + f"Color restoration by {cb_info.colorist}"
+        + f"This edition published in {fanta_book.pub} CBDL,"
+        + f" Volume {fanta_book.volume}, {fanta_book.year}\n"
+        + f"Color restoration by {fanta_info.colorist}"
     )
 
     return publication_text
@@ -636,24 +635,31 @@ def get_inset_file(ini_file: str) -> str:
     return os.path.join(ini_file_dir, inset_filename)
 
 
-def get_formatted_first_published_str(info: FantaComicBookInfo) -> str:
-    issue = f"{info.issue_name} #{info.issue_number}"
+def get_formatted_first_published_str(fanta_info: FantaComicBookInfo) -> str:
+    issue = f"{fanta_info.comic_book_info.issue_name} #{fanta_info.comic_book_info.issue_number}"
 
-    if info.issue_month == -1:
-        issue_date = info.issue_year
+    if fanta_info.comic_book_info.issue_month == -1:
+        issue_date = fanta_info.comic_book_info.issue_year
     else:
-        issue_date = f"{MONTH_AS_LONG_STR[info.issue_month]} {info.issue_year}"
+        issue_date = (
+            f"{MONTH_AS_LONG_STR[fanta_info.comic_book_info.issue_month]}"
+            f" {fanta_info.comic_book_info.issue_year}"
+        )
 
     return f"{issue}, {issue_date}"
 
 
-def get_formatted_submitted_date(info: FantaComicBookInfo) -> str:
-    if info.submitted_day == -1:
-        return f", {MONTH_AS_LONG_STR[info.submitted_month]} {info.submitted_year}"
+def get_formatted_submitted_date(fanta_info: FantaComicBookInfo) -> str:
+    if fanta_info.comic_book_info.submitted_day == -1:
+        return (
+            f", {MONTH_AS_LONG_STR[fanta_info.comic_book_info.submitted_month]}"
+            f" {fanta_info.comic_book_info.submitted_year}"
+        )
 
     return (
-        f" on {MONTH_AS_LONG_STR[info.submitted_month]}"
-        f" {get_formatted_day(info.submitted_day)}, {info.submitted_year}"
+        f" on {MONTH_AS_LONG_STR[fanta_info.comic_book_info.submitted_month]}"
+        f" {get_formatted_day(fanta_info.comic_book_info.submitted_day)},"
+        f" {fanta_info.comic_book_info.submitted_year}"
     )
 
 

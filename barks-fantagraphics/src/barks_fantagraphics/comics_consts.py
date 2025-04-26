@@ -15,9 +15,6 @@ THE_YEARS_COMICS_DIR = os.path.join(THE_COMICS_DIR, THE_YEARS_SUBDIR)
 STORY_TITLES_DIR = "story-titles"
 IMAGES_SUBDIR = "images"
 BOUNDED_SUBDIR = "bounded"
-PUBLICATION_INFO_SUBDIR = "story-indexes"
-SUBMISSION_DATES_SUBDIR = "story-indexes"
-STORIES_INFO_FILENAME = "the-stories.csv"
 
 INSET_FILE_EXT = ".png"
 

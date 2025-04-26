@@ -4,8 +4,8 @@ import sys
 from typing import List, Tuple
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
-from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo, get_fanta_volume_str
 from barks_fantagraphics.comics_utils import setup_logging, get_abbrev_path
+from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo, get_fanta_volume_str
 
 
 def get_issue_titles(
@@ -14,9 +14,11 @@ def get_issue_titles(
     comic_issue_title_info_list = []
     for title_info in title_info_list:
         ttl = title_info[0]
-        cb_info = title_info[1]
+        fanta_info = title_info[1]
         is_configured, _ = comics_database.is_story_title(ttl)
-        comic_issue_title_info_list.append((ttl, is_configured, cb_info.is_barks_title))
+        comic_issue_title_info_list.append(
+            (ttl, is_configured, fanta_info.comic_book_info.is_barks_title)
+        )
 
     return comic_issue_title_info_list
 

@@ -24,11 +24,15 @@ def get_titles_and_info_sorted_by_submission_date(
 
 
 def get_submitted_date(title_and_info: Tuple[str, FantaComicBookInfo]) -> date:
-    comic_info = title_and_info[1]
-    submitted_day = 1 if comic_info.submitted_day == -1 else comic_info.submitted_day
+    fanta_info = title_and_info[1]
+    submitted_day = (
+        1
+        if fanta_info.comic_book_info.submitted_day == -1
+        else fanta_info.comic_book_info.submitted_day
+    )
     return date(
-        comic_info.submitted_year,
-        comic_info.submitted_month,
+        fanta_info.comic_book_info.submitted_year,
+        fanta_info.comic_book_info.submitted_month,
         submitted_day,
     )
 
@@ -136,3 +140,16 @@ def get_ocr_no_json_suffix(ocr_json_file: str) -> str:
 
 def get_ocr_json_suffix(ocr_json_file: str) -> str:
     return get_ocr_no_json_suffix(ocr_json_file) + ".json"
+
+
+def get_formatted_day(day: int) -> str:
+    if day == 1 or day == 31:
+        day_str = str(day) + "st"
+    elif day == 2 or day == 22:
+        day_str = str(day) + "nd"
+    elif day == 3 or day == 23:
+        day_str = str(day) + "rd"
+    else:
+        day_str = str(day) + "th"
+
+    return day_str

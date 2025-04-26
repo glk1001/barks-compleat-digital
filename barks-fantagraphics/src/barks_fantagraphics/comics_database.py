@@ -28,9 +28,10 @@ from .comics_consts import (
     INTRO_TITLE_DEFAULT_FONT_FILE,
     STORY_TITLES_DIR,
 )
+from .comics_utils import get_relpath
 from .fanta_comics_info import (
     FantaComicBookInfo,
-    SourceBook,
+    FantaBook,
     FANTA_SOURCE_COMICS,
     FIRST_VOLUME_NUMBER,
     LAST_VOLUME_NUMBER,
@@ -44,10 +45,9 @@ from .fanta_comics_info import (
     FANTAGRAPHICS_FIXES_SCRAPS_DIRNAME,
     FANTAGRAPHICS_PANEL_SEGMENTS_DIRNAME,
     FANTAGRAPHICS_RESTORED_OCR_DIRNAME,
-    get_all_comic_book_info,
+    get_all_fanta_comic_book_info,
     get_fanta_volume_str,
 )
-from .comics_utils import get_relpath
 
 
 def get_default_comics_database_dir() -> str:
@@ -58,7 +58,7 @@ class ComicsDatabase:
     def __init__(self, database_dir: str):
         self._database_dir = _get_comics_database_dir(database_dir)
         self._story_titles_dir = _get_story_titles_dir(self._database_dir)
-        self._all_comic_book_info = get_all_comic_book_info(self._database_dir)
+        self._all_comic_book_info = get_all_fanta_comic_book_info()
         self._ini_files = [f for f in os.listdir(self._story_titles_dir) if f.endswith(".ini")]
         self._story_titles = set([Path(f).stem for f in self._ini_files])
         self._issue_titles = self._get_all_issue_titles()
@@ -139,30 +139,30 @@ class ComicsDatabase:
     @staticmethod
     def get_fantagraphics_volume_title(volume_num: int) -> str:
         fanta_key = f"FANTA_{volume_num:02}"
-        fanta_info = FANTA_SOURCE_COMICS[fanta_key]
-        return fanta_info.title
+        fanta_book = FANTA_SOURCE_COMICS[fanta_key]
+        return fanta_book.title
 
     @staticmethod
     def get_num_pages_in_fantagraphics_volume(volume_num: int) -> int:
         fanta_key = f"FANTA_{volume_num:02}"
-        fanta_info = FANTA_SOURCE_COMICS[fanta_key]
-        return fanta_info.num_pages
+        fanta_book = FANTA_SOURCE_COMICS[fanta_key]
+        return fanta_book.num_pages
 
-    def _get_comic_book_dirs(self, fanta_info: SourceBook) -> ComicBookDirs:
+    def _get_comic_book_dirs(self, fanta_book: FantaBook) -> ComicBookDirs:
         return ComicBookDirs(
-            srce_dir=self.get_fantagraphics_volume_dir(fanta_info.volume),
-            srce_upscayled_dir=self.get_fantagraphics_upscayled_volume_dir(fanta_info.volume),
-            srce_restored_dir=self.get_fantagraphics_restored_volume_dir(fanta_info.volume),
+            srce_dir=self.get_fantagraphics_volume_dir(fanta_book.volume),
+            srce_upscayled_dir=self.get_fantagraphics_upscayled_volume_dir(fanta_book.volume),
+            srce_restored_dir=self.get_fantagraphics_restored_volume_dir(fanta_book.volume),
             srce_restored_upscayled_dir=self.get_fantagraphics_restored_upscayled_volume_dir(
-                fanta_info.volume
+                fanta_book.volume
             ),
-            srce_restored_svg_dir=self.get_fantagraphics_restored_svg_volume_dir(fanta_info.volume),
-            srce_restored_ocr_dir=self.get_fantagraphics_restored_ocr_volume_dir(fanta_info.volume),
-            srce_fixes_dir=self.get_fantagraphics_fixes_volume_dir(fanta_info.volume),
+            srce_restored_svg_dir=self.get_fantagraphics_restored_svg_volume_dir(fanta_book.volume),
+            srce_restored_ocr_dir=self.get_fantagraphics_restored_ocr_volume_dir(fanta_book.volume),
+            srce_fixes_dir=self.get_fantagraphics_fixes_volume_dir(fanta_book.volume),
             srce_upscayled_fixes_dir=self.get_fantagraphics_upscayled_fixes_volume_dir(
-                fanta_info.volume
+                fanta_book.volume
             ),
-            panel_segments_dir=self.get_fantagraphics_panel_segments_volume_dir(fanta_info.volume),
+            panel_segments_dir=self.get_fantagraphics_panel_segments_volume_dir(fanta_book.volume),
         )
 
     @staticmethod
@@ -402,24 +402,24 @@ class ComicsDatabase:
         issue_title = "" if "issue_title" not in config["info"] else config["info"]["issue_title"]
         intro_inset_file = get_inset_file(ini_file)
 
-        cb_info: FantaComicBookInfo = self.get_comic_book_info(story_title)
-        fanta_info = FANTA_SOURCE_COMICS[config["info"]["source_comic"]]
+        fanta_info: FantaComicBookInfo = self.get_comic_book_info(story_title)
+        fanta_book = FANTA_SOURCE_COMICS[config["info"]["source_comic"]]
 
         title = config["info"]["title"]
-        if not title and cb_info.is_barks_title:
+        if not title and fanta_info.comic_book_info.is_barks_title:
             raise Exception(f'"{story_title}" is a barks title and should be set in the ini file.')
-        if title and not cb_info.is_barks_title:
+        if title and not fanta_info.comic_book_info.is_barks_title:
             raise Exception(
                 f'"{story_title}" is a not barks title and should not be set in the ini file.'
             )
 
-        srce_dir_num_page_files = fanta_info.num_pages
-        comic_book_dirs = self._get_comic_book_dirs(fanta_info)
+        srce_dir_num_page_files = fanta_book.num_pages
+        comic_book_dirs = self._get_comic_book_dirs(fanta_book)
 
-        publication_date = get_formatted_first_published_str(cb_info)
-        submitted_date = get_formatted_submitted_date(cb_info)
+        publication_date = get_formatted_first_published_str(fanta_info)
+        submitted_date = get_formatted_submitted_date(fanta_info)
 
-        publication_text = get_main_publication_info(story_title, cb_info, fanta_info)
+        publication_text = get_main_publication_info(story_title, fanta_info, fanta_book)
         if "extra_pub_info" in config["info"]:
             publication_text += "\n" + config["info"]["extra_pub_info"]
 
@@ -441,18 +441,19 @@ class ComicsDatabase:
             ),
             srce_dim=ComicDimensions(),
             required_dim=RequiredDimensions(),
-            fanta_info=fanta_info,
+            fanta_book=fanta_book,
             srce_dir_num_page_files=srce_dir_num_page_files,
             dirs=comic_book_dirs,
-            series_name=cb_info.series_name,
-            number_in_series=cb_info.number_in_series,
-            chronological_number=cb_info.chronological_number,
+            series_name=fanta_info.series_name,
+            number_in_series=fanta_info.number_in_series,
+            # TODO(glk): Eventually just use fanta_info.comic_book_info.chronological_number
+            chronological_number=fanta_info.fanta_chronological_number,
             intro_inset_file=intro_inset_file,
             publication_date=publication_date,
             submitted_date=submitted_date,
-            submitted_year=cb_info.submitted_year,
+            submitted_year=fanta_info.comic_book_info.submitted_year,
             publication_text=publication_text,
-            comic_book_info=cb_info,
+            fanta_info=fanta_info,
             config_page_images=config_page_images,
             page_images_in_order=_get_pages_in_order(config_page_images),
         )
