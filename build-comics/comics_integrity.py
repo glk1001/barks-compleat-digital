@@ -474,7 +474,7 @@ def check_no_unexpected_files(comics_db: ComicsDatabase) -> int:
 
     ret_code = 0
 
-    EXTRA_SRCE_DIRS = [
+    extra_srce_dirs = [
         comics_db.get_root_dir("Fantagraphics-censorship-fixes"),
         comics_db.get_root_dir("Articles"),
         comics_db.get_root_dir("Books"),
@@ -486,7 +486,8 @@ def check_no_unexpected_files(comics_db: ComicsDatabase) -> int:
         comics_db.get_root_dir("Silent Night (Gemstone)"),
         THE_COMICS_DIR,
     ]
-    srce_dirs = EXTRA_SRCE_DIRS
+
+    srce_dirs = extra_srce_dirs
     for volume in range(FIRST_VOLUME_NUMBER, LAST_VOLUME_NUMBER + 1):
         srce_dirs.append(comics_db.get_fantagraphics_original_root_dir())
         srce_dirs.append(comics_db.get_fantagraphics_upscayled_root_dir())

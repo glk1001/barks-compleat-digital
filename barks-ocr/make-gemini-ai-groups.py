@@ -280,6 +280,8 @@ def write_groups_to_text_file(file: str, groups: Dict[int, any]) -> None:
 
 
 if __name__ == "__main__":
+    # TODO(glk): Some issue with type checking inspection?
+    # noinspection PyTypeChecker
     cmd_args = CmdArgs(
         "Make Gemini AI OCR groups for title",
         CmdArgNames.VOLUME | CmdArgNames.TITLE | CmdArgNames.WORK_DIR,

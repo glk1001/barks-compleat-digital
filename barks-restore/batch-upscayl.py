@@ -58,6 +58,8 @@ def upscayl_file(srce_file: str, dest_file: str) -> bool:
 
 setup_logging(logging.INFO)
 
+# TODO(glk): Some issue with type checking inspection?
+# noinspection PyTypeChecker
 cmd_args = CmdArgs("Upscayl volume titles", CmdArgNames.TITLE | CmdArgNames.VOLUME)
 args_ok, error_msg = cmd_args.args_are_valid()
 if not args_ok:

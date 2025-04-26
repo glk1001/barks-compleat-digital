@@ -52,6 +52,8 @@ def get_mod_type(comic: ComicBook, srce: CleanPage) -> str:
     raise Exception(f'Expected to find a fixes file for "{srce.page_filename}".')
 
 
+# TODO(glk): Some issue with type checking inspection?
+# noinspection PyTypeChecker
 cmd_args = CmdArgs("Fantagraphics source files", CmdArgNames.TITLE | CmdArgNames.VOLUME)
 args_ok, error_msg = cmd_args.args_are_valid()
 if not args_ok:

@@ -56,6 +56,8 @@ def convert_svg_to_png(srce_svg: str) -> None:
 
 setup_logging(logging.INFO)
 
+# TODO(glk): Some issue with type checking inspection?
+# noinspection PyTypeChecker
 cmd_args = CmdArgs("Ocr titles", CmdArgNames.TITLE | CmdArgNames.VOLUME)
 args_ok, error_msg = cmd_args.args_are_valid()
 if not args_ok:

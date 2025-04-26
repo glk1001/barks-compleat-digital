@@ -120,6 +120,8 @@ def show_diffs_for_files(
         # cv2.imwrite(os.path.join(out_dir, "image2-with-filled-diffs.png"), image2_filled)
 
 
+# TODO(glk): Some issue with type checking inspection?
+# noinspection PyTypeChecker
 cmd_args = CmdArgs("show fixes diffs", CmdArgNames.VOLUME | CmdArgNames.TITLE)
 args_ok, error_msg = cmd_args.args_are_valid()
 if not args_ok:

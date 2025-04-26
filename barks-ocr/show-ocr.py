@@ -275,6 +275,8 @@ def ocr_annotate_image_with_individual_boxes(
 if __name__ == "__main__":
     setup_logging(logging.INFO)
 
+    # TODO(glk): Some issue with type checking inspection?
+    # noinspection PyTypeChecker
     cmd_args = CmdArgs(
         "OCR annotate titles", CmdArgNames.VOLUME | CmdArgNames.TITLE | CmdArgNames.WORK_DIR
     )

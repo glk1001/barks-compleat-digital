@@ -66,6 +66,8 @@ def has_splash_page(panels: List[Tuple[int, int, int, int]]) -> bool:
     )
 
 
+# TODO(glk): Some issue with type checking inspection?
+# noinspection PyTypeChecker
 cmd_args = CmdArgs("Fantagraphics source files", CmdArgNames.TITLE | CmdArgNames.VOLUME)
 args_ok, error_msg = cmd_args.args_are_valid()
 if not args_ok:

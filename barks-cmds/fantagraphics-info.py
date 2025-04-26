@@ -269,6 +269,8 @@ extra_args: List[ExtraArg] = [
     ExtraArg(BUILT_ARG, action="store", type=str, default=""),
 ]
 
+# TODO(glk): Some issue with type checking inspection?
+# noinspection PyTypeChecker
 cmd_args = CmdArgs("Fantagraphics info", CmdArgNames.TITLE | CmdArgNames.VOLUME, extra_args)
 args_ok, error_msg = cmd_args.args_are_valid()
 if not args_ok:

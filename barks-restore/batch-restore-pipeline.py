@@ -155,6 +155,8 @@ def run_restore(restore_processes: List[RestorePipeline]) -> None:
 
 setup_logging(logging.INFO)
 
+# TODO(glk): Some issue with type checking inspection?
+# noinspection PyTypeChecker
 cmd_args = CmdArgs("Restore titles", CmdArgNames.TITLE | CmdArgNames.VOLUME | CmdArgNames.WORK_DIR)
 args_ok, error_msg = cmd_args.args_are_valid()
 if not args_ok:

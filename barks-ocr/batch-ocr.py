@@ -262,6 +262,8 @@ def get_box_str(box: List[int]) -> str:
 
 
 if __name__ == "__main__":
+    # TODO(glk): Some issue with type checking inspection?
+    # noinspection PyTypeChecker
     cmd_args = CmdArgs("Ocr titles", CmdArgNames.TITLE | CmdArgNames.VOLUME)
     args_ok, error_msg = cmd_args.args_are_valid()
     if not args_ok:

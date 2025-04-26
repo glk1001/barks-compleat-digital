@@ -44,6 +44,8 @@ MODS_ARG = "--mods"
 
 extra_args: List[ExtraArg] = [ExtraArg(MODS_ARG, action="store_true", type=None, default=False)]
 
+# TODO(glk): Some issue with type checking inspection?
+# noinspection PyTypeChecker
 cmd_args = CmdArgs("Fantagraphics source files", CmdArgNames.TITLE | CmdArgNames.VOLUME, extra_args)
 args_ok, error_msg = cmd_args.args_are_valid()
 if not args_ok:

@@ -19,11 +19,9 @@ def open_pil_image_for_reading(file: str) -> Image:
     current_log_level = logging.getLogger().level
     try:
         logging.getLogger().setLevel(logging.INFO)
-        image = Image.open(file, "r")
+        return Image.open(file, "r")
     finally:
         logging.getLogger().setLevel(current_log_level)
-
-    return image
 
 
 def get_bw_image_from_alpha(rgba_file: str) -> cv.typing.MatLike:

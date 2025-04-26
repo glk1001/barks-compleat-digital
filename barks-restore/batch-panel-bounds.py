@@ -87,6 +87,8 @@ def get_page_panel_bounds(
 
 setup_logging(logging.INFO)
 
+# TODO(glk): Some issue with type checking inspection?
+# noinspection PyTypeChecker
 cmd_args = CmdArgs("Panel Bounds", CmdArgNames.TITLE | CmdArgNames.VOLUME | CmdArgNames.WORK_DIR)
 args_ok, error_msg = cmd_args.args_are_valid()
 if not args_ok:

@@ -151,6 +151,8 @@ if __name__ == "__main__":
 
     setup_logging(logging.INFO)
 
+    # TODO(glk): Some issue with type checking inspection?
+    # noinspection PyTypeChecker
     cmd_args = CmdArgs(
         "Make OCR groups for title", CmdArgNames.VOLUME | CmdArgNames.TITLE | CmdArgNames.WORK_DIR
     )

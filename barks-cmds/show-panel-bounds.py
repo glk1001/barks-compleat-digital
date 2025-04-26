@@ -76,6 +76,8 @@ def write_bounds_to_image_file(
 
 
 if __name__ == "__main__":
+    # TODO(glk): Some issue with type checking inspection?
+    # noinspection PyTypeChecker
     cmd_args = CmdArgs("Show panel bounds for title", CmdArgNames.TITLE | CmdArgNames.WORK_DIR)
     args_ok, error_msg = cmd_args.args_are_valid()
     if not args_ok:

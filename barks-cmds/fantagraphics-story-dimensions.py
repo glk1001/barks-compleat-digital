@@ -49,6 +49,8 @@ def get_story_dimensions(comic: ComicBook) -> Dimensions:
     return Dimensions(srce_dims, front_width, front_height)
 
 
+# TODO(glk): Some issue with type checking inspection?
+# noinspection PyTypeChecker
 cmd_args = CmdArgs("Fantagraphics source files", CmdArgNames.TITLE | CmdArgNames.VOLUME)
 args_ok, error_msg = cmd_args.args_are_valid()
 if not args_ok:
@@ -79,11 +81,11 @@ for title in dimensions_dict.keys():
 
     story_dims = dimensions_dict[title]
 
-    srce_dims = story_dims.srce_dims
+    box_dims = story_dims.srce_dims
     bboxes_str = (
-        f"{srce_dims.min_panels_bbox_width:4},{srce_dims.max_panels_bbox_width}"
-        f" {srce_dims.min_panels_bbox_height:4},{srce_dims.max_panels_bbox_height}"
-        f" {srce_dims.av_panels_bbox_width:4},{srce_dims.av_panels_bbox_height}"
+        f"{box_dims.min_panels_bbox_width:4},{box_dims.max_panels_bbox_width}"
+        f" {box_dims.min_panels_bbox_height:4},{box_dims.max_panels_bbox_height}"
+        f" {box_dims.av_panels_bbox_width:4},{box_dims.av_panels_bbox_height}"
     )
 
     front_str = (
