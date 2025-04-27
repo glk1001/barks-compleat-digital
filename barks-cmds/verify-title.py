@@ -11,8 +11,8 @@ def get_display_title(ttl: str) -> str:
     if not title_is_configured:
         disp_title = ttl
     else:
-        comic_info = comics_database.get_comic_book_info(ttl)
-        if comic_info.is_barks_title:
+        fanta_info = comics_database.get_fanta_comic_book_info(ttl)
+        if fanta_info.comic_book_info.is_barks_title:
             disp_title = ttl
         else:
             disp_title = f"({ttl})"

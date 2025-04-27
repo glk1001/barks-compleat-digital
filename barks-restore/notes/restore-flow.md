@@ -14,4 +14,4 @@
     8. Save resized svg or just use svg as B/W option
     9. Maybe:
         1. Add jpg comments to saved files (upscayl, restored and svg)
-        1. Layer colour (switch in MComix) or segment colour
+        2. Layer colour (switch in MComix) or segment colour

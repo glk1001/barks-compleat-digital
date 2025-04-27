@@ -17,15 +17,15 @@ from barks_fantagraphics.comics_consts import (
     THE_COMICS_DIR,
     IMAGES_SUBDIR,
     BARKS_ROOT_DIR,
-)
-from barks_fantagraphics.comics_database import ComicsDatabase
-from barks_fantagraphics.fanta_comics_info import (
-    FIRST_VOLUME_NUMBER,
-    LAST_VOLUME_NUMBER,
     JPG_FILE_EXT,
     PNG_FILE_EXT,
 )
+from barks_fantagraphics.comics_database import ComicsDatabase
 from barks_fantagraphics.comics_utils import get_relpath, get_timestamp, get_timestamp_as_str
+from barks_fantagraphics.fanta_comics_info import (
+    FIRST_VOLUME_NUMBER,
+    LAST_VOLUME_NUMBER,
+)
 from barks_fantagraphics.pages import (
     SrceAndDestPages,
     get_srce_and_dest_pages_in_order,
@@ -367,6 +367,7 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
 
 
 # TODO: Fill this out
+# noinspection PyUnusedLocal
 def _not_used(page_num: int) -> bool:
     return False
 

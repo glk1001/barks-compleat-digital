@@ -180,6 +180,7 @@ def _process_page(
     srce_page: CleanPage,
     dest_page: CleanPage,
 ):
+    # noinspection PyBroadException
     try:
         srce_page_image = open_image_for_reading(srce_page.page_filename)
         if srce_page.page_type == PageType.BODY and srce_page_image.height < MIN_HD_SRCE_HEIGHT:

@@ -120,19 +120,20 @@ def show_diffs_for_files(
         # cv2.imwrite(os.path.join(out_dir, "image2-with-filled-diffs.png"), image2_filled)
 
 
-# TODO(glk): Some issue with type checking inspection?
-# noinspection PyTypeChecker
-cmd_args = CmdArgs("show fixes diffs", CmdArgNames.VOLUME | CmdArgNames.TITLE)
-args_ok, error_msg = cmd_args.args_are_valid()
-if not args_ok:
-    logging.error(error_msg)
-    sys.exit(1)
+if __name__ == "__main__":
+    # TODO(glk): Some issue with type checking inspection?
+    # noinspection PyTypeChecker
+    cmd_args = CmdArgs("show fixes diffs", CmdArgNames.VOLUME | CmdArgNames.TITLE)
+    args_ok, error_msg = cmd_args.args_are_valid()
+    if not args_ok:
+        logging.error(error_msg)
+        sys.exit(1)
 
-setup_logging(cmd_args.get_log_level())
+    setup_logging(cmd_args.get_log_level())
 
-comics_database = cmd_args.get_comics_database()
+    comics_database = cmd_args.get_comics_database()
 
-output_dir = "/tmp/fixes-diffs"
+    output_dir = "/tmp/fixes-diffs"
 
-for title in cmd_args.get_titles():
-    show_diffs_for_title(title, output_dir)
+    for title in cmd_args.get_titles():
+        show_diffs_for_title(title, output_dir)

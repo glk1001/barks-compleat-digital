@@ -156,7 +156,6 @@ class RestorePipeline:
             start = time.time()
             logging.info(f'\nGenerating svg file "{self.dest_svg_restored_file}"...')
 
-            # potrace_to_svg.image_file_to_svg(self.smoothed_removed_colors_file, self.dest_svg_restored_file)
             image_file_to_svg(self.smoothed_removed_colors_file, self.dest_svg_restored_file)
 
             logging.info(

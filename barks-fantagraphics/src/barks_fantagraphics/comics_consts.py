@@ -1,6 +1,42 @@
 import os
 from enum import Enum, auto
 from pathlib import Path
+from typing import Dict
+
+
+JPG_FILE_EXT = ".jpg"
+PNG_FILE_EXT = ".png"
+SVG_FILE_EXT = ".svg"
+JSON_FILE_EXT = ".json"
+TEXT_FILE_EXT = ".txt"
+
+JAN = 1
+FEB = 2
+MAR = 3
+APR = 4
+MAY = 5
+JUN = 6
+JUL = 7
+AUG = 8
+SEP = 9
+OCT = 10
+NOV = 11
+DEC = 12
+
+MONTH_AS_LONG_STR: Dict[int, str] = {
+    JAN: "January",
+    FEB: "February",
+    MAR: "March",
+    APR: "April",
+    MAY: "May",
+    JUN: "June",
+    JUL: "July",
+    AUG: "August",
+    SEP: "September",
+    OCT: "October",
+    NOV: "November",
+    DEC: "December",
+}
 
 BARKS = "Carl Barks"
 BARKS_ROOT_DIR = os.path.join(str(Path.home()), "Books", BARKS)

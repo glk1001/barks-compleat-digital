@@ -7,7 +7,6 @@ from typing import Dict, List, Tuple
 from src import comics_info
 from src.comics_info import (
     ComicBookInfo,
-    MONTH_AS_SHORT_STR,
     CH,
     CP,
     CS,
@@ -24,6 +23,22 @@ from src.consts import THIS_DIR, SUBMISSION_DATES_SUBDIR
 
 from read_stories import get_all_stories, StoryInfo
 from read_sub_dates import get_all_submitted_info, SubmittedInfo, SubmittedInfoDict
+
+MONTH_AS_SHORT_STR: Dict[int, str] = {
+    -1: "   ",
+    JAN: "Jan",
+    FEB: "Feb",
+    MAR: "Mar",
+    APR: "Apr",
+    MAY: "May",
+    JUN: "Jun",
+    JUL: "Jul",
+    AUG: "Aug",
+    SEP: "Sep",
+    OCT: "Oct",
+    NOV: "Nov",
+    DEC: "Dec",
+}
 
 MONTH_AS_INT: Dict[str, int] = {
     "<none>": -1,

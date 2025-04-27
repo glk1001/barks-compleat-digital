@@ -25,8 +25,5 @@ if __name__ == "__main__":
         if os.path.exists(out_file):
             print(f'WARN: Target file exists - skipping: "{out_file}".')
             continue
-        # if os.path.exists(out_file):
-        #     print(f'ERROR: Can\'t overwrite target file: "{out_file}".')
-        #     sys.exit(1)
 
         upscale_image_file(in_file, out_file, scale)

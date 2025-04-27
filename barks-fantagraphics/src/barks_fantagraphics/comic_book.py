@@ -5,6 +5,8 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import List, Tuple, Union, Callable
 
+from .barks_titles import MILKMAN_THE, SILENT_NIGHT
+from .comic_issues import ISSUE_NAME_AS_TITLE
 from .comics_consts import (
     PageType,
     IMAGES_SUBDIR,
@@ -14,21 +16,18 @@ from .comics_consts import (
     THE_COMICS_DIR,
     THE_YEARS_COMICS_DIR,
     INSET_FILE_EXT,
+    MONTH_AS_LONG_STR,
     RESTORABLE_PAGE_TYPES,
     STORY_PAGE_TYPES,
     STORY_PAGE_TYPES_STR_LIST,
-)
-from .comics_info import ISSUE_NAME_AS_TITLE
-from .comics_utils import get_abbrev_path, get_formatted_day
-from .fanta_comics_info import (
     JPG_FILE_EXT,
     PNG_FILE_EXT,
     SVG_FILE_EXT,
     JSON_FILE_EXT,
-    MONTH_AS_LONG_STR,
+)
+from .comics_utils import get_abbrev_path, get_formatted_day
+from .fanta_comics_info import (
     CENSORED_TITLES,
-    THE_MILKMAN,
-    SILENT_NIGHT,
     FantaComicBookInfo,
     FantaBook,
 )
@@ -334,17 +333,6 @@ class ComicBook:
 
         raise Exception(f'Could not find source file "{srce_file}" of type "{page_type.name}"')
 
-    def __get_final_srce_restored_file(
-        self, page_num: str, page_type: PageType
-    ) -> Tuple[str, bool]:
-        srce_restored_file = os.path.join(
-            self.get_srce_restored_image_dir(), page_num + JPG_FILE_EXT
-        )
-        if os.path.isfile(srce_restored_file):
-            raise Exception(f'Restored files should be png not jpg: "{srce_restored_file}".')
-
-        return self.__get_srce_restored_story_file(page_num), False
-
     def __get_final_story_file(
         self,
         file_type: FixesType,
@@ -580,7 +568,7 @@ def get_main_publication_info(
             + f"Submitted to Western Publishing{get_formatted_submitted_date(fanta_info)}\n"
         )
         return publication_text
-    if file_title == THE_MILKMAN:
+    if file_title == MILKMAN_THE:
         # Originally intended for WDCS 215
         publication_text = (
             f"(*) Rejected by Western editors in 1957, this story was originally\n"

@@ -6,8 +6,8 @@ from typing import List, Tuple
 from intspan import intspan
 
 from .comics_database import ComicsDatabase, get_default_comics_database_dir
-from .fanta_comics_info import FantaComicBookInfo
 from .comics_utils import get_titles_sorted_by_submission_date
+from .fanta_comics_info import FantaComicBookInfo
 
 LOG_LEVEL_ARG = "--log-level"
 COMICS_DATABASE_DIR_ARG = "--comics-database-dir"
@@ -81,8 +81,8 @@ class CmdArgs:
             )
 
         if self._cmd_args.title:
-            cb_info = self._comics_database.get_comic_book_info(self._cmd_args.title)
-            return [(self._cmd_args.title, cb_info)]
+            fanta_info = self._comics_database.get_fanta_comic_book_info(self._cmd_args.title)
+            return [(self._cmd_args.title, fanta_info)]
 
         assert self._cmd_args.volume is not None
         vol_list = list(intspan(self._cmd_args.volume))

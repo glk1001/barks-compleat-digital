@@ -8,9 +8,8 @@ import cv2 as cv
 from PIL import Image, ImageDraw
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
-from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
+from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES, PNG_FILE_EXT
 from barks_fantagraphics.comics_image_io import get_bw_image_from_alpha
-from barks_fantagraphics.fanta_comics_info import PNG_FILE_EXT
 from barks_fantagraphics.comics_utils import get_abbrev_path, setup_logging
 from barks_fantagraphics.panel_segmentation import get_min_max_panel_values
 
@@ -70,6 +69,7 @@ def write_bounds_to_image_file(
     x_min, y_min, x_max, y_max = get_min_max_panel_values(panel_segment_info)
     img_rects.rectangle([x_min, y_min, x_max, y_max], outline="red", width=2)
 
+    # noinspection PyProtectedMember
     img_rects._image.save(bounds_img_file)
 
     return True

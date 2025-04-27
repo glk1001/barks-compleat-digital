@@ -356,7 +356,7 @@ class ComicsDatabase:
         else:
             logging.debug(f'Symlink exists - all good: "{symlink}".')
 
-    def get_comic_book_info(self, title: str) -> FantaComicBookInfo:
+    def get_fanta_comic_book_info(self, title: str) -> FantaComicBookInfo:
         found, titles, close = self.get_story_title_from_issue(title)
         if found:
             if len(titles) > 1:
@@ -402,7 +402,7 @@ class ComicsDatabase:
         issue_title = "" if "issue_title" not in config["info"] else config["info"]["issue_title"]
         intro_inset_file = get_inset_file(ini_file)
 
-        fanta_info: FantaComicBookInfo = self.get_comic_book_info(story_title)
+        fanta_info: FantaComicBookInfo = self.get_fanta_comic_book_info(story_title)
         fanta_book = FANTA_SOURCE_COMICS[config["info"]["source_comic"]]
 
         title = config["info"]["title"]

@@ -66,26 +66,26 @@ def add_png_metadata(png_file: str, metadata: Dict[str, str]):
     )
 
 
-def get_png_metadata(png_file: str) -> Dict[str, str]:
-    pil_image = Image.open(png_file, "r")
-
-    png_metadata = pil_image.info
-
-    prefix = METADATA_PROPERTY_GROUP + ":"
-    metadata = dict()
-    for key in png_metadata:
-        if key.startswith(prefix):
-            metadata[key[len(prefix) :]] = png_metadata[key]
-
-    return metadata
-
-
-def get_jpg_metadata(jpg_file: str) -> Dict[str, str]:
-    pil_image = Image.open(jpg_file, "r")
-
-    jpg_comments = pil_image.app["COM"]
-
-    metadata = dict()
-    metadata["comments"] = jpg_comments
-
-    return metadata
+# def get_png_metadata(png_file: str) -> Dict[str, str]:
+#     pil_image = Image.open(png_file, "r")
+#
+#     png_metadata = pil_image.info
+#
+#     prefix = METADATA_PROPERTY_GROUP + ":"
+#     metadata = dict()
+#     for key in png_metadata:
+#         if key.startswith(prefix):
+#             metadata[key[len(prefix) :]] = png_metadata[key]
+#
+#     return metadata
+#
+#
+# def get_jpg_metadata(jpg_file: str) -> Dict[str, str]:
+#     pil_image = Image.open(jpg_file, "r")
+#
+#     jpg_comments = pil_image.app["COM"]
+#
+#     metadata = dict()
+#     metadata["comments"] = jpg_comments
+#
+#     return metadata
