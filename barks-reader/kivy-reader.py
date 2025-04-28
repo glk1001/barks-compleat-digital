@@ -1,11 +1,8 @@
 import logging
-import os.path
-import subprocess
 import sys
-from typing import List
+from typing import List, Tuple
 
 from kivy.app import App
-from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
@@ -14,54 +11,7 @@ from kivy.utils import escape_markup
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_utils import setup_logging
-
-
-def run_comic_reader(comic_book_filename: str) -> None:
-    python_path = "/home/greg/Prj/github/mcomix-git-glk1001/.venv/bin/python"
-    mcomix_path = "/home/greg/Prj/github/mcomix-git-glk1001/mcomixstarter.py"
-    ui_desc_path = (
-        "/home/greg/Prj/github/barks-compleat-digital/barks-reader/mcomix-barks-ui-desc.xml"
-    )
-
-    run_args = [python_path, mcomix_path, "--ui-desc-file", ui_desc_path, comic_book_filename]
-    print(f"Running mcomix: {' '.join(run_args)}.")
-    logging.debug(f"Running mcomix: {' '.join(run_args)}.")
-
-    result = subprocess.run(
-        run_args,
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    print(result.stdout)
-    print(result.stderr)
-
-    # process = subprocess.Popen(run_args, stdout=subprocess.PIPE, text=True)
-    # return process
-
-class ComicReader:
-    def __init__(self):
-        self.old_color = None
-        self.reader_is_running = False
-
-    def run_reader(self, instance, value):
-        the_comics_dir = "/home/greg/Books/Carl Barks/The Comics/Chronological"
-        comic_name = value.replace("&amp;", "&").replace("&bl;", "[").replace("&br;", "]")
-
-        self.reader_is_running = True
-        run_comic_reader(os.path.join(the_comics_dir, comic_name + ".cbz"))
-        self.reader_is_running = False
-
-        instance.color = self.old_color
-
-    def show_comic(self, label, value):
-        self.old_color = label.color
-        label.color = (0.0, 1.0, 0.0, 1)
-        Clock.schedule_once(lambda dt: self.run_reader(label, value), 0.1)
-
-    def on_request_close(self):
-        print(f"ComicReader: on_request_close event triggered. reader_is_running = {self.reader_is_running}")
-        return self.reader_is_running  # Returning False allows the app to close
+from mcomix_reader import ComicReader
 
 
 class ScrollableLabelList(ScrollView):
@@ -90,7 +40,7 @@ class ScrollableLabelList(ScrollView):
             size_hint_y=None,
             height=20,
             markup=True,
-            underline=True,
+            underline=False,
             halign="left",
             valign="middle",
         )
@@ -98,29 +48,41 @@ class ScrollableLabelList(ScrollView):
         label.bind(on_ref_press=self.comic_reader.show_comic)
         self.layout.add_widget(label)
 
-    def on_request_close(self, *args):
-        print("ScrollableLabelList: on_request_close event triggered.")
-        return self.comic_reader.on_request_close()
+    def on_request_close(self):
+        return self.comic_reader.on_app_request_close()
 
 
 class MyApp(App):
-    def __init__(self, ttls: List[str], max_ttl_len: int, **kwargs):
+    def __init__(self, title_with_issues: List[Tuple[int, str, str]], max_title_len: int, **kwargs):
         super().__init__(**kwargs)
-        self.titles = ttls
+
+        self.title_with_issues = title_with_issues
 
     def build(self):
-        self.title = "Scrollable Label List with Refs"
+        Window.bind(on_request_close=self.on_request_close_window)
 
-        Window.bind(on_request_close=self.on_request_close_window)  # Bind the event
+        self.title = "The Compleat Barks Reader"
 
         label_list = ScrollableLabelList()
-        for ttl in self.titles:
-            label_list.add_item(f"{ttl}")
+        for chronological_num, title, issue_title in self.title_with_issues:
+            label_list.add_item(f"{chronological_num:3} {title} {issue_title}")
         return label_list
 
     def on_request_close_window(self, *args):
-        print("MyApp: on_request_close event triggered.")
         return self.root.on_request_close()
+
+
+def get_all_comic_titles(titles: List[str]) -> Tuple[List[Tuple[int, str, str]], int]:
+    titles_with_issue_nums = []
+    max_title_len = 0
+    for title in titles:
+        comic_book = comics_database.get_comic_book(title)
+        title_with_issue_num = comic_book.get_title_with_issue_num()
+        max_title_len = max(max_title_len, len(title_with_issue_num))
+        titles_with_issue_nums.append(
+                (comic_book.chronological_number, title, comic_book.get_comic_issue_title()))
+
+    return titles_with_issue_nums, max_title_len
 
 
 if __name__ == "__main__":
@@ -135,18 +97,6 @@ if __name__ == "__main__":
     setup_logging(cmd_args.get_log_level())
 
     comics_database = cmd_args.get_comics_database()
+    all_comic_titles, max_comic_title_len = get_all_comic_titles(cmd_args.get_titles())
 
-    titles = cmd_args.get_titles()
-
-    titles_with_issue_nums = []
-    max_title_len = 0
-    for title in titles:
-        comic_book = comics_database.get_comic_book(title)
-
-        title_with_issue_num = comic_book.get_title_with_issue_num()
-        if max_title_len < len(title_with_issue_num):
-            max_title_len = len(title_with_issue_num)
-
-        titles_with_issue_nums.append(title_with_issue_num)
-
-    MyApp(titles_with_issue_nums, max_title_len).run()
+    MyApp(all_comic_titles, max_comic_title_len).run()
