@@ -1,7 +1,8 @@
 import collections
 import logging
+from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, OrderedDict
+from typing import Dict, OrderedDict, Tuple, List, Callable
 
 from . import barks_titles as bt
 from .barks_titles import ComicBookInfo, get_all_comic_book_info, CS, DD, US
@@ -518,3 +519,18 @@ SERIES_INFO: Dict[str, FantaSeriesInfo] = {
     bt.WEATHER_WATCHERS_THE: FantaSeriesInfo(DIGI, SERIES_MISC, FANTA_21),
     bt.SHEEPISH_COWBOYS_THE: FantaSeriesInfo(DIGI, SERIES_MISC, FANTA_21),
 }
+
+
+def get_filtered_title_lists(
+    filters: Dict[str, Callable[[FantaComicBookInfo], bool]]
+) -> Dict[str, List[Tuple[str, FantaComicBookInfo]]]:
+    titles = get_all_fanta_comic_book_info()
+    filtered_dict = defaultdict(list)
+    for title in titles:
+        fanta_info = titles[title]
+        for filt in filters:
+            filter_func = filters[filt]
+            if filter_func(fanta_info):
+                filtered_dict[filt].append((title, fanta_info))
+
+    return filtered_dict

@@ -9,6 +9,13 @@ from .comics_consts import BARKS_ROOT_DIR
 from .fanta_comics_info import FantaComicBookInfo
 
 
+def get_titles_and_info_chronologically_sorted(
+    titles_and_info: List[Tuple[str, FantaComicBookInfo]]
+) -> List[Tuple[str, FantaComicBookInfo]]:
+
+    return sorted(titles_and_info, key=lambda x: x[1].fanta_chronological_number)
+
+
 def get_titles_sorted_by_submission_date(
     titles_and_info: List[Tuple[str, FantaComicBookInfo]]
 ) -> List[str]:
