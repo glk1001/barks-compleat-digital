@@ -5,11 +5,11 @@ from typing import Tuple, List
 import kivy.core.text
 from kivy.app import App
 from kivy.core.window import Window
+from kivy.lang import Builder
 from kivy.metrics import dp, sp
+from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.textinput import TextInput
 from kivy.uix.treeview import TreeView, TreeViewNode
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs
@@ -18,9 +18,16 @@ from barks_fantagraphics.comics_utils import setup_logging
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
 from filtered_title_lists import FilteredTitleLists
 
+Builder.load_file("tree-example.kv")
+
 
 def get_str_pixel_width(text: str, **kwargs) -> int:
     return kivy.core.text.Label(**kwargs).get_extents(text)[0]
+
+
+class MainScreen(BoxLayout):
+    intro_text = ObjectProperty()
+    reader_contents = ObjectProperty()
 
 
 class TreeViewRow(BoxLayout, TreeViewNode):
@@ -31,15 +38,16 @@ class TreeViewButton(Button, TreeViewNode):
     pass
 
 
-class TreeApp(App):
+class BarksReaderApp(App):
     def __init__(self, comics_db: ComicsDatabase, **kwargs):
         super().__init__(**kwargs)
 
         self.comics_database = comics_db
         self.filtered_title_lists = FilteredTitleLists()
 
+        self.main_screen = None
+
         self.label_height = 30
-        self.intro_text = None
 
         Window.size = (1500, 800)
         Window.left = 300
@@ -47,46 +55,18 @@ class TreeApp(App):
 
     def pressed(self, button: Button):
         if button.text == "Introduction":
-            self.intro_text.opacity = 1.0
+            self.main_screen.intro_text.opacity = 1.0
         else:
-            self.intro_text.opacity = 0.0
+            self.main_screen.intro_text.opacity = 0.0
         print(f'Button "{button.text}" pressed.')
 
     def build(self):
-        intro_text = TextInput(
-            text="hello line 1\nhello line 2\nhello line 3\n",
-            multiline=True,
-            readonly=True,
-            size_hint=(0.7, 1),
-            pos_hint={"x": 0.3, "top": 1.0},
-            opacity=0.0,
-        )
+        self.main_screen = MainScreen()
+        self.main_screen.reader_contents.add_widget(self.build_tree())
 
-        # left_box = BoxLayout(orientation="vertical", size_hint=(0.3, 1))
-        # left_box.add_widget(self.build_tree(intro_text))
+        return self.main_screen
 
-        scroll_view = ScrollView(size_hint=(0.3, 1))
-        scroll_view.do_scroll_x = False
-        scroll_view.do_scroll_y = True
-        scroll_view.always_overscroll = False
-        scroll_view.effect_cls = "ScrollEffect"
-        scroll_view.scroll_type = ["bars", "content"]
-
-        scroll_view.bar_color = (0.8, 0.8, 0.8, 1)
-        scroll_view.bar_inactive_color = (0.8, 0.8, 0.8, 0.8)
-        scroll_view.bar_width = 5
-
-        scroll_view.add_widget(self.build_tree(intro_text))
-
-        lo = BoxLayout(orientation="horizontal", size_hint=(1, 1))
-        lo.add_widget(scroll_view)
-        lo.add_widget(intro_text)
-
-        return lo
-
-    def build_tree(self, intro_text):
-        self.intro_text = intro_text
-
+    def build_tree(self):
         tree = TreeView(hide_root=True, indent_level=dp(40))
 
         tree.size_hint = 1, None
@@ -336,4 +316,4 @@ if __name__ == "__main__":
 
     comics_database = cmd_args.get_comics_database()
 
-    TreeApp(comics_database).run()
+    BarksReaderApp(comics_database).run()

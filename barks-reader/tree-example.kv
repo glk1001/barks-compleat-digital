@@ -1,0 +1,27 @@
+<MainScreen>:
+    orientation: "horizontal"
+    size_hint: (1, 1)
+    reader_contents: scroll_view
+    intro_text: intro_text_box
+
+    ScrollView:
+        id: scroll_view
+        size_hint: (0.3, 1)
+
+        do_scroll_x: False
+        do_scroll_y: True
+        always_overscroll: False
+        effect_cls: "ScrollEffect"
+        scroll_type: ["bars", "content"]
+
+        bar_color: (0.8, 0.8, 0.8, 1)
+        bar_inactive_color: (0.8, 0.8, 0.8, 0.8)
+
+    TextInput:
+        id: intro_text_box
+        text: "hello line 1\nhello line 2\nhello line 3\n"
+        multiline: True
+        readonly: True
+        opacity: 0.0
+        size_hint: (0.7, 1)
+        pos_hint: {"x": 0.3, "top": 1.0}
