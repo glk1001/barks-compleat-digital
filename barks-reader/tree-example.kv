@@ -3,6 +3,7 @@
     size_hint: (1, 1)
     reader_contents: scroll_view
     intro_text: intro_text_box
+    reader_contents_tree: tree_view
 
     ScrollView:
         id: scroll_view
@@ -16,6 +17,14 @@
 
         bar_color: (0.8, 0.8, 0.8, 1)
         bar_inactive_color: (0.8, 0.8, 0.8, 0.8)
+        bar_width: dp(5)
+
+        TreeView:
+            id: tree_view
+            hide_root: True
+            indent_level: dp(40)
+            size_hint: 1, None
+            minimum_height: self.height
 
     TextInput:
         id: intro_text_box
