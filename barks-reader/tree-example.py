@@ -3,12 +3,11 @@ import sys
 from typing import Tuple, List
 
 import kivy.core.text
-from django.utils.termcolors import background
 from kivy.app import App
 from kivy.core.window import Window
+from kivy.metrics import dp, sp
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.uix.label import Label
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
 from kivy.uix.treeview import TreeView, TreeViewNode
@@ -16,7 +15,8 @@ from kivy.uix.treeview import TreeView, TreeViewNode
 from barks_fantagraphics.comics_cmd_args import CmdArgs
 from barks_fantagraphics.comics_database import ComicsDatabase
 from barks_fantagraphics.comics_utils import setup_logging
-from barks_fantagraphics.fanta_comics_info import get_filtered_title_lists, FantaComicBookInfo
+from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
+from filtered_title_lists import FilteredTitleLists
 
 
 def get_str_pixel_width(text: str, **kwargs) -> int:
@@ -36,8 +36,11 @@ class TreeApp(App):
         super().__init__(**kwargs)
 
         self.comics_database = comics_db
+        self.filtered_title_lists = FilteredTitleLists()
+
         self.label_height = 30
         self.intro_text = None
+
         Window.size = (1500, 800)
         Window.left = 300
         Window.top = 200
@@ -84,7 +87,7 @@ class TreeApp(App):
     def build_tree(self, intro_text):
         self.intro_text = intro_text
 
-        tree = TreeView(hide_root=True, indent_level="40dp")
+        tree = TreeView(hide_root=True, indent_level=dp(40))
 
         tree.size_hint = 1, None
         tree.bind(minimum_height=tree.setter("height"))
@@ -142,6 +145,7 @@ class TreeApp(App):
         appendix_label.bind(size=appendix_label.setter("text_size"))
         appendix_label.bind(on_press=self.pressed)
         appendix_node = tree.add_node(appendix_label)
+        # Add Censorship, Glossary, ???
 
         index_label = TreeViewButton(
             text="Index",
@@ -189,27 +193,9 @@ class TreeApp(App):
         tree.add_node(dda_label, parent=the_stories_node)
 
     def add_year_range_nodes(self, tree, the_years_node):
-        year_ranges = [
-            (1942, 1945),
-            (1946, 1949),
-            (1950, 1953),
-            (1954, 1957),
-            (1958, 1961),
-        ]
+        titles = self.filtered_title_lists.get_title_lists()
 
-        def create_range_lamba(year_range: Tuple[int, int]):
-            return (
-                lambda info: year_range[0] <= info.comic_book_info.submitted_year <= year_range[1]
-            )
-
-        filters = {}
-        for year_range in year_ranges:
-            range_str = f"{year_range[0]} - {year_range[1]}"
-            filters[range_str] = create_range_lamba(year_range)
-
-        titles = get_filtered_title_lists(filters)
-
-        for year_range in year_ranges:
+        for year_range in self.filtered_title_lists.year_ranges:
             range_str = f"{year_range[0]} - {year_range[1]}"
             year_range_label = TreeViewButton(
                 text=range_str,
@@ -249,7 +235,7 @@ class TreeApp(App):
                 orientation="vertical",
                 spacing=5,
                 size_hint_y=None,
-                height=f"{NUM_LABEL_HEIGHT + TITLE_LABEL_HEIGHT}dp",
+                height=dp(NUM_LABEL_HEIGHT + TITLE_LABEL_HEIGHT),
             )
 
             num_label = TreeViewButton(
@@ -258,8 +244,8 @@ class TreeApp(App):
                 color=TITLE_NUM_COLOR,
                 background_color=LABEL_BACKGROUND_COLOR,
                 size_hint=(None, None),
-                height=f"{NUM_LABEL_HEIGHT}dp",
-                width=f'{get_str_pixel_width("999")+20}dp',
+                height=dp(NUM_LABEL_HEIGHT),
+                width=dp(get_str_pixel_width("999") + 20),
                 halign="right",
                 valign="middle",
             )
@@ -272,8 +258,8 @@ class TreeApp(App):
                 color=ISSUE_TITLE_LABEL_COLOR,
                 size_hint=(None, None),
                 background_color=LABEL_BACKGROUND_COLOR,
-                height=f"{NUM_LABEL_HEIGHT}dp",
-                width=f'{get_str_pixel_width("WDCS 500") + 50}dp',
+                height=dp(NUM_LABEL_HEIGHT),
+                width=dp(get_str_pixel_width("WDCS 500") + 50),
                 halign="left",
                 valign="middle",
             )
@@ -286,8 +272,8 @@ class TreeApp(App):
                 color=TITLE_NUM_COLOR,
                 background_color=LABEL_BACKGROUND_COLOR,
                 size_hint=(None, None),
-                height=f"{TITLE_LABEL_HEIGHT}dp",
-                width=f'{get_str_pixel_width("999")+20}dp',
+                height=dp(TITLE_LABEL_HEIGHT),
+                width=dp(get_str_pixel_width("999") + 20),
                 halign="right",
                 valign="middle",
             )
@@ -297,13 +283,13 @@ class TreeApp(App):
 
             text_label = TreeViewButton(
                 text=display_title,
-                font_size=TITLE_FONT_SIZE,
+                font_size=sp(TITLE_FONT_SIZE),
                 color=TITLE_LABEL_COLOR,
                 background_color=LABEL_BACKGROUND_COLOR,
                 size_hint=(None, None),
-                height=f"{TITLE_LABEL_HEIGHT}dp",
+                height=dp(TITLE_LABEL_HEIGHT),
                 #                width=f"{get_str_pixel_width(title[0]) + 50}dp",
-                width=f"{TITLE_LABEL_WIDTH}dp",
+                width=dp(TITLE_LABEL_WIDTH),
                 halign="left",
                 valign="middle",
             )
@@ -321,31 +307,20 @@ class TreeApp(App):
             tree.add_node(box_node, parent=year_range_node)
 
     def add_dda_story_nodes(self, tree, dda_node):
-        story_node_1 = TreeViewButton(
-            text="Donald Duck and The Mummy's Ring",
-            color=(1.0, 0.0, 0.0, 1.0),
-            background_color=(0.0, 0.0, 0.0, 1.0),
-            size_hint=(None, None),
-            size=(get_str_pixel_width("Donald Duck and The Mummy's Ring") + 70, self.label_height),
-            halign="left",
-            valign="middle",
-        )
-        story_node_1.bind(size=story_node_1.setter("text_size"))
-        story_node_1.bind(on_press=self.pressed)
-        tree.add_node(story_node_1, parent=dda_node)
-
-        story_node_2 = TreeViewButton(
-            text="Frozen Gold",
-            color=(1.0, 0.0, 0.0, 1.0),
-            background_color=(0.0, 0.0, 0.0, 1.0),
-            size_hint=(None, None),
-            size=(get_str_pixel_width("Frozen Gold") + 40, self.label_height),
-            halign="left",
-            valign="middle",
-        )
-        story_node_2.bind(size=story_node_2.setter("text_size"))
-        story_node_2.bind(on_press=self.pressed)
-        tree.add_node(story_node_2, parent=dda_node)
+        titles = self.filtered_title_lists.get_title_lists()
+        for title in titles["Donald Duck Adventures"]:
+            story_node_1 = TreeViewButton(
+                text=title[0],
+                color=(1.0, 0.0, 0.0, 1.0),
+                background_color=(0.0, 0.0, 0.0, 1.0),
+                size_hint=(None, None),
+                size=(get_str_pixel_width(title[0]) + 70, self.label_height),
+                halign="left",
+                valign="middle",
+            )
+            story_node_1.bind(size=story_node_1.setter("text_size"))
+            story_node_1.bind(on_press=self.pressed)
+            tree.add_node(story_node_1, parent=dda_node)
 
 
 if __name__ == "__main__":
