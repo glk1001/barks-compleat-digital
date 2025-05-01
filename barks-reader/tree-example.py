@@ -29,12 +29,27 @@ class MainScreen(BoxLayout):
     intro_text = ObjectProperty()
     reader_contents = ObjectProperty()
 
+    def pressed(self, button: Button):
+        if button.text == "Introduction":
+            self.intro_text.opacity = 1.0
+        else:
+            self.intro_text.opacity = 0.0
+        print(f'Button "{button.text}" pressed.')
+
+
+class ReaderTreeView(TreeView):
+    pass
+
 
 class TreeViewRow(BoxLayout, TreeViewNode):
     pass
 
 
 class TreeViewButton(Button, TreeViewNode):
+    pass
+
+
+class MainTreeViewNode(Button, TreeViewNode):
     pass
 
 
@@ -54,13 +69,6 @@ class BarksReaderApp(App):
         Window.left = 300
         Window.top = 200
 
-    def pressed(self, button: Button):
-        if button.text == "Introduction":
-            self.main_screen.intro_text.opacity = 1.0
-        else:
-            self.main_screen.intro_text.opacity = 0.0
-        print(f'Button "{button.text}" pressed.')
-
     def build(self):
         self.main_screen = MainScreen()
 
@@ -71,72 +79,25 @@ class BarksReaderApp(App):
     def build_main_screen_tree(self):
         tree = self.main_screen.reader_contents_tree
 
-        intro_label = TreeViewButton(
-            text="Introduction",
-            color=(1.0, 0.0, 0.0, 1.0),
-            background_color=(0.0, 0.0, 0.0, 1.0),
-            size_hint=(None, None),
-            size=(dp(self.main_screen_label_width), dp(self.label_height)),
-            halign="left",
-            valign="middle",
-        )
-        intro_label.text_size = (intro_label.width, intro_label.height)
-        intro_label.bind(on_press=self.pressed)
-        intro_node = tree.add_node(intro_label)
+        index_label = MainTreeViewNode(text="Introduction")
+        index_label.bind(on_press=self.main_screen.pressed)
+        tree.add_node(index_label)
 
-        the_stories_label = TreeViewButton(
-            text="The Stories",
-            color=(1.0, 0.0, 0.0, 1.0),
-            background_color=(0.0, 0.0, 0.0, 1.0),
-            size_hint=(None, None),
-            size=(dp(self.main_screen_label_width), dp(self.label_height)),
-            halign="left",
-            valign="middle",
-        )
-        the_stories_label.text_size = (the_stories_label.width, the_stories_label.height)
-        the_stories_label.bind(on_press=self.pressed)
-        the_stories_node = tree.add_node(the_stories_label)
-
+        index_label = MainTreeViewNode(text="The Stories")
+        index_label.bind(on_press=self.main_screen.pressed)
+        the_stories_node = tree.add_node(index_label)
         self.add_story_nodes(tree, the_stories_node)
 
-        tag_search_label = TreeViewButton(
-            text="Tag Search",
-            color=(1.0, 0.0, 0.0, 1.0),
-            background_color=(0.0, 0.0, 0.0, 1.0),
-            size_hint=(None, None),
-            size=(dp(self.main_screen_label_width), dp(self.label_height)),
-            halign="left",
-            valign="middle",
-        )
-        tag_search_label.text_size = (tag_search_label.width, tag_search_label.height)
-        tag_search_label.bind(on_press=self.pressed)
-        tag_search_node = tree.add_node(tag_search_label)
+        index_label = MainTreeViewNode(text="Search")
+        index_label.bind(on_press=self.main_screen.pressed)
+        tree.add_node(index_label)
 
-        appendix_label = TreeViewButton(
-            text="Appendix",
-            color=(1.0, 0.0, 0.0, 1.0),
-            background_color=(0.0, 0.0, 0.0, 1.0),
-            size_hint=(None, None),
-            size=(dp(self.main_screen_label_width), dp(self.label_height)),
-            halign="left",
-            valign="middle",
-        )
-        appendix_label.text_size = (appendix_label.width, appendix_label.height)
-        appendix_label.bind(on_press=self.pressed)
-        appendix_node = tree.add_node(appendix_label)
-        # Add Censorship, Glossary, ???
+        index_label = MainTreeViewNode(text="Appendix")
+        index_label.bind(on_press=self.main_screen.pressed)
+        tree.add_node(index_label)
 
-        index_label = TreeViewButton(
-            text="Index",
-            color=(1.0, 0.0, 0.0, 1.0),
-            background_color=(0.0, 0.0, 0.0, 1.0),
-            size_hint=(None, None),
-            size=(dp(self.main_screen_label_width), dp(self.label_height)),
-            halign="left",
-            valign="middle",
-        )
-        index_label.text_size = (index_label.width, index_label.height)
-        index_label.bind(on_press=self.pressed)
+        index_label = MainTreeViewNode(text="Index")
+        index_label.bind(on_press=self.main_screen.pressed)
         index_node = tree.add_node(index_label)
 
         tree.bind(minimum_height=tree.setter("height"))
@@ -152,7 +113,7 @@ class BarksReaderApp(App):
             valign="middle",
         )
         by_year_label.bind(size=by_year_label.setter("text_size"))
-        by_year_label.bind(on_press=self.pressed)
+        by_year_label.bind(on_press=self.main_screen.pressed)
         self.add_year_range_nodes(tree, by_year_label)
         the_years_node = tree.add_node(by_year_label, parent=the_stories_node)
         self.add_year_range_nodes(tree, the_years_node)
@@ -167,7 +128,7 @@ class BarksReaderApp(App):
             valign="middle",
         )
         dda_label.bind(size=dda_label.setter("text_size"))
-        dda_label.bind(on_press=self.pressed)
+        dda_label.bind(on_press=self.main_screen.pressed)
         self.add_dda_story_nodes(tree, dda_label)
         tree.add_node(dda_label, parent=the_stories_node)
 
@@ -186,7 +147,7 @@ class BarksReaderApp(App):
                 valign="middle",
             )
             year_range_label.bind(size=year_range_label.setter("text_size"))
-            year_range_label.bind(on_press=self.pressed)
+            year_range_label.bind(on_press=self.main_screen.pressed)
             year_range_node = tree.add_node(year_range_label, parent=the_years_node)
             self.add_year_range_story_nodes(tree, year_range_node, titles[range_str])
 
@@ -229,7 +190,7 @@ class BarksReaderApp(App):
                 valign="middle",
             )
             num_label.text_size = (num_label.width, num_label.height)
-            num_label.bind(on_press=self.pressed)
+            num_label.bind(on_press=self.main_screen.pressed)
             box1.add_widget(num_label)
 
             issue_label = TreeViewButton(
@@ -243,7 +204,7 @@ class BarksReaderApp(App):
                 valign="middle",
             )
             issue_label.text_size = (issue_label.width, issue_label.height)
-            issue_label.bind(on_press=self.pressed)
+            issue_label.bind(on_press=self.main_screen.pressed)
             box1.add_widget(issue_label)
 
             empty_label = TreeViewButton(
@@ -257,7 +218,7 @@ class BarksReaderApp(App):
                 valign="middle",
             )
             empty_label.text_size = (empty_label.width, empty_label.height)
-            empty_label.bind(on_press=self.pressed)
+            empty_label.bind(on_press=self.main_screen.pressed)
             box2.add_widget(empty_label)
 
             text_label = TreeViewButton(
@@ -273,7 +234,7 @@ class BarksReaderApp(App):
                 valign="middle",
             )
             text_label.text_size = (text_label.width, text_label.height)
-            text_label.bind(on_press=self.pressed)
+            text_label.bind(on_press=self.main_screen.pressed)
             box2.add_widget(text_label)
 
             box1.minimum_height = box1.height
@@ -298,7 +259,7 @@ class BarksReaderApp(App):
                 valign="middle",
             )
             story_node_1.bind(size=story_node_1.setter("text_size"))
-            story_node_1.bind(on_press=self.pressed)
+            story_node_1.bind(on_press=self.main_screen.pressed)
             tree.add_node(story_node_1, parent=dda_node)
 
 
