@@ -1,0 +1,109 @@
+<ReaderTreeView>:
+    hide_root: True
+    indent_level: root.TREE_VIEW_INDENT_LEVEL
+    size_hint: (1, None)
+    minimum_height: self.height
+
+<MainTreeViewNode>:
+    color: root.TEXT_COLOR
+    background_color: root.BACKGROUND_COLOR
+    size_hint: (None, None)
+    size: root.NODE_SIZE
+    halign: "left"
+    valign: "middle"
+    text_size: (self.width, self.height)
+
+<CategoryTreeViewNode>:
+    color: root.TEXT_COLOR
+    background_color: root.BACKGROUND_COLOR
+    size_hint: (None, None)
+    height: root.NODE_HEIGHT
+    width: root.NODE_WIDTH
+    halign: "left"
+    valign: "middle"
+    text_size: (self.width, self.height)
+
+<YearRangeTreeViewNode>:
+    color: root.TEXT_COLOR
+    background_color: root.BACKGROUND_COLOR
+    size_hint: (None, None)
+    height: root.NODE_HEIGHT
+    width: root.NODE_WIDTH
+    halign: "left"
+    valign: "middle"
+    text_size: (self.width, self.height)
+
+<TreeViewRowNode@BoxLayout>:
+    orientation: "horizontal"
+    spacing: 20
+
+<TitleTreeViewNode>:
+    orientation: "vertical"
+    spacing: 5
+    size_hint_y: None
+    height: dp(30 + 35)
+    minimum_height: self.height
+
+    num_label: num_label_id
+    issue_label: issue_label_id
+    title_label: title_label_id
+
+    TreeViewRowNode:
+        TreeViewButton:
+            id: num_label_id
+            parent: root
+            bold: True
+            color: (1.0, 1.0, 1.0, 1.0)
+            width: dp(40)
+            halign: "right"
+            background_color: root.LABEL_BACKGROUND_COLOR
+            size_hint: (None, None)
+            height: root.LABEL_HEIGHT
+            valign: "middle"
+            text_size: (self.width, self.height)
+            minimum_height: self.height
+
+        TitleTreeViewLabel:
+            id: issue_label_id
+            parent: root
+            bold: False
+            color: (1.0, 1.0, 1.0, 0.8)
+            width: dp(80)
+            halign: "left"
+            background_color: root.LABEL_BACKGROUND_COLOR
+            size_hint: (None, None)
+            height: root.LABEL_HEIGHT
+            valign: "middle"
+            text_size: (self.width, self.height)
+            minimum_height: self.height
+
+    TreeViewRowNode:
+        TitleTreeViewLabel:
+            text: "   "
+            parent: root
+            bold: False
+            color: (1.0, 1.0, 1.0, 1.0)
+            width: dp(40)
+            halign: "right"
+            background_color: root.LABEL_BACKGROUND_COLOR
+            size_hint: (None, None)
+            height: root.LABEL_HEIGHT
+            valign: "middle"
+            text_size: (self.width, self.height)
+            minimum_height: self.height
+
+        TitleTreeViewLabel:
+            id: title_label_id
+            parent: root
+            font_size: sp(18)
+            bold: False
+            color: (1.0, 1.0, 0.0, 0.8)
+            height: dp(35)
+            width: dp(400)
+            halign: "left"
+            background_color: root.LABEL_BACKGROUND_COLOR
+            size_hint: (None, None)
+            height: root.LABEL_HEIGHT
+            valign: "middle"
+            text_size: (self.width, self.height)
+            minimum_height: self.height
