@@ -1,51 +1,59 @@
 #: include reader-tree-view.kv
 
 <MainScreen>:
-    orientation: "horizontal"
+    #orientation: "horizontal"
     size_hint: (1, 1)
     reader_contents: scroll_view
     intro_text: intro_text_box
     reader_contents_tree: tree_view
     title_page: title_page_image
+    minimum_height: self.height
+    minimum_width: self.width
 
-    ScrollView:
-        id: scroll_view
-        size_hint: (0.3, 0.95)
-        pos_hint: {"x": 0.025, "top": 0.95}
+    AnchorLayout:
+        anchor_x: "left"
+        anchor_y: "top"
 
-        do_scroll_x: False
-        do_scroll_y: True
-        always_overscroll: False
-        effect_cls: "ScrollEffect"
-        scroll_type: ["bars", "content"]
+        ScrollView:
+            id: scroll_view
+            size_hint: (0.34, 0.95)
 
-        bar_color: (0.8, 0.8, 0.8, 1)
-        bar_inactive_color: (0.8, 0.8, 0.8, 0.8)
-        bar_width: dp(5)
+            do_scroll_x: False
+            do_scroll_y: True
+            always_overscroll: False
+            effect_cls: "ScrollEffect"
+            scroll_type: ["bars", "content"]
 
-        ReaderTreeView:
-            id: tree_view
-            #padding: dp(50)
-            #indent_start: dp(50)
+            bar_color: (0.8, 0.8, 0.8, 1)
+            bar_inactive_color: (0.8, 0.8, 0.8, 0.8)
+            bar_width: dp(5)
 
-    TextInput:
-        id: intro_text_box
-        multiline: True
-        readonly: True
-        opacity: 0.0
-        size_hint: (0.66, 1)
-        pos_hint: {"x": 0.33, "top": 1.0}
+            ReaderTreeView:
+                id: tree_view
+                #padding: dp(50)
+                #indent_start: dp(50)
 
-    FloatLayout:
-        size_hint: (0.66, 1)
+    AnchorLayout:
+        anchor_x: "right"
+        anchor_y: "center"
+
+        TextInput:
+            id: intro_text_box
+            multiline: True
+            readonly: True
+            opacity: 0.0
+            size_hint: (0.66, 1)
+
+    AnchorLayout:
+        anchor_x: "right"
+        anchor_y: "center"
 
         TitlePageImage:
-            background_color: (0.0, 1.0, 0.0, 1.0)
             id: title_page_image
+            size_hint: (0.66, 0.85)
             source: "/tmp/1-01.jpg"
             fit_mode: "scale-down"
             allow_stretch: True
-            size_hint: (0.5, 0.85)
-            pos_hint: {"x": 0.75, "top": 0.95}
-            #pos_hint : {'center_x': 0.5, 'center_y': 0.09}
             on_press: root.image_pressed()
+            minimum_height: self.height
+            minimum_width: self.width

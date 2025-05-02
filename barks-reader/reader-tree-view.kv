@@ -43,6 +43,7 @@
     size_hint_y: None
     height: dp(2 * self.LABEL_HEIGHT)
     minimum_height: self.height
+    minimum_width: self.width
 
     num_label: num_label_id
     issue_label: issue_label_id
@@ -62,6 +63,7 @@
             valign: "middle"
             text_size: (self.width, self.height)
             minimum_height: self.height
+            minimum_width: self.width
 
         TitleTreeViewLabel:
             id: title_label_id
@@ -76,6 +78,7 @@
             valign: "middle"
             text_size: (self.width, self.height)
             minimum_height: self.height
+            minimum_width: self.width
 
     TreeViewRowNode:
         TitleTreeViewLabel:
@@ -90,6 +93,7 @@
             valign: "top"
             text_size: (self.width, self.height)
             minimum_height: self.height
+            minimum_width: self.width
 
         TitleTreeViewLabel:
             id: issue_label_id
@@ -104,3 +108,4 @@
             valign: "top"
             text_size: (self.width, self.height)
             minimum_height: self.height
+            minimum_width: self.width
