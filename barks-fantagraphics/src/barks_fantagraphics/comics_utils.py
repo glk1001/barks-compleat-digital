@@ -5,7 +5,7 @@ from datetime import datetime, date
 from pathlib import Path
 from typing import Union, List, Tuple
 
-from .comics_consts import BARKS_ROOT_DIR
+from .comics_consts import BARKS_ROOT_DIR, MONTH_AS_SHORT_STR
 from .fanta_comics_info import FantaComicBookInfo
 
 
@@ -161,3 +161,31 @@ def get_formatted_day(day: int) -> str:
         day_str = str(day) + "th"
 
     return day_str
+
+
+def get_short_formatted_first_published_str(fanta_info: FantaComicBookInfo) -> str:
+    issue = fanta_info.comic_book_info.get_issue_title()
+
+    if fanta_info.comic_book_info.issue_month == -1:
+        issue_date = fanta_info.comic_book_info.issue_year
+    else:
+        issue_date = (
+            f"{MONTH_AS_SHORT_STR[fanta_info.comic_book_info.issue_month]}"
+            f" {fanta_info.comic_book_info.issue_year}"
+        )
+
+    return f"{issue}, {issue_date}"
+
+
+def get_short_formatted_submitted_date(fanta_info: FantaComicBookInfo) -> str:
+    if fanta_info.comic_book_info.submitted_day == -1:
+        return (
+            f"{MONTH_AS_SHORT_STR[fanta_info.comic_book_info.submitted_month]}"
+            f" {fanta_info.comic_book_info.submitted_year}"
+        )
+
+    return (
+        f"{get_formatted_day(fanta_info.comic_book_info.submitted_day)}"
+        f" {MONTH_AS_SHORT_STR[fanta_info.comic_book_info.submitted_month]}"
+        f" {fanta_info.comic_book_info.submitted_year}"
+    )

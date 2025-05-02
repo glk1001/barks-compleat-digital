@@ -41,7 +41,7 @@
     orientation: "vertical"
     spacing: 5
     size_hint_y: None
-    height: dp(30 + 35)
+    height: dp(2 * self.LABEL_HEIGHT)
     minimum_height: self.height
 
     num_label: num_label_id
@@ -53,27 +53,27 @@
             id: num_label_id
             parent: root
             bold: True
-            color: (1.0, 1.0, 1.0, 1.0)
-            width: dp(40)
-            halign: "right"
+            color: root.NUM_LABEL_COLOR
             background_color: root.LABEL_BACKGROUND_COLOR
-            size_hint: (None, None)
+            width: root.NUM_LABEL_WIDTH
             height: root.LABEL_HEIGHT
+            halign: "right"
             valign: "middle"
+            size_hint: (None, None)
             text_size: (self.width, self.height)
             minimum_height: self.height
 
         TitleTreeViewLabel:
-            id: issue_label_id
+            id: title_label_id
             parent: root
-            bold: False
-            color: (1.0, 1.0, 1.0, 0.8)
-            width: dp(80)
-            halign: "left"
+#            font_size: sp(18)
+            color: root.TITLE_LABEL_COLOR
             background_color: root.LABEL_BACKGROUND_COLOR
-            size_hint: (None, None)
+            width: root.TITLE_LABEL_WIDTH
             height: root.LABEL_HEIGHT
+            halign: "left"
             valign: "middle"
+            size_hint: (None, None)
             text_size: (self.width, self.height)
             minimum_height: self.height
 
@@ -81,29 +81,26 @@
         TitleTreeViewLabel:
             text: "   "
             parent: root
-            bold: False
             color: (1.0, 1.0, 1.0, 1.0)
-            width: dp(40)
-            halign: "right"
             background_color: root.LABEL_BACKGROUND_COLOR
-            size_hint: (None, None)
+            width: root.NUM_LABEL_WIDTH
             height: root.LABEL_HEIGHT
-            valign: "middle"
+            halign: "right"
+            valign: "top"
+            size_hint: (None, None)
             text_size: (self.width, self.height)
             minimum_height: self.height
 
         TitleTreeViewLabel:
-            id: title_label_id
+            id: issue_label_id
             parent: root
-            font_size: sp(18)
-            bold: False
-            color: (1.0, 1.0, 0.0, 0.8)
-            height: dp(35)
-            width: dp(400)
-            halign: "left"
+            italic: True
+            color: root.ISSUE_LABEL_COLOR
             background_color: root.LABEL_BACKGROUND_COLOR
-            size_hint: (None, None)
+            width: root.ISSUE_LABEL_WIDTH
             height: root.LABEL_HEIGHT
-            valign: "middle"
+            halign: "left"
+            valign: "top"
+            size_hint: (None, None)
             text_size: (self.width, self.height)
             minimum_height: self.height

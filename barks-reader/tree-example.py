@@ -14,7 +14,11 @@ from kivy.uix.treeview import TreeView, TreeViewNode
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs
 from barks_fantagraphics.comics_database import ComicsDatabase
-from barks_fantagraphics.comics_utils import setup_logging
+from barks_fantagraphics.comics_utils import (
+    setup_logging,
+    get_short_formatted_submitted_date,
+    get_short_formatted_first_published_str,
+)
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
 from filtered_title_lists import FilteredTitleLists
 
@@ -30,26 +34,29 @@ def get_display_title(title: Tuple[str, FantaComicBookInfo]) -> str:
 
 
 class MainScreen(BoxLayout):
-    intro_text = ObjectProperty(text="hello line 1\nhello line 2\nhello line 3\n")
+    intro_text = ObjectProperty()
     reader_contents = ObjectProperty()
 
     def pressed(self, button: Button):
-        if button.text == "Introduction":
-            self.intro_text.opacity = 1.0
-        else:
+        if button.text != "Introduction":
             self.intro_text.opacity = 0.0
+        else:
+            self.intro_text.opacity = 1.0
+            self.intro_text.text = "hello line 1\nhello line 2\nhello line 3\n"
 
         print(f'"{type(button)}" "{button.text}" pressed.')
 
     def title_row_button_pressed(self, button: Button):
         self.intro_text.opacity = 0.0
 
-        print(
-            f'Title row button "{button.text}" pressed.'
-            f" num = {button.parent.num_label.text},"
-            f' title = "{button.parent.title_label.text}".'
-            f' issue = "{button.parent.issue_label.text}"'
+        # TODO: Extract this dir title
+        dir_title = (
+            f'"{button.parent.fanta_info.fanta_chronological_number:03d}'
+            f" {button.parent.title_label.text}"
+            f' [{button.parent.fanta_info.get_issue_title()}]"'
         )
+
+        print(f'Title row button "{button.text}" pressed.' f" Dir name = {dir_title}")
 
 
 class ReaderTreeView(TreeView):
@@ -88,6 +95,18 @@ class TitleTreeViewNode(BoxLayout, TreeViewNode):
     LABEL_BACKGROUND_COLOR = (0.0, 0.0, 0.0, 1.0)
     LABEL_HEIGHT = dp(30)
 
+    NUM_LABEL_WIDTH = dp(40)
+    TITLE_LABEL_WIDTH = dp(400)
+    ISSUE_LABEL_WIDTH = dp(300)
+
+    NUM_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
+    TITLE_LABEL_COLOR = (1.0, 1.0, 0.0, 1.0)
+    ISSUE_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
+
+    def __init__(self, fanta_info: FantaComicBookInfo, **kwargs):
+        super().__init__(**kwargs)
+        self.fanta_info = fanta_info
+
 
 class BarksReaderApp(App):
     def __init__(self, comics_db: ComicsDatabase, **kwargs):
@@ -97,9 +116,6 @@ class BarksReaderApp(App):
         self.filtered_title_lists = FilteredTitleLists()
 
         self.main_screen = None
-
-        self.label_height = 30
-        self.main_screen_label_width = 90
 
         Window.size = (1500, 800)
         Window.left = 300
@@ -176,16 +192,21 @@ class BarksReaderApp(App):
     def get_title_tree_view_node(self, title: Tuple[str, FantaComicBookInfo]) -> TitleTreeViewNode:
         fanta_info = title[1]
 
-        title_node = TitleTreeViewNode()
+        title_node = TitleTreeViewNode(fanta_info)
 
         title_node.num_label.text = str(fanta_info.fanta_chronological_number)
         title_node.num_label.bind(on_press=self.main_screen.title_row_button_pressed)
 
-        title_node.issue_label.text = fanta_info.comic_book_info.get_issue_title()
-        title_node.issue_label.bind(on_press=self.main_screen.title_row_button_pressed)
-
         title_node.title_label.text = get_display_title(title)
         title_node.title_label.bind(on_press=self.main_screen.title_row_button_pressed)
+
+        issue_info = (
+            f"{get_short_formatted_first_published_str(fanta_info)}"
+            f"  [{get_short_formatted_submitted_date(fanta_info)}]"
+        )
+
+        title_node.issue_label.text = issue_info
+        title_node.issue_label.bind(on_press=self.main_screen.title_row_button_pressed)
 
         return title_node
 

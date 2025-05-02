@@ -23,6 +23,21 @@ OCT = 10
 NOV = 11
 DEC = 12
 
+MONTH_AS_SHORT_STR: Dict[int, str] = {
+    JAN: "Jan",
+    FEB: "Feb",
+    MAR: "Mar",
+    APR: "Apr",
+    MAY: "May",
+    JUN: "Jun",
+    JUL: "Jul",
+    AUG: "Aug",
+    SEP: "Sep",
+    OCT: "Oct",
+    NOV: "Nov",
+    DEC: "Dec",
+}
+
 MONTH_AS_LONG_STR: Dict[int, str] = {
     JAN: "January",
     FEB: "February",
