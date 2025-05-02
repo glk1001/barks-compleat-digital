@@ -1,15 +1,20 @@
 import logging
+import os
 import sys
-from typing import Tuple, List
+from typing import Tuple, List, Union
 
 import kivy.core.text
+from kivy import Config
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.properties import ObjectProperty
+from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.image import Image
 from kivy.uix.treeview import TreeView, TreeViewNode
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs
@@ -21,6 +26,7 @@ from barks_fantagraphics.comics_utils import (
 )
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
 from filtered_title_lists import FilteredTitleLists
+from mcomix_reader import ComicReader
 
 Builder.load_file("tree-example.kv")
 
@@ -33,11 +39,43 @@ def get_display_title(title: Tuple[str, FantaComicBookInfo]) -> str:
     return title[0] if title[1].comic_book_info.is_barks_title else f"({title[0]})"
 
 
-class MainScreen(BoxLayout):
+# class MainScreen(BoxLayout):
+class MainScreen(FloatLayout):
     intro_text = ObjectProperty()
     reader_contents = ObjectProperty()
+    title_page = ObjectProperty()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.title_and_fanta_info: Union[Tuple[str, FantaComicBookInfo], None] = None
+        self.comic_reader = ComicReader()
+
+    def image_pressed(self):
+        if self.title_and_fanta_info is None:
+            self.intro_text.opacity = 0.0
+            print(f'Image "{self.title_page.source}" pressed. No title selected.')
+            return
+
+        if self.comic_reader.reader_is_running:
+            print(f'Image "{self.title_page.source}" pressed. Already reading comic.')
+            return
+
+        # TODO: Extract this dir title
+        comic_filename = (
+            f"{self.title_and_fanta_info[1].fanta_chronological_number:03d}"
+            f" {self.title_and_fanta_info[0].strip('()')}"
+            f" [{self.title_and_fanta_info[1].get_issue_title()}]"
+        )
+
+        print(f'Image "{self.title_page.source}" pressed. Want to run "{comic_filename}".')
+
+        self.comic_reader.show_comic(comic_filename)
+
+        print(f"Exited image press.")
 
     def pressed(self, button: Button):
+        self.title_page.opacity = 0.0
+
         if button.text != "Introduction":
             self.intro_text.opacity = 0.0
         else:
@@ -49,18 +87,29 @@ class MainScreen(BoxLayout):
     def title_row_button_pressed(self, button: Button):
         self.intro_text.opacity = 0.0
 
+        self.title_and_fanta_info = (button.parent.title_label.text, button.parent.fanta_info)
+
         # TODO: Extract this dir title
         dir_title = (
-            f'"{button.parent.fanta_info.fanta_chronological_number:03d}'
-            f" {button.parent.title_label.text}"
-            f' [{button.parent.fanta_info.get_issue_title()}]"'
+            f"{button.parent.fanta_info.fanta_chronological_number:03d}"
+            f" {button.parent.title_label.text.strip('()')}"
         )
 
-        print(f'Title row button "{button.text}" pressed.' f" Dir name = {dir_title}")
+        print(f'Title row button "{button.text}" pressed. Dir name = "{dir_title}".')
+
+        THE_COMICS_DIR = os.path.join(
+            "/home/greg", "Books/Carl Barks/The Comics/aaa-Chronological-dirs"
+        )
+        self.title_page.source = os.path.join(THE_COMICS_DIR, dir_title, "images", f"1-01.jpg")
+        self.title_page.opacity = 1.0
+
+
+class TitlePageImage(ButtonBehavior, Image):
+    pass
 
 
 class ReaderTreeView(TreeView):
-    TREE_VIEW_INDENT_LEVEL = dp(40)
+    TREE_VIEW_INDENT_LEVEL = dp(30)
 
 
 class MainTreeViewNode(Button, TreeViewNode):
@@ -115,13 +164,18 @@ class BarksReaderApp(App):
         self.comics_database = comics_db
         self.filtered_title_lists = FilteredTitleLists()
 
-        self.main_screen = None
+        self.main_screen: Union[MainScreen, None] = None
 
-        Window.size = (1500, 800)
+        Window.size = (1100, 800)
         Window.left = 300
         Window.top = 200
 
+    def on_request_close_window(self, *args):
+        return self.main_screen.comic_reader.on_app_request_close()
+
     def build(self):
+        Window.bind(on_request_close=self.on_request_close_window)
+
         self.main_screen = MainScreen()
 
         self.build_main_screen_tree()
@@ -223,5 +277,9 @@ if __name__ == "__main__":
     setup_logging(cmd_args.get_log_level())
 
     comics_database = cmd_args.get_comics_database()
+
+	# TODO: Not working properly?
+    Config.set('graphics', 'multisamples', 8)
+    Config.write()
 
     BarksReaderApp(comics_database).run()
