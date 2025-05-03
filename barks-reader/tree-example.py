@@ -43,7 +43,8 @@ def get_display_title(title: Tuple[str, FantaComicBookInfo]) -> str:
 class MainScreen(FloatLayout):
     intro_text = ObjectProperty()
     reader_contents = ObjectProperty()
-    title_page = ObjectProperty()
+    title_page_image = ObjectProperty()
+    title_page_button = ObjectProperty()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -53,11 +54,11 @@ class MainScreen(FloatLayout):
     def image_pressed(self):
         if self.title_and_fanta_info is None:
             self.intro_text.opacity = 0.0
-            print(f'Image "{self.title_page.source}" pressed. No title selected.')
+            print(f'Image "{self.title_page_image.source}" pressed. No title selected.')
             return
 
         if self.comic_reader.reader_is_running:
-            print(f'Image "{self.title_page.source}" pressed. Already reading comic.')
+            print(f'Image "{self.title_page_image.source}" pressed. Already reading comic.')
             return
 
         # TODO: Extract this dir title
@@ -67,14 +68,14 @@ class MainScreen(FloatLayout):
             f" [{self.title_and_fanta_info[1].get_issue_title()}]"
         )
 
-        print(f'Image "{self.title_page.source}" pressed. Want to run "{comic_filename}".')
+        print(f'Image "{self.title_page_image.source}" pressed. Want to run "{comic_filename}".')
 
         self.comic_reader.show_comic(comic_filename)
 
         print(f"Exited image press.")
 
     def pressed(self, button: Button):
-        self.title_page.opacity = 0.0
+        self.title_page_button.visible = False
 
         if button.text != "Introduction":
             self.intro_text.opacity = 0.0
@@ -100,8 +101,8 @@ class MainScreen(FloatLayout):
         THE_COMICS_DIR = os.path.join(
             "/home/greg", "Books/Carl Barks/The Comics/aaa-Chronological-dirs"
         )
-        self.title_page.source = os.path.join(THE_COMICS_DIR, dir_title, "images", f"1-01.jpg")
-        self.title_page.opacity = 1.0
+        self.title_page_image.source = os.path.join(THE_COMICS_DIR, dir_title, "images", f"1-01.jpg")
+        self.title_page_button.visible = True
 
 
 class TitlePageImage(ButtonBehavior, Image):
