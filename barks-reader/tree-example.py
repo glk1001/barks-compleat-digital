@@ -39,8 +39,8 @@ def get_display_title(title: Tuple[str, FantaComicBookInfo]) -> str:
     return title[0] if title[1].comic_book_info.is_barks_title else f"({title[0]})"
 
 
-# class MainScreen(BoxLayout):
-class MainScreen(FloatLayout):
+class MainScreen(BoxLayout):
+#class MainScreen(FloatLayout):
     intro_text = ObjectProperty()
     reader_contents = ObjectProperty()
     title_page_image = ObjectProperty()

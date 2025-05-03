@@ -26,7 +26,7 @@
 
             ScrollView:
                 id: scroll_view
-                size_hint: (0.34, 0.97)
+                size_hint: (1, 0.97)
 
                 do_scroll_x: False
                 do_scroll_y: True
@@ -52,26 +52,22 @@
             multiline: True
             readonly: True
             opacity: 0.0
-            size_hint: (0.66, 1)
-
-    AnchorLayout:
-        anchor_x: "right"
-        anchor_y: "center"
+            size_hint: (1, 1)
 
         Button:
             id: title_page_button_id
             text: "push me"
             visible: True
-            size_hint_y: 1.0
-            size_hint_x: 0.66 if self.visible else 0
+            size_hint_y: 1
+            size_hint_x: 1 if self.visible else 0
             opacity: 1 if self.visible else 0
             disabled: not self.visible
 
             TitlePageImage:
                 id: title_page_image_id
-                y: self.parent.y
+                y: self.parent.y + 0.5*(1.0-0.97)*self.parent.size[1]
                 x: self.parent.x
-                size: (self.parent.size[0], self.parent.size[1])
+                size: (self.parent.size[0], 0.97*self.parent.size[1])
                 source: "/tmp/1-01.jpg"
                 fit_mode: "contain"
                 opacity: 1 if self.parent.visible else 0
