@@ -1,38 +1,47 @@
 #: include reader-tree-view.kv
 
 <MainScreen>:
-    #orientation: "horizontal"
+    orientation: 'vertical' if self.width < self.height else 'horizontal'
     size_hint: (1, 1)
     reader_contents: scroll_view
     intro_text: intro_text_box
     reader_contents_tree: tree_view
     title_page_button: title_page_button_id
     title_page_image: title_page_image_id
-    minimum_height: self.height
-    minimum_width: self.width
 
     AnchorLayout:
         anchor_x: "left"
         anchor_y: "top"
 
-        ScrollView:
-            id: scroll_view
-            size_hint: (0.34, 0.95)
+        AnchorLayout:
+            anchor_x: "left"
+            anchor_y: "top"
 
-            do_scroll_x: False
-            do_scroll_y: True
-            always_overscroll: False
-            effect_cls: "ScrollEffect"
-            scroll_type: ["bars", "content"]
+            Label:
+                size_hint: (0.34, 0.03)
 
-            bar_color: (0.8, 0.8, 0.8, 1)
-            bar_inactive_color: (0.8, 0.8, 0.8, 0.8)
-            bar_width: dp(5)
+        AnchorLayout:
+            anchor_x: "left"
+            anchor_y: "bottom"
 
-            ReaderTreeView:
-                id: tree_view
-                #padding: dp(50)
-                #indent_start: dp(50)
+            ScrollView:
+                id: scroll_view
+                size_hint: (0.34, 0.97)
+
+                do_scroll_x: False
+                do_scroll_y: True
+                always_overscroll: False
+                effect_cls: "ScrollEffect"
+                scroll_type: ["bars", "content"]
+
+                bar_color: (0.8, 0.8, 0.8, 1)
+                bar_inactive_color: (0.8, 0.8, 0.8, 0.8)
+                bar_width: dp(5)
+
+                ReaderTreeView:
+                    id: tree_view
+                    padding: dp(50)
+                    indent_start: dp(50)
 
     AnchorLayout:
         anchor_x: "right"
@@ -65,7 +74,6 @@
                 size: (self.parent.size[0], self.parent.size[1])
                 source: "/tmp/1-01.jpg"
                 fit_mode: "contain"
-                allow_stretch: True
                 opacity: 1 if self.parent.visible else 0
                 on_press: root.image_pressed()
                 #minimum_height: self.height
