@@ -54,23 +54,82 @@
             opacity: 0.0
             size_hint: (1, 1)
 
-        Button:
-            id: title_page_button_id
-            text: "push me"
-            visible: True
-            size_hint_y: 1
-            size_hint_x: 1 if self.visible else 0
-            opacity: 1 if self.visible else 0
-            disabled: not self.visible
+        BoxLayout:
+            orientation: "horizontal"
+            background_color: (0, 1, 0, 0)
 
-            TitlePageImage:
-                id: title_page_image_id
-                y: self.parent.y + 0.5*(1.0-0.97)*self.parent.size[1]
-                x: self.parent.x
-                size: (self.parent.size[0], 0.97*self.parent.size[1])
-                source: "/tmp/1-01.jpg"
-                fit_mode: "contain"
-                opacity: 1 if self.parent.visible else 0
-                on_press: root.image_pressed()
-                #minimum_height: self.height
-                #minimum_width: self.width
+            canvas.after:
+                Color:
+                    rgba: 1, 0, 0, 1
+                Line:
+                    width: 20
+                    rectangle: self.x, self.y, self.width, self.height
+
+            BoxLayout:
+                orientation: "vertical"
+                Label:
+                    text: ""
+                    multiline: True
+                    size_hint: (1, 0.2)
+                    text_size: (self.width, self.height)
+                Label:
+                    text: "[b]Lost in the\nAndes![/b]"
+                    markup: True
+                    font_name: "Carl Barks Script"
+                    font_size: sp(20)
+                    multiline: True
+                    size_hint: (1, 0.2)
+                    pos_hint: {"y": 0.5}
+                    halign: "center"
+                    valign: "middle"
+                    text_size: (self.width, self.height)
+                Label:
+                    text: "[b]Comics & Stories 104, Oct 1949[/b]\nSubmitted, [b]10th Jan 1949[/b]\nThis edition, Fantagraphics CBDL, Vol 7"
+                    markup: True
+                    multiline: True
+                    size_hint: (1, 0.5)
+                    pos_hint: {"x": 0.1, "y": 0.2}
+                    halign: "left"
+                    valign: "top"
+                    text_size: (self.width, self.height)
+
+                Label:
+                    text: "Blah blah blah\netc etc etc"
+                    background_color: (0, 1, 0, 0)
+                    multiline: True
+                    size_hint: (1, 0.3)
+                    pos_hint: {"x": 0.1}
+                    halign: "left"
+                    valign: "top"
+                    text_size: (self.width, self.height)
+
+            Button:
+                canvas.before:
+                    Color:
+                        rgba: 1, 0, 0, 1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+
+                id: title_page_button_id
+                background_color: (0.0, 1.0, 0.0, 1.0)
+                visible: True
+                size_hint_y: 0.7
+                size_hint_x: 1 if self.visible else 0
+                opacity: 1 if self.visible else 0
+                disabled: not self.visible
+                halign: "center"
+                valign: "top"
+                text_size: (self.width, self.height)
+
+                TitlePageImage:
+                    id: title_page_image_id
+                    x: self.parent.x + 0.5 * (1.0 - self.TITLE_IMAGE_X_FRAC_OF_PARENT) * self.parent.size[0]
+                    y: self.parent.y + 0.5 * (1.0 - self.TITLE_IMAGE_Y_FRAC_OF_PARENT) * self.parent.size[1]
+                    size: (self.TITLE_IMAGE_X_FRAC_OF_PARENT * self.parent.size[0], self.TITLE_IMAGE_Y_FRAC_OF_PARENT * self.parent.size[1])
+                    source: "/tmp/1-01.jpg"
+                    fit_mode: "contain"
+                    opacity: 1 if self.parent.visible else 0
+                    on_press: root.image_pressed()
+                    #minimum_height: self.height
+                    #minimum_width: self.width
