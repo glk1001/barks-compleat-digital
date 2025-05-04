@@ -35,11 +35,11 @@
 
 <TreeViewRowNode@BoxLayout>:
     orientation: "horizontal"
-    spacing: 20
+    spacing: 0
 
 <TitleTreeViewNode>:
     orientation: "vertical"
-    spacing: 5
+    spacing: 0
     size_hint_y: None
     height: dp(2 * self.LABEL_HEIGHT)
     minimum_height: self.height
@@ -56,19 +56,18 @@
             bold: True
             color: root.NUM_LABEL_COLOR
             background_color: root.LABEL_BACKGROUND_COLOR
+            color_selected: [0,0,1,1]
+            bg_color: [1,0,1,1]
             size_hint: (None, None)
             width: root.NUM_LABEL_WIDTH
             height: root.LABEL_HEIGHT
             halign: "right"
             valign: "middle"
             text_size: (self.width, self.height)
-            minimum_height: self.height
-            minimum_width: self.width
 
         TitleTreeViewLabel:
             id: title_label_id
             parent: root
-#            font_size: sp(18)
             color: root.TITLE_LABEL_COLOR
             background_color: root.LABEL_BACKGROUND_COLOR
             size_hint: (None, None)
@@ -77,8 +76,6 @@
             halign: "left"
             valign: "middle"
             text_size: (self.width, self.height)
-            minimum_height: self.height
-            minimum_width: self.width
 
     TreeViewRowNode:
         TitleTreeViewLabel:
@@ -90,10 +87,8 @@
             width: root.NUM_LABEL_WIDTH
             height: root.LABEL_HEIGHT
             halign: "right"
-            valign: "top"
+            valign: "middle"
             text_size: (self.width, self.height)
-            minimum_height: self.height
-            minimum_width: self.width
 
         TitleTreeViewLabel:
             id: issue_label_id
@@ -105,7 +100,5 @@
             width: root.ISSUE_LABEL_WIDTH
             height: root.LABEL_HEIGHT
             halign: "left"
-            valign: "top"
+            valign: "middle"
             text_size: (self.width, self.height)
-            minimum_height: self.height
-            minimum_width: self.width

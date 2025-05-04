@@ -34,6 +34,8 @@ from file_paths import (
 from filtered_title_lists import FilteredTitleLists
 from mcomix_reader import ComicReader
 
+APP_TITLE = "The Compleat Barks Reader"
+
 Builder.load_file("tree-example.kv")
 
 
@@ -50,7 +52,8 @@ def get_display_title(title_info: FullFantaComicBookInfo) -> str:
 
 
 class MainScreen(BoxLayout):
-    # class MainScreen(FloatLayout):
+    TITLE_INFO_BORDER_WIDTH = dp(5)
+
     intro_text = ObjectProperty()
     reader_contents = ObjectProperty()
     title_page_image = ObjectProperty()
@@ -126,7 +129,7 @@ class TitlePageImage(ButtonBehavior, Image):
 
 class MainTreeViewNode(Button, TreeViewNode):
     TEXT_COLOR = (1.0, 0.0, 0.0, 1.0)
-    BACKGROUND_COLOR = (0.0, 0.0, 0.0, 1.0)
+    BACKGROUND_COLOR = (0.0, 1.0, 1.0, 1.0)
     NODE_SIZE = (dp(100), dp(30))
 
 
@@ -153,12 +156,12 @@ class TitleTreeViewLabel(Button):
 
 
 class TitleTreeViewNode(BoxLayout, TreeViewNode):
-    LABEL_BACKGROUND_COLOR = (0.0, 0.0, 0.0, 1.0)
+    LABEL_BACKGROUND_COLOR = (0.0, 1.0, 0.0, 1.0)
     LABEL_HEIGHT = dp(30)
 
     NUM_LABEL_WIDTH = dp(40)
     TITLE_LABEL_WIDTH = dp(400)
-    ISSUE_LABEL_WIDTH = dp(300)
+    ISSUE_LABEL_WIDTH = dp(400)
 
     NUM_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
     TITLE_LABEL_COLOR = (1.0, 1.0, 0.0, 1.0)
@@ -191,6 +194,8 @@ class BarksReaderApp(App):
         self.main_screen = MainScreen()
 
         self.build_main_screen_tree()
+
+        self.title = APP_TITLE
 
         return self.main_screen
 

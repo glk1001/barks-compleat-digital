@@ -24,6 +24,13 @@
             anchor_x: "left"
             anchor_y: "bottom"
 
+            canvas.before:
+                Color:
+                    rgba: 1, 0, 1, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
             ScrollView:
                 id: scroll_view
                 size_hint: (1, 0.97)
@@ -42,6 +49,7 @@
                     id: tree_view
                     padding: dp(50)
                     indent_start: dp(50)
+                    background_color: (0,1,0,1)
 
     AnchorLayout:
         anchor_x: "right"
@@ -55,81 +63,148 @@
             size_hint: (1, 1)
 
         BoxLayout:
-            orientation: "horizontal"
-            background_color: (0, 1, 0, 0)
+            orientation: "vertical"
 
-            canvas.after:
+            canvas.before:
                 Color:
                     rgba: 1, 0, 0, 1
+
                 Line:
-                    width: 20
-                    rectangle: self.x, self.y, self.width, self.height
+                    width: root.TITLE_INFO_BORDER_WIDTH
+                    joint: 'miter'
+                    rectangle:
+                        self.x + root.TITLE_INFO_BORDER_WIDTH, self.y + root.TITLE_INFO_BORDER_WIDTH, \
+                        self.width - 2 * root.TITLE_INFO_BORDER_WIDTH, self.height - 2 * root.TITLE_INFO_BORDER_WIDTH - dp(20)
 
-            BoxLayout:
-                orientation: "vertical"
-                Label:
-                    text: ""
-                    multiline: True
-                    size_hint: (1, 0.2)
-                    text_size: (self.width, self.height)
-                Label:
-                    text: "[b]Lost in the\nAndes![/b]"
-                    markup: True
-                    font_name: "Carl Barks Script"
-                    font_size: sp(20)
-                    multiline: True
-                    size_hint: (1, 0.2)
-                    pos_hint: {"y": 0.5}
-                    halign: "center"
-                    valign: "middle"
-                    text_size: (self.width, self.height)
-                Label:
-                    text: "[b]Comics & Stories 104, Oct 1949[/b]\nSubmitted, [b]10th Jan 1949[/b]\nThis edition, Fantagraphics CBDL, Vol 7"
-                    markup: True
-                    multiline: True
-                    size_hint: (1, 0.5)
-                    pos_hint: {"x": 0.1, "y": 0.2}
-                    halign: "left"
-                    valign: "top"
-                    text_size: (self.width, self.height)
-
-                Label:
-                    text: "Blah blah blah\netc etc etc"
-                    background_color: (0, 1, 0, 0)
-                    multiline: True
-                    size_hint: (1, 0.3)
-                    pos_hint: {"x": 0.1}
-                    halign: "left"
-                    valign: "top"
-                    text_size: (self.width, self.height)
-
-            Button:
+            Label:
                 canvas.before:
                     Color:
-                        rgba: 1, 0, 0, 1
-                    Line:
-                        width: 2
-                        rectangle: self.x, self.y, self.width, self.height
+                        rgba: 1, 0, 1, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
 
-                id: title_page_button_id
-                background_color: (0.0, 1.0, 0.0, 1.0)
-                visible: True
-                size_hint_y: 0.7
-                size_hint_x: 1 if self.visible else 0
-                opacity: 1 if self.visible else 0
-                disabled: not self.visible
+                text: "before title filler"
+                opacity: 0
+                size_hint: (1, 0.2)
+                text_size: (self.width, self.height)
+
+            Label:
+                canvas.before:
+                    Color:
+                        rgba: 1, 0, 0, 0.5
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+                text: "[b]The Colossalest Surprise Quiz Show[/b]"
+                markup: True
+                font_name: "Carl Barks Script"
+                font_size: sp(30)
+                multiline: True
+                size_hint: (1, 0.2)
+                pos_hint: {"y": 0.2}
                 halign: "center"
                 valign: "top"
                 text_size: (self.width, self.height)
 
-                TitlePageImage:
-                    id: title_page_image_id
-                    x: self.parent.x + 0.5 * (1.0 - self.TITLE_IMAGE_X_FRAC_OF_PARENT) * self.parent.size[0]
-                    y: self.parent.y + 0.5 * (1.0 - self.TITLE_IMAGE_Y_FRAC_OF_PARENT) * self.parent.size[1]
-                    size: (self.TITLE_IMAGE_X_FRAC_OF_PARENT * self.parent.size[0], self.TITLE_IMAGE_Y_FRAC_OF_PARENT * self.parent.size[1])
-                    source: "/tmp/1-01.jpg"
-                    fit_mode: "contain"
-                    opacity: 1 if self.parent.visible else 0
-                    on_press: root.image_pressed()
-                    #minimum_height: self.height
-                    #minimum_width: self.width
+            BoxLayout:
+                orientation: "horizontal"
+                background_color: (0, 1, 0, 0)
+
+                BoxLayout:
+                    orientation: "vertical"
+
+                    Label:
+                        canvas.before:
+                            Color:
+                                rgba: 0, 0, 1, 1
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
+
+                        text: "before title info filler"
+                        opacity: 0.5
+                        size_hint: (0.9, 0.2)
+                        pos_hint: {"x": 0.1, "y": 0}
+                        halign: "left"
+                        valign: "top"
+                        text_size: (self.width, self.height)
+
+                    Label:
+                        canvas.before:
+                            Color:
+                                rgba: 0, 1, 0, 1
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
+
+                        text: "[b]Comics & Stories 104, Oct 1949[/b]\nSubmitted, [b]10th Jan 1949[/b]\nThis edition, Fantagraphics CBDL, Vol 7"
+                        markup: True
+                        multiline: True
+                        size_hint: (0.9, 0.3)
+                        pos_hint: {"x": 0.1, "y": 0.2}
+                        halign: "left"
+                        valign: "top"
+                        text_size: (self.width, self.height)
+
+                    Label:
+                        canvas.before:
+                            Color:
+                                rgba: 0, 1, 1, 1
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
+
+                        text: "Blah blah blah\netc etc etc"
+                        background_color: (0, 1, 0, 0)
+                        multiline: True
+                        size_hint: (0.9, 0.3)
+                        pos_hint: {"x": 0.1}
+                        halign: "left"
+                        valign: "top"
+                        text_size: (self.width, self.height)
+
+                Button:
+                    canvas.before:
+                        Color:
+                            rgba: 1, 0, 0, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+
+                    id: title_page_button_id
+                    background_color: (0.0, 1.0, 0.0, 1.0)
+                    visible: True
+                    size_hint_y: 0.9
+                    size_hint_x: 0.9 if self.visible else 0
+                    opacity: 1 if self.visible else 0
+                    disabled: not self.visible
+                    halign: "center"
+                    valign: "top"
+                    text_size: (self.width, self.height)
+
+                    TitlePageImage:
+                        id: title_page_image_id
+                        x: self.parent.x + 0.5 * (1.0 - self.TITLE_IMAGE_X_FRAC_OF_PARENT) * self.parent.size[0]
+                        y: self.parent.y + 0.5 * (1.0 - self.TITLE_IMAGE_Y_FRAC_OF_PARENT) * self.parent.size[1]
+                        size: (self.TITLE_IMAGE_X_FRAC_OF_PARENT * self.parent.size[0], self.TITLE_IMAGE_Y_FRAC_OF_PARENT * self.parent.size[1])
+                        source: "/tmp/1-01.jpg"
+                        fit_mode: "contain"
+                        opacity: 1 if self.parent.visible else 0
+                        on_press: root.image_pressed()
+                        #minimum_height: self.height
+                        #minimum_width: self.width
+
+                Label:
+                    text: "right of title image filler"
+                    opacity: 0
+                    size_hint: (0.1, 0.9)
+                    text_size: (self.width, self.height)
+
+            Label:
+                text: "bottom of title image filler"
+                opacity: 0
+                size_hint: (1, 0.1)
+                #height: root.TITLE_INFO_BORDER_WIDTH
+                text_size: (self.width, self.height)
