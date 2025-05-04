@@ -2,7 +2,7 @@ import collections
 import logging
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, OrderedDict, Tuple, List, Callable
+from typing import Dict, OrderedDict, List, Callable
 
 from . import barks_titles as bt
 from .barks_titles import ComicBookInfo, get_all_comic_book_info, CS, DD, US
@@ -17,8 +17,8 @@ class FantaComicBookInfo:
     number_in_series: int = -1
     fanta_chronological_number: int = -1
 
-    def get_issue_title(self):
-        return self.comic_book_info.get_issue_title()
+    def get_short_issue_title(self):
+        return self.comic_book_info.get_short_issue_title()
 
 
 FantaComicBookInfoDict = OrderedDict[str, FantaComicBookInfo]
@@ -521,9 +521,15 @@ SERIES_INFO: Dict[str, FantaSeriesInfo] = {
 }
 
 
+@dataclass
+class FullFantaComicBookInfo:
+    title: str
+    fanta_info: FantaComicBookInfo
+
+
 def get_filtered_title_lists(
     filters: Dict[str, Callable[[FantaComicBookInfo], bool]]
-) -> Dict[str, List[Tuple[str, FantaComicBookInfo]]]:
+) -> Dict[str, List[FullFantaComicBookInfo]]:
     titles = get_all_fanta_comic_book_info()
     filtered_dict = defaultdict(list)
     for title in titles:
@@ -531,6 +537,6 @@ def get_filtered_title_lists(
         for filt in filters:
             filter_func = filters[filt]
             if filter_func(fanta_info):
-                filtered_dict[filt].append((title, fanta_info))
+                filtered_dict[filt].append(FullFantaComicBookInfo(title, fanta_info))
 
     return filtered_dict

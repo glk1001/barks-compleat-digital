@@ -15,8 +15,6 @@ from .comic_book import (
     INTRO_TITLE_DEFAULT_FONT_SIZE,
     INTRO_AUTHOR_DEFAULT_FONT_SIZE,
     get_inset_file,
-    get_formatted_first_published_str,
-    get_formatted_submitted_date,
     get_main_publication_info,
     _get_pages_in_order,
 )
@@ -28,7 +26,11 @@ from .comics_consts import (
     INTRO_TITLE_DEFAULT_FONT_FILE,
     STORY_TITLES_DIR,
 )
-from .comics_utils import get_relpath
+from .comics_utils import (
+    get_relpath,
+    get_formatted_first_published_str,
+    get_formatted_submitted_date,
+)
 from .fanta_comics_info import (
     FantaComicBookInfo,
     FantaBook,
@@ -66,7 +68,7 @@ class ComicsDatabase:
     def _get_all_issue_titles(self):
         all_issues = {}
         for title in self._all_comic_book_info:
-            issue_title = self._all_comic_book_info[title].get_issue_title()
+            issue_title = self._all_comic_book_info[title].get_short_issue_title()
             if issue_title not in all_issues:
                 all_issues[issue_title] = [title]
             else:

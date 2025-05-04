@@ -5,21 +5,23 @@ import threading
 
 from kivy.clock import Clock
 
-HOME_DIR = os.environ.get("HOME")
-
-MCOMIX_PYTHON_PATH = os.path.join(HOME_DIR, "Prj/github/mcomix-git-glk1001/.venv/bin/python")
-MCOMIX_PATH = os.path.join(HOME_DIR, "Prj/github/mcomix-git-glk1001/mcomixstarter.py")
-
-THE_COMICS_DIR = os.path.join(HOME_DIR, "Books/Carl Barks/The Comics/Chronological")
-BARKS_READER_CONFIG_PATH = os.path.join(
-    HOME_DIR, "Prj/github/barks-compleat-digital/barks-reader/mcomix-barks-ui-desc.xml"
-)
-
 
 class ComicReader:
-    def __init__(self):
+    def __init__(
+        self,
+        mcomix_python_bin_path: str,
+        mcomix_path: str,
+        mcomix_barks_reader_config_path: str,
+        the_comic_zips_dir: str,
+    ):
         self.reader_is_running = False
-        self.comic_name: str = ""
+
+        self.mcomix_python_bin_path = mcomix_python_bin_path
+        self.mcomix_path = mcomix_path
+        self.mcomix_barks_reader_config_path = mcomix_barks_reader_config_path
+        self.the_comic_zips_dir = the_comic_zips_dir
+
+        self.comic_file_stem: str = ""
         self.comic_path: str = ""
 
     def on_app_request_close(self):
@@ -29,22 +31,22 @@ class ComicReader:
 
         return False  # Returning False allows the app to close now
 
-    def show_comic(self, value: str):
-        self.comic_name = value
+    def show_comic(self, comic_file_stem: str):
+        self.comic_file_stem = comic_file_stem
 
         Clock.schedule_once(lambda dt: self.run_reader(), 0.1)
 
     def run_reader(self):
-        self.comic_path = os.path.join(THE_COMICS_DIR, self.comic_name + ".cbz")
+        self.comic_path = os.path.join(self.the_comic_zips_dir, self.comic_file_stem + ".cbz")
 
         threading.Thread(target=self.run_comic_reader, daemon=True).start()
 
     def run_comic_reader(self) -> None:
-        ui_desc_path = BARKS_READER_CONFIG_PATH
+        ui_desc_path = self.mcomix_barks_reader_config_path
 
         run_args = [
-            MCOMIX_PYTHON_PATH,
-            MCOMIX_PATH,
+            self.mcomix_python_bin_path,
+            self.mcomix_path,
             "--ui-desc-file",
             ui_desc_path,
             self.comic_path,

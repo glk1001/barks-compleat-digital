@@ -52,7 +52,7 @@ def get_issue_titles(
         ttl = title_info[0]
         cb_info = title_info[1]
         title_is_configured, _ = comics_database.is_story_title(ttl)
-        comic_issue_title = cb_info.get_issue_title()
+        comic_issue_title = cb_info.get_short_issue_title()
         comic_issue_title_info_list.append(
             (ttl, comic_issue_title, title_info[1], title_is_configured)
         )

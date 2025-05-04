@@ -16,7 +16,6 @@ from .comics_consts import (
     THE_COMICS_DIR,
     THE_YEARS_COMICS_DIR,
     INSET_FILE_EXT,
-    MONTH_AS_LONG_STR,
     RESTORABLE_PAGE_TYPES,
     STORY_PAGE_TYPES,
     STORY_PAGE_TYPES_STR_LIST,
@@ -25,7 +24,13 @@ from .comics_consts import (
     SVG_FILE_EXT,
     JSON_FILE_EXT,
 )
-from .comics_utils import get_abbrev_path, get_formatted_day
+from .comics_utils import (
+    get_abbrev_path,
+    get_dest_comic_dirname,
+    get_dest_comic_zip_file_stem,
+    get_formatted_first_published_str,
+    get_formatted_submitted_date,
+)
 from .fanta_comics_info import (
     CENSORED_TITLES,
     FantaComicBookInfo,
@@ -467,8 +472,9 @@ class ComicBook:
         )
 
     def get_dest_rel_dirname(self) -> str:
-        dir_title = _get_lookup_title(self.title, self.get_ini_title())
-        return f"{self.chronological_number:03d} {dir_title}"
+        return get_dest_comic_dirname(
+            _get_lookup_title(self.title, self.get_ini_title()), self.chronological_number
+        )
 
     def get_series_comic_title(self) -> str:
         return f"{self.series_name} {self.number_in_series}"
@@ -536,10 +542,14 @@ class ComicBook:
         return f"{issue_name}{self.fanta_info.comic_book_info.issue_number}"
 
     def get_comic_issue_title(self) -> str:
-        return self.fanta_info.get_issue_title()
+        return self.fanta_info.get_short_issue_title()
 
     def get_title_with_issue_num(self) -> str:
-        return f"{self.get_dest_rel_dirname()} [{self.get_comic_issue_title()}]"
+        return get_dest_comic_zip_file_stem(
+            _get_lookup_title(self.title, self.get_ini_title()),
+            self.chronological_number,
+            self.get_comic_issue_title(),
+        )
 
 
 def _get_lookup_title(title: str, file_title: str) -> str:
@@ -621,34 +631,6 @@ def get_inset_file(ini_file: str) -> str:
     ini_file_dir = os.path.dirname(ini_file)
 
     return os.path.join(ini_file_dir, inset_filename)
-
-
-def get_formatted_first_published_str(fanta_info: FantaComicBookInfo) -> str:
-    issue = f"{fanta_info.comic_book_info.issue_name} #{fanta_info.comic_book_info.issue_number}"
-
-    if fanta_info.comic_book_info.issue_month == -1:
-        issue_date = fanta_info.comic_book_info.issue_year
-    else:
-        issue_date = (
-            f"{MONTH_AS_LONG_STR[fanta_info.comic_book_info.issue_month]}"
-            f" {fanta_info.comic_book_info.issue_year}"
-        )
-
-    return f"{issue}, {issue_date}"
-
-
-def get_formatted_submitted_date(fanta_info: FantaComicBookInfo) -> str:
-    if fanta_info.comic_book_info.submitted_day == -1:
-        return (
-            f", {MONTH_AS_LONG_STR[fanta_info.comic_book_info.submitted_month]}"
-            f" {fanta_info.comic_book_info.submitted_year}"
-        )
-
-    return (
-        f" on {MONTH_AS_LONG_STR[fanta_info.comic_book_info.submitted_month]}"
-        f" {get_formatted_day(fanta_info.comic_book_info.submitted_day)},"
-        f" {fanta_info.comic_book_info.submitted_year}"
-    )
 
 
 def get_story_files(image_dir: str, comic: ComicBook, file_ext: str) -> List[str]:

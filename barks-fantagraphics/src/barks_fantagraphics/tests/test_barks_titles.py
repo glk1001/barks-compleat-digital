@@ -29,7 +29,7 @@ class TestComicBookInfo(unittest.TestCase):
             chronological_number=77,
         )
         expected_title = f"{SHORT_ISSUE_NAME[FC]} 178"
-        self.assertEqual(info.get_issue_title(), expected_title)
+        self.assertEqual(info.get_short_issue_title(), expected_title)
 
         info_us = ComicBookInfo(
             is_barks_title=False,
@@ -43,7 +43,7 @@ class TestComicBookInfo(unittest.TestCase):
             chronological_number=455,
         )
         expected_title_us = f"{SHORT_ISSUE_NAME[US]} 31"
-        self.assertEqual(info_us.get_issue_title(), expected_title_us)
+        self.assertEqual(info_us.get_short_issue_title(), expected_title_us)
 
 
 class TestGetAllComicBookInfo(unittest.TestCase):
@@ -62,8 +62,8 @@ class TestGetAllComicBookInfo(unittest.TestCase):
                 items[i].chronological_number + 1,
                 items[i + 1].chronological_number,
                 f"Chronological order failed between"
-                f"  item {i} ('{items[i].get_issue_title()}')"
-                f" and item {i+1} ('{items[i+1].get_issue_title()}')",
+                f"  item {i} ('{items[i].get_short_issue_title()}')"
+                f" and item {i+1} ('{items[i+1].get_short_issue_title()}')",
             )
 
     def test_correct_number_of_titles(self):

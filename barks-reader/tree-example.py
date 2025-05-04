@@ -1,7 +1,6 @@
 import logging
-import os
 import sys
-from typing import Tuple, List, Union
+from typing import List, Union
 
 import kivy.core.text
 from kivy import Config
@@ -13,7 +12,6 @@ from kivy.properties import ObjectProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.image import Image
 from kivy.uix.treeview import TreeView, TreeViewNode
 
@@ -23,8 +21,16 @@ from barks_fantagraphics.comics_utils import (
     setup_logging,
     get_short_formatted_submitted_date,
     get_short_formatted_first_published_str,
+    get_dest_comic_zip_file_stem,
 )
-from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
+from barks_fantagraphics.fanta_comics_info import FullFantaComicBookInfo
+from file_paths import (
+    get_mcomix_python_bin_path,
+    get_mcomix_path,
+    get_mcomix_barks_reader_config_path,
+    get_the_comic_zips_dir,
+    get_comic_inset_file,
+)
 from filtered_title_lists import FilteredTitleLists
 from mcomix_reader import ComicReader
 
@@ -35,12 +41,16 @@ def get_str_pixel_width(text: str, **kwargs) -> int:
     return kivy.core.text.Label(**kwargs).get_extents(text)[0]
 
 
-def get_display_title(title: Tuple[str, FantaComicBookInfo]) -> str:
-    return title[0] if title[1].comic_book_info.is_barks_title else f"({title[0]})"
+def get_display_title(title_info: FullFantaComicBookInfo) -> str:
+    return (
+        title_info.title
+        if title_info.fanta_info.comic_book_info.is_barks_title
+        else f"({title_info.title})"
+    )
 
 
 class MainScreen(BoxLayout):
-#class MainScreen(FloatLayout):
+    # class MainScreen(FloatLayout):
     intro_text = ObjectProperty()
     reader_contents = ObjectProperty()
     title_page_image = ObjectProperty()
@@ -48,11 +58,19 @@ class MainScreen(BoxLayout):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.title_and_fanta_info: Union[Tuple[str, FantaComicBookInfo], None] = None
-        self.comic_reader = ComicReader()
+
+        self.full_fanta_info: Union[FullFantaComicBookInfo, None] = None
+        self.title_page_button.visible = True
+
+        self.comic_reader = ComicReader(
+            get_mcomix_python_bin_path(),
+            get_mcomix_path(),
+            get_mcomix_barks_reader_config_path(),
+            get_the_comic_zips_dir(),
+        )
 
     def image_pressed(self):
-        if self.title_and_fanta_info is None:
+        if self.full_fanta_info is None:
             self.intro_text.opacity = 0.0
             print(f'Image "{self.title_page_image.source}" pressed. No title selected.')
             return
@@ -61,16 +79,15 @@ class MainScreen(BoxLayout):
             print(f'Image "{self.title_page_image.source}" pressed. Already reading comic.')
             return
 
-        # TODO: Extract this dir title
-        comic_filename = (
-            f"{self.title_and_fanta_info[1].fanta_chronological_number:03d}"
-            f" {self.title_and_fanta_info[0].strip('()')}"
-            f" [{self.title_and_fanta_info[1].get_issue_title()}]"
+        comic_file_stem = get_dest_comic_zip_file_stem(
+            self.full_fanta_info.title,
+            self.full_fanta_info.fanta_info.fanta_chronological_number,
+            self.full_fanta_info.fanta_info.get_issue_title(),
         )
 
-        print(f'Image "{self.title_page_image.source}" pressed. Want to run "{comic_filename}".')
+        print(f'Image "{self.title_page_image.source}" pressed. Want to run "{comic_file_stem}".')
 
-        self.comic_reader.show_comic(comic_filename)
+        self.comic_reader.show_comic(comic_file_stem)
 
         print(f"Exited image press.")
 
@@ -88,29 +105,23 @@ class MainScreen(BoxLayout):
     def title_row_button_pressed(self, button: Button):
         self.intro_text.opacity = 0.0
 
-        self.title_and_fanta_info = (button.parent.title_label.text, button.parent.fanta_info)
+        self.full_fanta_info = button.parent.full_fanta_info
 
-        # TODO: Extract this dir title
-        dir_title = (
-            f"{button.parent.fanta_info.fanta_chronological_number:03d}"
-            f" {button.parent.title_label.text.strip('()')}"
-        )
+        comic_inset_file = get_comic_inset_file(button.parent.full_fanta_info.title)
 
-        print(f'Title row button "{button.text}" pressed. Dir name = "{dir_title}".')
+        print(f'Title row button "{button.text}" pressed. Dir name = "{comic_inset_file}".')
 
-        THE_COMICS_DIR = os.path.join(
-            "/home/greg", "Books/Carl Barks/The Comics/aaa-Chronological-dirs"
-        )
-        self.title_page_image.source = os.path.join(THE_COMICS_DIR, dir_title, "images", f"1-01.jpg")
+        self.title_page_image.source = comic_inset_file
         self.title_page_button.visible = True
-
-
-class TitlePageImage(ButtonBehavior, Image):
-    pass
 
 
 class ReaderTreeView(TreeView):
     TREE_VIEW_INDENT_LEVEL = dp(30)
+
+
+class TitlePageImage(ButtonBehavior, Image):
+    TITLE_IMAGE_X_FRAC_OF_PARENT = 0.85
+    TITLE_IMAGE_Y_FRAC_OF_PARENT = 0.85 * 0.97
 
 
 class MainTreeViewNode(Button, TreeViewNode):
@@ -153,9 +164,9 @@ class TitleTreeViewNode(BoxLayout, TreeViewNode):
     TITLE_LABEL_COLOR = (1.0, 1.0, 0.0, 1.0)
     ISSUE_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
 
-    def __init__(self, fanta_info: FantaComicBookInfo, **kwargs):
+    def __init__(self, full_fanta_info: FullFantaComicBookInfo, **kwargs):
         super().__init__(**kwargs)
-        self.fanta_info = fanta_info
+        self.full_fanta_info = full_fanta_info
 
 
 class BarksReaderApp(App):
@@ -167,7 +178,7 @@ class BarksReaderApp(App):
 
         self.main_screen: Union[MainScreen, None] = None
 
-        Window.size = (1100, 800)
+        Window.size = (666, 1000)
         Window.left = 300
         Window.top = 200
 
@@ -222,7 +233,7 @@ class BarksReaderApp(App):
         tree.add_node(dda_label, parent=the_stories_node)
 
     def add_year_range_nodes(self, tree, the_years_node):
-        titles = self.filtered_title_lists.get_title_lists()
+        title_lists = self.filtered_title_lists.get_title_lists()
 
         for year_range in self.filtered_title_lists.year_ranges:
             range_str = f"{year_range[0]} - {year_range[1]}"
@@ -230,34 +241,34 @@ class BarksReaderApp(App):
             year_range_label.bind(on_press=self.main_screen.pressed)
 
             year_range_node = tree.add_node(year_range_label, parent=the_years_node)
-            self.add_year_range_story_nodes(tree, year_range_node, titles[range_str])
+            self.add_year_range_story_nodes(tree, year_range_node, title_lists[range_str])
 
     def add_year_range_story_nodes(
-        self, tree, year_range_node, titles: List[Tuple[str, FantaComicBookInfo]]
+        self, tree, year_range_node, title_list: List[FullFantaComicBookInfo]
     ):
-        for title in titles:
-            tree.add_node(self.get_title_tree_view_node(title), parent=year_range_node)
+        for title_info in title_list:
+            tree.add_node(self.get_title_tree_view_node(title_info), parent=year_range_node)
 
     def add_dda_story_nodes(self, tree, dda_node):
-        titles = self.filtered_title_lists.get_title_lists()
+        title_list = self.filtered_title_lists.get_title_lists()["Donald Duck Adventures"]
 
-        for title in titles["Donald Duck Adventures"]:
-            tree.add_node(self.get_title_tree_view_node(title), parent=dda_node)
+        for title_info in title_list:
+            tree.add_node(self.get_title_tree_view_node(title_info), parent=dda_node)
 
-    def get_title_tree_view_node(self, title: Tuple[str, FantaComicBookInfo]) -> TitleTreeViewNode:
-        fanta_info = title[1]
+    def get_title_tree_view_node(
+        self, full_fanta_info: FullFantaComicBookInfo
+    ) -> TitleTreeViewNode:
+        title_node = TitleTreeViewNode(full_fanta_info)
 
-        title_node = TitleTreeViewNode(fanta_info)
-
-        title_node.num_label.text = str(fanta_info.fanta_chronological_number)
+        title_node.num_label.text = str(full_fanta_info.fanta_info.fanta_chronological_number)
         title_node.num_label.bind(on_press=self.main_screen.title_row_button_pressed)
 
-        title_node.title_label.text = get_display_title(title)
+        title_node.title_label.text = get_display_title(full_fanta_info)
         title_node.title_label.bind(on_press=self.main_screen.title_row_button_pressed)
 
         issue_info = (
-            f"{get_short_formatted_first_published_str(fanta_info)}"
-            f"  [{get_short_formatted_submitted_date(fanta_info)}]"
+            f"{get_short_formatted_first_published_str(full_fanta_info.fanta_info)}"
+            f"  [{get_short_formatted_submitted_date(full_fanta_info.fanta_info)}]"
         )
 
         title_node.issue_label.text = issue_info
@@ -279,8 +290,8 @@ if __name__ == "__main__":
 
     comics_database = cmd_args.get_comics_database()
 
-	# TODO: Not working properly?
-    Config.set('graphics', 'multisamples', 8)
+    # TODO: Not working properly?
+    Config.set("graphics", "multisamples", 8)
     Config.write()
 
     BarksReaderApp(comics_database).run()

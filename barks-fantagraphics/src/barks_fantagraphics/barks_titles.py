@@ -33,7 +33,7 @@ class ComicBookInfo:
     submitted_year: int
     chronological_number: int
 
-    def get_issue_title(self):
+    def get_short_issue_title(self):
         short_issue_name = SHORT_ISSUE_NAME[self.issue_name]
         return f"{short_issue_name} {self.issue_number}"
 
@@ -1283,7 +1283,7 @@ def check_story_submitted_order(all_titles: ComicBookInfoDict):
             raise Exception(
                 f'"{title}": Out of order chronological number {chronological_number}.'
                 f' Previous title: "{prev_title}"'
-                f' with chronological number {prev_chronological_number}.'
+                f" with chronological number {prev_chronological_number}."
             )
         prev_title = title
         prev_submitted_date = submitted_date
