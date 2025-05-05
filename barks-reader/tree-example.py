@@ -8,11 +8,12 @@ from kivy.app import App
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.metrics import dp
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, ListProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.image import Image
+from kivy.uix.label import Label
 from kivy.uix.treeview import TreeView, TreeViewNode
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs
@@ -116,6 +117,10 @@ class MainScreen(BoxLayout):
 
         self.title_page_image.source = comic_inset_file
         self.title_page_button.visible = True
+
+
+class BgColorLabel(Label):
+    bgcolor = ListProperty([0, 0, 0])
 
 
 class ReaderTreeView(TreeView):
@@ -270,7 +275,7 @@ class BarksReaderApp(App):
         title_node.num_label.text = str(full_fanta_info.fanta_info.fanta_chronological_number)
         title_node.num_label.bind(on_press=self.main_screen.title_row_button_pressed)
 
-        title_node.num_label.color_selected = (0,0,1,1)
+        title_node.num_label.color_selected = (0, 0, 1, 1)
 
         title_node.title_label.text = get_display_title(full_fanta_info)
         title_node.title_label.bind(on_press=self.main_screen.title_row_button_pressed)
