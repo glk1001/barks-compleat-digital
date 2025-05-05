@@ -54,6 +54,7 @@ def get_display_title(title_info: FullFantaComicBookInfo) -> str:
 
 class MainScreen(BoxLayout):
     TITLE_INFO_BORDER_WIDTH = dp(5)
+    DEBUG_BACKGROUND_OPACITY = 0
 
     intro_text = ObjectProperty()
     reader_contents = ObjectProperty()
@@ -158,8 +159,8 @@ class TitleTreeViewLabel(Button):
 
 class TitleTreeViewNode(BoxLayout, TreeViewNode):
     ROW_BACKGROUND_COLOR = (0.0, 0.0, 0.0, 0.0)
-    EVEN_COLOR = [0.18, 0.24, 0.49, 0.4]
-    ODD_COLOR = [0.98, 0.32, 0.42, 0.4]
+    EVEN_COLOR = [0, 0, 0.4, 0.4]
+    ODD_COLOR = [0, 0, 1.0, 0.4]
 
     ROW_HEIGHT = dp(30)
     NUM_LABEL_WIDTH = dp(40)

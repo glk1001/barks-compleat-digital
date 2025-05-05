@@ -37,12 +37,13 @@
             anchor_x: "left"
             anchor_y: "bottom"
 
-            #canvas.before:
-            #    Color:
-            #        rgba: 1, 0, 1, 1
-            #    Rectangle:
-            #        pos: self.pos
-            #        size: self.size
+            canvas.before:
+                Color:
+                    rgba: 1, 0, 1, 0.3
+                Rectangle:
+                    source: '/home/greg/Prj/github/barks-compleat-digital/barks-fantagraphics/story-titles/A Cold Bargain Inset.png'
+                    pos: self.pos
+                    size: self.size
 
             ScrollView:
                 id: scroll_view
@@ -80,26 +81,31 @@
 
             canvas.before:
                 Color:
-                    rgba: 1, 0, 0, 1
+                    rgba: 1, 0, 0, 0.5
 
-                Line:
-                    width: root.TITLE_INFO_BORDER_WIDTH
-                    joint: 'miter'
-                    rectangle:
-                        self.x + root.TITLE_INFO_BORDER_WIDTH, self.y + root.TITLE_INFO_BORDER_WIDTH, \
-                        self.width - 2 * root.TITLE_INFO_BORDER_WIDTH, self.height - 2 * root.TITLE_INFO_BORDER_WIDTH - dp(20)
+                #Line:
+                #    width: root.TITLE_INFO_BORDER_WIDTH
+                #    joint: 'miter'
+                #    rectangle:
+                #        self.x + root.TITLE_INFO_BORDER_WIDTH, self.y + root.TITLE_INFO_BORDER_WIDTH, \
+                #        self.width - 2 * root.TITLE_INFO_BORDER_WIDTH, self.height - 2 * root.TITLE_INFO_BORDER_WIDTH - dp(20)
+                Rectangle:
+                    source: '/home/greg/Prj/github/barks-compleat-digital/barks-fantagraphics/story-titles/Biceps Blues Inset.png'
+                    pos: self.pos
+                    size: self.size
 
             BgColorLabel:
                 text: "before title filler"
                 background_color: (1, 0, 1, 1)
-                opacity: 1
-                size_hint: (1, 0.2)
+                opacity: root.DEBUG_BACKGROUND_OPACITY
+                size_hint: (1, 0.1)
                 text_size: (self.width, self.height)
 
             BgColorLabel:
                 text: "[b]The Colossalest Surprise Quiz Show[/b]"
-                background_color: (1, 0, 0, 0.5)
+                background_color: (1, 0, 0, root.DEBUG_BACKGROUND_OPACITY)
                 markup: True
+                color: (1, 1, 0, 1)
                 font_name: "Carl Barks Script"
                 font_size: sp(30)
                 multiline: True
@@ -119,19 +125,20 @@
                     BgColorLabel:
                         text: "before title info filler"
                         background_color: (0, 0, 1, 1)
-                        opacity: 0.5
-                        size_hint: (1, 0.5)
+                        opacity: root.DEBUG_BACKGROUND_OPACITY
+                        size_hint: (1, 0.2)
                         halign: "left"
                         valign: "top"
                         text_size: (self.width, self.height)
 
                     BoxLayout:
                         orientation: "horizontal"
+                        size_hint: (1, 0.3)
 
                         BgColorLabel:
                             text: "left1"
                             background_color: (1.0, 1.0, 0.0, 0.5)
-                            opacity: 1
+                            opacity: root.DEBUG_BACKGROUND_OPACITY
                             size_hint: (0.07, 1)
                             halign: "left"
                             valign: "top"
@@ -139,7 +146,7 @@
 
                         BgColorLabel:
                             text: "1st Issue:   [b]Comics & Stories 104, Oct 1949[/b]\nSubmitted: [b]10th January, 1949[/b]\nSource:       Fantagraphics CBDL, Vol 7"
-                            background_color: 0, 1, 0, 1
+                            background_color: 0, 1, 0, root.DEBUG_BACKGROUND_OPACITY
                             markup: True
                             multiline: True
                             size_hint: (0.93, 1)
@@ -149,21 +156,22 @@
 
                     BoxLayout:
                         orientation: "horizontal"
+                        size_hint: (1, 0.5)
 
                         BgColorLabel:
                             text: "left2"
                             background_color: (0.5, 1.0, 0.0, 0.5)
-                            opacity: 1
-                            size_hint: (0.07, 1.3)
+                            opacity: root.DEBUG_BACKGROUND_OPACITY
+                            size_hint: (0.07, 1)
                             halign: "left"
                             valign: "top"
                             text_size: (self.width, self.height)
 
                         BgColorLabel:
                             text: "Blah blah blah\netc etc etc"
-                            background_color: (0, 1, 1, 1)
+                            background_color: 0, 1, 1, root.DEBUG_BACKGROUND_OPACITY
                             multiline: True
-                            size_hint: (0.93, 1.3)
+                            size_hint: (0.93, 1)
                             halign: "left"
                             valign: "top"
                             text_size: (self.width, self.height)
@@ -178,7 +186,7 @@
                         BgColorLabel:
                             text: "left of title image filler"
                             background_color: (1.0, 1.0, 0.0, 0.5)
-                            opacity: 1
+                            opacity: root.DEBUG_BACKGROUND_OPACITY
                             size_hint: (0.1, 0.9)
                             text_size: (self.width, self.height)
 
@@ -188,20 +196,30 @@
                             BgColorLabel:
                                 text: "top of button filler"
                                 background_color: (1.0, 1.0, 0.0, 0.5)
-                                opacity: 1
+                                opacity: root.DEBUG_BACKGROUND_OPACITY
                                 size_hint: (1, 0.1)
                                 text_size: (self.width, self.height)
 
                             Button:
                                 canvas.before:
+#                                    Color:
+#                                        rgba: 1, 0, 0, 0
+#                                    Line:
+#                                        width: 2
+#                                        rectangle: self.x, self.y, self.width, self.height
                                     Color:
-                                        rgba: 1, 0, 0, 1
-                                    Line:
-                                        width: 2
-                                        rectangle: self.x, self.y, self.width, self.height
+                                        rgba: 0, 0, 1, 0.85
+                                    BoxShadow:
+                                        inset: False
+                                        pos: self.pos
+                                        size: self.size
+                                        offset: 0, 0
+                                        spread_radius: 1, 1
+                                        border_radius: 0, 0, 0, 0
+                                        blur_radius: 20 if self.state == "normal" else 10
 
                                 id: title_page_button_id
-                                background_color: (0.0, 1.0, 0.0, 1.0)
+                                background_color: (0.3, 0.3, 2.0, 0.5)
                                 visible: True
                                 size_hint_y: 1
                                 size_hint_x: 1 if self.visible else 0
@@ -226,14 +244,14 @@
                         BgColorLabel:
                             text: "right of title image filler"
                             background_color: (1.0, 1.0, 0.0, 0.5)
-                            opacity: 1
+                            opacity: root.DEBUG_BACKGROUND_OPACITY
                             size_hint: (0.125, 0.9)
                             text_size: (self.width, self.height)
 
             BgColorLabel:
                 text: "bottom of title image filler"
                 background_color: (0.0, 1.0, 1.0, 0.5)
-                opacity: 1
+                opacity: root.DEBUG_BACKGROUND_OPACITY
                 size_hint: (1, 0.1)
                 #height: root.TITLE_INFO_BORDER_WIDTH
                 text_size: (self.width, self.height)
