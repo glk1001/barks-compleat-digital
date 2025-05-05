@@ -119,10 +119,6 @@ class MainScreen(BoxLayout):
         self.title_page_button.visible = True
 
 
-class BgColorLabel(Label):
-    bgcolor = ListProperty([0, 0, 0])
-
-
 class ReaderTreeView(TreeView):
     TREE_VIEW_INDENT_LEVEL = dp(30)
 
