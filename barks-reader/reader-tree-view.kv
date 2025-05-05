@@ -41,9 +41,14 @@
     orientation: "vertical"
     spacing: 0
     size_hint_y: None
-    height: dp(2 * self.LABEL_HEIGHT)
+    height: dp(2 * self.ROW_HEIGHT)
     minimum_height: self.height
     minimum_width: self.width
+    color: (0,1,0,1)
+    background_color: (0,0,1,1)
+    color_selected: (1,0,1,1)
+    even_color:  self.EVEN_COLOR
+    odd_color:  self.ODD_COLOR
 
     num_label: num_label_id
     issue_label: issue_label_id
@@ -51,16 +56,28 @@
 
     TreeViewRowNode:
         TreeViewButton:
+            color: root.NUM_LABEL_COLOR
+            background_color: root.ROW_BACKGROUND_COLOR
+            color_selected: (1,0,1,1)
+            bg_color: (1,1,0,0.5)
             id: num_label_id
             parent: root
             bold: True
-            color: root.NUM_LABEL_COLOR
-            background_color: root.LABEL_BACKGROUND_COLOR
-            color_selected: [0,0,1,1]
-            bg_color: [1,0,1,1]
             size_hint: (None, None)
             width: root.NUM_LABEL_WIDTH
-            height: root.LABEL_HEIGHT
+            height: root.ROW_HEIGHT
+            halign: "right"
+            valign: "middle"
+            text_size: (self.width, self.height)
+
+        TitleTreeViewLabel:
+            text: ""
+            parent: root
+            color: root.NUM_LABEL_COLOR
+            background_color: root.ROW_BACKGROUND_COLOR
+            size_hint: (None, None)
+            width: dp(10)
+            height: root.ROW_HEIGHT
             halign: "right"
             valign: "middle"
             text_size: (self.width, self.height)
@@ -69,10 +86,11 @@
             id: title_label_id
             parent: root
             color: root.TITLE_LABEL_COLOR
-            background_color: root.LABEL_BACKGROUND_COLOR
+            background_color: root.ROW_BACKGROUND_COLOR
+            bold: True
             size_hint: (None, None)
             width: root.TITLE_LABEL_WIDTH
-            height: root.LABEL_HEIGHT
+            height: root.ROW_HEIGHT
             halign: "left"
             valign: "middle"
             text_size: (self.width, self.height)
@@ -81,11 +99,23 @@
         TitleTreeViewLabel:
             text: "   "
             parent: root
-            color: (1.0, 1.0, 1.0, 1.0)
-            background_color: root.LABEL_BACKGROUND_COLOR
+            color: root.NUM_LABEL_COLOR
+            background_color: root.ROW_BACKGROUND_COLOR
             size_hint: (None, None)
             width: root.NUM_LABEL_WIDTH
-            height: root.LABEL_HEIGHT
+            height: root.ROW_HEIGHT
+            halign: "right"
+            valign: "middle"
+            text_size: (self.width, self.height)
+
+        TitleTreeViewLabel:
+            text: ""
+            parent: root
+            color: root.NUM_LABEL_COLOR
+            background_color: root.ROW_BACKGROUND_COLOR
+            size_hint: (None, None)
+            width: dp(10)
+            height: root.ROW_HEIGHT
             halign: "right"
             valign: "middle"
             text_size: (self.width, self.height)
@@ -93,12 +123,13 @@
         TitleTreeViewLabel:
             id: issue_label_id
             parent: root
-            italic: True
             color: root.ISSUE_LABEL_COLOR
-            background_color: root.LABEL_BACKGROUND_COLOR
+            background_color: root.ROW_BACKGROUND_COLOR
+            bold: True
+            italic: True
             size_hint: (None, None)
             width: root.ISSUE_LABEL_WIDTH
-            height: root.LABEL_HEIGHT
+            height: root.ROW_HEIGHT
             halign: "left"
             valign: "middle"
             text_size: (self.width, self.height)

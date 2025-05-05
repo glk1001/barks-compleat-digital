@@ -156,12 +156,14 @@ class TitleTreeViewLabel(Button):
 
 
 class TitleTreeViewNode(BoxLayout, TreeViewNode):
-    LABEL_BACKGROUND_COLOR = (0.0, 1.0, 0.0, 1.0)
-    LABEL_HEIGHT = dp(30)
+    ROW_BACKGROUND_COLOR = (0.0, 0.0, 0.0, 0.0)
+    EVEN_COLOR = [0.18, 0.24, 0.49, 0.4]
+    ODD_COLOR = [0.98, 0.32, 0.42, 0.4]
 
+    ROW_HEIGHT = dp(30)
     NUM_LABEL_WIDTH = dp(40)
     TITLE_LABEL_WIDTH = dp(400)
-    ISSUE_LABEL_WIDTH = dp(400)
+    ISSUE_LABEL_WIDTH = TITLE_LABEL_WIDTH
 
     NUM_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
     TITLE_LABEL_COLOR = (1.0, 1.0, 0.0, 1.0)
@@ -267,6 +269,8 @@ class BarksReaderApp(App):
 
         title_node.num_label.text = str(full_fanta_info.fanta_info.fanta_chronological_number)
         title_node.num_label.bind(on_press=self.main_screen.title_row_button_pressed)
+
+        title_node.num_label.color_selected = (0,0,1,1)
 
         title_node.title_label.text = get_display_title(full_fanta_info)
         title_node.title_label.bind(on_press=self.main_screen.title_row_button_pressed)
