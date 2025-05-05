@@ -23,6 +23,7 @@
     title_page_image: title_page_image_id
     main_title: main_title_id
     title_info: title_info_id
+    bottom_view: bottom_view_id
 
     AnchorLayout:
         anchor_x: "left"
@@ -41,9 +42,9 @@
 
             canvas.before:
                 Color:
-                    rgba: 1, 0, 1, 0.3
+                    rgba: root.top_view_image_bg
                 Rectangle:
-                    source: '/home/greg/Prj/github/barks-compleat-digital/barks-fantagraphics/story-titles/A Cold Bargain Inset.png'
+                    source: root.top_view_image
                     pos: self.pos
                     size: self.size
 
@@ -79,11 +80,13 @@
             size_hint: (1, 1)
 
         BoxLayout:
+            id: bottom_view_id
             orientation: "vertical"
+            opacity: 1
 
             canvas.before:
                 Color:
-                    rgba: 1, 0, 0, 0.5
+                    rgba: root.bottom_view_before_image_bg
 
                 #Line:
                 #    width: root.TITLE_INFO_BORDER_WIDTH
@@ -92,7 +95,15 @@
                 #        self.x + root.TITLE_INFO_BORDER_WIDTH, self.y + root.TITLE_INFO_BORDER_WIDTH, \
                 #        self.width - 2 * root.TITLE_INFO_BORDER_WIDTH, self.height - 2 * root.TITLE_INFO_BORDER_WIDTH - dp(20)
                 Rectangle:
-                    source: '/home/greg/Prj/github/barks-compleat-digital/barks-fantagraphics/story-titles/Biceps Blues Inset.png'
+                    source: root.bottom_view_before_image
+                    pos: self.pos
+                    size: self.size
+
+            canvas.after:
+                Color:
+                    rgba: root.bottom_view_after_image_bg
+                Rectangle:
+                    source: root.bottom_view_after_image
                     pos: self.pos
                     size: self.size
 
