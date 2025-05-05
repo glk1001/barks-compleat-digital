@@ -8,6 +8,7 @@ from typing import List, Union
 import kivy.core.text
 from kivy import Config
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.metrics import dp
@@ -56,6 +57,73 @@ def get_display_title(title_info: FullFantaComicBookInfo) -> str:
     )
 
 
+TREE_VIEW_NODE_TEXT_COLOR = (1, 1, 1, 1)
+TREE_VIEW_NODE_SELECTED_COLOR = (1, 0, 1, 0.8)
+TREE_VIEW_NODE_BACKGROUND_COLOR = (0.0, 0.0, 0.0, 0.0)
+
+
+class ReaderTreeView(TreeView):
+    TREE_VIEW_INDENT_LEVEL = dp(30)
+
+
+class TitlePageImage(ButtonBehavior, Image):
+    TITLE_IMAGE_X_FRAC_OF_PARENT = 0.98
+    TITLE_IMAGE_Y_FRAC_OF_PARENT = 0.98 * 0.97
+
+
+class MainTreeViewNode(Button, TreeViewNode):
+    TEXT_COLOR = TREE_VIEW_NODE_TEXT_COLOR
+    SELECTED_COLOR = TREE_VIEW_NODE_SELECTED_COLOR
+    BACKGROUND_COLOR = TREE_VIEW_NODE_BACKGROUND_COLOR
+    NODE_SIZE = (dp(100), dp(30))
+
+
+class CategoryTreeViewNode(Button, TreeViewNode):
+    TEXT_COLOR = TREE_VIEW_NODE_TEXT_COLOR
+    SELECTED_COLOR = TREE_VIEW_NODE_SELECTED_COLOR
+    BACKGROUND_COLOR = TREE_VIEW_NODE_BACKGROUND_COLOR
+    NODE_WIDTH = dp(170)
+    NODE_HEIGHT = dp(30)
+
+
+class YearRangeTreeViewNode(Button, TreeViewNode):
+    TEXT_COLOR = TREE_VIEW_NODE_TEXT_COLOR
+    SELECTED_COLOR = TREE_VIEW_NODE_SELECTED_COLOR
+    BACKGROUND_COLOR = TREE_VIEW_NODE_BACKGROUND_COLOR
+    NODE_WIDTH = dp(100)
+    NODE_HEIGHT = dp(30)
+
+
+class TitleTreeViewNode(BoxLayout, TreeViewNode):
+    TEXT_COLOR = TREE_VIEW_NODE_TEXT_COLOR
+    SELECTED_COLOR = TREE_VIEW_NODE_SELECTED_COLOR
+    BACKGROUND_COLOR = TREE_VIEW_NODE_BACKGROUND_COLOR
+    ROW_BACKGROUND_COLOR = BACKGROUND_COLOR
+    EVEN_COLOR = [0, 0, 0.4, 0.4]
+    ODD_COLOR = [0, 0, 1.0, 0.4]
+
+    ROW_HEIGHT = dp(30)
+    NUM_LABEL_WIDTH = dp(40)
+    TITLE_LABEL_WIDTH = dp(400)
+    ISSUE_LABEL_WIDTH = TITLE_LABEL_WIDTH
+
+    NUM_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
+    TITLE_LABEL_COLOR = (1.0, 1.0, 0.0, 1.0)
+    ISSUE_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
+
+    def __init__(self, full_fanta_info: FullFantaComicBookInfo, **kwargs):
+        super().__init__(**kwargs)
+        self.full_fanta_info = full_fanta_info
+
+
+class TreeViewButton(Button):
+    pass
+
+
+class TitleTreeViewLabel(Button):
+    pass
+
+
 class ScreenCategories(Enum):
     INITIAL = auto()
     INTRO = auto()
@@ -69,14 +137,14 @@ class ScreenCategories(Enum):
 
 
 class MainScreen(BoxLayout):
-    TITLE_INFO_BORDER_WIDTH = dp(5)
+    TITLE_INFO_LABEL_COLOR = (0.0, 1.0, 1.0, 1.0)
+    TITLE_EXTRA_INFO_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
     DEBUG_BACKGROUND_OPACITY = 0
 
     top_view_image = ObjectProperty()
     top_view_image_bg = ColorProperty()
     bottom_view = ObjectProperty()
     bottom_view_before_image = ObjectProperty()
-    bottom_view_after_image = ObjectProperty()
     bottom_view_before_image_bg = ColorProperty()
     bottom_view_after_image_bg = ColorProperty()
 
@@ -106,7 +174,6 @@ class MainScreen(BoxLayout):
         )
 
         self.bottom_view_before_image = "/home/greg/Prj/github/barks-compleat-digital/barks-fantagraphics/story-titles/Biceps Blues Inset.png"
-        self.bottom_view_after_image = "/home/greg/Prj/github/barks-compleat-digital/barks-fantagraphics/story-titles/In Ancient Persia Inset.png"
 
         self.bottom_view_before_image_bg = (1, 0, 0, 0.5)
         self.bottom_view_after_image_bg = self.BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG
@@ -116,7 +183,25 @@ class MainScreen(BoxLayout):
         self.bottom_view.opacity = 1.0
 
         self.current_screen_category = ScreenCategories.INITIAL
+        self.current_year_range = ""
+
+        self.top_view_change_event = None
+        self.bottom_view_change_after_event = None
+
         self.set_next_top_view_image()
+        self.set_next_bottom_view_image()
+
+    def node_expanded(self, tree: ReaderTreeView, node: TreeViewNode):
+        if isinstance(node, YearRangeTreeViewNode):
+            self.current_screen_category = ScreenCategories.YEAR_RANGE
+            self.current_year_range = node.text
+            self.set_next_top_view_image()
+            self.set_next_bottom_view_image()
+        elif isinstance(node, CategoryTreeViewNode):
+            if node.text == "Donald Duck Adventures":
+                self.current_screen_category = ScreenCategories.DDA
+                self.set_next_top_view_image()
+                self.set_next_bottom_view_image()
 
     def image_pressed(self):
         if self.full_fanta_info is None:
@@ -149,6 +234,7 @@ class MainScreen(BoxLayout):
         self.intro_text.text = "hello line 1\nhello line 2\nhello line 3\n"
 
         self.set_next_top_view_image()
+        self.set_next_bottom_view_image()
 
     def the_stories_pressed(self, button: Button):
         self.bottom_view.opacity = 1.0
@@ -157,6 +243,7 @@ class MainScreen(BoxLayout):
 
         self.current_screen_category = ScreenCategories.THE_STORIES
         self.set_next_top_view_image()
+        self.set_next_bottom_view_image()
 
     def search_pressed(self, button: Button):
         self.bottom_view.opacity = 1.0
@@ -165,6 +252,7 @@ class MainScreen(BoxLayout):
 
         self.current_screen_category = ScreenCategories.SEARCH
         self.set_next_top_view_image()
+        self.set_next_bottom_view_image()
 
     def appendix_pressed(self, button: Button):
         self.bottom_view.opacity = 1.0
@@ -173,6 +261,7 @@ class MainScreen(BoxLayout):
 
         self.current_screen_category = ScreenCategories.APPENDIX
         self.set_next_top_view_image()
+        self.set_next_bottom_view_image()
 
     def index_pressed(self, button: Button):
         self.bottom_view.opacity = 1.0
@@ -181,6 +270,7 @@ class MainScreen(BoxLayout):
 
         self.current_screen_category = ScreenCategories.INDEX
         self.set_next_top_view_image()
+        self.set_next_bottom_view_image()
 
     def chrono_pressed(self, button: Button):
         self.bottom_view.opacity = 1.0
@@ -189,6 +279,7 @@ class MainScreen(BoxLayout):
 
         self.current_screen_category = ScreenCategories.CHRONO_BY_YEAR
         self.set_next_top_view_image()
+        self.set_next_bottom_view_image()
 
     def dda_pressed(self, button: Button):
         self.bottom_view.opacity = 1.0
@@ -197,14 +288,17 @@ class MainScreen(BoxLayout):
 
         self.current_screen_category = ScreenCategories.DDA
         self.set_next_top_view_image()
+        self.set_next_bottom_view_image()
 
     def year_range_pressed(self, button: Button):
         self.bottom_view.opacity = 1.0
         self.intro_text.opacity = 0
         self.bottom_view_after_image_bg = self.BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG
 
+        self.current_year_range = button.text
         self.current_screen_category = ScreenCategories.YEAR_RANGE
         self.set_next_top_view_image()
+        self.set_next_bottom_view_image()
 
     def title_row_button_pressed(self, button: Button):
         self.bottom_view.opacity = 1.0
@@ -216,10 +310,12 @@ class MainScreen(BoxLayout):
         comic_inset_file = get_comic_inset_file(button.parent.full_fanta_info.title)
         print(f'Title row button "{button.text}" pressed. Dir name = "{comic_inset_file}".')
 
-        self.main_title.text = button.parent.full_fanta_info.title
+        self.main_title.text = get_display_title(button.parent.full_fanta_info)
         self.title_info.text = self.get_title_info()
         self.title_page_image.source = comic_inset_file
         self.title_page_button.visible = True
+
+    #        self.set_next_top_view_image()
 
     def get_title_info(self) -> str:
         issue_info = get_formatted_first_published_str(self.full_fanta_info.fanta_info)
@@ -227,104 +323,101 @@ class MainScreen(BoxLayout):
         fanta_book = FANTA_SOURCE_COMICS[self.full_fanta_info.fanta_info.fantagraphics_volume]
         source = f"{FAN} CBDL, Vol {fanta_book.volume}, {fanta_book.year}"
         return (
-            f"1st Issue:   [b]{issue_info}[/b]\n"
-            f"Submitted: [b]{submitted_info}[/b]\n"
-            f"Source:       {source}"
+            f"[i]1st Issue:[/i]   [b]{issue_info}[/b]\n"
+            f"[i]Submitted:[/i] [b]{submitted_info}[/b]\n"
+            f"[i]Source:[/i]       [b]{source}[/b]"
         )
 
     def set_next_top_view_image(self):
         base_dir = "/home/greg/Prj/github/barks-compleat-digital/barks-fantagraphics/story-titles"
 
         if self.current_screen_category == ScreenCategories.INITIAL:
-            self.top_view_image = os.path.join(base_dir, "A Cold Bargain Inset.png")
+            self.top_view_image.source = os.path.join(base_dir, "A Cold Bargain Inset.png")
         elif self.current_screen_category == ScreenCategories.INTRO:
-            self.top_view_image = os.path.join(base_dir, "Adventure Down Under Inset.png")
+            self.top_view_image.source = os.path.join(base_dir, "Adventure Down Under Inset.png")
         elif self.current_screen_category == ScreenCategories.THE_STORIES:
-            self.top_view_image = os.path.join(base_dir, "Donald's Pet Service Inset.png")
+            self.top_view_image.source = self.get_random_image("All")
         elif self.current_screen_category == ScreenCategories.SEARCH:
-            self.top_view_image = os.path.join(base_dir, "Donald of the Coast Guard Inset.png")
+            self.top_view_image.source = os.path.join(base_dir, "Tracking Sandy Inset.png")
         elif self.current_screen_category == ScreenCategories.APPENDIX:
-            self.top_view_image = os.path.join(
+            self.top_view_image.source = os.path.join(
                 base_dir, "The Fabulous Philosopher's Stone Inset.png"
             )
         elif self.current_screen_category == ScreenCategories.INDEX:
-            self.top_view_image = os.path.join(base_dir, "The Goldilocks Gambit Inset.png")
+            self.top_view_image.source = os.path.join(base_dir, "Truant Officer Donald Inset.png")
         elif self.current_screen_category == ScreenCategories.CHRONO_BY_YEAR:
-            self.top_view_image = os.path.join(base_dir, "The Littlest Chicken Thief Inset.png")
+            self.top_view_image.source = self.get_random_image("All")
         elif self.current_screen_category == ScreenCategories.DDA:
-            dda_titles = self.filtered_title_lists.get_title_lists()["Donald Duck Adventures"]
-            title_index = randrange(0, len(dda_titles))
-            title_image = f"{dda_titles[title_index].title} Inset.png"
-            print(os.path.join(base_dir, title_image))
-            self.top_view_image = os.path.join(base_dir, title_image)
+            self.top_view_image.source = self.get_random_image("Donald Duck Adventures")
         elif self.current_screen_category == ScreenCategories.YEAR_RANGE:
-            self.top_view_image = os.path.join(base_dir, "Good Neighbors Inset.png")
+            print(f"Year range: {self.current_year_range}")
+            if not self.current_year_range:
+                self.top_view_image.source = os.path.join(base_dir, "Good Neighbors Inset.png")
+            else:
+                self.top_view_image.source = self.get_random_image(self.current_year_range)
         else:
             assert False
 
+        print(
+            f"Category: {self.current_screen_category}."
+            f" Image: '{os.path.basename(self.top_view_image.source)}'."
+        )
+
         self.set_next_top_view_image_bg()
+        self.schedule_top_view_event()
+
+    def get_random_image(self, title_category: str) -> str:
+        base_dir = "/home/greg/Prj/github/barks-compleat-digital/barks-fantagraphics/story-titles"
+
+        titles = self.filtered_title_lists.get_title_lists()[title_category]
+        title_index = randrange(0, len(titles))
+        title_image = f"{titles[title_index].title} Inset.png"
+
+        return os.path.join(base_dir, title_image)
 
     def set_next_top_view_image_bg(self):
-        random_color = (randrange(100, 255) / 255.0,
-                        randrange(100, 255) / 255.0,
-                        randrange(100, 255) / 255.0,
-                        randrange(50, 150) / 255.0)
+        random_color = (
+            randrange(100, 255) / 255.0,
+            randrange(100, 255) / 255.0,
+            randrange(100, 255) / 255.0,
+            randrange(220, 250) / 255.0,
+        )
         self.top_view_image_bg = random_color
+        print(f"Top view image bg = {self.top_view_image_bg}")
 
-class ReaderTreeView(TreeView):
-    TREE_VIEW_INDENT_LEVEL = dp(30)
+    def set_next_bottom_view_image(self):
+        self.bottom_view_after_image.source = self.get_random_image("All")
+        print(
+            f"Bottom view after image: '{os.path.basename(self.bottom_view_after_image.source)}'."
+        )
 
+        self.set_next_bottom_view_after_image_bg()
+        self.schedule_bottom_view_after_event()
 
-class TitlePageImage(ButtonBehavior, Image):
-    TITLE_IMAGE_X_FRAC_OF_PARENT = 0.98
-    TITLE_IMAGE_Y_FRAC_OF_PARENT = 0.98 * 0.97
+    def set_next_bottom_view_after_image_bg(self):
+        rand_index = randrange(0, 3)
+        rand_color_val = randrange(230, 255) / 255.0
+        rand_color = [0, 0, 0, self.bottom_view_after_image_bg[3]]
+        rand_color[rand_index] = rand_color_val
 
+        self.bottom_view_after_image_bg = tuple(rand_color)
+        print(f"Bottom view after image bg = {self.bottom_view_after_image_bg}")
 
-class MainTreeViewNode(Button, TreeViewNode):
-    TEXT_COLOR = (1.0, 1.0, 1.0, 1.0)
-    BACKGROUND_COLOR = (0.0, 0.0, 0.0, 0.0)
-    NODE_SIZE = (dp(100), dp(30))
+    def schedule_top_view_event(self):
+        if self.top_view_change_event:
+            self.top_view_change_event.cancel()
 
+        self.top_view_change_event = Clock.schedule_interval(
+            lambda dt: self.set_next_top_view_image(), 10.0
+        )
 
-class CategoryTreeViewNode(Button, TreeViewNode):
-    TEXT_COLOR = (1.0, 1.0, 1.0, 1.0)
-    BACKGROUND_COLOR = (0.0, 0.0, 0.0, 0.0)
-    NODE_WIDTH = dp(170)
-    NODE_HEIGHT = dp(30)
+    def schedule_bottom_view_after_event(self):
+        if self.bottom_view_change_after_event:
+            self.bottom_view_change_after_event.cancel()
 
-
-class YearRangeTreeViewNode(Button, TreeViewNode):
-    TEXT_COLOR = (1.0, 1.0, 1.0, 1.0)
-    BACKGROUND_COLOR = (0.0, 0.0, 0.0, 0.0)
-    NODE_WIDTH = dp(100)
-    NODE_HEIGHT = dp(30)
-
-
-class TreeViewButton(Button):
-    pass
-
-
-class TitleTreeViewLabel(Button):
-    pass
-
-
-class TitleTreeViewNode(BoxLayout, TreeViewNode):
-    ROW_BACKGROUND_COLOR = (0.0, 0.0, 0.0, 0.0)
-    EVEN_COLOR = [0, 0, 0.4, 0.4]
-    ODD_COLOR = [0, 0, 1.0, 0.4]
-
-    ROW_HEIGHT = dp(30)
-    NUM_LABEL_WIDTH = dp(40)
-    TITLE_LABEL_WIDTH = dp(400)
-    ISSUE_LABEL_WIDTH = TITLE_LABEL_WIDTH
-
-    NUM_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
-    TITLE_LABEL_COLOR = (1.0, 1.0, 0.0, 1.0)
-    ISSUE_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
-
-    def __init__(self, full_fanta_info: FullFantaComicBookInfo, **kwargs):
-        super().__init__(**kwargs)
-        self.full_fanta_info = full_fanta_info
+        self.bottom_view_change_after_event = Clock.schedule_interval(
+            lambda dt: self.set_next_bottom_view_image(), 10.0
+        )
 
 
 class BarksReaderApp(App):
@@ -363,6 +456,8 @@ class BarksReaderApp(App):
     def build_main_screen_tree(self):
         tree = self.main_screen.reader_contents_tree
 
+        tree.bind(on_node_expand=self.main_screen.node_expanded)
+
         intro_label = MainTreeViewNode(text="Introduction")
         intro_label.bind(on_press=self.main_screen.intro_pressed)
         tree.add_node(intro_label)
@@ -389,7 +484,6 @@ class BarksReaderApp(App):
     def add_story_nodes(self, tree, the_stories_node):
         by_year_label = CategoryTreeViewNode(text="Chronological by Year")
         by_year_label.bind(on_press=self.main_screen.chrono_pressed)
-        self.add_year_range_nodes(tree, by_year_label)
         the_years_node = tree.add_node(by_year_label, parent=the_stories_node)
         self.add_year_range_nodes(tree, the_years_node)
 

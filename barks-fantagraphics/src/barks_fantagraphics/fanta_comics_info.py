@@ -534,9 +534,12 @@ def get_filtered_title_lists(
     filtered_dict = defaultdict(list)
     for title in titles:
         fanta_info = titles[title]
+
         for filt in filters:
             filter_func = filters[filt]
             if filter_func(fanta_info):
                 filtered_dict[filt].append(FullFantaComicBookInfo(title, fanta_info))
+
+        filtered_dict["All"].append(FullFantaComicBookInfo(title, fanta_info))
 
     return filtered_dict

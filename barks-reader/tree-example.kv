@@ -24,6 +24,8 @@
     main_title: main_title_id
     title_info: title_info_id
     bottom_view: bottom_view_id
+    top_view_image: top_view_image_id
+    bottom_view_after_image: bottom_view_after_image_id
 
     AnchorLayout:
         anchor_x: "left"
@@ -40,13 +42,16 @@
             anchor_x: "left"
             anchor_y: "bottom"
 
-            canvas.before:
-                Color:
-                    rgba: root.top_view_image_bg
-                Rectangle:
-                    source: root.top_view_image
-                    pos: self.pos
-                    size: self.size
+            Image:
+                id: top_view_image_id
+                color: root.top_view_image_bg
+                x: self.parent.x
+                y: self.parent.y
+                size: self.parent.size
+                source: ""
+                fit_mode: "cover"
+                opacity: 1
+                mipmap: True
 
             ScrollView:
                 id: scroll_view
@@ -87,23 +92,8 @@
             canvas.before:
                 Color:
                     rgba: root.bottom_view_before_image_bg
-
-                #Line:
-                #    width: root.TITLE_INFO_BORDER_WIDTH
-                #    joint: 'miter'
-                #    rectangle:
-                #        self.x + root.TITLE_INFO_BORDER_WIDTH, self.y + root.TITLE_INFO_BORDER_WIDTH, \
-                #        self.width - 2 * root.TITLE_INFO_BORDER_WIDTH, self.height - 2 * root.TITLE_INFO_BORDER_WIDTH - dp(20)
                 Rectangle:
                     source: root.bottom_view_before_image
-                    pos: self.pos
-                    size: self.size
-
-            canvas.after:
-                Color:
-                    rgba: root.bottom_view_after_image_bg
-                Rectangle:
-                    source: root.bottom_view_after_image
                     pos: self.pos
                     size: self.size
 
@@ -116,7 +106,7 @@
 
             BgColorLabel:
                 id: main_title_id
-                text: "[b]The Colossalest Surprise \nQuiz Show[/b]"
+                text: "[b]The Colossalest Surprise Quiz Show[/b]"
                 background_color: (1, 0, 0, root.DEBUG_BACKGROUND_OPACITY)
                 markup: True
                 color: (1, 1, 0, 1)
@@ -135,12 +125,14 @@
 
                 BoxLayout:
                     orientation: "vertical"
+                    size_hint_x: 1.1
+                    size_hint_y: 1
 
                     BgColorLabel:
                         text: "before title info filler"
                         background_color: (0, 0, 1, 1)
                         opacity: root.DEBUG_BACKGROUND_OPACITY
-                        size_hint: (1, 0.1)
+                        size_hint: (1, 0.05)
                         halign: "left"
                         valign: "top"
                         text_size: (self.width, self.height)
@@ -153,7 +145,7 @@
                             text: "left1"
                             background_color: (1.0, 1.0, 0.0, 0.5)
                             opacity: root.DEBUG_BACKGROUND_OPACITY
-                            size_hint: (0.07, 1)
+                            size_hint: (0.03, 1)
                             halign: "left"
                             valign: "top"
                             text_size: (self.width, self.height)
@@ -161,10 +153,11 @@
                         BgColorLabel:
                             id: title_info_id
                             text: "1st Issue:   [b]Comics & Stories 104, Oct 1949[/b]\nSubmitted: [b]10th January, 1949[/b]\nSource:       Fantagraphics CBDL, Vol 7"
+                            color: root.TITLE_INFO_LABEL_COLOR
                             background_color: 0, 1, 0, root.DEBUG_BACKGROUND_OPACITY
                             markup: True
                             multiline: True
-                            size_hint: (0.93, 1)
+                            size_hint: (0.97, 1)
                             halign: "left"
                             valign: "top"
                             text_size: (self.width, self.height)
@@ -177,16 +170,17 @@
                             text: "left2"
                             background_color: (0.5, 1.0, 0.0, 0.5)
                             opacity: root.DEBUG_BACKGROUND_OPACITY
-                            size_hint: (0.07, 1)
+                            size_hint: (0.03, 1)
                             halign: "left"
                             valign: "top"
                             text_size: (self.width, self.height)
 
                         BgColorLabel:
                             text: "Blah blah blah\netc etc etc"
+                            color: root.TITLE_EXTRA_INFO_LABEL_COLOR
                             background_color: 0, 1, 1, root.DEBUG_BACKGROUND_OPACITY
                             multiline: True
-                            size_hint: (0.93, 1)
+                            size_hint: (0.97, 1)
                             halign: "left"
                             valign: "top"
                             text_size: (self.width, self.height)
@@ -194,6 +188,7 @@
                 AnchorLayout:
                     anchor_x: "center"
                     anchor_y: "center"
+                    size_hint_x: 0.90
                     size_hint_y: 0.85
 
                     BoxLayout
@@ -203,11 +198,12 @@
                             text: "left of title image filler"
                             background_color: (1.0, 1.0, 0.0, 0.5)
                             opacity: root.DEBUG_BACKGROUND_OPACITY
-                            size_hint: (0.1, 0.9)
+                            size_hint: (0.05, 0.9)
                             text_size: (self.width, self.height)
 
                         BoxLayout
                             orientation: "vertical"
+                            size_hint: (1, 0.9)
 
                             BgColorLabel:
                                 text: "top of button filler"
@@ -218,11 +214,6 @@
 
                             Button:
                                 canvas.before:
-#                                    Color:
-#                                        rgba: 1, 0, 0, 0
-#                                    Line:
-#                                        width: 2
-#                                        rectangle: self.x, self.y, self.width, self.height
                                     Color:
                                         rgba: 0, 0, 1, 0.85
                                     BoxShadow:
@@ -247,7 +238,6 @@
                                 halign: "left"
                                 valign: "top"
                                 text_size: (self.width, self.height)
-                                on_press: root.image_pressed()
 
                                 TitlePageImage:
                                     id: title_page_image_id
@@ -257,21 +247,30 @@
                                     source: "/tmp/1-01.jpg"
                                     fit_mode: "cover"
                                     opacity: 1 if self.parent.visible else 0
+                                    mipmap: True
                                     on_press: root.image_pressed()
-                                    #minimum_height: self.height
-                                    #minimum_width: self.width
 
                         BgColorLabel:
                             text: "right of title image filler"
                             background_color: (1.0, 1.0, 0.0, 0.5)
                             opacity: root.DEBUG_BACKGROUND_OPACITY
-                            size_hint: (0.12, 0.8)
+                            size_hint: (0.09, 0.8)
                             text_size: (self.width, self.height)
 
             BgColorLabel:
                 text: "bottom of title image filler"
                 background_color: (0.0, 1.0, 1.0, 0.5)
                 opacity: root.DEBUG_BACKGROUND_OPACITY
-                size_hint: (1, 0.07)
+                size_hint: (1, 0.06)
                 #height: root.TITLE_INFO_BORDER_WIDTH
                 text_size: (self.width, self.height)
+
+        Image:
+            id: bottom_view_after_image_id
+            color: root.bottom_view_after_image_bg
+            x: self.parent.x
+            y: self.parent.y
+            size: self.parent.size
+            source: ""
+            fit_mode: "cover"
+            mipmap: True

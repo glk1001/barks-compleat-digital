@@ -6,6 +6,7 @@
 
 <MainTreeViewNode>:
     color: root.TEXT_COLOR
+    color_selected: root.SELECTED_COLOR
     background_color: root.BACKGROUND_COLOR
     bold: True
     size_hint: (None, None)
@@ -16,6 +17,7 @@
 
 <CategoryTreeViewNode>:
     color: root.TEXT_COLOR
+    color_selected: root.SELECTED_COLOR
     background_color: root.BACKGROUND_COLOR
     bold: True
     size_hint: (None, None)
@@ -27,6 +29,7 @@
 
 <YearRangeTreeViewNode>:
     color: root.TEXT_COLOR
+    color_selected: root.SELECTED_COLOR
     background_color: root.BACKGROUND_COLOR
     bold: True
     size_hint: (None, None)
@@ -42,16 +45,16 @@
 
 <TitleTreeViewNode>:
     orientation: "vertical"
+    color: root.TEXT_COLOR
+    color_selected: root.SELECTED_COLOR
+    background_color: root.BACKGROUND_COLOR
+    even_color:  self.EVEN_COLOR
+    odd_color:  self.ODD_COLOR
     spacing: 0
     size_hint_y: None
     height: dp(2 * self.ROW_HEIGHT)
     minimum_height: self.height
     minimum_width: self.width
-    color: (0,1,0,1)
-    background_color: (0,0,1,1)
-    color_selected: (1,0,1,1)
-    even_color:  self.EVEN_COLOR
-    odd_color:  self.ODD_COLOR
 
     num_label: num_label_id
     issue_label: issue_label_id
