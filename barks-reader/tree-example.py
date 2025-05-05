@@ -60,6 +60,8 @@ class MainScreen(BoxLayout):
     reader_contents = ObjectProperty()
     title_page_image = ObjectProperty()
     title_page_button = ObjectProperty()
+    main_title = ObjectProperty()
+    title_info = ObjectProperty()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -87,7 +89,7 @@ class MainScreen(BoxLayout):
         comic_file_stem = get_dest_comic_zip_file_stem(
             self.full_fanta_info.title,
             self.full_fanta_info.fanta_info.fanta_chronological_number,
-            self.full_fanta_info.fanta_info.get_issue_title(),
+            self.full_fanta_info.fanta_info.get_short_issue_title(),
         )
 
         print(f'Image "{self.title_page_image.source}" pressed. Want to run "{comic_file_stem}".')
@@ -113,11 +115,16 @@ class MainScreen(BoxLayout):
         self.full_fanta_info = button.parent.full_fanta_info
 
         comic_inset_file = get_comic_inset_file(button.parent.full_fanta_info.title)
-
         print(f'Title row button "{button.text}" pressed. Dir name = "{comic_inset_file}".')
 
+        self.main_title.text = button.parent.full_fanta_info.title
+        self.title_info.text = self.get_title_info()
         self.title_page_image.source = comic_inset_file
         self.title_page_button.visible = True
+
+    def get_title_info(self) -> str:
+        issue = self.full_fanta_info.fanta_info.get_short_issue_title()
+        text: "1st Issue:   [b]Comics & Stories 104, Oct 1949[/b]\nSubmitted: [b]10th January, 1949[/b]\nSource:       Fantagraphics CBDL, Vol 7"
 
 
 class ReaderTreeView(TreeView):
@@ -125,8 +132,8 @@ class ReaderTreeView(TreeView):
 
 
 class TitlePageImage(ButtonBehavior, Image):
-    TITLE_IMAGE_X_FRAC_OF_PARENT = 0.85
-    TITLE_IMAGE_Y_FRAC_OF_PARENT = 0.85 * 0.97
+    TITLE_IMAGE_X_FRAC_OF_PARENT = 0.98
+    TITLE_IMAGE_Y_FRAC_OF_PARENT = 0.98 * 0.97
 
 
 class MainTreeViewNode(Button, TreeViewNode):
@@ -185,9 +192,15 @@ class BarksReaderApp(App):
 
         self.main_screen: Union[MainScreen, None] = None
 
-        Window.size = (666, 1000)
-        Window.left = 300
-        Window.top = 200
+        # TODO: how to nicely handle main window
+        DEFAULT_ASPECT_RATIO = 1.5
+        DEFAULT_WINDOW_HEIGHT = 1000
+        DEFAULT_WINDOW_WIDTH = int(round(DEFAULT_WINDOW_HEIGHT / DEFAULT_ASPECT_RATIO))
+        DEFAULT_LEFT_POS = 400
+        DEFAULT_TOP_POS = 50
+        Window.size = (DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
+        Window.left = DEFAULT_LEFT_POS
+        Window.top = DEFAULT_TOP_POS
 
     def on_request_close_window(self, *args):
         return self.main_screen.comic_reader.on_app_request_close()
