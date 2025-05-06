@@ -6,7 +6,6 @@ from random import randrange
 from typing import List, Union
 
 import kivy.core.text
-from kivy import Config
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
@@ -36,6 +35,10 @@ from file_paths import (
     get_mcomix_barks_reader_config_path,
     get_the_comic_zips_dir,
     get_comic_inset_file,
+    get_comic_cover_file,
+    get_comic_splash_files,
+    get_comic_silhouette_files,
+    EMERGENCY_INSET_FILE,
 )
 from filtered_title_lists import FilteredTitleLists
 from mcomix_reader import ComicReader
@@ -173,7 +176,7 @@ class MainScreen(BoxLayout):
             get_the_comic_zips_dir(),
         )
 
-        self.bottom_view_before_image = "/home/greg/Prj/github/barks-compleat-digital/barks-fantagraphics/story-titles/Biceps Blues Inset.png"
+        self.bottom_view_before_image = ""
 
         self.bottom_view_before_image_bg = (1, 0, 0, 0.5)
         self.bottom_view_after_image_bg = self.BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG
@@ -306,16 +309,61 @@ class MainScreen(BoxLayout):
         self.bottom_view_after_image_bg = self.BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG
 
         self.full_fanta_info = button.parent.full_fanta_info
+        title = self.full_fanta_info.title
 
-        comic_inset_file = get_comic_inset_file(button.parent.full_fanta_info.title)
-        print(f'Title row button "{button.text}" pressed. Dir name = "{comic_inset_file}".')
+        comic_inset_file = get_comic_inset_file(title)
+        title_info_image = self.get_title_info_image(title)
+
+        print(
+            f'Title row button "{button.text}" pressed. Inset file = "{comic_inset_file}", '
+            f'title info image = "{title_info_image}".'
+        )
 
         self.main_title.text = get_display_title(button.parent.full_fanta_info)
         self.title_info.text = self.get_title_info()
         self.title_page_image.source = comic_inset_file
+        self.bottom_view_before_image = title_info_image
         self.title_page_button.visible = True
 
     #        self.set_next_top_view_image()
+
+    def get_title_info_image(self, title: str) -> str:
+        num_categories = 3
+        silhouette_percent = int(round(100 / num_categories))
+        splashes_percent = 2 * int(round(100 / num_categories))
+        covers_percent = 3 * int(round(100 / num_categories))
+
+        for num_attempts in range(10):
+            rand_percent = randrange(0, 100)
+            print(f"Attempt {num_attempts}: rand percent = {rand_percent}.")
+
+            if rand_percent <= silhouette_percent:
+                title_files = get_comic_silhouette_files(title)
+                if title_files:
+                    index = randrange(0, len(title_files))
+                    return title_files[index]
+                silhouette_percent = -1
+                print(f"No silhouettes.")
+
+            if rand_percent <= splashes_percent:
+                title_files = get_comic_splash_files(title)
+                if title_files:
+                    index = randrange(0, len(title_files))
+                    return title_files[index]
+                splashes_percent = -1
+                print(f"No splashes.")
+
+            if rand_percent <= covers_percent:
+                title_file = get_comic_cover_file(title)
+                if title_file:
+                    return title_file
+                covers_percent = -1
+                print(f"No covers.")
+
+            if silhouette_percent == -1 and splashes_percent == -1 and covers_percent == -1:
+                break
+
+        return get_comic_inset_file(EMERGENCY_INSET_FILE)
 
     def get_title_info(self) -> str:
         issue_info = get_formatted_first_published_str(self.full_fanta_info.fanta_info)
@@ -329,22 +377,18 @@ class MainScreen(BoxLayout):
         )
 
     def set_next_top_view_image(self):
-        base_dir = "/home/greg/Prj/github/barks-compleat-digital/barks-fantagraphics/story-titles"
-
         if self.current_screen_category == ScreenCategories.INITIAL:
-            self.top_view_image.source = os.path.join(base_dir, "A Cold Bargain Inset.png")
+            self.top_view_image.source = get_comic_inset_file("A Cold Bargain")
         elif self.current_screen_category == ScreenCategories.INTRO:
-            self.top_view_image.source = os.path.join(base_dir, "Adventure Down Under Inset.png")
+            self.top_view_image.source = get_comic_inset_file("Adventure Down Under")
         elif self.current_screen_category == ScreenCategories.THE_STORIES:
             self.top_view_image.source = self.get_random_image("All")
         elif self.current_screen_category == ScreenCategories.SEARCH:
-            self.top_view_image.source = os.path.join(base_dir, "Tracking Sandy Inset.png")
+            self.top_view_image.source = get_comic_inset_file("Tracking Sandy")
         elif self.current_screen_category == ScreenCategories.APPENDIX:
-            self.top_view_image.source = os.path.join(
-                base_dir, "The Fabulous Philosopher's Stone Inset.png"
-            )
+            self.top_view_image.source = get_comic_inset_file("The Fabulous Philosopher's Stone")
         elif self.current_screen_category == ScreenCategories.INDEX:
-            self.top_view_image.source = os.path.join(base_dir, "Truant Officer Donald Inset.png")
+            self.top_view_image.source = get_comic_inset_file("Truant Officer Donald")
         elif self.current_screen_category == ScreenCategories.CHRONO_BY_YEAR:
             self.top_view_image.source = self.get_random_image("All")
         elif self.current_screen_category == ScreenCategories.DDA:
@@ -352,7 +396,7 @@ class MainScreen(BoxLayout):
         elif self.current_screen_category == ScreenCategories.YEAR_RANGE:
             print(f"Year range: {self.current_year_range}")
             if not self.current_year_range:
-                self.top_view_image.source = os.path.join(base_dir, "Good Neighbors Inset.png")
+                self.top_view_image.source = get_comic_inset_file("Good Neighbors")
             else:
                 self.top_view_image.source = self.get_random_image(self.current_year_range)
         else:
@@ -367,13 +411,11 @@ class MainScreen(BoxLayout):
         self.schedule_top_view_event()
 
     def get_random_image(self, title_category: str) -> str:
-        base_dir = "/home/greg/Prj/github/barks-compleat-digital/barks-fantagraphics/story-titles"
-
         titles = self.filtered_title_lists.get_title_lists()[title_category]
         title_index = randrange(0, len(titles))
-        title_image = f"{titles[title_index].title} Inset.png"
+        title_image = get_comic_inset_file(titles[title_index].title)
 
-        return os.path.join(base_dir, title_image)
+        return title_image
 
     def set_next_top_view_image_bg(self):
         random_color = (
@@ -551,9 +593,5 @@ if __name__ == "__main__":
     setup_logging(cmd_args.get_log_level())
 
     comics_database = cmd_args.get_comics_database()
-
-    # TODO: Not working properly?
-    Config.set("graphics", "multisamples", 8)
-    Config.write()
 
     BarksReaderApp(comics_database).run()
