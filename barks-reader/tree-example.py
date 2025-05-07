@@ -205,28 +205,6 @@ class MainScreen(BoxLayout):
                 self.set_next_top_view_image()
                 self.set_next_bottom_view_image()
 
-    def image_pressed(self):
-        if self.fanta_info is None:
-            self.intro_text.opacity = 0.0
-            print(f'Image "{self.title_page_image.source}" pressed. No title selected.')
-            return
-
-        if self.comic_reader.reader_is_running:
-            print(f'Image "{self.title_page_image.source}" pressed. Already reading comic.')
-            return
-
-        comic_file_stem = get_dest_comic_zip_file_stem(
-            self.fanta_info.comic_book_info.title,
-            self.fanta_info.fanta_chronological_number,
-            self.fanta_info.get_short_issue_title(),
-        )
-
-        print(f'Image "{self.title_page_image.source}" pressed. Want to run "{comic_file_stem}".')
-
-        self.comic_reader.show_comic(comic_file_stem)
-
-        print(f"Exited image press.")
-
     def intro_pressed(self, button: Button):
         self.bottom_view.opacity = 0.0
         self.intro_text.opacity = 1.0
@@ -324,6 +302,28 @@ class MainScreen(BoxLayout):
         self.bottom_view_before_image = title_info_image
 
     #        self.set_next_top_view_image()
+
+    def image_pressed(self):
+        if self.fanta_info is None:
+            self.intro_text.opacity = 0.0
+            print(f'Image "{self.title_page_image.source}" pressed. No title selected.')
+            return
+
+        if self.comic_reader.reader_is_running:
+            print(f'Image "{self.title_page_image.source}" pressed. Already reading comic.')
+            return
+
+        comic_file_stem = get_dest_comic_zip_file_stem(
+            self.fanta_info.comic_book_info.title,
+            self.fanta_info.fanta_chronological_number,
+            self.fanta_info.get_short_issue_title(),
+        )
+
+        print(f'Image "{self.title_page_image.source}" pressed. Want to run "{comic_file_stem}".')
+
+        self.comic_reader.show_comic(comic_file_stem)
+
+        print(f"Exited image press.")
 
     def get_title_info_image(self, title: str) -> str:
         num_categories = 3
