@@ -11,13 +11,14 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.metrics import dp
-from kivy.properties import ObjectProperty, ColorProperty
+from kivy.properties import ObjectProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.treeview import TreeView, TreeViewNode
 
+from barks_fantagraphics.barks_titles import Titles
 from barks_fantagraphics.comics_cmd_args import CmdArgs
 from barks_fantagraphics.comics_database import ComicsDatabase
 from barks_fantagraphics.comics_utils import (
@@ -28,20 +29,23 @@ from barks_fantagraphics.comics_utils import (
     get_formatted_first_published_str,
     get_long_formatted_submitted_date,
 )
-from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo, FAN, FANTA_SOURCE_COMICS
+from barks_fantagraphics.fanta_comics_info import (
+    FantaComicBookInfo,
+    FAN,
+    FANTA_SOURCE_COMICS,
+    SERIES_DDA,
+    ALL_LISTS,
+)
 from file_paths import (
     get_mcomix_python_bin_path,
     get_mcomix_path,
     get_mcomix_barks_reader_config_path,
     get_the_comic_zips_dir,
     get_comic_inset_file,
-    get_comic_cover_file,
-    get_comic_splash_files,
-    get_comic_silhouette_files,
-    EMERGENCY_INSET_FILE,
 )
 from filtered_title_lists import FilteredTitleLists
 from mcomix_reader import ComicReader
+from random_title_images import get_random_title_image, get_random_image
 
 APP_TITLE = "The Compleat Barks Reader"
 
@@ -54,9 +58,9 @@ def get_str_pixel_width(text: str, **kwargs) -> int:
 
 def get_display_title(fanta_info: FantaComicBookInfo) -> str:
     return (
-        fanta_info.comic_book_info.title
+        fanta_info.comic_book_info.title_str
         if fanta_info.comic_book_info.is_barks_title
-        else f"({fanta_info.comic_book_info.title})"
+        else f"({fanta_info.comic_book_info.title_str})"
     )
 
 
@@ -127,16 +131,17 @@ class TitleTreeViewLabel(Button):
     pass
 
 
-class ScreenCategories(Enum):
+class TreeNodes(Enum):
     INITIAL = auto()
-    INTRO = auto()
-    THE_STORIES = auto()
-    SEARCH = auto()
-    APPENDIX = auto()
-    INDEX = auto()
-    CHRONO_BY_YEAR = auto()
-    YEAR_RANGE = auto()
-    DDA = auto()
+    ON_INTRO_NODE = auto()
+    ON_THE_STORIES_NODE = auto()
+    ON_SEARCH_NODE = auto()
+    ON_APPENDIX_NODE = auto()
+    ON_INDEX_NODE = auto()
+    ON_CHRONO_BY_YEAR_NODE = auto()
+    ON_YEAR_RANGE_NODE = auto()
+    ON_DDA_NODE = auto()
+    ON_TITLE_NODE = auto()
 
 
 class MainScreen(BoxLayout):
@@ -144,22 +149,19 @@ class MainScreen(BoxLayout):
     TITLE_EXTRA_INFO_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
     DEBUG_BACKGROUND_OPACITY = 0
 
+    BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG = (1, 0, 0, 1)
+    BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG = (1, 0, 0, 0)
+    BOTTOM_VIEW_BEFORE_IMAGE_ENABLED_BG = (1, 0, 0, 0.5)
+    BOTTOM_VIEW_BEFORE_IMAGE_DISABLED_BG = (0, 0, 0, 0)
+
     top_view_image = ObjectProperty()
-    top_view_image_bg = ColorProperty()
     bottom_view = ObjectProperty()
-    bottom_view_before_image = ObjectProperty()
-    bottom_view_before_image_bg = ColorProperty()
-    bottom_view_after_image_bg = ColorProperty()
-
-    BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG = (1, 0, 0, 1.0)
-    BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG = (1, 0, 0, 0.0)
-
-    intro_text = ObjectProperty()
     reader_contents = ObjectProperty()
-    title_page_image = ObjectProperty()
-    title_page_button = ObjectProperty()
+    intro_text = ObjectProperty()
     main_title = ObjectProperty()
     title_info = ObjectProperty()
+    title_page_image = ObjectProperty()
+    title_page_button = ObjectProperty()
 
     def __init__(self, filtered_title_lists: FilteredTitleLists, **kwargs):
         super().__init__(**kwargs)
@@ -175,121 +177,73 @@ class MainScreen(BoxLayout):
             get_the_comic_zips_dir(),
         )
 
-        self.bottom_view_before_image = ""
+        self.top_view_image.color = (1, 1, 1, 0.5)
+        self.bottom_view_before_image.color = self.BOTTOM_VIEW_BEFORE_IMAGE_ENABLED_BG
 
-        self.bottom_view_before_image_bg = (1, 0, 0, 0.5)
-        self.bottom_view_after_image_bg = self.BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG
-
-        self.top_view_image_bg = (1, 1, 1, 0.5)
-
-        self.bottom_view.opacity = 1.0
-
-        self.current_screen_category = ScreenCategories.INITIAL
+        self.current_tree_node = TreeNodes.INITIAL
         self.current_year_range = ""
 
         self.top_view_change_event = None
         self.bottom_view_change_after_event = None
 
-        self.set_next_top_view_image()
-        self.set_next_bottom_view_image()
+        self.update_visibilities()
 
     def node_expanded(self, tree: ReaderTreeView, node: TreeViewNode):
         if isinstance(node, YearRangeTreeViewNode):
-            self.current_screen_category = ScreenCategories.YEAR_RANGE
+            self.current_tree_node = TreeNodes.ON_YEAR_RANGE_NODE
             self.current_year_range = node.text
             self.set_next_top_view_image()
             self.set_next_bottom_view_image()
         elif isinstance(node, CategoryTreeViewNode):
             if node.text == "Donald Duck Adventures":
-                self.current_screen_category = ScreenCategories.DDA
+                self.current_tree_node = TreeNodes.ON_DDA_NODE
                 self.set_next_top_view_image()
                 self.set_next_bottom_view_image()
 
     def intro_pressed(self, button: Button):
-        self.bottom_view.opacity = 0.0
-        self.intro_text.opacity = 1.0
-        self.bottom_view_after_image_bg = self.BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG
+        self.current_tree_node = TreeNodes.ON_INTRO_NODE
+        self.update_visibilities()
 
-        self.current_screen_category = ScreenCategories.INTRO
         self.intro_text.text = "hello line 1\nhello line 2\nhello line 3\n"
 
-        self.set_next_top_view_image()
-        self.set_next_bottom_view_image()
-
     def the_stories_pressed(self, button: Button):
-        self.bottom_view.opacity = 1.0
-        self.intro_text.opacity = 0
-        self.bottom_view_after_image_bg = self.BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG
-
-        self.current_screen_category = ScreenCategories.THE_STORIES
-        self.set_next_top_view_image()
-        self.set_next_bottom_view_image()
+        self.current_tree_node = TreeNodes.ON_THE_STORIES_NODE
+        self.update_visibilities()
 
     def search_pressed(self, button: Button):
-        self.bottom_view.opacity = 1.0
-        self.intro_text.opacity = 0
-        self.bottom_view_after_image_bg = self.BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG
-
-        self.current_screen_category = ScreenCategories.SEARCH
-        self.set_next_top_view_image()
-        self.set_next_bottom_view_image()
+        self.current_tree_node = TreeNodes.ON_SEARCH_NODE
+        self.update_visibilities()
 
     def appendix_pressed(self, button: Button):
-        self.bottom_view.opacity = 1.0
-        self.intro_text.opacity = 0
-        self.bottom_view_after_image_bg = self.BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG
-
-        self.current_screen_category = ScreenCategories.APPENDIX
-        self.set_next_top_view_image()
-        self.set_next_bottom_view_image()
+        self.current_tree_node = TreeNodes.ON_APPENDIX_NODE
+        self.update_visibilities()
 
     def index_pressed(self, button: Button):
-        self.bottom_view.opacity = 1.0
-        self.intro_text.opacity = 0
-        self.bottom_view_after_image_bg = self.BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG
-
-        self.current_screen_category = ScreenCategories.INDEX
-        self.set_next_top_view_image()
-        self.set_next_bottom_view_image()
+        self.current_tree_node = TreeNodes.ON_INDEX_NODE
+        self.update_visibilities()
 
     def chrono_pressed(self, button: Button):
-        self.bottom_view.opacity = 1.0
-        self.intro_text.opacity = 0
-        self.bottom_view_after_image_bg = self.BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG
-
-        self.current_screen_category = ScreenCategories.CHRONO_BY_YEAR
-        self.set_next_top_view_image()
-        self.set_next_bottom_view_image()
-
-    def dda_pressed(self, button: Button):
-        self.bottom_view.opacity = 1.0
-        self.intro_text.opacity = 0
-        self.bottom_view_after_image_bg = self.BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG
-
-        self.current_screen_category = ScreenCategories.DDA
-        self.set_next_top_view_image()
-        self.set_next_bottom_view_image()
+        self.current_tree_node = TreeNodes.ON_CHRONO_BY_YEAR_NODE
+        self.update_visibilities()
 
     def year_range_pressed(self, button: Button):
-        self.bottom_view.opacity = 1.0
-        self.intro_text.opacity = 0
-        self.bottom_view_after_image_bg = self.BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG
+        self.current_tree_node = TreeNodes.ON_YEAR_RANGE_NODE
+        self.update_visibilities()
 
         self.current_year_range = button.text
-        self.current_screen_category = ScreenCategories.YEAR_RANGE
-        self.set_next_top_view_image()
-        self.set_next_bottom_view_image()
+
+    def dda_pressed(self, button: Button):
+        self.current_tree_node = TreeNodes.ON_DDA_NODE
+        self.update_visibilities()
 
     def title_row_button_pressed(self, button: Button):
-        self.bottom_view.opacity = 1.0
-        self.intro_text.opacity = 0.0
-        self.bottom_view_after_image_bg = self.BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG
+        self.current_tree_node = TreeNodes.ON_TITLE_NODE
+        self.update_visibilities()
 
         self.fanta_info = button.parent.fanta_info
-        title = self.fanta_info.comic_book_info.title
 
-        comic_inset_file = get_comic_inset_file(title)
-        title_info_image = self.get_title_info_image(title)
+        comic_inset_file = get_comic_inset_file(self.fanta_info.comic_book_info.title)
+        title_info_image = get_random_title_image(self.fanta_info.comic_book_info.title_str)
 
         print(
             f'Title row button "{button.text}" pressed. Inset file = "{comic_inset_file}", '
@@ -299,13 +253,12 @@ class MainScreen(BoxLayout):
         self.main_title.text = get_display_title(button.parent.fanta_info)
         self.title_info.text = self.get_title_info()
         self.title_page_image.source = comic_inset_file
-        self.bottom_view_before_image = title_info_image
+        self.bottom_view_before_image.source = title_info_image
 
     #        self.set_next_top_view_image()
 
     def image_pressed(self):
         if self.fanta_info is None:
-            self.intro_text.opacity = 0.0
             print(f'Image "{self.title_page_image.source}" pressed. No title selected.')
             return
 
@@ -314,7 +267,7 @@ class MainScreen(BoxLayout):
             return
 
         comic_file_stem = get_dest_comic_zip_file_stem(
-            self.fanta_info.comic_book_info.title,
+            self.fanta_info.comic_book_info.title_str,
             self.fanta_info.fanta_chronological_number,
             self.fanta_info.get_short_issue_title(),
         )
@@ -324,44 +277,6 @@ class MainScreen(BoxLayout):
         self.comic_reader.show_comic(comic_file_stem)
 
         print(f"Exited image press.")
-
-    def get_title_info_image(self, title: str) -> str:
-        num_categories = 3
-        silhouette_percent = int(round(100 / num_categories))
-        splashes_percent = 2 * int(round(100 / num_categories))
-        covers_percent = 3 * int(round(100 / num_categories))
-
-        for num_attempts in range(10):
-            rand_percent = randrange(0, 100)
-            print(f"Attempt {num_attempts}: rand percent = {rand_percent}.")
-
-            if rand_percent <= silhouette_percent:
-                title_files = get_comic_silhouette_files(title)
-                if title_files:
-                    index = randrange(0, len(title_files))
-                    return title_files[index]
-                silhouette_percent = -1
-                print(f"No silhouettes.")
-
-            if rand_percent <= splashes_percent:
-                title_files = get_comic_splash_files(title)
-                if title_files:
-                    index = randrange(0, len(title_files))
-                    return title_files[index]
-                splashes_percent = -1
-                print(f"No splashes.")
-
-            if rand_percent <= covers_percent:
-                title_file = get_comic_cover_file(title)
-                if title_file:
-                    return title_file
-                covers_percent = -1
-                print(f"No covers.")
-
-            if silhouette_percent == -1 and splashes_percent == -1 and covers_percent == -1:
-                break
-
-        return get_comic_inset_file(EMERGENCY_INSET_FILE)
 
     def get_title_info(self) -> str:
         issue_info = get_formatted_first_published_str(self.fanta_info)
@@ -374,46 +289,66 @@ class MainScreen(BoxLayout):
             f"[i]Source:[/i]       [b]{source}[/b]"
         )
 
-    def set_next_top_view_image(self):
-        if self.current_screen_category == ScreenCategories.INITIAL:
-            self.top_view_image.source = get_comic_inset_file("A Cold Bargain")
-        elif self.current_screen_category == ScreenCategories.INTRO:
-            self.top_view_image.source = get_comic_inset_file("Adventure Down Under")
-        elif self.current_screen_category == ScreenCategories.THE_STORIES:
-            self.top_view_image.source = self.get_random_image("All")
-        elif self.current_screen_category == ScreenCategories.SEARCH:
-            self.top_view_image.source = get_comic_inset_file("Tracking Sandy")
-        elif self.current_screen_category == ScreenCategories.APPENDIX:
-            self.top_view_image.source = get_comic_inset_file("The Fabulous Philosopher's Stone")
-        elif self.current_screen_category == ScreenCategories.INDEX:
-            self.top_view_image.source = get_comic_inset_file("Truant Officer Donald")
-        elif self.current_screen_category == ScreenCategories.CHRONO_BY_YEAR:
-            self.top_view_image.source = self.get_random_image("All")
-        elif self.current_screen_category == ScreenCategories.DDA:
-            self.top_view_image.source = self.get_random_image("Donald Duck Adventures")
-        elif self.current_screen_category == ScreenCategories.YEAR_RANGE:
-            print(f"Year range: {self.current_year_range}")
-            if not self.current_year_range:
-                self.top_view_image.source = get_comic_inset_file("Good Neighbors")
-            else:
-                self.top_view_image.source = self.get_random_image(self.current_year_range)
+    def update_visibilities(self):
+        if self.current_tree_node == TreeNodes.ON_INTRO_NODE:
+            self.bottom_view.opacity = 0.0
+            self.intro_text.opacity = 1.0
+            self.bottom_view_after_image.color = self.BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG
+            self.bottom_view_before_image.color = self.BOTTOM_VIEW_BEFORE_IMAGE_DISABLED_BG
+        elif self.current_tree_node == TreeNodes.ON_TITLE_NODE:
+            self.bottom_view.opacity = 1.0
+            self.intro_text.opacity = 0.0
+            self.bottom_view_after_image.color = self.BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG
+            self.bottom_view_before_image.color = self.BOTTOM_VIEW_BEFORE_IMAGE_ENABLED_BG
         else:
-            assert False
+            self.bottom_view.opacity = 1.0
+            self.intro_text.opacity = 0.0
+            self.bottom_view_after_image.color = self.BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG
+            self.bottom_view_before_image.color = self.BOTTOM_VIEW_BEFORE_IMAGE_DISABLED_BG
+
+        self.set_next_top_view_image()
+        self.set_next_bottom_view_image()
+
+    def set_next_top_view_image(self):
+        match self.current_tree_node:
+            case TreeNodes.INITIAL:
+                self.top_view_image.source = get_comic_inset_file(Titles.COLD_BARGAIN_A)
+            case TreeNodes.ON_INTRO_NODE:
+                self.top_view_image.source = get_comic_inset_file(Titles.ADVENTURE_DOWN_UNDER)
+            case TreeNodes.ON_THE_STORIES_NODE:
+                self.top_view_image.source = get_random_image(self.filtered_title_lists, ALL_LISTS)
+            case TreeNodes.ON_SEARCH_NODE:
+                self.top_view_image.source = get_comic_inset_file(Titles.TRACKING_SANDY)
+            case TreeNodes.ON_APPENDIX_NODE:
+                self.top_view_image.source = get_comic_inset_file(
+                    Titles.FABULOUS_PHILOSOPHERS_STONE_THE
+                )
+            case TreeNodes.ON_INDEX_NODE:
+                self.top_view_image.source = get_comic_inset_file(Titles.TRUANT_OFFICER_DONALD)
+            case TreeNodes.ON_CHRONO_BY_YEAR_NODE:
+                self.top_view_image.source = get_random_image(self.filtered_title_lists, ALL_LISTS)
+            case TreeNodes.ON_DDA_NODE:
+                self.top_view_image.source = get_random_image(self.filtered_title_lists, SERIES_DDA)
+            case TreeNodes.ON_YEAR_RANGE_NODE:
+                print(f"Year range: {self.current_year_range}")
+                if not self.current_year_range:
+                    self.top_view_image.source = get_comic_inset_file(Titles.GOOD_NEIGHBORS)
+                else:
+                    self.top_view_image.source = get_random_image(
+                        self.filtered_title_lists, self.current_year_range
+                    )
+            case TreeNodes.ON_TITLE_NODE:
+                pass
+            case _:
+                assert False
 
         print(
-            f"Category: {self.current_screen_category}."
+            f"Category: {self.current_tree_node}."
             f" Image: '{os.path.basename(self.top_view_image.source)}'."
         )
 
         self.set_next_top_view_image_bg()
         self.schedule_top_view_event()
-
-    def get_random_image(self, title_category: str) -> str:
-        titles = self.filtered_title_lists.get_title_lists()[title_category]
-        title_index = randrange(0, len(titles))
-        title_image = get_comic_inset_file(titles[title_index].comic_book_info.title)
-
-        return title_image
 
     def set_next_top_view_image_bg(self):
         random_color = (
@@ -422,11 +357,14 @@ class MainScreen(BoxLayout):
             randrange(100, 255) / 255.0,
             randrange(220, 250) / 255.0,
         )
-        self.top_view_image_bg = random_color
-        print(f"Top view image bg = {self.top_view_image_bg}")
+        self.top_view_image.color = random_color
+        print(f"Top view image bg = {self.top_view_image.color}")
 
     def set_next_bottom_view_image(self):
-        self.bottom_view_after_image.source = self.get_random_image("All")
+        if self.current_tree_node == TreeNodes.ON_TITLE_NODE:
+            return
+
+        self.bottom_view_after_image.source = get_random_image(self.filtered_title_lists, ALL_LISTS)
         print(
             f"Bottom view after image: '{os.path.basename(self.bottom_view_after_image.source)}'."
         )
@@ -435,13 +373,16 @@ class MainScreen(BoxLayout):
         self.schedule_bottom_view_after_event()
 
     def set_next_bottom_view_after_image_bg(self):
-        rand_index = randrange(0, 3)
-        rand_color_val = randrange(230, 255) / 255.0
-        rand_color = [0, 0, 0, self.bottom_view_after_image_bg[3]]
-        rand_color[rand_index] = rand_color_val
+        if randrange(0, 100) < 20:
+            rand_color = [1, 1, 1, 1]
+        else:
+            rand_index = randrange(0, 3)
+            rand_color_val = randrange(230, 255) / 255.0
+            rand_color = [0.1, 0.1, 0.1, self.bottom_view_after_image.color[3]]
+            rand_color[rand_index] = rand_color_val
 
-        self.bottom_view_after_image_bg = tuple(rand_color)
-        print(f"Bottom view after image bg = {self.bottom_view_after_image_bg}")
+        self.bottom_view_after_image.color = tuple(rand_color)
+        print(f"Bottom view after image bg = {self.bottom_view_after_image.color}")
 
     def schedule_top_view_event(self):
         if self.top_view_change_event:
