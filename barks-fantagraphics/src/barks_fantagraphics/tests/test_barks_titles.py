@@ -1,10 +1,9 @@
 import unittest
-from collections import OrderedDict
+from typing import List
 
 from barks_fantagraphics.barks_titles import (
     ComicBookInfo,
-    ComicBookInfoDict,
-    get_all_comic_book_info,
+    BARKS_TITLE_INFO,
     check_story_submitted_order,
     # Import the raw data for some tests
     SHORT_ISSUE_NAME,  # Needed for get_issue_title test
@@ -50,15 +49,9 @@ class TestComicBookInfo(unittest.TestCase):
 
 class TestGetAllComicBookInfo(unittest.TestCase):
 
-    def test_returns_ordered_dict(self):
-        """Tests if the function returns an OrderedDict."""
-        result = get_all_comic_book_info()
-        self.assertIsInstance(result, OrderedDict)
-
     def test_sorted_by_chronological_number(self):
-        """Tests if the returned dictionary is sorted correctly."""
-        result = get_all_comic_book_info()
-        items = list(result.values())
+        """Tests if the titles list is sorted correctly."""
+        items = BARKS_TITLE_INFO
         for i in range(len(items) - 1):
             self.assertEqual(
                 items[i].chronological_number + 1,
@@ -69,16 +62,14 @@ class TestGetAllComicBookInfo(unittest.TestCase):
             )
 
     def test_correct_number_of_titles(self):
-        result = get_all_comic_book_info()
-        items = list(result.values())
+        items = BARKS_TITLE_INFO
         num_titles = len(items)
         self.assertEqual(1, items[0].chronological_number)
         self.assertEqual(num_titles, items[-1].chronological_number)
 
     def test_story_submitted_order(self):
         try:
-            result = get_all_comic_book_info()
-            check_story_submitted_order(result)
+            check_story_submitted_order(BARKS_TITLE_INFO)
         except Exception as e:
             self.fail(f"get_all_comic_book_info raised an unexpected exception: {e}")
 
@@ -87,18 +78,13 @@ class TestCheckStorySubmittedOrder(unittest.TestCase):
 
     def test_valid_order(self):
         """Tests that correctly ordered data passes."""
-        valid_data: ComicBookInfoDict = OrderedDict(
-            [
-                ("Story A", ComicBookInfo("Story A", True, FC, 1, 1, 1940, 1, 1, 1940, 1)),
-                ("Story B", ComicBookInfo("Story B", True, FC, 2, 2, 1940, 1, 2, 1940, 2)),
-                (
-                    "Story C",
-                    ComicBookInfo("Story C", True, FC, 3, 3, 1940, -1, 2, 1940, 3),
-                ),  # Day -1 is ok
-                ("Story D", ComicBookInfo("Story D", True, FC, 4, 4, 1940, 15, 2, 1940, 4)),
-                ("Story E", ComicBookInfo("Story E", True, FC, 5, 5, 1941, 1, 1, 1941, 5)),
-            ]
-        )
+        valid_data: List[ComicBookInfo] = [
+            ComicBookInfo("Story A", True, FC, 1, 1, 1940, 1, 1, 1940, 1),
+            ComicBookInfo("Story B", True, FC, 2, 2, 1940, 1, 2, 1940, 2),
+            ComicBookInfo("Story C", True, FC, 3, 3, 1940, -1, 2, 1940, 3),  # Day -1 is ok
+            ComicBookInfo("Story D", True, FC, 4, 4, 1940, 15, 2, 1940, 4),
+            ComicBookInfo("Story E", True, FC, 5, 5, 1941, 1, 1, 1941, 5),
+        ]
         try:
             check_story_submitted_order(valid_data)
         except Exception as e:
@@ -108,75 +94,48 @@ class TestCheckStorySubmittedOrder(unittest.TestCase):
 
     def test_invalid_month(self):
         """Tests detection of invalid submission month."""
-        invalid_data: ComicBookInfoDict = OrderedDict(
-            [
-                ("Story A", ComicBookInfo("Story A", True, FC, 1, 1, 1940, 1, 1, 1940, 1)),
-                (
-                    "Story B",
-                    ComicBookInfo("Story B", True, FC, 2, 2, 1940, 1, 13, 1940, 2),
-                ),  # Invalid month 13
-            ]
-        )
+        invalid_data: List[ComicBookInfo] = [
+            ComicBookInfo("Story A", True, FC, 1, 1, 1940, 1, 1, 1940, 1),
+            ComicBookInfo("Story B", True, FC, 2, 2, 1940, 1, 13, 1940, 2),  # Invalid month 13
+        ]
         with self.assertRaisesRegex(Exception, "Invalid submission month: 13"):
             check_story_submitted_order(invalid_data)
 
-        invalid_data_zero: ComicBookInfoDict = OrderedDict(
-            [
-                (
-                    "Story A",
-                    ComicBookInfo("Story A", True, FC, 1, 1, 1940, 1, 0, 1940, 1),
-                ),  # Invalid month 0
-            ]
-        )
+        invalid_data_zero: List[ComicBookInfo] = [
+            ComicBookInfo("Story A", True, FC, 1, 1, 1940, 1, 0, 1940, 1),  # Invalid month 0
+        ]
         with self.assertRaisesRegex(Exception, "Invalid submission month: 0"):
             check_story_submitted_order(invalid_data_zero)
 
     def test_out_of_order_submission_date(self):
         """Tests detection of out-of-order submission dates."""
-        invalid_data: ComicBookInfoDict = OrderedDict(
-            [
-                ("Story A", ComicBookInfo("Story A", True, FC, 1, 1, 1940, 15, 2, 1940, 1)),
-                (
-                    "Story B",
-                    ComicBookInfo("Story B", True, FC, 2, 2, 1940, 1, 2, 1940, 2),
-                ),  # Submitted earlier than A
-            ]
-        )
+        invalid_data: List[ComicBookInfo] = [
+            ComicBookInfo("Story A", True, FC, 1, 1, 1940, 15, 2, 1940, 1),
+            # Submitted earlier than A
+            ComicBookInfo("Story B", True, FC, 2, 2, 1940, 1, 2, 1940, 2),
+        ]
         with self.assertRaisesRegex(Exception, "Out of order submitted date"):
             check_story_submitted_order(invalid_data)
 
     def test_out_of_order_chronological_number(self):
         """Tests detection of out-of-order chronological numbers."""
-        invalid_data: ComicBookInfoDict = OrderedDict(
-            [
-                (
-                    "Story A",
-                    ComicBookInfo("Story A", True, FC, 1, 1, 1940, 1, 1, 1940, 5),
-                ),  # Chrono 5
-                (
-                    "Story B",
-                    ComicBookInfo("Story B", True, FC, 2, 2, 1940, 1, 2, 1940, 2),
-                ),  # Chrono 2 (out of order)
-            ]
-        )
+        invalid_data: List[ComicBookInfo] = [
+            ComicBookInfo("Story A", True, FC, 1, 1, 1940, 1, 1, 1940, 5),
+            # Chrono 2 (out of order)
+            ComicBookInfo("Story B", True, FC, 2, 2, 1940, 1, 2, 1940, 2),
+        ]
         with self.assertRaisesRegex(Exception, "Out of order chronological number"):
             check_story_submitted_order(invalid_data)
 
     def test_handles_day_minus_one(self):
         """Tests that submitted_day=-1 is handled correctly."""
-        data: ComicBookInfoDict = OrderedDict(
-            [
-                ("Story A", ComicBookInfo("Story A", True, FC, 1, 1, 1940, -1, 1, 1940, 1)),
-                (
-                    "Story B",
-                    ComicBookInfo("Story B", True, FC, 2, 2, 1940, 1, 1, 1940, 2),
-                ),  # Same month, later day
-                (
-                    "Story C",
-                    ComicBookInfo("Story C", True, FC, 3, 3, 1940, -1, 2, 1940, 3),
-                ),  # Later month, day -1
-            ]
-        )
+        data: List[ComicBookInfo] = [
+            ComicBookInfo("Story A", True, FC, 1, 1, 1940, -1, 1, 1940, 1),
+            # Same month, later day
+            ComicBookInfo("Story B", True, FC, 2, 2, 1940, 1, 1, 1940, 2),
+            # Later month, day -1
+            ComicBookInfo("Story C", True, FC, 3, 3, 1940, -1, 2, 1940, 3),
+        ]
         try:
             check_story_submitted_order(data)
         except Exception as e:
@@ -185,12 +144,10 @@ class TestCheckStorySubmittedOrder(unittest.TestCase):
             )
 
         # Check case where -1 makes dates equal (should pass)
-        data_equal: ComicBookInfoDict = OrderedDict(
-            [
-                ("Story A", ComicBookInfo("Story A", True, FC, 1, 1, 1940, -1, 1, 1940, 1)),
-                ("Story B", ComicBookInfo("Story B", True, FC, 2, 2, 1940, 1, 1, 1940, 2)),
-            ]
-        )
+        data_equal: List[ComicBookInfo] = [
+            ComicBookInfo("Story A", True, FC, 1, 1, 1940, -1, 1, 1940, 1),
+            ComicBookInfo("Story B", True, FC, 2, 2, 1940, 1, 1, 1940, 2),
+        ]
         try:
             check_story_submitted_order(data_equal)
         except Exception as e:

@@ -2,7 +2,7 @@ from typing import Tuple, List, Dict
 
 from barks_fantagraphics.fanta_comics_info import (
     get_filtered_title_lists,
-    FullFantaComicBookInfo,
+    FantaComicBookInfo,
     SERIES_CS,
     SERIES_DDA,
     SERIES_DDS,
@@ -36,7 +36,7 @@ class FilteredTitleLists:
     def get_range_str(year_range: Tuple[int, int]):
         return f"{year_range[0]} - {year_range[1]}"
 
-    def get_title_lists(self) -> Dict[str, List[FullFantaComicBookInfo]]:
+    def get_title_lists(self) -> Dict[str, List[FantaComicBookInfo]]:
 
         def create_range_lamba(year_range: Tuple[int, int]):
             return (

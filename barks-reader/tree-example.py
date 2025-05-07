@@ -28,7 +28,7 @@ from barks_fantagraphics.comics_utils import (
     get_formatted_first_published_str,
     get_long_formatted_submitted_date,
 )
-from barks_fantagraphics.fanta_comics_info import FullFantaComicBookInfo, FAN, FANTA_SOURCE_COMICS
+from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo, FAN, FANTA_SOURCE_COMICS
 from file_paths import (
     get_mcomix_python_bin_path,
     get_mcomix_path,
@@ -52,11 +52,11 @@ def get_str_pixel_width(text: str, **kwargs) -> int:
     return kivy.core.text.Label(**kwargs).get_extents(text)[0]
 
 
-def get_display_title(title_info: FullFantaComicBookInfo) -> str:
+def get_display_title(fanta_info: FantaComicBookInfo) -> str:
     return (
-        title_info.title
-        if title_info.fanta_info.comic_book_info.is_barks_title
-        else f"({title_info.title})"
+        fanta_info.comic_book_info.title
+        if fanta_info.comic_book_info.is_barks_title
+        else f"({fanta_info.comic_book_info.title})"
     )
 
 
@@ -114,9 +114,9 @@ class TitleTreeViewNode(BoxLayout, TreeViewNode):
     TITLE_LABEL_COLOR = (1.0, 1.0, 0.0, 1.0)
     ISSUE_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
 
-    def __init__(self, full_fanta_info: FullFantaComicBookInfo, **kwargs):
+    def __init__(self, fanta_info: FantaComicBookInfo, **kwargs):
         super().__init__(**kwargs)
-        self.full_fanta_info = full_fanta_info
+        self.fanta_info = fanta_info
 
 
 class TreeViewButton(Button):
@@ -166,7 +166,7 @@ class MainScreen(BoxLayout):
 
         self.filtered_title_lists = filtered_title_lists
 
-        self.full_fanta_info: Union[FullFantaComicBookInfo, None] = None
+        self.fanta_info: Union[FantaComicBookInfo, None] = None
         self.title_page_button.visible = True
 
         self.comic_reader = ComicReader(
@@ -207,7 +207,7 @@ class MainScreen(BoxLayout):
                 self.set_next_bottom_view_image()
 
     def image_pressed(self):
-        if self.full_fanta_info is None:
+        if self.fanta_info is None:
             self.intro_text.opacity = 0.0
             print(f'Image "{self.title_page_image.source}" pressed. No title selected.')
             return
@@ -217,9 +217,9 @@ class MainScreen(BoxLayout):
             return
 
         comic_file_stem = get_dest_comic_zip_file_stem(
-            self.full_fanta_info.title,
-            self.full_fanta_info.fanta_info.fanta_chronological_number,
-            self.full_fanta_info.fanta_info.get_short_issue_title(),
+            self.fanta_info.comic_book_info.title,
+            self.fanta_info.fanta_chronological_number,
+            self.fanta_info.get_short_issue_title(),
         )
 
         print(f'Image "{self.title_page_image.source}" pressed. Want to run "{comic_file_stem}".')
@@ -308,8 +308,8 @@ class MainScreen(BoxLayout):
         self.intro_text.opacity = 0.0
         self.bottom_view_after_image_bg = self.BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG
 
-        self.full_fanta_info = button.parent.full_fanta_info
-        title = self.full_fanta_info.title
+        self.fanta_info = button.parent.fanta_info
+        title = self.fanta_info.comic_book_info.title
 
         comic_inset_file = get_comic_inset_file(title)
         title_info_image = self.get_title_info_image(title)
@@ -319,7 +319,7 @@ class MainScreen(BoxLayout):
             f'title info image = "{title_info_image}".'
         )
 
-        self.main_title.text = get_display_title(button.parent.full_fanta_info)
+        self.main_title.text = get_display_title(button.parent.fanta_info)
         self.title_info.text = self.get_title_info()
         self.title_page_image.source = comic_inset_file
         self.bottom_view_before_image = title_info_image
@@ -366,9 +366,9 @@ class MainScreen(BoxLayout):
         return get_comic_inset_file(EMERGENCY_INSET_FILE)
 
     def get_title_info(self) -> str:
-        issue_info = get_formatted_first_published_str(self.full_fanta_info.fanta_info)
-        submitted_info = get_long_formatted_submitted_date(self.full_fanta_info.fanta_info)
-        fanta_book = FANTA_SOURCE_COMICS[self.full_fanta_info.fanta_info.fantagraphics_volume]
+        issue_info = get_formatted_first_published_str(self.fanta_info)
+        submitted_info = get_long_formatted_submitted_date(self.fanta_info)
+        fanta_book = FANTA_SOURCE_COMICS[self.fanta_info.fantagraphics_volume]
         source = f"{FAN} CBDL, Vol {fanta_book.volume}, {fanta_book.year}"
         return (
             f"[i]1st Issue:[/i]   [b]{issue_info}[/b]\n"
@@ -413,7 +413,7 @@ class MainScreen(BoxLayout):
     def get_random_image(self, title_category: str) -> str:
         titles = self.filtered_title_lists.get_title_lists()[title_category]
         title_index = randrange(0, len(titles))
-        title_image = get_comic_inset_file(titles[title_index].title)
+        title_image = get_comic_inset_file(titles[title_index].comic_book_info.title)
 
         return title_image
 
@@ -546,7 +546,7 @@ class BarksReaderApp(App):
             self.add_year_range_story_nodes(tree, year_range_node, title_lists[range_str])
 
     def add_year_range_story_nodes(
-        self, tree, year_range_node, title_list: List[FullFantaComicBookInfo]
+        self, tree, year_range_node, title_list: List[FantaComicBookInfo]
     ):
         for title_info in title_list:
             tree.add_node(self.get_title_tree_view_node(title_info), parent=year_range_node)
@@ -557,12 +557,10 @@ class BarksReaderApp(App):
         for title_info in title_list:
             tree.add_node(self.get_title_tree_view_node(title_info), parent=dda_node)
 
-    def get_title_tree_view_node(
-        self, full_fanta_info: FullFantaComicBookInfo
-    ) -> TitleTreeViewNode:
+    def get_title_tree_view_node(self, full_fanta_info: FantaComicBookInfo) -> TitleTreeViewNode:
         title_node = TitleTreeViewNode(full_fanta_info)
 
-        title_node.num_label.text = str(full_fanta_info.fanta_info.fanta_chronological_number)
+        title_node.num_label.text = str(full_fanta_info.fanta_chronological_number)
         title_node.num_label.bind(on_press=self.main_screen.title_row_button_pressed)
 
         title_node.num_label.color_selected = (0, 0, 1, 1)
@@ -571,8 +569,8 @@ class BarksReaderApp(App):
         title_node.title_label.bind(on_press=self.main_screen.title_row_button_pressed)
 
         issue_info = (
-            f"{get_short_formatted_first_published_str(full_fanta_info.fanta_info)}"
-            f"  [{get_short_formatted_submitted_date(full_fanta_info.fanta_info)}]"
+            f"{get_short_formatted_first_published_str(full_fanta_info)}"
+            f"  [{get_short_formatted_submitted_date(full_fanta_info)}]"
         )
 
         title_node.issue_label.text = issue_info
