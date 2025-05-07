@@ -1,6 +1,7 @@
 import os
 from typing import List
 
+from barks_fantagraphics.barks_titles import Titles, BARKS_TITLE_INFO
 from barks_fantagraphics.comics_consts import JPG_FILE_EXT
 
 HOME_DIR = os.environ.get("HOME")
@@ -21,7 +22,7 @@ BARKS_READER_SPLASH_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Splash")
 BARKS_READER_COVER_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Covers")
 BARKS_READER_SILHOUETTE_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Silhouettes")
 
-EMERGENCY_INSET_FILE = "Biceps Blues"
+EMERGENCY_INSET_FILE = Titles.BICEPS_BLUES
 
 
 def get_mcomix_python_bin_path() -> str:
@@ -60,12 +61,14 @@ def get_comic_silhouette_files_dir() -> str:
     return BARKS_READER_SILHOUETTE_FILES_DIR
 
 
-def get_comic_inset_file(title: str) -> str:
-    main_inset_file = os.path.join(get_comic_inset_files_dir(), title + JPG_FILE_EXT)
+def get_comic_inset_file(title: Titles) -> str:
+    title_str = BARKS_TITLE_INFO[title].title_str
+
+    main_inset_file = os.path.join(get_comic_inset_files_dir(), title_str + JPG_FILE_EXT)
     if os.path.isfile(main_inset_file):
         return main_inset_file
 
-    edited_inset_file = os.path.join(BARKS_READER_INSET_EDITED_FILES_DIR, title + JPG_FILE_EXT)
+    edited_inset_file = os.path.join(BARKS_READER_INSET_EDITED_FILES_DIR, title_str + JPG_FILE_EXT)
 
     # assert os.path.isfile(edited_inset_file)
     # TODO: Fix this when all titles are configured.

@@ -48,7 +48,7 @@ def get_all_fanta_comic_book_info() -> FantaComicBookInfoDict:
             fanta_chronological_number=fanta_chronological_number,
         )
 
-        all_fanta_info[comic_book_info.title] = fanta_info
+        all_fanta_info[comic_book_info.title_str] = fanta_info
 
         current_number_in_series[title_info.series_name] += 1
         fanta_chronological_number += 1
@@ -522,6 +522,9 @@ SERIES_INFO: List[FantaSeriesInfo] = [
 ]
 
 
+ALL_LISTS = "All"
+
+
 def get_filtered_title_lists(
     filters: Dict[str, Callable[[FantaComicBookInfo], bool]]
 ) -> Dict[str, List[FantaComicBookInfo]]:
@@ -535,6 +538,6 @@ def get_filtered_title_lists(
             if filter_func(fanta_info):
                 filtered_dict[filt].append(fanta_info)
 
-        filtered_dict["All"].append(fanta_info)
+        filtered_dict[ALL_LISTS].append(fanta_info)
 
     return filtered_dict
