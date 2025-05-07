@@ -167,7 +167,6 @@ class MainScreen(BoxLayout):
         self.filtered_title_lists = filtered_title_lists
 
         self.fanta_info: Union[FantaComicBookInfo, None] = None
-        self.title_page_button.visible = True
 
         self.comic_reader = ComicReader(
             get_mcomix_python_bin_path(),
@@ -323,7 +322,6 @@ class MainScreen(BoxLayout):
         self.title_info.text = self.get_title_info()
         self.title_page_image.source = comic_inset_file
         self.bottom_view_before_image = title_info_image
-        self.title_page_button.visible = True
 
     #        self.set_next_top_view_image()
 

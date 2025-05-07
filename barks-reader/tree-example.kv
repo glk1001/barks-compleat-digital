@@ -235,11 +235,7 @@
     #                                background_normal: "/tmp/1-01.jpg"
     #                                background_down: ""
     #                                background_disabled_down: "/tmp/1-01.jpg"
-                                    visible: True
-                                    size_hint_y: 1
-                                    size_hint_x: 1 if self.visible else 0
-                                    opacity: 1 if self.visible else 0
-                                    disabled: not self.visible
+                                    size_hint: (1, 1)
                                     halign: "left"
                                     valign: "top"
                                     text_size: (self.width, self.height)
@@ -251,7 +247,6 @@
                                         size: (self.TITLE_IMAGE_X_FRAC_OF_PARENT * self.parent.size[0], self.TITLE_IMAGE_Y_FRAC_OF_PARENT * self.parent.size[1])
                                         source: "/tmp/1-01.jpg"
                                         fit_mode: "cover"
-                                        opacity: 1 if self.parent.visible else 0
                                         mipmap: True
                                         on_press: root.image_pressed()
 
