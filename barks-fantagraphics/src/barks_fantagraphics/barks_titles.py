@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import date
 from enum import IntEnum, auto, verify, CONTINUOUS, UNIQUE
-from typing import List
+from typing import List, Dict
 
 from .comic_issues import (
     SHORT_ISSUE_NAME,
@@ -1252,6 +1252,13 @@ class ComicBookInfo:
         short_issue_name = SHORT_ISSUE_NAME[self.issue_name]
         return f"{short_issue_name} {self.issue_number}"
 
+    def get_display_title(self) -> str:
+        return self.title_str if self.is_barks_title else f"({self.title_str})"
+
+    @staticmethod
+    def get_title_str_from_display_title(display_title: str) -> str:
+        return display_title.strip(")(")
+
 
 # fmt: off
 # noinspection LongLine
@@ -1864,6 +1871,10 @@ BARKS_TITLE_INFO: List[ComicBookInfo] = [
 
 
 assert NUM_TITLES == len(BARKS_TITLE_INFO)
+
+
+def get_title_dict() -> Dict[str, Titles]:
+    return {info.title_str: info.title for info in BARKS_TITLE_INFO}
 
 
 def check_story_submitted_order(title_list: List[ComicBookInfo]):

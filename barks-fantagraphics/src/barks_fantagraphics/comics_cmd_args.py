@@ -167,6 +167,13 @@ class CmdArgs:
         for extra in self.extra_args:
             if extra.type is None:
                 parser.add_argument(extra.name, action=extra.action, required=False)
+            elif extra.action == "store_true":
+                parser.add_argument(
+                    extra.name,
+                    action=extra.action,
+                    default=extra.default,
+                    required=False,
+                )
             else:
                 parser.add_argument(
                     extra.name,

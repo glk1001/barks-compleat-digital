@@ -1,5 +1,7 @@
 from random import randrange
+from typing import List
 
+from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
 from file_paths import (
     get_comic_inset_file,
     get_comic_cover_file,
@@ -7,13 +9,11 @@ from file_paths import (
     get_comic_silhouette_files,
     EMERGENCY_INSET_FILE,
 )
-from filtered_title_lists import FilteredTitleLists
 
 
-def get_random_image(filtered_title_lists: FilteredTitleLists, title_category: str) -> str:
-    titles = filtered_title_lists.get_title_lists()[title_category]
-    title_index = randrange(0, len(titles))
-    title_image = get_comic_inset_file(titles[title_index].comic_book_info.title)
+def get_random_image(title_list: List[FantaComicBookInfo]) -> str:
+    title_index = randrange(0, len(title_list))
+    title_image = get_comic_inset_file(title_list[title_index].comic_book_info.title)
 
     return title_image
 
