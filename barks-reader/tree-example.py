@@ -20,6 +20,7 @@ from kivy.uix.image import Image
 from kivy.uix.spinner import Spinner
 from kivy.uix.treeview import TreeView, TreeViewNode
 
+from barks_fantagraphics.barks_extra_info import BARKS_EXTRA_INFO
 from barks_fantagraphics.barks_titles import Titles, get_title_dict, ComicBookInfo
 from barks_fantagraphics.comics_cmd_args import CmdArgs
 from barks_fantagraphics.comics_database import ComicsDatabase
@@ -179,6 +180,7 @@ class MainScreen(BoxLayout):
     intro_text = ObjectProperty()
     main_title = ObjectProperty()
     title_info = ObjectProperty()
+    extra_title_info = ObjectProperty()
     title_page_image = ObjectProperty()
     title_page_button = ObjectProperty()
 
@@ -333,6 +335,7 @@ class MainScreen(BoxLayout):
 
         self.main_title.text = self.fanta_info.comic_book_info.get_display_title()
         self.title_info.text = self.get_title_info()
+        self.extra_title_info.text = self.get_extra_title_info()
         self.title_page_image.source = comic_inset_file
         self.bottom_view_before_image.source = title_info_image
 
@@ -358,8 +361,10 @@ class MainScreen(BoxLayout):
         print(f"Exited image press.")
 
     def get_title_info(self) -> str:
-	    # TODO: Clean this up.
-        issue_info = get_formatted_first_published_str(self.fanta_info).replace("Comics and Stories", "Comics & Stories")
+        # TODO: Clean this up.
+        issue_info = get_formatted_first_published_str(self.fanta_info).replace(
+            "Comics and Stories", "Comics & Stories"
+        )
         submitted_info = get_long_formatted_submitted_date(self.fanta_info)
         fanta_book = FANTA_SOURCE_COMICS[self.fanta_info.fantagraphics_volume]
         source = f"{FAN} CBDL, Vol {fanta_book.volume}, {fanta_book.year}"
@@ -368,6 +373,13 @@ class MainScreen(BoxLayout):
             f"[i]Submitted:[/i] [b]{submitted_info}[/b]\n"
             f"[i]Source:[/i]       [b]{source}[/b]"
         )
+
+    def get_extra_title_info(self) -> str:
+        title = self.fanta_info.comic_book_info.title
+        if title not in BARKS_EXTRA_INFO:
+            return ""
+
+        return f"{BARKS_EXTRA_INFO[title]}"
 
     def update_visibilities(self):
         if self.current_tree_node == TreeNodes.ON_INTRO_NODE:

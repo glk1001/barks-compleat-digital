@@ -23,6 +23,7 @@
     title_page_image: title_page_image_id
     main_title: main_title_id
     title_info: title_info_id
+    extra_title_info: extra_title_info_id
     top_view_image: top_view_image_id
     bottom_view: bottom_view_id
     bottom_view_after_image: bottom_view_after_image_id
@@ -191,17 +192,19 @@
                                 text: "left2"
                                 background_color: (0.5, 1.0, 0.0, 0.5)
                                 opacity: root.DEBUG_BACKGROUND_OPACITY
-                                size_hint: (0.03, 1)
+                                size_hint: (0.06, 1)
                                 halign: "left"
                                 valign: "top"
                                 text_size: (self.width, self.height)
 
                             BgColorLabel:
+                                id: extra_title_info_id
                                 text: "Blah blah blah\netc etc etc"
                                 color: root.TITLE_EXTRA_INFO_LABEL_COLOR
                                 background_color: 0, 1, 1, root.DEBUG_BACKGROUND_OPACITY
                                 multiline: True
-                                size_hint: (0.97, 1)
+                                markup: True
+                                size_hint: (0.94, 1)
                                 halign: "left"
                                 valign: "top"
                                 text_size: (self.width, self.height)
