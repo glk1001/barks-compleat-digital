@@ -109,22 +109,35 @@
                     text: "before title filler"
                     background_color: (1, 0, 1, 1)
                     opacity: root.DEBUG_BACKGROUND_OPACITY
-                    size_hint: (1, 0.1)
+                    size_hint: (1, 0.0)
                     text_size: (self.width, self.height)
 
                 BgColorLabel:
                     id: main_title_id
-                    text: "[b]The Colossalest Surprise Quiz Show[/b]"
-                    background_color: (1, 0, 0, root.DEBUG_BACKGROUND_OPACITY)
-                    markup: True
-                    color: (1, 1, 0, 1)
+                    text: "The Colossalest Surprise Quiz Show"
                     font_name: "Carl Barks Script"
-                    font_size: sp(30)
+                    font_size: sp(26)
+                    color: root.MAIN_TITLE_COLOR
+                    background_color: root.MAIN_TITLE_BACKGROUND_COLOR
+                    bold: True
                     multiline: True
-                    size_hint: (1, 0.2)
-                    pos_hint: {"y": 0.2}
+                    size_hint: (1, 0.23)
+                    pos_hint: {"y": 0.23}
                     halign: "center"
-                    valign: "top"
+                    valign: "middle"
+                    text_size: (self.width, self.height)
+                    canvas.before:
+                        Color:
+                            rgba: (0,0,1,0.1)
+                        Line:
+                            width: 1.1
+                            rectangle: self.x, self.y, self.width, self.height
+
+                BgColorLabel:
+                    text: "after title filler"
+                    background_color: (1, 0, 1, 1)
+                    opacity: root.DEBUG_BACKGROUND_OPACITY
+                    size_hint: (1, 0.01)
                     text_size: (self.width, self.height)
 
                 BoxLayout:
@@ -140,7 +153,7 @@
                             text: "before title info filler"
                             background_color: (0, 0, 1, 1)
                             opacity: root.DEBUG_BACKGROUND_OPACITY
-                            size_hint: (1, 0.05)
+                            size_hint: (1, 0.07)
                             halign: "left"
                             valign: "top"
                             text_size: (self.width, self.height)
@@ -153,7 +166,7 @@
                                 text: "left1"
                                 background_color: (1.0, 1.0, 0.0, 0.5)
                                 opacity: root.DEBUG_BACKGROUND_OPACITY
-                                size_hint: (0.03, 1)
+                                size_hint: (0.06, 1)
                                 halign: "left"
                                 valign: "top"
                                 text_size: (self.width, self.height)
@@ -165,7 +178,7 @@
                                 background_color: 0, 1, 0, root.DEBUG_BACKGROUND_OPACITY
                                 markup: True
                                 multiline: True
-                                size_hint: (0.97, 1)
+                                size_hint: (0.94, 1)
                                 halign: "left"
                                 valign: "top"
                                 text_size: (self.width, self.height)

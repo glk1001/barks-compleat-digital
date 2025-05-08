@@ -162,7 +162,9 @@ class TreeNodes(Enum):
 
 
 class MainScreen(BoxLayout):
-    TITLE_INFO_LABEL_COLOR = (0.0, 1.0, 1.0, 1.0)
+    MAIN_TITLE_BACKGROUND_COLOR = (1, 1, 1, 0.05)
+    MAIN_TITLE_COLOR = (1, 1, 0, 1)
+    TITLE_INFO_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
     TITLE_EXTRA_INFO_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
     DEBUG_BACKGROUND_OPACITY = 0
 
@@ -259,6 +261,12 @@ class MainScreen(BoxLayout):
                 instance.spinner.values = titles
                 instance.spinner.text = titles[0]
                 instance.spinner.is_open = True
+                print(f'Spinner text set to "{instance.spinner.text}".')
+                self.search_box_value_changed(instance.spinner, instance.spinner.text)
+            else:
+                instance.spinner.values = []
+                instance.spinner.text = ""
+                instance.spinner.is_open = False
 
     def get_matching_titles(self, value: str) -> List[str]:
         title_list = self.title_search.get_titles(value)
@@ -268,12 +276,12 @@ class MainScreen(BoxLayout):
         return self.title_search.get_titles_as_strings(title_list)
 
     def search_box_value_changed(self, spinner: Spinner, title_str: str):
+        print(f'Spinner value changed: "{title_str}".')
         if not title_str:
             return
 
         title_str = ComicBookInfo.get_title_str_from_display_title(title_str)
 
-        print(f'Spinner value changed: "{title_str}".')
         if title_str not in self.all_fanta_titles:
             return
 
@@ -350,7 +358,8 @@ class MainScreen(BoxLayout):
         print(f"Exited image press.")
 
     def get_title_info(self) -> str:
-        issue_info = get_formatted_first_published_str(self.fanta_info)
+	    # TODO: Clean this up.
+        issue_info = get_formatted_first_published_str(self.fanta_info).replace("Comics and Stories", "Comics & Stories")
         submitted_info = get_long_formatted_submitted_date(self.fanta_info)
         fanta_book = FANTA_SOURCE_COMICS[self.fanta_info.fantagraphics_volume]
         source = f"{FAN} CBDL, Vol {fanta_book.volume}, {fanta_book.year}"
