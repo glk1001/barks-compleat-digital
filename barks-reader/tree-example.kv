@@ -161,7 +161,7 @@
 
                         BoxLayout:
                             orientation: "horizontal"
-                            size_hint: (1, 0.3)
+                            size_hint: (1, 0.2)
 
                             BgColorLabel:
                                 text: "left1"
@@ -181,7 +181,27 @@
                                 multiline: True
                                 size_hint: (0.94, 1)
                                 halign: "left"
+                                valign: "middle"
+                                text_size: (self.width, self.height)
+
+                        BoxLayout:
+                            orientation: "horizontal"
+                            size_hint: (1, 0.1)
+
+                            BgColorLabel:
+                                text: "left2"
+                                background_color: (0.01, 1.0, 1.0, 0.5)
+                                opacity: root.DEBUG_BACKGROUND_OPACITY
+                                size_hint: (0.06, 1)
+                                halign: "left"
                                 valign: "top"
+                                text_size: (self.width, self.height)
+
+                            BgColorLabel:
+                                text: "after title info filler"
+                                color: root.TITLE_INFO_LABEL_COLOR
+                                background_color: 1, 1, 0, root.DEBUG_BACKGROUND_OPACITY
+                                size_hint: (0.94, 1)
                                 text_size: (self.width, self.height)
 
                         BoxLayout:
