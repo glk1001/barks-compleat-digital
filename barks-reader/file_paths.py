@@ -38,9 +38,10 @@ def check_dirs_and_files() -> None:
         BARKS_READER_FILES_DIR,
         BARKS_READER_INSET_FILES_DIR,
         BARKS_READER_INSET_EDITED_FILES_DIR,
-        BARKS_READER_SPLASH_FILES_DIR,
         BARKS_READER_COVER_FILES_DIR,
         BARKS_READER_SILHOUETTE_FILES_DIR,
+        BARKS_READER_SPLASH_FILES_DIR,
+        BARKS_READER_CENSORSHIP_FILES_DIR,
     ]
     files_to_check = [
         MCOMIX_PYTHON_PATH,
@@ -142,8 +143,6 @@ def get_comic_silhouette_files(title: str) -> List[str]:
 
     return image_files
 
-    return image_files
-
 
 def get_comic_splash_files(title: str) -> List[str]:
     image_dir = os.path.join(get_comic_splash_files_dir(), title)
@@ -165,3 +164,5 @@ def get_comic_censorship_files(title: str) -> List[str]:
     image_files = []
     for file in os.listdir(image_dir):
         image_files.append(os.path.join(image_dir, file))
+
+    return image_files
