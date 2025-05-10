@@ -1,7 +1,7 @@
 import os
 from typing import List
 
-from barks_fantagraphics.barks_titles import Titles, BARKS_TITLE_INFO
+from barks_fantagraphics.barks_titles import Titles, BARKS_TITLE_INFO, BARKS_TITLES
 from barks_fantagraphics.comics_consts import JPG_FILE_EXT
 
 HOME_DIR = os.environ.get("HOME")
@@ -108,7 +108,7 @@ def get_comic_censorship_files_dir() -> str:
 
 
 def get_comic_inset_file(title: Titles) -> str:
-    title_str = BARKS_TITLE_INFO[title].title_str
+    title_str = BARKS_TITLES[title]
 
     main_inset_file = os.path.join(get_comic_inset_files_dir(), title_str + JPG_FILE_EXT)
     if os.path.isfile(main_inset_file):

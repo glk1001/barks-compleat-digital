@@ -15,7 +15,9 @@ from file_paths import (
 def get_random_image(title_list: List[FantaComicBookInfo]) -> str:
     title_index = randrange(0, len(title_list))
 
-    title_image_file = __get_random_title_image(title_list[title_index].comic_book_info.title_str)
+    title_image_file = __get_random_title_image(
+        title_list[title_index].comic_book_info.get_title_str()
+    )
     if title_image_file:
         return title_image_file
 

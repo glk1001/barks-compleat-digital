@@ -39,9 +39,7 @@ class FilteredTitleLists:
     def get_title_lists(self) -> Dict[str, List[FantaComicBookInfo]]:
 
         def create_range_lamba(yr_range: Tuple[int, int]):
-            return (
-                lambda info: yr_range[0] <= info.comic_book_info.submitted_year <= yr_range[1]
-            )
+            return lambda info: yr_range[0] <= info.comic_book_info.submitted_year <= yr_range[1]
 
         def create_series_lamba(series_name: str):
             return lambda info: info.series_name == series_name
