@@ -25,8 +25,8 @@ from barks_fantagraphics.comics_consts import (
     PAGE_NUM_FONT_FILE,
 )
 from barks_fantagraphics.comics_image_io import METADATA_PROPERTY_GROUP
-from barks_fantagraphics.fanta_comics_info import CS, CENSORED_TITLES
 from barks_fantagraphics.comics_utils import get_clean_path, get_relpath, get_abbrev_path
+from barks_fantagraphics.fanta_comics_info import CENSORED_TITLES
 from barks_fantagraphics.pages import (
     CleanPage,
     SrceAndDestPages,
@@ -80,6 +80,9 @@ PAGE_NUM_COLOR = (10, 10, 10)
 SPLASH_BORDER_COLOR = (0, 0, 0)
 SPLASH_BORDER_WIDTH = 10
 SPLASH_MARGIN = DEST_TARGET_X_MARGIN
+
+# TODO: Make use of Issues.CS
+CS = "Comics and Stories"
 
 
 def build_comic_book(comic: ComicBook) -> Tuple[SrceAndDestPages, float]:

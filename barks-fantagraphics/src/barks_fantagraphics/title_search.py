@@ -25,7 +25,7 @@ class BarksTitleSearch:
         title_list = []
         for title in self.prefix_dict[short_prefix]:
             title_info = BARKS_TITLE_INFO[title]
-            if title_info.title_str.lower().startswith(prefix):
+            if title_info.get_title_str().lower().startswith(prefix):
                 title_list.append(title)
 
         return title_list
@@ -50,7 +50,8 @@ class BarksTitleSearch:
 
         return title_list
 
-    def get_titles_containing(self, word: str) -> List[Titles]:
+    @staticmethod
+    def get_titles_containing(word: str) -> List[Titles]:
         if len(word) <= 1:
             return []
 
@@ -59,7 +60,7 @@ class BarksTitleSearch:
         title_list = []
 
         for info in BARKS_TITLE_INFO:
-            if word in info.title_str.lower():
+            if word in info.get_title_str().lower():
                 title_list.append(info.title)
 
         return title_list
@@ -69,7 +70,7 @@ class BarksTitleSearch:
         pref_dict = OrderedDict()
 
         for info in BARKS_TITLE_INFO:
-            prefix = info.title_str[:PREFIX_LEN].lower()
+            prefix = info.get_title_str()[:PREFIX_LEN].lower()
             if prefix not in pref_dict:
                 pref_dict[prefix] = []
             pref_dict[prefix].append(info.title)

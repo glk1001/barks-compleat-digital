@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List, Tuple, Union, Callable
 
 from .barks_titles import MILKMAN_THE, SILENT_NIGHT
-from .comic_issues import ISSUE_NAME_AS_TITLE
+from .comic_issues import ISSUE_NAME_WRAPPED, ISSUE_NAME
 from .comics_consts import (
     PageType,
     IMAGES_SUBDIR,
@@ -534,12 +534,13 @@ class ComicBook:
 
     def __get_comic_title_from_issue_name(self) -> str:
         issue_name = self.fanta_info.comic_book_info.issue_name
-        if issue_name not in ISSUE_NAME_AS_TITLE:
-            issue_name += "\n"
+        issue_name_str = ISSUE_NAME[issue_name]
+        if issue_name not in ISSUE_NAME_WRAPPED:
+            issue_name_str += "\n"
         else:
-            issue_name = ISSUE_NAME_AS_TITLE[issue_name] + " #"
+            issue_name_str = ISSUE_NAME_WRAPPED[issue_name] + " #"
 
-        return f"{issue_name}{self.fanta_info.comic_book_info.issue_number}"
+        return f"{issue_name_str}{self.fanta_info.comic_book_info.issue_number}"
 
     def get_comic_issue_title(self) -> str:
         return self.fanta_info.get_short_issue_title()

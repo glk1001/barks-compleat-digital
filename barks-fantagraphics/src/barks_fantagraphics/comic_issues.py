@@ -1,37 +1,60 @@
-DD = "Donald Duck"
-US = "Uncle Scrooge"
-CS = "Comics and Stories"
-FC = "Four Color"
-CP = "Christmas Parade"
-VP = "Vacation Parade"
-MC = "Boys' and Girls' March of Comics"
-FG = "Firestone Giveaway"
-CH = "Cheerios Giveaway"
-KI = "Kites Giveaway"
-USGTD = "Uncle Scrooge Goes to Disneyland"
-CID = "Christmas in Disneyland"
-MMA = "Mickey Mouse Almanac"
-SF = "Summer Fun"
+from enum import IntEnum, auto
 
-ISSUE_NAME_AS_TITLE = {
-    US: "Uncle\nScrooge",
-    FG: "Firestone\nGiveaway",
-    USGTD: "Uncle Scrooge\nGoes to\nDisneyland",
-    CID: "Christmas\nin\nDisneyland",
-}
-SHORT_ISSUE_NAME = {
-    DD: "DD",
-    US: "US",
-    CS: "WDCS",
-    FC: "FC",
-    CP: "CP",
-    VP: "VP",
-    MC: "MOC",
-    FG: "FG",
-    CH: "CG",
-    KI: "KG",
-    USGTD: "USGTD",
-    CID: "CID",
-    MMA: "MMA",
-    SF: "SF",
+
+class Issues(IntEnum):
+    CH = 0
+    CID = auto()
+    CP = auto()
+    CS = auto()
+    DD = auto()
+    FC = auto()
+    FG = auto()
+    KI = auto()
+    MC = auto()
+    MMA = auto()
+    SF = auto()
+    US = auto()
+    USGTD = auto()
+    VP = auto()
+
+
+SHORT_ISSUE_NAME = [
+    "CG",
+    "CID",
+    "CP",
+    "WDCS",
+    "DD",
+    "FC",
+    "FG",
+    "KG",
+    "MOC",
+    "MMA",
+    "SF",
+    "US",
+    "USGTD",
+    "VP",
+]
+
+ISSUE_NAME = [
+    "Cheerios Giveaway",
+    "Christmas in Disneyland",
+    "Christmas Parade",
+    "Comics and Stories",
+    "Donald Duck",
+    "Four Color",
+    "Firestone Giveaway",
+    "Kites Giveaway",
+    "Boys' and Girls' March of Comics",
+    "Mickey Mouse Almanac",
+    "Summer Fun",
+    "Uncle Scrooge",
+    "Uncle Scrooge Goes to Disneyland",
+    "Vacation Parade",
+]
+
+ISSUE_NAME_WRAPPED = {
+    Issues.US: "Uncle\nScrooge",
+    Issues.FG: "Firestone\nGiveaway",
+    Issues.USGTD: "Uncle Scrooge\nGoes to\nDisneyland",
+    Issues.CID: "Christmas\nin\nDisneyland",
 }

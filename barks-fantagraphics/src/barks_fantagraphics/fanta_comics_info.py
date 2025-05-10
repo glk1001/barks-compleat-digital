@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from typing import Dict, OrderedDict, List, Callable
 
 from . import barks_titles as bt
-from .barks_titles import ComicBookInfo, Titles, Titles as Bt, BARKS_TITLE_INFO, CS, DD, US
+from .barks_titles import ComicBookInfo, Titles, Titles as Bt, BARKS_TITLE_INFO
+from .comic_issues import Issues, ISSUE_NAME
 
 
 @dataclass
@@ -48,7 +49,7 @@ def get_all_fanta_comic_book_info() -> FantaComicBookInfoDict:
             fanta_chronological_number=fanta_chronological_number,
         )
 
-        all_fanta_info[comic_book_info.title_str] = fanta_info
+        all_fanta_info[comic_book_info.get_title_str()] = fanta_info
 
         current_number_in_series[title_info.series_name] += 1
         fanta_chronological_number += 1
@@ -109,6 +110,9 @@ FANTA_18 = "FANTA_18"
 FANTA_19 = "FANTA_19"
 FANTA_20 = "FANTA_20"
 FANTA_21 = "FANTA_21"
+
+DD = "Donald Duck"
+US = "Uncle Scrooge"
 
 VOLUME_01 = f"{CB} Vol. 1 - {DD} - Pirate Gold {SRC_SALEM}"
 VOLUME_02 = f"{CB} Vol. 2 - {DD} - Frozen Gold {SRC_SALEM}"
@@ -173,11 +177,11 @@ FANTA_SOURCE_COMICS = {
 FIRST_VOLUME_NUMBER = 2
 LAST_VOLUME_NUMBER = len(FANTA_SOURCE_COMICS)
 
-SERIES_DDA = DD + " Adventures"
-SERIES_USA = US + " Adventures"
-SERIES_DDS = DD + " Short Stories"
-SERIES_USS = US + " Short Stories"
-SERIES_CS = CS
+SERIES_DDA = ISSUE_NAME[Issues.DD] + " Adventures"
+SERIES_USA = ISSUE_NAME[Issues.US] + " Adventures"
+SERIES_DDS = ISSUE_NAME[Issues.DD] + " Short Stories"
+SERIES_USS = ISSUE_NAME[Issues.US] + " Short Stories"
+SERIES_CS = ISSUE_NAME[Issues.CS]
 SERIES_GG = "Gyro Gearloose"
 SERIES_MISC = "Misc"
 

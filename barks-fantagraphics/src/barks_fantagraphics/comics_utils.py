@@ -214,7 +214,9 @@ def get_long_formatted_submitted_date(fanta_info: FantaComicBookInfo) -> str:
 
 
 def get_formatted_first_published_str(fanta_info: FantaComicBookInfo) -> str:
-    issue = f"{fanta_info.comic_book_info.issue_name} #{fanta_info.comic_book_info.issue_number}"
+    issue = (
+        f"{fanta_info.comic_book_info.get_issue_name()} #{fanta_info.comic_book_info.issue_number}"
+    )
 
     if fanta_info.comic_book_info.issue_month == -1:
         issue_date = fanta_info.comic_book_info.issue_year

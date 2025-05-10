@@ -167,7 +167,7 @@ class MainScreen(BoxLayout):
     MAIN_TITLE_COLOR = (1, 1, 0, 1)
     TITLE_INFO_LABEL_COLOR = (1.0, 0.99, 0.9, 1.0)
     TITLE_EXTRA_INFO_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
-    DEBUG_BACKGROUND_OPACITY = 0.5
+    DEBUG_BACKGROUND_OPACITY = 0
 
     BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG = (1, 0, 0, 1)
     BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG = (1, 0, 0, 0)
@@ -291,7 +291,7 @@ class MainScreen(BoxLayout):
         self.update_visibilities()
 
         self.fanta_info = self.all_fanta_titles[title_str]
-        print(f'New fanta_info: "{self.fanta_info.comic_book_info.title_str}".')
+        print(f'New fanta_info: "{self.fanta_info.comic_book_info.get_title_str()}".')
         self.set_title()
 
     def get_fanta_info_from_title(self, title_str) -> FantaComicBookInfo:
@@ -328,10 +328,10 @@ class MainScreen(BoxLayout):
         self.set_title()
 
     def set_title(self) -> None:
-        print(f'Setting title = "{self.fanta_info.comic_book_info.title_str}".')
+        print(f'Setting title = "{self.fanta_info.comic_book_info.get_title_str()}".')
 
         comic_inset_file = get_comic_inset_file(self.fanta_info.comic_book_info.title)
-        title_info_image = get_random_title_image(self.fanta_info.comic_book_info.title_str)
+        title_info_image = get_random_title_image(self.fanta_info.comic_book_info.get_title_str())
 
         self.main_title.text = self.fanta_info.comic_book_info.get_display_title()
         self.title_info.text = self.get_title_info()
@@ -349,7 +349,7 @@ class MainScreen(BoxLayout):
             return
 
         comic_file_stem = get_dest_comic_zip_file_stem(
-            self.fanta_info.comic_book_info.title_str,
+            self.fanta_info.comic_book_info.get_title_str(),
             self.fanta_info.fanta_chronological_number,
             self.fanta_info.get_short_issue_title(),
         )
