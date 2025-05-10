@@ -3,8 +3,9 @@ import os
 import re
 from datetime import datetime, date
 from pathlib import Path
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, Dict
 
+from .comic_issues import Issues, ISSUE_NAME
 from .comics_consts import BARKS_ROOT_DIR, MONTH_AS_SHORT_STR, MONTH_AS_LONG_STR
 from .fanta_comics_info import FantaComicBookInfo
 
@@ -213,10 +214,11 @@ def get_long_formatted_submitted_date(fanta_info: FantaComicBookInfo) -> str:
     )
 
 
-def get_formatted_first_published_str(fanta_info: FantaComicBookInfo) -> str:
-    issue = (
-        f"{fanta_info.comic_book_info.get_issue_name()} #{fanta_info.comic_book_info.issue_number}"
-    )
+def get_formatted_first_published_str(
+    fanta_info: FantaComicBookInfo, issue_name_dict: Dict[Issues, str] = ISSUE_NAME
+) -> str:
+    issue_name = issue_name_dict[fanta_info.comic_book_info.issue_name]
+    issue = f"{issue_name} #{fanta_info.comic_book_info.issue_number}"
 
     if fanta_info.comic_book_info.issue_month == -1:
         issue_date = fanta_info.comic_book_info.issue_year

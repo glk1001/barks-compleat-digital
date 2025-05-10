@@ -22,6 +22,7 @@ from kivy.uix.treeview import TreeView, TreeViewNode
 
 from barks_fantagraphics.barks_extra_info import BARKS_EXTRA_INFO
 from barks_fantagraphics.barks_titles import Titles, get_title_dict, ComicBookInfo
+from barks_fantagraphics.comic_issues import Issues, ISSUE_NAME
 from barks_fantagraphics.comics_cmd_args import CmdArgs
 from barks_fantagraphics.comics_database import ComicsDatabase
 from barks_fantagraphics.comics_utils import (
@@ -186,6 +187,11 @@ class MainScreen(BoxLayout):
 
     def __init__(self, filtered_title_lists: FilteredTitleLists, **kwargs):
         super().__init__(**kwargs)
+
+        # Use a custom issue_name here to display slightly shorter names.
+        self.title_info_issue_name = ISSUE_NAME.copy()
+        self.title_info_issue_name[Issues.CS] = "Comics & Stories"
+        self.title_info_issue_name[Issues.MC] = "March of Comics"
 
         self.fanta_info: Union[FantaComicBookInfo, None] = None
 
@@ -362,9 +368,7 @@ class MainScreen(BoxLayout):
 
     def get_title_info(self) -> str:
         # TODO: Clean this up.
-        issue_info = get_formatted_first_published_str(self.fanta_info).replace(
-            "Comics and Stories", "Comics & Stories"
-        )
+        issue_info = get_formatted_first_published_str(self.fanta_info, self.title_info_issue_name)
         submitted_info = get_long_formatted_submitted_date(self.fanta_info)
         fanta_book = FANTA_SOURCE_COMICS[self.fanta_info.fantagraphics_volume]
         source = f"{FAN} CBDL, Vol {fanta_book.volume}, {fanta_book.year}"
@@ -439,7 +443,7 @@ class MainScreen(BoxLayout):
                 assert False
 
         print(
-            f"Category: {self.current_tree_node}."
+            f"Set top view. Category: {self.current_tree_node}."
             f" Image: '{os.path.basename(self.top_view_image.source)}'."
         )
 
