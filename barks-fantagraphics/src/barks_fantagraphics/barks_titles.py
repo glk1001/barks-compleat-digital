@@ -6,6 +6,7 @@ from typing import List, Dict
 from .comic_issues import (
     Issues,
     ISSUE_NAME,
+    ISSUE_NAME_WRAPPED,
     SHORT_ISSUE_NAME,
 )
 
@@ -1854,6 +1855,20 @@ class ComicBookInfo:
         short_issue_name = SHORT_ISSUE_NAME[self.issue_name]
         return f"{short_issue_name} {self.issue_number}"
 
+    def get_title_from_issue_name(self):
+        if self.title in USEFUL_TITLES:
+            return USEFUL_TITLES[self.title]
+
+        return f"{self.get_issue_name()} #{self.issue_number}"
+
+    def get_formatted_title_from_issue_name(self):
+        if self.issue_name in ISSUE_NAME_WRAPPED:
+            issue_name_str = ISSUE_NAME_WRAPPED[self.issue_name] + " #"
+        else:
+            issue_name_str = self.get_issue_name() + "\n"
+
+        return f"{issue_name_str}{self.issue_number}"
+
     def get_display_title(self) -> str:
         return self.get_title_str() if self.is_barks_title else f"({self.get_title_str()})"
 
@@ -2248,7 +2263,7 @@ BARKS_TITLE_INFO: List[ComicBookInfo] = [
     ComicBookInfo(Titles.GOING_TO_PIECES, False, Issues.US, 22, 6, 1958, 31, 10, 1957),
     ComicBookInfo(Titles.HIGH_RIDER, False, Issues.US, 22, 6, 1958, 31, 10, 1957),
     ComicBookInfo(Titles.THAT_SINKING_FEELING, False, Issues.US, 22, 6, 1958, 31, 10, 1957),
-    ComicBookInfo(Titles.WATER_SKI_RACE, False, Issues.DD, 60, 7, 1958, 31, 10, 1957),
+    ComicBookInfo(Titles.WATER_SKI_RACE, True, Issues.DD, 60, 7, 1958, 31, 10, 1957),
     ComicBookInfo(Titles.BALMY_SWAMI_THE, False, Issues.US, 31, 9, 1960, 31, 10, 1957),
     ComicBookInfo(Titles.WINDY_STORY_THE, False, Issues.US, 37, 3, 1962, 31, 10, 1957),
     ComicBookInfo(Titles.GOLDEN_RIVER_THE, True, Issues.US, 22, 6, 1958, 21, 11, 1957),
@@ -2474,6 +2489,11 @@ BARKS_TITLE_INFO: List[ComicBookInfo] = [
 
 assert NUM_TITLES == len(BARKS_TITLE_INFO)
 
+USEFUL_TITLES = {
+    Titles.HORSERADISH_STORY_THE: "Uncle Scrooge #3",
+    Titles.ROUND_MONEY_BIN_THE: "Uncle Scrooge #3",
+}
+
 
 def get_title_dict() -> Dict[str, Titles]:
     return {info.get_title_str(): info.title for info in BARKS_TITLE_INFO}
@@ -2507,3 +2527,10 @@ def check_story_submitted_order(title_list: List[ComicBookInfo]):
         prev_title = title
         prev_submitted_date = submitted_date
         prev_chronological_number = chronological_number
+
+
+def get_safe_title(title: str) -> str:
+    safe_title = title.replace("\n", " ")
+    safe_title = safe_title.replace("- ", "-")
+    safe_title = safe_title.replace('"', "")
+    return safe_title

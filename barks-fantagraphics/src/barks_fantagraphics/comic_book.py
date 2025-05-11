@@ -5,8 +5,7 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import List, Tuple, Union, Callable
 
-from .barks_titles import MILKMAN_THE, SILENT_NIGHT
-from .comic_issues import ISSUE_NAME_WRAPPED, ISSUE_NAME
+from .barks_titles import MILKMAN_THE, SILENT_NIGHT, get_safe_title
 from .comics_consts import (
     PageType,
     IMAGES_SUBDIR,
@@ -530,17 +529,7 @@ class ComicBook:
         if self.issue_title != "":
             return self.issue_title
 
-        return self.__get_comic_title_from_issue_name()
-
-    def __get_comic_title_from_issue_name(self) -> str:
-        issue_name = self.fanta_info.comic_book_info.issue_name
-        issue_name_str = ISSUE_NAME[issue_name]
-        if issue_name not in ISSUE_NAME_WRAPPED:
-            issue_name_str += "\n"
-        else:
-            issue_name_str = ISSUE_NAME_WRAPPED[issue_name] + " #"
-
-        return f"{issue_name_str}{self.fanta_info.comic_book_info.issue_number}"
+        return self.fanta_info.comic_book_info.get_formatted_title_from_issue_name()
 
     def get_comic_issue_title(self) -> str:
         return self.fanta_info.get_short_issue_title()
@@ -559,13 +548,6 @@ def _get_lookup_title(title: str, file_title: str) -> str:
 
     assert file_title != ""
     return file_title
-
-
-def get_safe_title(title: str) -> str:
-    safe_title = title.replace("\n", " ")
-    safe_title = safe_title.replace("- ", "-")
-    safe_title = safe_title.replace('"', "")
-    return safe_title
 
 
 def get_main_publication_info(

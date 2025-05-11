@@ -16,7 +16,8 @@ from additional_file_writing import (
     write_srce_dest_map,
     write_dest_panels_bboxes,
 )
-from barks_fantagraphics.comic_book import ComicBook, get_safe_title
+from barks_fantagraphics.barks_titles import get_safe_title
+from barks_fantagraphics.comic_book import ComicBook
 from barks_fantagraphics.comic_issues import Issues, ISSUE_NAME
 from barks_fantagraphics.comics_consts import (
     PageType,

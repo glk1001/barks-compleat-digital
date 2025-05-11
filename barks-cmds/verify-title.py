@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from barks_fantagraphics.comic_book import get_safe_title
+from barks_fantagraphics.barks_titles import get_safe_title
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_utils import setup_logging
 

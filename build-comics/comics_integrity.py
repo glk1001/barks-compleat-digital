@@ -4,10 +4,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Tuple, Set
 
+from barks_fantagraphics.barks_titles import get_safe_title
 from barks_fantagraphics.comic_book import (
     ComicBook,
     get_page_num_str,
-    get_safe_title,
     get_total_num_pages,
 )
 from barks_fantagraphics.comics_consts import (

@@ -3,7 +3,8 @@ import os
 from datetime import datetime
 from typing import List, Dict
 
-from barks_fantagraphics.comic_book import ComicBook, get_safe_title
+from barks_fantagraphics.barks_titles import get_safe_title
+from barks_fantagraphics.comic_book import ComicBook
 from barks_fantagraphics.comics_consts import (
     PageType,
     get_font_path,

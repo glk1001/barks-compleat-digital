@@ -339,11 +339,17 @@ class MainScreen(BoxLayout):
         comic_inset_file = get_comic_inset_file(self.fanta_info.comic_book_info.title)
         title_info_image = get_random_title_image(self.fanta_info.comic_book_info.get_title_str())
 
-        self.main_title.text = self.fanta_info.comic_book_info.get_display_title()
+        self.main_title.text = self.get_main_title_str()
         self.title_info.text = self.get_title_info()
         self.extra_title_info.text = self.get_extra_title_info()
         self.title_page_image.source = comic_inset_file
         self.bottom_view_before_image.source = title_info_image
+
+    def get_main_title_str(self):
+        if self.fanta_info.comic_book_info.is_barks_title:
+            return self.fanta_info.comic_book_info.get_title_str()
+
+        return self.fanta_info.comic_book_info.get_title_from_issue_name()
 
     def image_pressed(self):
         if self.fanta_info is None:
