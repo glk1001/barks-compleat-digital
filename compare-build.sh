@@ -2,6 +2,8 @@
 
 set -u
 
+# shellcheck disable=SC2155
+# shellcheck disable=SC2164
 declare -r THIS_SCRIPT_PATH="$(cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P)"
 
 DIRECTORY1=$1
@@ -16,10 +18,18 @@ if [[ ! -d "${DIRECTORY2}" ]]; then
   exit 1
 fi
 
+ERRORS=0
+
 diff -r --exclude=images -I "time of run" -I "Created:" -I "timestamp" "${DIRECTORY1}" "${DIRECTORY2}"
 if [[ $? != 0 ]]; then
-  echo "Error in diff"
-  exit 1
+  echo "Error in files diff in  \"${DIRECTORY1}\"."
+  ERRORS=1
 fi
 
-bash ${THIS_SCRIPT_PATH}/compare-images.sh "${DIRECTORY1}/images" "${DIRECTORY2}/images"
+bash "${THIS_SCRIPT_PATH}"/compare-images.sh "${DIRECTORY1}/images" "${DIRECTORY2}/images"
+if [[ $? != 0 ]]; then
+  echo "There were image compare errors in \"${DIRECTORY1}/images\"."
+  ERRORS=$((ERRORS+1))
+fi
+
+exit ${ERRORS}

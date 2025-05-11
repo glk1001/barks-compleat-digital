@@ -12,6 +12,8 @@ if [[ ! -d "${DIRECTORY2}" ]]; then
   exit 1
 fi
 
+ERRORS=0
+
 for file in "${DIRECTORY1}"/*; do
   if [ -f "$file" ]; then
     filename=$(basename "$file")
@@ -35,7 +37,9 @@ for file in "${DIRECTORY1}"/*; do
       cat /tmp/compare.txt
       echo
       echo
+      ERRORS=$((ERRORS+1))
     fi
   fi
 done
 
+exit ${ERRORS}
