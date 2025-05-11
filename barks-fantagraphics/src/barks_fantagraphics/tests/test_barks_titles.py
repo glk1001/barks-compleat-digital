@@ -1,3 +1,4 @@
+import string
 import unittest
 from typing import List
 
@@ -9,6 +10,8 @@ from barks_fantagraphics.barks_titles import (
     # Import the raw data for some tests
     SHORT_ISSUE_NAME,
     Issues,
+    NUM_TITLES,
+    BARKS_TITLES,
 )
 
 
@@ -26,7 +29,6 @@ class TestComicBookInfo(unittest.TestCase):
             submitted_day=22,
             submitted_month=7,
             submitted_year=1947,
-            chronological_number=77,
         )
         expected_issue_title = f"{SHORT_ISSUE_NAME[Issues.FC]} 178"
         self.assertEqual(info.get_short_issue_title(), expected_issue_title)
@@ -41,31 +43,70 @@ class TestComicBookInfo(unittest.TestCase):
             submitted_day=12,
             submitted_month=2,
             submitted_year=1960,
-            chronological_number=455,
         )
         expected_title_us = f"{SHORT_ISSUE_NAME[Issues.US]} 31"
         self.assertEqual(info_us.get_short_issue_title(), expected_title_us)
 
 
-class TestGetAllComicBookInfo(unittest.TestCase):
+class TestBarksInfo(unittest.TestCase):
 
     def test_sorted_by_chronological_number(self):
         """Tests if the titles list is sorted correctly."""
-        items = BARKS_TITLE_INFO
-        for i in range(len(items) - 1):
+        for i in range(len(BARKS_TITLE_INFO) - 1):
             self.assertEqual(
-                items[i].chronological_number + 1,
-                items[i + 1].chronological_number,
+                BARKS_TITLE_INFO[i].chronological_number + 1,
+                BARKS_TITLE_INFO[i + 1].chronological_number,
                 f"Chronological order failed between"
-                f"  item {i} ('{items[i].get_short_issue_title()}')"
-                f" and item {i+1} ('{items[i+1].get_short_issue_title()}')",
+                f"  item {i} ('{BARKS_TITLE_INFO[i].get_short_issue_title()}')"
+                f" and item {i+1} ('{BARKS_TITLE_INFO[i+1].get_short_issue_title()}')",
             )
 
+    def test_chronological_numbers_covered(self):
+        for info in BARKS_TITLE_INFO:
+            self.assertEqual(
+                info.chronological_number,
+                info.title + 1,
+                f"Chronological number not equal to title + 1;"
+                f" title: {info.title} ('{info.get_short_issue_title()}')",
+            )
+
+    def test_correct_title_strings(self):
+        for title, title_str in enumerate(BARKS_TITLES):
+            expected_enum_var = self.get_title_var(title_str)
+            actual_enum_var = Titles(title).name
+            self.assertEqual(
+                actual_enum_var,
+                expected_enum_var,
+                f"Barks title does not match Titles enum name;"
+                f" title: {title_str}; actual_enum_var: {actual_enum_var};"
+                f" expected_enum_var: {expected_enum_var} )",
+            )
+
+    @staticmethod
+    def get_title_var(title: str) -> str:
+        enum_var = title.upper()
+
+        enum_var = enum_var.replace(" ", "_")
+        enum_var = enum_var.replace("-", "_")
+
+        str_punc = string.punctuation
+        str_punc = str_punc.replace("_", "")
+        str_punc = str_punc.replace("-", "")
+        for punc in str_punc:
+            enum_var = enum_var.replace(punc, "")
+
+        if enum_var.startswith("THE_"):
+            enum_var = enum_var[4:] + "_THE"
+        elif enum_var.startswith("A_"):
+            enum_var = enum_var[2:] + "_A"
+
+        return enum_var
+
     def test_correct_number_of_titles(self):
-        items = BARKS_TITLE_INFO
-        num_titles = len(items)
-        self.assertEqual(1, items[0].chronological_number)
-        self.assertEqual(num_titles, items[-1].chronological_number)
+        assert NUM_TITLES == len(BARKS_TITLES)
+        assert NUM_TITLES == len(BARKS_TITLE_INFO)
+        self.assertEqual(1, BARKS_TITLE_INFO[0].chronological_number)
+        self.assertEqual(NUM_TITLES, BARKS_TITLE_INFO[-1].chronological_number)
 
     def test_story_submitted_order(self):
         try:
@@ -79,12 +120,12 @@ class TestCheckStorySubmittedOrder(unittest.TestCase):
     def test_valid_order(self):
         """Tests that correctly ordered data passes."""
         valid_data: List[ComicBookInfo] = [
-            ComicBookInfo(Titles(0), True, Issues.FC, 1, 1, 1940, 1, 1, 1940, 1),
-            ComicBookInfo(Titles(1), True, Issues.FC, 2, 2, 1940, 1, 2, 1940, 2),
+            ComicBookInfo(Titles(0), True, Issues.FC, 1, 1, 1940, 1, 1, 1940),
+            ComicBookInfo(Titles(1), True, Issues.FC, 2, 2, 1940, 1, 2, 1940),
             # Day -1 is ok
-            ComicBookInfo(Titles(2), True, Issues.FC, 3, 3, 1940, -1, 2, 1940, 3),
-            ComicBookInfo(Titles(3), True, Issues.FC, 4, 4, 1940, 15, 2, 1940, 4),
-            ComicBookInfo(Titles(4), True, Issues.FC, 5, 5, 1941, 1, 1, 1941, 5),
+            ComicBookInfo(Titles(2), True, Issues.FC, 3, 3, 1940, -1, 2, 1940),
+            ComicBookInfo(Titles(3), True, Issues.FC, 4, 4, 1940, 15, 2, 1940),
+            ComicBookInfo(Titles(4), True, Issues.FC, 5, 5, 1941, 1, 1, 1941),
         ]
         try:
             check_story_submitted_order(valid_data)
@@ -96,16 +137,14 @@ class TestCheckStorySubmittedOrder(unittest.TestCase):
     def test_invalid_month(self):
         """Tests detection of invalid submission month."""
         invalid_data: List[ComicBookInfo] = [
-            ComicBookInfo(Titles(0), True, Issues.FC, 1, 1, 1940, 1, 1, 1940, 1),
-            ComicBookInfo(
-                Titles(1), True, Issues.FC, 2, 2, 1940, 1, 13, 1940, 2
-            ),  # Invalid month 13
+            ComicBookInfo(Titles(0), True, Issues.FC, 1, 1, 1940, 1, 1, 1940),
+            ComicBookInfo(Titles(1), True, Issues.FC, 2, 2, 1940, 1, 13, 1940),  # Invalid month 13
         ]
         with self.assertRaisesRegex(Exception, "Invalid submission month: 13"):
             check_story_submitted_order(invalid_data)
 
         invalid_data_zero: List[ComicBookInfo] = [
-            ComicBookInfo(Titles(0), True, Issues.FC, 1, 1, 1940, 1, 0, 1940, 1),  # Invalid month 0
+            ComicBookInfo(Titles(0), True, Issues.FC, 1, 1, 1940, 1, 0, 1940),  # Invalid month 0
         ]
         with self.assertRaisesRegex(Exception, "Invalid submission month: 0"):
             check_story_submitted_order(invalid_data_zero)
@@ -113,9 +152,9 @@ class TestCheckStorySubmittedOrder(unittest.TestCase):
     def test_out_of_order_submission_date(self):
         """Tests detection of out-of-order submission dates."""
         invalid_data: List[ComicBookInfo] = [
-            ComicBookInfo(Titles(0), True, Issues.FC, 1, 1, 1940, 15, 2, 1940, 1),
+            ComicBookInfo(Titles(0), True, Issues.FC, 1, 1, 1940, 15, 2, 1940),
             # Submitted earlier than A
-            ComicBookInfo(Titles(1), True, Issues.FC, 2, 2, 1940, 1, 2, 1940, 2),
+            ComicBookInfo(Titles(1), True, Issues.FC, 2, 2, 1940, 1, 2, 1940),
         ]
         with self.assertRaisesRegex(Exception, "Out of order submitted date"):
             check_story_submitted_order(invalid_data)
@@ -123,9 +162,9 @@ class TestCheckStorySubmittedOrder(unittest.TestCase):
     def test_out_of_order_chronological_number(self):
         """Tests detection of out-of-order chronological numbers."""
         invalid_data: List[ComicBookInfo] = [
-            ComicBookInfo(Titles(0), True, Issues.FC, 1, 1, 1940, 1, 1, 1940, 5),
-            # Chrono 2 (out of order)
-            ComicBookInfo(Titles(1), True, Issues.FC, 2, 2, 1940, 1, 2, 1940, 2),
+            ComicBookInfo(Titles(2), True, Issues.FC, 1, 1, 1940, 1, 1, 1940),
+            # Chrono 1 (out of order)
+            ComicBookInfo(Titles(1), True, Issues.FC, 2, 2, 1940, 1, 2, 1940),
         ]
         with self.assertRaisesRegex(Exception, "Out of order chronological number"):
             check_story_submitted_order(invalid_data)
@@ -133,11 +172,11 @@ class TestCheckStorySubmittedOrder(unittest.TestCase):
     def test_handles_day_minus_one(self):
         """Tests that submitted_day=-1 is handled correctly."""
         data: List[ComicBookInfo] = [
-            ComicBookInfo(Titles(0), True, Issues.FC, 1, 1, 1940, -1, 1, 1940, 1),
+            ComicBookInfo(Titles(0), True, Issues.FC, 1, 1, 1940, -1, 1, 1940),
             # Same month, later day
-            ComicBookInfo(Titles(1), True, Issues.FC, 2, 2, 1940, 1, 1, 1940, 2),
+            ComicBookInfo(Titles(1), True, Issues.FC, 2, 2, 1940, 1, 1, 1940),
             # Later month, day -1
-            ComicBookInfo(Titles(2), True, Issues.FC, 3, 3, 1940, -1, 2, 1940, 3),
+            ComicBookInfo(Titles(2), True, Issues.FC, 3, 3, 1940, -1, 2, 1940),
         ]
         try:
             check_story_submitted_order(data)
@@ -148,8 +187,8 @@ class TestCheckStorySubmittedOrder(unittest.TestCase):
 
         # Check case where -1 makes dates equal (should pass)
         data_equal: List[ComicBookInfo] = [
-            ComicBookInfo(Titles(0), True, Issues.FC, 1, 1, 1940, -1, 1, 1940, 1),
-            ComicBookInfo(Titles(1), True, Issues.FC, 2, 2, 1940, 1, 1, 1940, 2),
+            ComicBookInfo(Titles(0), True, Issues.FC, 1, 1, 1940, -1, 1, 1940),
+            ComicBookInfo(Titles(1), True, Issues.FC, 2, 2, 1940, 1, 1, 1940),
         ]
         try:
             check_story_submitted_order(data_equal)
