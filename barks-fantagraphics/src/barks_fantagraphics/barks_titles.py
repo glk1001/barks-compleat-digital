@@ -2492,6 +2492,15 @@ assert NUM_TITLES == len(BARKS_TITLE_INFO)
 USEFUL_TITLES = {
     Titles.HORSERADISH_STORY_THE: "Uncle Scrooge #3",
     Titles.ROUND_MONEY_BIN_THE: "Uncle Scrooge #3",
+    Titles.ROSCOE_THE_ROBOT: "Gyro Gearloose",
+    Titles.TRAPPED_LIGHTNING: "Gyro Gearloose",
+    Titles.CAT_BOX_THE: "Gyro Gearloose",
+    Titles.FISHING_MYSTERY: "Gyro Gearloose",
+    Titles.FORECASTING_FOLLIES: "Gyro Gearloose",
+    Titles.GETTING_THOR: "Gyro Gearloose",
+    Titles.GYRO_BUILDS_A_BETTER_HOUSE: "Gyro Gearloose",
+    Titles.KNOW_IT_ALL_MACHINE_THE: "Gyro Gearloose",
+    Titles.SURE_FIRE_GOLD_FINDER_THE: "Gyro Gearloose",
 }
 
 
