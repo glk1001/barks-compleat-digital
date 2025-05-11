@@ -17,6 +17,7 @@ from additional_file_writing import (
     write_dest_panels_bboxes,
 )
 from barks_fantagraphics.comic_book import ComicBook, get_safe_title
+from barks_fantagraphics.comic_issues import Issues, ISSUE_NAME
 from barks_fantagraphics.comics_consts import (
     PageType,
     BARKS,
@@ -80,9 +81,6 @@ PAGE_NUM_COLOR = (10, 10, 10)
 SPLASH_BORDER_COLOR = (0, 0, 0)
 SPLASH_BORDER_WIDTH = 10
 SPLASH_MARGIN = DEST_TARGET_X_MARGIN
-
-# TODO: Make use of Issues.CS
-CS = "Comics and Stories"
 
 
 def build_comic_book(comic: ComicBook) -> Tuple[SrceAndDestPages, float]:
@@ -569,8 +567,9 @@ def _get_title_and_fonts(
     title = comic.get_comic_title()
     font_file = comic.title_font_file
     font_size = comic.title_font_size
+    comic_book_info = comic.fanta_info.comic_book_info
 
-    if title.startswith(CS):
+    if (not comic_book_info.is_barks_title) and (comic_book_info.issue_name == Issues.CS):
         add_footnote = comic.get_ini_title() in CENSORED_TITLES
 
         title_and_fonts = _get_comics_and_stories_title_and_fonts(
@@ -586,9 +585,9 @@ def _get_title_and_fonts(
 def _get_comics_and_stories_title_and_fonts(
     draw: ImageDraw.Draw, title: str, font_file: str, font_size: int, add_footnote: bool
 ) -> Tuple[List[str], List[ImageFont.truetype], int]:
-    assert title.startswith(CS)
+    assert title.startswith(ISSUE_NAME[Issues.CS])
 
-    comic_num = title[len(CS) :]
+    comic_num = title[len(ISSUE_NAME[Issues.CS]) :]
     if add_footnote:
         comic_num += FOOTNOTE_CHAR
 
