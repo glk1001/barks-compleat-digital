@@ -203,13 +203,13 @@ def get_short_formatted_submitted_date(fanta_info: FantaComicBookInfo) -> str:
 def get_long_formatted_submitted_date(fanta_info: FantaComicBookInfo) -> str:
     if fanta_info.comic_book_info.submitted_day == -1:
         return (
-            f"{MONTH_AS_LONG_STR[fanta_info.comic_book_info.submitted_month]},"
+            f"{MONTH_AS_LONG_STR[fanta_info.comic_book_info.submitted_month]}"
             f" {fanta_info.comic_book_info.submitted_year}"
         )
 
     return (
         f"{get_formatted_day(fanta_info.comic_book_info.submitted_day)}"
-        f" {MONTH_AS_LONG_STR[fanta_info.comic_book_info.submitted_month]},"
+        f" {MONTH_AS_LONG_STR[fanta_info.comic_book_info.submitted_month]}"
         f" {fanta_info.comic_book_info.submitted_year}"
     )
 
@@ -224,7 +224,7 @@ def get_formatted_first_published_str(
         issue_date = fanta_info.comic_book_info.issue_year
     else:
         issue_date = (
-            f"{MONTH_AS_LONG_STR[fanta_info.comic_book_info.issue_month]},"
+            f"{MONTH_AS_LONG_STR[fanta_info.comic_book_info.issue_month]}"
             f" {fanta_info.comic_book_info.issue_year}"
         )
 
