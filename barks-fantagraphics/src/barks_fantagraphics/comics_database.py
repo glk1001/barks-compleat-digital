@@ -443,21 +443,16 @@ class ComicsDatabase:
             ),
             srce_dim=ComicDimensions(),
             required_dim=RequiredDimensions(),
-            fanta_book=fanta_book,
             srce_dir_num_page_files=srce_dir_num_page_files,
             dirs=comic_book_dirs,
-            series_name=fanta_info.series_name,
-            number_in_series=fanta_info.number_in_series,
-            # TODO(glk): Eventually just use fanta_info.comic_book_info.chronological_number
-            chronological_number=fanta_info.fanta_chronological_number,
             intro_inset_file=intro_inset_file,
-            publication_date=publication_date,
-            submitted_date=submitted_date,
-            submitted_year=fanta_info.comic_book_info.submitted_year,
-            publication_text=publication_text,
-            fanta_info=fanta_info,
             config_page_images=config_page_images,
             page_images_in_order=_get_pages_in_order(config_page_images),
+            publication_date=publication_date,
+            submitted_date=submitted_date,
+            publication_text=publication_text,
+            fanta_book=fanta_book,
+            fanta_info=fanta_info,
         )
 
         if not os.path.isdir(comic.dirs.srce_dir):

@@ -95,22 +95,36 @@ class ComicBook:
     srce_dim: ComicDimensions
     required_dim: RequiredDimensions
 
-    fanta_book: FantaBook
     srce_dir_num_page_files: int
     dirs: ComicBookDirs
 
-    series_name: str
-    number_in_series: int
-    chronological_number: int
     intro_inset_file: str
-    publication_date: str
-    submitted_date: str
-    submitted_year: int
-    publication_text: str
-
-    fanta_info: FantaComicBookInfo
     config_page_images: List[OriginalPage]
     page_images_in_order: List[OriginalPage]
+
+    publication_date: str
+    submitted_date: str
+    publication_text: str
+
+    fanta_book: FantaBook
+    fanta_info: FantaComicBookInfo
+
+    # TODO(glk): Eventually just use fanta_info.comic_book_info.chronological_number
+    @property
+    def chronological_number(self) -> int:
+        return self.fanta_info.fanta_chronological_number
+
+    @property
+    def submitted_year(self) -> int:
+        return self.fanta_info.comic_book_info.submitted_year
+
+    @property
+    def series_name(self) -> str:
+        return self.fanta_info.series_name
+
+    @property
+    def number_in_series(self) -> int:
+        return self.fanta_info.number_in_series
 
     def __post_init__(self):
         assert self.series_name != ""
