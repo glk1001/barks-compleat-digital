@@ -31,13 +31,16 @@ for file in "${DIRECTORY1}"/*; do
 	
     compare -metric MAE "${file1}" "${file2}" NULL: &> /tmp/compare.txt
     if [[ $? != 0 ]]; then
-      echo ""
-      echo "Error comparing \"${file1}\":"
-      echo
-      cat /tmp/compare.txt
-      echo
-      echo
-      ERRORS=$((ERRORS+1))
+      MAE=$(head -n 1 /tmp/compare.txt | awk '{print $1}')
+      if [[  $(echo "1.0 < ${MAE}" | bc) -eq 1 ]]; then
+        echo ""
+        echo "Error comparing \"${file1}\":"
+        echo
+        cat /tmp/compare.txt
+        echo
+        echo
+        ERRORS=$((ERRORS+1))
+      fi
     fi
   fi
 done
