@@ -1,8 +1,9 @@
 import os
+from pathlib import Path
 from typing import List
 
 from barks_fantagraphics.barks_titles import Titles, BARKS_TITLE_INFO, BARKS_TITLES
-from barks_fantagraphics.comics_consts import JPG_FILE_EXT
+from barks_fantagraphics.comics_consts import JPG_FILE_EXT, PNG_FILE_EXT
 
 HOME_DIR = os.environ.get("HOME")
 
@@ -110,18 +111,18 @@ def get_comic_censorship_files_dir() -> str:
 def get_comic_inset_file(title: Titles) -> str:
     title_str = BARKS_TITLES[title]
 
-    main_inset_file = os.path.join(get_comic_inset_files_dir(), title_str + JPG_FILE_EXT)
-    if os.path.isfile(main_inset_file):
-        return main_inset_file
+    main_file = os.path.join(get_comic_inset_files_dir(), title_str + JPG_FILE_EXT)
+    if os.path.isfile(main_file):
+        return main_file
 
-    edited_inset_file = os.path.join(BARKS_READER_INSET_EDITED_FILES_DIR, title_str + JPG_FILE_EXT)
+    edited_file = os.path.join(BARKS_READER_INSET_EDITED_FILES_DIR, title_str + JPG_FILE_EXT)
 
-    # assert os.path.isfile(edited_inset_file)
+    # assert os.path.isfile(edited_file)
     # TODO: Fix this when all titles are configured.
-    if not os.path.isfile(edited_inset_file):
+    if not os.path.isfile(edited_file):
         return EMERGENCY_INSET_FILE_PATH
 
-    return edited_inset_file
+    return edited_file
 
 
 def get_comic_cover_file(title: str) -> str:
@@ -133,36 +134,34 @@ def get_comic_cover_file(title: str) -> str:
 
 
 def get_comic_silhouette_files(title: str) -> List[str]:
-    image_dir = os.path.join(get_comic_silhouette_files_dir(), title)
-    if not os.path.isdir(image_dir):
-        return list()
-
-    image_files = []
-    for file in os.listdir(image_dir):
-        image_files.append(os.path.join(image_dir, file))
-
-    return image_files
+    return get_files(get_comic_silhouette_files_dir(), title)
 
 
 def get_comic_splash_files(title: str) -> List[str]:
-    image_dir = os.path.join(get_comic_splash_files_dir(), title)
-    if not os.path.isdir(image_dir):
-        return list()
-
-    image_files = []
-    for file in os.listdir(image_dir):
-        image_files.append(os.path.join(image_dir, file))
-
-    return image_files
+    return get_files(get_comic_splash_files_dir(), title)
 
 
 def get_comic_censorship_files(title: str) -> List[str]:
-    image_dir = os.path.join(get_comic_censorship_files_dir(), title)
+    return get_files(get_comic_censorship_files_dir(), title)
+
+
+def get_files(parent_image_dir: str, title: str) -> List[str]:
+    image_dir = os.path.join(parent_image_dir, title)
     if not os.path.isdir(image_dir):
         return list()
 
+    edited_image_dir = os.path.join(image_dir, "edited")
+
     image_files = []
     for file in os.listdir(image_dir):
-        image_files.append(os.path.join(image_dir, file))
+        image_file = os.path.join(image_dir, file)
+        if not os.path.isfile(image_file):
+            continue
+
+        edited_image_file = os.path.join(edited_image_dir, Path(file).stem + PNG_FILE_EXT)
+        if os.path.isfile(edited_image_file):
+            image_files.append(edited_image_file)
+        else:
+            image_files.append(image_file)
 
     return image_files
