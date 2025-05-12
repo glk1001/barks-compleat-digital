@@ -10,7 +10,7 @@ from .comic_issues import (
     SHORT_ISSUE_NAME,
 )
 
-NUM_TITLES = 601
+NUM_TITLES = 616
 
 ADVENTURE_DOWN_UNDER = "Adventure Down Under"
 ALL_AT_SEA = "All at Sea"
@@ -33,6 +33,7 @@ BARBER_COLLEGE = "Barber College"
 BEACHCOMBERS_PICNIC_THE = "The Beachcombers' Picnic"
 BEACH_BOY = "Beach Boy"
 BEAN_TAKEN = "Bean Taken"
+BEAR_TAMER_THE = "The Bear Tamer"
 BEAUTY_BUSINESS_THE = "The Beauty Business"
 BEE_BUMBLES = "Bee Bumbles"
 BEST_LAID_PLANS = "Best Laid Plans"
@@ -46,6 +47,7 @@ BILLIONS_TO_SNEEZE_AT = "Billions to Sneeze At"
 BILLION_DOLLAR_SAFARI_THE = "The Billion Dollar Safari"
 BILL_COLLECTORS_THE = "The Bill Collectors"
 BILL_WIND = "Bill Wind"
+BIRD_CAMERA_THE = "The Bird Camera"
 BIRD_WATCHING = "Bird Watching"
 BLACK_FOREST_RESCUE_THE = "The Black Forest Rescue"
 BLACK_PEARLS_OF_TABU_YAMA_THE = "The Black Pearls of Tabu Yama"
@@ -58,6 +60,7 @@ BOXED_IN = "Boxed-In"
 BUBBLEWEIGHT_CHAMP = "Bubbleweight Champ"
 BUFFO_OR_BUST = "Buffo or Bust"
 BUM_STEER = "Bum Steer"
+CALL_OF_THE_WILD_THE = "The Call of the Wild"
 CAMERA_CRAZY = "Camera Crazy"
 CAMPAIGN_OF_NOTE_A = "A Campaign of Note"
 CAMPING_CONFUSION = "Camping Confusion"
@@ -71,6 +74,7 @@ CAST_OF_THOUSANDS = "Cast of Thousands"
 CATTLE_KING_THE = "The Cattle King"
 CAT_BOX_THE = "The Cat Box"
 CAVE_OF_ALI_BABA = "Cave of Ali Baba"
+CAVE_OF_THE_WINDS = "Cave of the Winds"
 CHARITABLE_CHORE_A = "A Charitable Chore"
 CHEAPEST_WEIGH_THE = "The Cheapest Weigh"
 CHECKER_GAME_THE = "The Checker Game"
@@ -178,6 +182,7 @@ FLYING_DUTCHMAN_THE = "The Flying Dutchman"
 FLYING_FARMHAND_THE = "The Flying Farmhand"
 FOLLOW_THE_RAINBOW = "Follow the Rainbow"
 FORBIDDEN_VALLEY = "Forbidden Valley"
+FORBIDIUM_MONEY_BIN_THE = "The Forbidium Money Bin"
 FORECASTING_FOLLIES = "Forecasting Follies"
 FORGOTTEN_PRECAUTION = "Forgotten Precaution"
 FOR_OLD_DIMES_SAKE = "For Old Dime's Sake"
@@ -188,6 +193,8 @@ FRIGHTFUL_FACE = "Frightful Face"
 FROGGY_FARMER = "Froggy Farmer"
 FROZEN_GOLD = "Frozen Gold"
 FULL_SERVICE_WINDOWS = "Full-Service Windows"
+FUN_WHATS_THAT = "Fun? What's That?"
+GAB_MUFFER_THE = "The Gab-Muffer"
 GALL_OF_THE_WILD = "Gall of the Wild"
 GEMSTONE_HUNTERS = "Gemstone Hunters"
 GENUINE_ARTICLE_THE = "The Genuine Article"
@@ -240,6 +247,7 @@ HIGH_RIDER = "High Rider"
 HIGH_WIRE_DAREDEVILS = "High-wire Daredevils"
 HISTORY_TOSSED = "History Tossed"
 HIS_HANDY_ANDY = "His Handy Andy"
+HIS_SHINING_HOUR = "His Shining Hour"
 HOBBLIN_GOBLINS = "Hobblin' Goblins"
 HONEY_OF_A_HEN_A = "A Honey of a Hen"
 HORSERADISH_STORY_THE = "The Horseradish Story"
@@ -310,6 +318,7 @@ LOST_CROWN_OF_GENGHIS_KHAN_THE = "The Lost Crown of Genghis Khan!"
 LOST_FRONTIER = "Lost Frontier"
 LOST_IN_THE_ANDES = "Lost in the Andes!"
 LOST_PEG_LEG_MINE_THE = "The Lost Peg Leg Mine"
+LOST_RABBIT_FOOT_THE = "The Lost Rabbit Foot"
 LOVELORN_FIREMAN_THE = "The Lovelorn Fireman"
 LUCK_OF_THE_NORTH = "Luck of the North"
 LUNCHEON_LAMENT = "Luncheon Lament"
@@ -317,6 +326,7 @@ MACHINE_MIX_UP = "Machine Mix-Up"
 MADCAP_INVENTORS = "Madcap Inventors"
 MADCAP_MARINER_THE = "The Madcap Mariner"
 MAD_CHEMIST_THE = "The Mad Chemist"
+MADBALL_PITCHER_THE = "The Madball Pitcher"
 MAGICAL_MISERY = "Magical Misery"
 MAGIC_HOURGLASS_THE = "The Magic Hourglass"
 MAGIC_INK_THE = "The Magic Ink"
@@ -345,10 +355,12 @@ MIDGETS_MADNESS = "Midgets Madness"
 MIGHTY_TRAPPER_THE = "The Mighty Trapper"
 MIGRATING_MILLIONS = "Migrating Millions"
 MILKMAN_THE = "The Milkman"
+MILKTIME_MELODIES = "Milktime Melodies"
 MILLION_DOLLAR_PIGEON = "Million Dollar Pigeon"
 MILLION_DOLLAR_SHOWER = "Million-Dollar Shower"
 MINES_OF_KING_SOLOMON_THE = "The Mines of King Solomon"
 MISSILE_FIZZLE = "Missile Fizzle"
+MIXED_UP_MIXER = "Mixed-up Mixer"
 MOCKING_BIRD_RIDGE = "Mocking Bird Ridge"
 MONEY_BAG_GOAT = "Money Bag Goat"
 MONEY_CHAMP_THE = "The Money Champ"
@@ -382,6 +394,7 @@ NO_BARGAIN = "No Bargain"
 NO_NOISE_IS_GOOD_NOISE = "No Noise is Good Noise"
 NO_PLACE_TO_HIDE = "No Place to Hide"
 NO_SUCH_VARMINT = "No Such Varmint"
+ODD_ORDER_THE = "The Odd Order"
 ODDBALL_ODYSSEY = "Oddball Odyssey"
 OIL_THE_NEWS = "Oil the News"
 OLD_CASTLES_SECRET_THE = "The Old Castle's Secret"
@@ -505,12 +518,14 @@ STATUS_SEEKER_THE = "The Status Seeker"
 STONES_THROW_FROM_GHOST_TOWN_A = "A Stone's Throw from Ghost Town"
 STRANGER_THAN_FICTION = "Stranger than Fiction"
 STRANGE_SHIPWRECKS_THE = "The Strange Shipwrecks"
+STUBBORN_STORK_THE = "The Stubborn Stork"
 SUNKEN_YACHT_THE = "The Sunken Yacht"
 SUPER_SNOOPER = "Super Snooper"
 SURE_FIRE_GOLD_FINDER_THE = "The Sure-Fire Gold Finder"
 SWAMP_OF_NO_RETURN_THE = "The Swamp of No Return"
 SWEAT_DEAL_A = "A Sweat Deal"
 SWIMMING_SWINDLERS = "Swimming Swindlers"
+TALE_OF_THE_TAPE = "Tale of the Tape"
 TALKING_DOG_THE = "The Talking Dog"
 TALKING_PARROT = "Talking Parrot"
 TAMING_THE_RAPIDS = "Taming the Rapids"
@@ -1013,6 +1028,7 @@ class Titles(IntEnum):
     BILL_WIND = auto()
     TWENTY_FOUR_CARAT_MOON_THE = auto()
     HOUSE_ON_CYCLONE_HILL_THE = auto()
+    FORBIDIUM_MONEY_BIN_THE = auto()
     NOBLE_PORPOISES = auto()
     MAGIC_INK_THE = auto()
     SLEEPIES_THE = auto()
@@ -1048,6 +1064,7 @@ class Titles(IntEnum):
     WAX_MUSEUM_THE = auto()
     PAUL_BUNYAN_MACHINE_THE = auto()
     KNIGHTS_OF_THE_FLYING_SLEDS = auto()
+    FUN_WHATS_THAT = auto()
     WITCHING_STICK_THE = auto()
     INVENTORS_CONTEST_THE = auto()
     JUNGLE_HI_JINKS = auto()
@@ -1055,6 +1072,12 @@ class Titles(IntEnum):
     HONEY_OF_A_HEN_A = auto()
     WEATHER_WATCHERS_THE = auto()
     SHEEPISH_COWBOYS_THE = auto()
+    GAB_MUFFER_THE = auto()
+    BIRD_CAMERA_THE = auto()
+    ODD_ORDER_THE = auto()
+    STUBBORN_STORK_THE = auto()
+    MILKTIME_MELODIES = auto()
+    LOST_RABBIT_FOOT_THE = auto()
     OODLES_OF_OOMPH = auto()
     MASTER_GLASSER_THE = auto()
     MONEY_HAT_THE = auto()
@@ -1062,8 +1085,15 @@ class Titles(IntEnum):
     UNDER_THE_POLAR_ICE = auto()
     HOUND_OF_THE_WHISKERVILLES = auto()
     RIDING_THE_PONY_EXPRESS = auto()
+    CAVE_OF_THE_WINDS = auto()
+    MADBALL_PITCHER_THE = auto()
+    MIXED_UP_MIXER = auto()
     WANT_TO_BUY_AN_ISLAND = auto()
     FROGGY_FARMER = auto()
+    CALL_OF_THE_WILD_THE = auto()
+    TALE_OF_THE_TAPE = auto()
+    HIS_SHINING_HOUR = auto()
+    BEAR_TAMER_THE = auto()
     PIPELINE_TO_DANGER = auto()
     YOICKS_THE_FOX = auto()
     WAR_PAINT = auto()
@@ -1619,6 +1649,7 @@ BARKS_TITLES = [
     BILL_WIND,
     TWENTY_FOUR_CARAT_MOON_THE,
     HOUSE_ON_CYCLONE_HILL_THE,
+    FORBIDIUM_MONEY_BIN_THE,
     NOBLE_PORPOISES,
     MAGIC_INK_THE,
     SLEEPIES_THE,
@@ -1654,6 +1685,7 @@ BARKS_TITLES = [
     WAX_MUSEUM_THE,
     PAUL_BUNYAN_MACHINE_THE,
     KNIGHTS_OF_THE_FLYING_SLEDS,
+    FUN_WHATS_THAT,
     WITCHING_STICK_THE,
     INVENTORS_CONTEST_THE,
     JUNGLE_HI_JINKS,
@@ -1661,6 +1693,12 @@ BARKS_TITLES = [
     HONEY_OF_A_HEN_A,
     WEATHER_WATCHERS_THE,
     SHEEPISH_COWBOYS_THE,
+    GAB_MUFFER_THE,
+    BIRD_CAMERA_THE,
+    ODD_ORDER_THE,
+    STUBBORN_STORK_THE,
+    MILKTIME_MELODIES,
+    LOST_RABBIT_FOOT_THE,
     OODLES_OF_OOMPH,
     MASTER_GLASSER_THE,
     MONEY_HAT_THE,
@@ -1668,8 +1706,15 @@ BARKS_TITLES = [
     UNDER_THE_POLAR_ICE,
     HOUND_OF_THE_WHISKERVILLES,
     RIDING_THE_PONY_EXPRESS,
+    CAVE_OF_THE_WINDS,
+    MADBALL_PITCHER_THE,
+    MIXED_UP_MIXER,
     WANT_TO_BUY_AN_ISLAND,
     FROGGY_FARMER,
+    CALL_OF_THE_WILD_THE,
+    TALE_OF_THE_TAPE,
+    HIS_SHINING_HOUR,
+    BEAR_TAMER_THE,
     PIPELINE_TO_DANGER,
     YOICKS_THE_FOX,
     WAR_PAINT,
@@ -2277,6 +2322,7 @@ BARKS_TITLE_INFO: List[ComicBookInfo] = [
     ComicBookInfo(Titles.BILL_WIND, False, Issues.US, 25, 3, 1959, 10, 1, 1958),
     ComicBookInfo(Titles.TWENTY_FOUR_CARAT_MOON_THE, False, Issues.US, 24, 12, 1958, 20, 1, 1958),
     ComicBookInfo(Titles.HOUSE_ON_CYCLONE_HILL_THE, False, Issues.US, 24, 12, 1958, 20, 1, 1958),
+    ComicBookInfo(Titles.FORBIDIUM_MONEY_BIN_THE, False, Issues.DIBP, 1, 10, 1958, 4, 2, 1958),
     ComicBookInfo(Titles.NOBLE_PORPOISES, False, Issues.CS, 218, 11, 1958, 14, 2, 1958),
     ComicBookInfo(Titles.MAGIC_INK_THE, False, Issues.US, 24, 12, 1958, 17, 2, 1958),
     ComicBookInfo(Titles.SLEEPIES_THE, False, Issues.DD, 81, 1, 1962, 17, 2, 1958),
@@ -2313,6 +2359,7 @@ BARKS_TITLE_INFO: List[ComicBookInfo] = [
     ComicBookInfo(Titles.WAX_MUSEUM_THE, False, Issues.CS, 231, 12, 1959, 17, 11, 1958),
     ComicBookInfo(Titles.PAUL_BUNYAN_MACHINE_THE, False, Issues.US, 28, 12, 1959, 15, 12, 1958),
     ComicBookInfo(Titles.KNIGHTS_OF_THE_FLYING_SLEDS, False, Issues.CS, 233, 2, 1960, 2, 1, 1959),
+    ComicBookInfo(Titles.FUN_WHATS_THAT, False, Issues.SF, 2, 8, 1959, 8, 1, 1959),
     ComicBookInfo(Titles.WITCHING_STICK_THE, False, Issues.US, 28, 12, 1959, 16, 1, 1959),
     ComicBookInfo(Titles.INVENTORS_CONTEST_THE, False, Issues.US, 28, 12, 1959, 16, 1, 1959),
     ComicBookInfo(Titles.JUNGLE_HI_JINKS, True, Issues.SF, 2, 8, 1959, 30, 1, 1959),
@@ -2320,6 +2367,12 @@ BARKS_TITLE_INFO: List[ComicBookInfo] = [
     ComicBookInfo(Titles.HONEY_OF_A_HEN_A, True, Issues.FC, 1010, 7, 1959, 6, 3, 1959),
     ComicBookInfo(Titles.WEATHER_WATCHERS_THE, True, Issues.FC, 1010, 7, 1959, 6, 3, 1959),
     ComicBookInfo(Titles.SHEEPISH_COWBOYS_THE, True, Issues.FC, 1010, 7, 1959, 6, 3, 1959),
+    ComicBookInfo(Titles.GAB_MUFFER_THE, False, Issues.FC, 1047, 11, 1959, 18, 3, 1959),
+    ComicBookInfo(Titles.BIRD_CAMERA_THE, False, Issues.FC, 1047, 11, 1959, 18, 3, 1959),
+    ComicBookInfo(Titles.ODD_ORDER_THE, False, Issues.FC, 1047, 11, 1959, 18, 3, 1959),
+    ComicBookInfo(Titles.STUBBORN_STORK_THE, False, Issues.FC, 1047, 11, 1959, 14, 4, 1959),
+    ComicBookInfo(Titles.MILKTIME_MELODIES, False, Issues.FC, 1047, 11, 1959, 14, 4, 1959),
+    ComicBookInfo(Titles.LOST_RABBIT_FOOT_THE, False, Issues.FC, 1047, 11, 1959, 14, 4, 1959),
     ComicBookInfo(Titles.OODLES_OF_OOMPH, False, Issues.US, 29, 3, 1960, 20, 4, 1959),
     ComicBookInfo(Titles.MASTER_GLASSER_THE, False, Issues.DD, 68, 11, 1959, 20, 5, 1959),
     ComicBookInfo(Titles.MONEY_HAT_THE, False, Issues.US, 28, 12, 1959, 20, 5, 1959),
@@ -2327,8 +2380,15 @@ BARKS_TITLE_INFO: List[ComicBookInfo] = [
     ComicBookInfo(Titles.UNDER_THE_POLAR_ICE, False, Issues.CS, 232, 1, 1960, 11, 7, 1959),
     ComicBookInfo(Titles.HOUND_OF_THE_WHISKERVILLES, False, Issues.US, 29, 3, 1960, 11, 7, 1959),
     ComicBookInfo(Titles.RIDING_THE_PONY_EXPRESS, False, Issues.CS, 234, 3, 1960, 17, 8, 1959),
+    ComicBookInfo(Titles.CAVE_OF_THE_WINDS, False, Issues.FC, 1095, 4, 1960, 12, 9, 1959),
+    ComicBookInfo(Titles.MADBALL_PITCHER_THE, False, Issues.FC, 1095, 4, 1960, 12, 9, 1959),
+    ComicBookInfo(Titles.MIXED_UP_MIXER, False, Issues.FC, 1095, 4, 1960, 16, 9, 1959),
     ComicBookInfo(Titles.WANT_TO_BUY_AN_ISLAND, False, Issues.CS, 235, 4, 1960, 28, 9, 1959),
     ComicBookInfo(Titles.FROGGY_FARMER, False, Issues.CS, 236, 5, 1960, 14, 10, 1959),
+    ComicBookInfo(Titles.CALL_OF_THE_WILD_THE, False, Issues.FC, 1095, 4, 1960, 19, 10, 1959),
+    ComicBookInfo(Titles.TALE_OF_THE_TAPE, False, Issues.FC, 1095, 4, 1960, 19, 10, 1959),
+    ComicBookInfo(Titles.HIS_SHINING_HOUR, False, Issues.FC, 1095, 4, 1960, 19, 10, 1959),
+    ComicBookInfo(Titles.BEAR_TAMER_THE, False, Issues.FC, 1095, 4, 1960, 29, 10, 1959),
     ComicBookInfo(Titles.PIPELINE_TO_DANGER, False, Issues.US, 30, 6, 1960, 13, 11, 1959),
     ComicBookInfo(Titles.YOICKS_THE_FOX, False, Issues.US, 30, 6, 1960, 9, 12, 1959),
     ComicBookInfo(Titles.WAR_PAINT, False, Issues.US, 30, 6, 1960, 9, 12, 1959),

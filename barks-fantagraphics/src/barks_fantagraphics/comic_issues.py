@@ -7,6 +7,7 @@ class Issues(IntEnum):
     CP = auto()
     CS = auto()
     DD = auto()
+    DIBP = auto()
     FC = auto()
     FG = auto()
     KI = auto()
@@ -24,6 +25,7 @@ SHORT_ISSUE_NAME = [
     "CP",
     "WDCS",
     "DD",
+    "DIBP",
     "FC",
     "FG",
     "KG",
@@ -41,6 +43,7 @@ ISSUE_NAME = [
     "Christmas Parade",
     "Comics and Stories",
     "Donald Duck",
+    "Disneyland Birthday Party",
     "Four Color",
     "Firestone Giveaway",
     "Kites Giveaway",
