@@ -37,6 +37,7 @@ from barks_fantagraphics.fanta_comics_info import (
     FantaComicBookInfo,
     FAN,
     FANTA_SOURCE_COMICS,
+    SERIES_CS,
     SERIES_DDA,
     ALL_LISTS,
     get_all_fanta_comic_book_info,
@@ -157,6 +158,7 @@ class TreeNodes(Enum):
     ON_INDEX_NODE = auto()
     ON_CHRONO_BY_YEAR_NODE = auto()
     ON_YEAR_RANGE_NODE = auto()
+    ON_CS_NODE = auto()
     ON_DDA_NODE = auto()
     ON_TITLE_NODE = auto()
     ON_SEARCH_BOX_NODE_NO_TITLE = auto()
@@ -227,7 +229,11 @@ class MainScreen(BoxLayout):
             self.set_next_top_view_image()
             self.set_next_bottom_view_image()
         elif isinstance(node, CategoryTreeViewNode):
-            if node.text == SERIES_DDA:
+            if node.text == SERIES_CS:
+                self.current_tree_node = TreeNodes.ON_CS_NODE
+                self.set_next_top_view_image()
+                self.set_next_bottom_view_image()
+            elif node.text == SERIES_DDA:
                 self.current_tree_node = TreeNodes.ON_DDA_NODE
                 self.set_next_top_view_image()
                 self.set_next_bottom_view_image()
@@ -321,6 +327,10 @@ class MainScreen(BoxLayout):
         self.update_visibilities()
 
         self.current_year_range = button.text
+
+    def cs_pressed(self, button: Button):
+        self.current_tree_node = TreeNodes.ON_CS_NODE
+        self.update_visibilities()
 
     def dda_pressed(self, button: Button):
         self.current_tree_node = TreeNodes.ON_DDA_NODE
@@ -433,6 +443,8 @@ class MainScreen(BoxLayout):
                 self.top_view_image.source = get_comic_inset_file(Titles.TRUANT_OFFICER_DONALD)
             case TreeNodes.ON_CHRONO_BY_YEAR_NODE:
                 self.top_view_image.source = get_random_image(self.title_lists[ALL_LISTS])
+            case TreeNodes.ON_CS_NODE:
+                self.top_view_image.source = get_random_image(self.title_lists[SERIES_CS])
             case TreeNodes.ON_DDA_NODE:
                 self.top_view_image.source = get_random_image(self.title_lists[SERIES_DDA])
             case TreeNodes.ON_YEAR_RANGE_NODE:
@@ -583,7 +595,14 @@ class BarksReaderApp(App):
         the_years_node = tree.add_node(by_year_label, parent=the_stories_node)
         self.add_year_range_nodes(tree, the_years_node)
 
+        cs_label = CategoryTreeViewNode(text=SERIES_CS)
+        print(cs_label.text)
+        cs_label.bind(on_press=self.main_screen.cs_pressed)
+        self.add_cs_story_nodes(tree, cs_label)
+        tree.add_node(cs_label, parent=the_stories_node)
+
         dda_label = CategoryTreeViewNode(text=SERIES_DDA)
+        print(dda_label.text)
         dda_label.bind(on_press=self.main_screen.dda_pressed)
         self.add_dda_story_nodes(tree, dda_label)
         tree.add_node(dda_label, parent=the_stories_node)
@@ -605,11 +624,18 @@ class BarksReaderApp(App):
         for title_info in title_list:
             tree.add_node(self.get_title_tree_view_node(title_info), parent=year_range_node)
 
-    def add_dda_story_nodes(self, tree, dda_node):
+    # TODO: Refactor these
+    def add_cs_story_nodes(self, tree, parent_node):
+        title_list = self.main_screen.title_lists[SERIES_CS]
+
+        for title_info in title_list:
+            tree.add_node(self.get_title_tree_view_node(title_info), parent=parent_node)
+
+    def add_dda_story_nodes(self, tree, parent_node):
         title_list = self.main_screen.title_lists[SERIES_DDA]
 
         for title_info in title_list:
-            tree.add_node(self.get_title_tree_view_node(title_info), parent=dda_node)
+            tree.add_node(self.get_title_tree_view_node(title_info), parent=parent_node)
 
     def get_title_tree_view_node(self, full_fanta_info: FantaComicBookInfo) -> TitleTreeViewNode:
         title_node = TitleTreeViewNode(full_fanta_info)
