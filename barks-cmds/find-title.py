@@ -30,7 +30,7 @@ title_search = BarksTitleSearch()
 titles = []
 
 if prefix:
-    unique_extend(titles, title_search.get_titles(prefix))
+    unique_extend(titles, title_search.get_titles_matching_prefix(prefix))
 if word:
     unique_extend(titles, title_search.get_titles_containing(word))
 

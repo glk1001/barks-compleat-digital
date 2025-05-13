@@ -15,7 +15,7 @@
     valign: "middle"
     text_size: (self.width, self.height)
 
-<SearchBoxTreeViewNode>:
+<TitleSearchBoxTreeViewNode>:
     size: root.NODE_SIZE
     search_text_label: search_text_label_id
     search_text_box: search_text_box_id
@@ -61,6 +61,74 @@
         is_open: False
         size_hint: (0.715, 1)
         x: root.search_text_box.x + root.search_text_box.width
+        y: root.y
+        halign: "center"
+        valign: "middle"
+        text_size: (self.width, self.height)
+
+<TagSearchBoxTreeViewNode>:
+    size: root.NODE_SIZE
+    tag_search_label: tag_search_label_id
+    tag_search_box: tag_search_box_id
+    tag_spinner: tag_spinner_id
+    tag_title_spinner: tag_title_spinner_id
+    color_selected: root.SELECTED_COLOR
+
+    Label:
+        id: tag_search_label_id
+        text: "Tags: "
+        color: root.TEXT_COLOR
+        background_color: root.TEXT_BACKGROUND_COLOR
+        size_hint: (0.08, 0.5)
+        x: root.x
+        y: root.y + root.tag_search_box.height
+        halign: "left"
+        valign: "middle"
+        text_size: (self.width, self.height)
+
+    TextInput:
+        id: tag_search_box_id
+        text: root.text
+        on_text: root.text = self.text
+        font_size: 17
+        multiline: False
+        foreground_color: root.TEXT_COLOR
+        disabled_foreground_color: (1,1,1,0.5)
+        background_color: root.TEXT_BACKGROUND_COLOR
+        size_hint: (0.2, 0.5)
+        x: root.tag_search_label.x + root.tag_search_label.width
+        y: root.y + root.tag_search_box.height
+        halign: "left"
+        valign: "middle"
+        text_size: (self.width, self.height)
+
+    Spinner:
+        id: tag_spinner_id
+        text: ""
+        values: []
+        bold: True
+        color: root.SPINNER_TEXT_COLOR
+        background_color: root.SPINNER_BACKGROUND_COLOR
+        text_autoupdate: False
+        is_open: False
+        size_hint: (0.715, 0.5)
+        x: root.tag_search_box.x + root.tag_search_box.width
+        y: root.y + root.tag_search_box.height
+        halign: "center"
+        valign: "middle"
+        text_size: (self.width, self.height)
+
+    Spinner:
+        id: tag_title_spinner_id
+        text: "hello"
+        values: ["one", "two", "three"]
+        bold: True
+        color: root.SPINNER_TEXT_COLOR
+        background_color: root.SPINNER_BACKGROUND_COLOR
+        text_autoupdate: False
+        is_open: False
+        size_hint: (0.715, 0.5)
+        x: root.tag_search_box.x + root.tag_search_box.width
         y: root.y
         halign: "center"
         valign: "middle"
