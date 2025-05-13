@@ -1,7 +1,7 @@
 from collections import OrderedDict
-from typing import List, Tuple, Union
+from typing import List
 
-from barks_fantagraphics.barks_tags import BARKS_TAG_ALIASES, Tags, BARKS_TAGGED_TITLES
+from barks_fantagraphics.barks_tags import BARKS_TAG_ALIASES, Tags
 from barks_fantagraphics.barks_titles import Titles, BARKS_TITLE_INFO
 
 PREFIX_LEN = 2

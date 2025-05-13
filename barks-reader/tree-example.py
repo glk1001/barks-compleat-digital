@@ -3,7 +3,7 @@ import os.path
 import sys
 from enum import Enum, auto
 from random import randrange
-from typing import List, Union, Dict, Callable, Tuple
+from typing import List, Union, Dict, Callable
 
 import kivy.core.text
 from kivy.app import App
@@ -26,7 +26,8 @@ from barks_fantagraphics.barks_tags import (
     TagCategories,
     BARKS_TAGGED_TITLES,
     BARKS_TAG_CATEGORIES,
-    BARKS_TAG_CATEGORIES_DICT, BARKS_TAG_ALIASES,
+    BARKS_TAG_CATEGORIES_DICT,
+    BARKS_TAG_ALIASES,
 )
 from barks_fantagraphics.barks_titles import Titles, ComicBookInfo, BARKS_TITLES, get_title_dict
 from barks_fantagraphics.comic_issues import Issues, ISSUE_NAME
@@ -91,17 +92,7 @@ class MainTreeViewNode(Button, TreeViewNode):
     NODE_SIZE = (dp(100), dp(30))
 
 
-class SearchBoxTreeViewNode(FloatLayout, TreeViewNode):
-    on_pressed = None
-
-    def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            self.on_pressed(self)
-            return super().on_touch_down(touch)
-        return False
-
-
-class TitleSearchBoxTreeViewNode(SearchBoxTreeViewNode):
+class TitleSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
     name = "Title Search Box"
     text = StringProperty("")
     SELECTED_COLOR = (0, 0, 0, 0.0)
@@ -111,8 +102,16 @@ class TitleSearchBoxTreeViewNode(SearchBoxTreeViewNode):
     SPINNER_BACKGROUND_COLOR = (0, 0, 1, 1)
     NODE_SIZE = (dp(100), dp(30))
 
+    on_pressed = None
 
-class TagSearchBoxTreeViewNode(SearchBoxTreeViewNode):
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos):
+            self.on_pressed(self)
+            return super().on_touch_down(touch)
+        return False
+
+
+class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
     name = "Tag Search Box"
     text = StringProperty("")
     SELECTED_COLOR = (0, 0, 0, 0.0)
@@ -121,6 +120,18 @@ class TagSearchBoxTreeViewNode(SearchBoxTreeViewNode):
     SPINNER_TEXT_COLOR = (1, 1, 0, 1)
     SPINNER_BACKGROUND_COLOR = (0, 0, 1, 1)
     NODE_SIZE = (dp(100), dp(60))
+
+    on_tag_search_box_pressed = None
+
+    def on_touch_down(self, touch):
+        if self.tag_search_box.collide_point(*touch.pos):
+            self.on_tag_search_box_pressed(self)
+            return super().on_touch_down(touch)
+        if self.tag_spinner.collide_point(*touch.pos):
+            return super().on_touch_down(touch)
+        if self.tag_title_spinner.collide_point(*touch.pos):
+            return super().on_touch_down(touch)
+        return False
 
 
 class StoryGroupTreeViewNode(Button, TreeViewNode):
@@ -365,7 +376,7 @@ class MainScreen(BoxLayout):
             tags = self.get_tags_matching_search_tag_str(str(value))
             if tags:
                 instance.tag_spinner.values = sorted([t.value for t in tags])
-                #instance.tag_spinner.text = tags[0].value
+                # instance.tag_spinner.text = tags[0].value
                 instance.tag_spinner.is_open = True
                 print(f'tag_spinner text set to "{instance.tag_spinner.text}".')
                 self.title_search_box_value_changed(instance.tag_spinner, instance.tag_spinner.text)
@@ -744,7 +755,7 @@ class BarksReaderApp(App):
         tree.add_node(label, parent=search_node)
 
         label = TagSearchBoxTreeViewNode()
-        label.on_pressed = self.main_screen.tag_search_box_pressed
+        label.on_tag_search_box_pressed = self.main_screen.tag_search_box_pressed
         label.bind(text=self.main_screen.tag_search_box_text_changed)
         label.tag_spinner.bind(text=self.main_screen.tag_search_box_value_changed)
         label.tag_title_spinner.bind(text=self.main_screen.title_search_box_value_changed)
