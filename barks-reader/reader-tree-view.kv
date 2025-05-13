@@ -17,9 +17,22 @@
 
 <SearchBoxTreeViewNode>:
     size: root.NODE_SIZE
+    search_text_label: search_text_label_id
     search_text_box: search_text_box_id
     spinner: spinner_id
     color_selected: root.SELECTED_COLOR
+
+    Label:
+        id: search_text_label_id
+        text: "Titles: "
+        color: root.TEXT_COLOR
+        background_color: root.TEXT_BACKGROUND_COLOR
+        size_hint: (0.08, 1)
+        x: root.x
+        y: root.y
+        halign: "left"
+        valign: "middle"
+        text_size: (self.width, self.height)
 
     TextInput:
         id: search_text_box_id
@@ -31,7 +44,7 @@
         disabled_foreground_color: (1,1,1,0.5)
         background_color: root.TEXT_BACKGROUND_COLOR
         size_hint: (0.2, 1)
-        x: root.x + dp(20)
+        x: root.search_text_label.x + root.search_text_label.width
         y: root.y
         halign: "left"
         valign: "middle"
@@ -46,14 +59,14 @@
         background_color: root.SPINNER_BACKGROUND_COLOR
         text_autoupdate: False
         is_open: False
-        size_hint: (0.745, 1)
+        size_hint: (0.715, 1)
         x: root.search_text_box.x + root.search_text_box.width
         y: root.y
         halign: "center"
         valign: "middle"
         text_size: (self.width, self.height)
 
-<CategoryTreeViewNode>:
+<StoryGroupTreeViewNode>:
     color: root.TEXT_COLOR
     color_selected: root.SELECTED_COLOR
     background_color: root.BACKGROUND_COLOR

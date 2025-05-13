@@ -1,5 +1,6 @@
 from typing import Tuple, List, Dict
 
+from barks_fantagraphics.barks_tags import TagCategories, BARKS_TAG_CATEGORIES_TITLES
 from barks_fantagraphics.fanta_comics_info import (
     get_filtered_title_lists,
     FantaComicBookInfo,
@@ -31,6 +32,7 @@ class FilteredTitleLists:
             SERIES_USA,
             SERIES_USS,
         ]
+        self.categories = list(TagCategories)
 
     @staticmethod
     def get_range_str(year_range: Tuple[int, int]):
@@ -44,10 +46,15 @@ class FilteredTitleLists:
         def create_series_lamba(series_name: str):
             return lambda info: info.series_name == series_name
 
+        def create_category_lamba(cat: TagCategories):
+            return lambda info: info.comic_book_info.title in BARKS_TAG_CATEGORIES_TITLES[cat]
+
         filters = {}
         for year_range in self.year_ranges:
             filters[self.get_range_str(year_range)] = create_range_lamba(year_range)
         for name in self.series_names:
             filters[name] = create_series_lamba(name)
+        for category in self.categories:
+            filters[category.name] = create_category_lamba(category)
 
         return get_filtered_title_lists(filters)

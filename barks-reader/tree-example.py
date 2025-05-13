@@ -21,7 +21,14 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.treeview import TreeView, TreeViewNode
 
 from barks_fantagraphics.barks_extra_info import BARKS_EXTRA_INFO
-from barks_fantagraphics.barks_titles import Titles, get_title_dict, ComicBookInfo
+from barks_fantagraphics.barks_tags import (
+    Tags,
+    TagCategories,
+    BARKS_TAGGED_TITLES,
+    BARKS_TAG_CATEGORIES,
+    BARKS_TAG_CATEGORIES_DICT,
+)
+from barks_fantagraphics.barks_titles import Titles, ComicBookInfo, BARKS_TITLES, get_title_dict
 from barks_fantagraphics.comic_issues import Issues, ISSUE_NAME
 from barks_fantagraphics.comics_cmd_args import CmdArgs
 from barks_fantagraphics.comics_database import ComicsDatabase
@@ -103,7 +110,7 @@ class SearchBoxTreeViewNode(FloatLayout, TreeViewNode):
         return False
 
 
-class CategoryTreeViewNode(Button, TreeViewNode):
+class StoryGroupTreeViewNode(Button, TreeViewNode):
     TEXT_COLOR = TREE_VIEW_NODE_TEXT_COLOR
     SELECTED_COLOR = TREE_VIEW_NODE_SELECTED_COLOR
     BACKGROUND_COLOR = TREE_VIEW_NODE_BACKGROUND_COLOR
@@ -161,6 +168,8 @@ class TreeNodes(Enum):
     ON_SERIES_NODE = auto()
     ON_CS_NODE = auto()
     ON_DDA_NODE = auto()
+    ON_CATEGORIES_NODE = auto()
+    ON_CATEGORY_NODE = auto()
     ON_TITLE_NODE = auto()
     ON_SEARCH_BOX_NODE_NO_TITLE = auto()
     ON_SEARCH_BOX_NODE = auto()
@@ -217,6 +226,7 @@ class MainScreen(BoxLayout):
 
         self.current_tree_node = TreeNodes.INITIAL
         self.current_year_range = ""
+        self.current_category = ""
 
         self.top_view_change_event = None
         self.bottom_view_change_after_event = None
@@ -229,13 +239,18 @@ class MainScreen(BoxLayout):
             self.current_year_range = node.text
             self.set_next_top_view_image()
             self.set_next_bottom_view_image()
-        elif isinstance(node, CategoryTreeViewNode):
+        elif isinstance(node, StoryGroupTreeViewNode):
             if node.text == SERIES_CS:
                 self.current_tree_node = TreeNodes.ON_CS_NODE
                 self.set_next_top_view_image()
                 self.set_next_bottom_view_image()
             elif node.text == SERIES_DDA:
                 self.current_tree_node = TreeNodes.ON_DDA_NODE
+                self.set_next_top_view_image()
+                self.set_next_bottom_view_image()
+            elif node.text in BARKS_TAG_CATEGORIES_DICT:
+                self.current_tree_node = TreeNodes.ON_CATEGORY_NODE
+                self.current_category = node.text
                 self.set_next_top_view_image()
                 self.set_next_bottom_view_image()
 
@@ -341,6 +356,16 @@ class MainScreen(BoxLayout):
         self.current_tree_node = TreeNodes.ON_DDA_NODE
         self.update_visibilities()
 
+    def categories_pressed(self, button: Button):
+        self.current_tree_node = TreeNodes.ON_CATEGORIES_NODE
+        self.update_visibilities()
+
+    def category_pressed(self, button: Button):
+        self.current_tree_node = TreeNodes.ON_CATEGORY_NODE
+        self.update_visibilities()
+
+        self.current_category = button.text
+
     def title_row_button_pressed(self, button: Button):
         self.current_tree_node = TreeNodes.ON_TITLE_NODE
         self.update_visibilities()
@@ -389,8 +414,10 @@ class MainScreen(BoxLayout):
 
     def get_title_info(self) -> str:
         # TODO: Clean this up.
-        issue_info = get_formatted_first_published_str(self.fanta_info, self.title_info_issue_name)
-        submitted_info = get_long_formatted_submitted_date(self.fanta_info)
+        issue_info = get_formatted_first_published_str(
+            self.fanta_info.comic_book_info, self.title_info_issue_name
+        )
+        submitted_info = get_long_formatted_submitted_date(self.fanta_info.comic_book_info)
         fanta_book = FANTA_SOURCE_COMICS[self.fanta_info.fantagraphics_volume]
         source = f"{FAN} CBDL, Vol {fanta_book.volume}, {fanta_book.year}"
         return (
@@ -454,8 +481,18 @@ class MainScreen(BoxLayout):
                 self.top_view_image.source = get_random_image(self.title_lists[SERIES_CS])
             case TreeNodes.ON_DDA_NODE:
                 self.top_view_image.source = get_random_image(self.title_lists[SERIES_DDA])
+            case TreeNodes.ON_CATEGORIES_NODE:
+                self.top_view_image.source = get_random_image(self.title_lists[ALL_LISTS])
+            case TreeNodes.ON_CATEGORY_NODE:
+                print(f"Current category: '{self.current_category}'")
+                if not self.current_category:
+                    self.top_view_image.source = get_comic_inset_file(Titles.GOOD_NEIGHBORS)
+                else:
+                    self.top_view_image.source = get_random_image(
+                        self.title_lists[self.current_category]
+                    )
             case TreeNodes.ON_YEAR_RANGE_NODE:
-                print(f"Year range: {self.current_year_range}")
+                print(f"Year range: '{self.current_year_range}'")
                 if not self.current_year_range:
                     self.top_view_image.source = get_comic_inset_file(Titles.GOOD_NEIGHBORS)
                 else:
@@ -609,15 +646,20 @@ class BarksReaderApp(App):
         tree.add_node(label)
 
     def add_story_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
-        label = CategoryTreeViewNode(text="Chronological by Year")
+        label = StoryGroupTreeViewNode(text="Chronological")
         label.bind(on_press=self.main_screen.chrono_pressed)
         new_node = tree.add_node(label, parent=parent_node)
         self.add_year_range_nodes(tree, new_node)
 
-        label = CategoryTreeViewNode(text="Series")
+        label = StoryGroupTreeViewNode(text="Series")
         label.bind(on_press=self.main_screen.series_pressed)
         new_node = tree.add_node(label, parent=parent_node)
         self.add_series_nodes(tree, new_node)
+
+        label = StoryGroupTreeViewNode(text="Categories")
+        label.bind(on_press=self.main_screen.categories_pressed)
+        new_node = tree.add_node(label, parent=parent_node)
+        self.add_categories_nodes(tree, new_node)
 
     def add_year_range_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
         for year_range in self.filtered_title_lists.year_ranges:
@@ -637,6 +679,34 @@ class BarksReaderApp(App):
         for title_info in title_list:
             tree.add_node(self.get_title_tree_view_node(title_info), parent=parent_node)
 
+    def add_categories_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
+        for category in TagCategories:
+            label = StoryGroupTreeViewNode(text=category.value)
+            label.bind(on_press=self.main_screen.category_pressed)
+
+            new_node = tree.add_node(label, parent=parent_node)
+            self.add_category_node(tree, category, new_node)
+
+    def add_category_node(
+        self, tree: ReaderTreeView, category: TagCategories, parent_node: TreeViewNode
+    ):
+        for tag in BARKS_TAG_CATEGORIES[category]:
+            label = StoryGroupTreeViewNode(text=tag.value)
+            # TODO: What to do when a category is pressed?
+            # label.bind(on_press=self.category_pressed)
+            self.add_tagged_story_nodes(tree, tag, label)
+            tree.add_node(label, parent=parent_node)
+
+    def add_tagged_story_nodes(self, tree: ReaderTreeView, tag: Tags, parent_node: TreeViewNode):
+        for title in BARKS_TAGGED_TITLES[tag]:
+            # TODO: Very roundabout way to get fanta info
+            title_str = BARKS_TITLES[title[0]]
+            if title_str not in self.main_screen.all_fanta_titles:
+                print(f'Skipped unconfigured title "{title_str}".')
+                continue
+            title_info = self.main_screen.all_fanta_titles[title_str]
+            tree.add_node(self.get_title_tree_view_node(title_info), parent=parent_node)
+
     def add_series_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
         self.add_series_node(tree, SERIES_CS, self.main_screen.cs_pressed, parent_node)
         self.add_series_node(tree, SERIES_DDA, self.main_screen.dda_pressed, parent_node)
@@ -644,8 +714,7 @@ class BarksReaderApp(App):
     def add_series_node(
         self, tree: ReaderTreeView, series: str, on_pressed: Callable, parent_node: TreeViewNode
     ):
-        label = CategoryTreeViewNode(text=series)
-        print(label.text)
+        label = StoryGroupTreeViewNode(text=series)
         label.bind(on_press=on_pressed)
         self.add_series_story_nodes(tree, series, label)
         tree.add_node(label, parent=parent_node)
@@ -668,8 +737,8 @@ class BarksReaderApp(App):
         title_node.title_label.bind(on_press=self.main_screen.title_row_button_pressed)
 
         issue_info = (
-            f"{get_short_formatted_first_published_str(full_fanta_info)}"
-            f"  [{get_short_formatted_submitted_date(full_fanta_info)}]"
+            f"{get_short_formatted_first_published_str(full_fanta_info.comic_book_info)}"
+            f"  [{get_short_formatted_submitted_date(full_fanta_info.comic_book_info)}]"
         )
 
         title_node.issue_label.text = issue_info

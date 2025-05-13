@@ -418,8 +418,8 @@ class ComicsDatabase:
         srce_dir_num_page_files = fanta_book.num_pages
         comic_book_dirs = self._get_comic_book_dirs(fanta_book)
 
-        publication_date = get_formatted_first_published_str(fanta_info)
-        submitted_date = get_formatted_submitted_date(fanta_info)
+        publication_date = get_formatted_first_published_str(fanta_info.comic_book_info)
+        submitted_date = get_formatted_submitted_date(fanta_info.comic_book_info)
 
         publication_text = get_main_publication_info(story_title, fanta_info, fanta_book)
         if "extra_pub_info" in config["info"]:

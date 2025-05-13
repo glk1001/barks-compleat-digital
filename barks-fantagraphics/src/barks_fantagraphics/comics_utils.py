@@ -5,6 +5,7 @@ from datetime import datetime, date
 from pathlib import Path
 from typing import Union, List, Tuple, Dict
 
+from .barks_titles import ComicBookInfo
 from .comic_issues import Issues, ISSUE_NAME
 from .comics_consts import BARKS_ROOT_DIR, MONTH_AS_SHORT_STR, MONTH_AS_LONG_STR
 from .fanta_comics_info import FantaComicBookInfo
@@ -172,74 +173,72 @@ def get_formatted_day(day: int) -> str:
     return day_str
 
 
-def get_short_formatted_first_published_str(fanta_info: FantaComicBookInfo) -> str:
-    issue = fanta_info.comic_book_info.get_short_issue_title()
+def get_short_formatted_first_published_str(comic_book_info: ComicBookInfo) -> str:
+    issue = comic_book_info.get_short_issue_title()
 
-    if fanta_info.comic_book_info.issue_month == -1:
-        issue_date = fanta_info.comic_book_info.issue_year
+    if comic_book_info.issue_month == -1:
+        issue_date = comic_book_info.issue_year
     else:
         issue_date = (
-            f"{MONTH_AS_SHORT_STR[fanta_info.comic_book_info.issue_month]}"
-            f" {fanta_info.comic_book_info.issue_year}"
+            f"{MONTH_AS_SHORT_STR[comic_book_info.issue_month]}" f" {comic_book_info.issue_year}"
         )
 
     return f"{issue}, {issue_date}"
 
 
-def get_short_formatted_submitted_date(fanta_info: FantaComicBookInfo) -> str:
-    if fanta_info.comic_book_info.submitted_day == -1:
+def get_short_formatted_submitted_date(comic_book_info: ComicBookInfo) -> str:
+    if comic_book_info.submitted_day == -1:
         return (
-            f"{MONTH_AS_SHORT_STR[fanta_info.comic_book_info.submitted_month]}"
-            f" {fanta_info.comic_book_info.submitted_year}"
+            f"{MONTH_AS_SHORT_STR[comic_book_info.submitted_month]}"
+            f" {comic_book_info.submitted_year}"
         )
 
     return (
-        f"{get_formatted_day(fanta_info.comic_book_info.submitted_day)}"
-        f" {MONTH_AS_SHORT_STR[fanta_info.comic_book_info.submitted_month]}"
-        f" {fanta_info.comic_book_info.submitted_year}"
+        f"{get_formatted_day(comic_book_info.submitted_day)}"
+        f" {MONTH_AS_SHORT_STR[comic_book_info.submitted_month]}"
+        f" {comic_book_info.submitted_year}"
     )
 
 
-def get_long_formatted_submitted_date(fanta_info: FantaComicBookInfo) -> str:
-    if fanta_info.comic_book_info.submitted_day == -1:
+def get_long_formatted_submitted_date(comic_book_info: ComicBookInfo) -> str:
+    if comic_book_info.submitted_day == -1:
         return (
-            f"{MONTH_AS_LONG_STR[fanta_info.comic_book_info.submitted_month]}"
-            f" {fanta_info.comic_book_info.submitted_year}"
+            f"{MONTH_AS_LONG_STR[comic_book_info.submitted_month]}"
+            f" {comic_book_info.submitted_year}"
         )
 
     return (
-        f"{get_formatted_day(fanta_info.comic_book_info.submitted_day)}"
-        f" {MONTH_AS_LONG_STR[fanta_info.comic_book_info.submitted_month]}"
-        f" {fanta_info.comic_book_info.submitted_year}"
+        f"{get_formatted_day(comic_book_info.submitted_day)}"
+        f" {MONTH_AS_LONG_STR[comic_book_info.submitted_month]}"
+        f" {comic_book_info.submitted_year}"
     )
 
 
 def get_formatted_first_published_str(
-    fanta_info: FantaComicBookInfo, issue_name_dict: Dict[Issues, str] = ISSUE_NAME
+    comic_book_info: ComicBookInfo, issue_name_dict: Dict[Issues, str] = ISSUE_NAME
 ) -> str:
-    issue_name = issue_name_dict[fanta_info.comic_book_info.issue_name]
-    issue = f"{issue_name} #{fanta_info.comic_book_info.issue_number}"
+    issue_name = issue_name_dict[comic_book_info.issue_name]
+    issue = f"{issue_name} #{comic_book_info.issue_number}"
 
-    if fanta_info.comic_book_info.issue_month == -1:
-        issue_date = fanta_info.comic_book_info.issue_year
+    if comic_book_info.issue_month == -1:
+        issue_date = comic_book_info.issue_year
     else:
         issue_date = (
-            f"{MONTH_AS_LONG_STR[fanta_info.comic_book_info.issue_month]}"
-            f" {fanta_info.comic_book_info.issue_year}"
+            f"{MONTH_AS_LONG_STR[comic_book_info.issue_month]}" f" {comic_book_info.issue_year}"
         )
 
     return f"{issue}, {issue_date}"
 
 
-def get_formatted_submitted_date(fanta_info: FantaComicBookInfo) -> str:
-    if fanta_info.comic_book_info.submitted_day == -1:
+def get_formatted_submitted_date(comic_book_info: ComicBookInfo) -> str:
+    if comic_book_info.submitted_day == -1:
         return (
-            f", {MONTH_AS_LONG_STR[fanta_info.comic_book_info.submitted_month]}"
-            f" {fanta_info.comic_book_info.submitted_year}"
+            f", {MONTH_AS_LONG_STR[comic_book_info.submitted_month]}"
+            f" {comic_book_info.submitted_year}"
         )
 
     return (
-        f" on {MONTH_AS_LONG_STR[fanta_info.comic_book_info.submitted_month]}"
-        f" {get_formatted_day(fanta_info.comic_book_info.submitted_day)},"
-        f" {fanta_info.comic_book_info.submitted_year}"
+        f" on {MONTH_AS_LONG_STR[comic_book_info.submitted_month]}"
+        f" {get_formatted_day(comic_book_info.submitted_day)},"
+        f" {comic_book_info.submitted_year}"
     )

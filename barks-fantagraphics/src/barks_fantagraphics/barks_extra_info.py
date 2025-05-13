@@ -27,6 +27,7 @@ BARKS_EXTRA_INFO = {
     " And first mention of the [b][i]Money Bin.[/i][/b]",
     Titles.BIG_BIN_ON_KILLMOTOR_HILL_THE: "First appearance of the [b][i]Money Bin.[/i][/b]",
     Titles.ROUND_MONEY_BIN_THE: "First appearance of [b][i]Number One Dime.[/i][/b]",
+    Titles.GLADSTONES_TERRIBLE_SECRET: "First appearance of [b][i]Gyro Gearloose.[/i][/b]",
     Titles.CAT_BOX_THE: "First appearance of [b][i]Little Helper.[/i][/b]",
     Titles.MIDAS_TOUCH_THE: "First appearance of [b][i]Magica de Spell.[/i][/b]",
 }

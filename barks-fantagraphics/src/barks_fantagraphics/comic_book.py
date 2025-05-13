@@ -567,28 +567,31 @@ def _get_lookup_title(title: str, file_title: str) -> str:
 def get_main_publication_info(
     file_title: str, fanta_info: FantaComicBookInfo, fanta_book: FantaBook
 ) -> str:
+    first_published = get_formatted_first_published_str(fanta_info.comic_book_info)
+    submitted_date = get_formatted_submitted_date(fanta_info.comic_book_info)
+
     if file_title == SILENT_NIGHT:
         # Originally intended for WDCS 64
         publication_text = (
             f"(*) Rejected by Western editors in 1945, this story was originally\n"
-            f" intended for publication in {get_formatted_first_published_str(fanta_info)}\n"
-            + f"Submitted to Western Publishing{get_formatted_submitted_date(fanta_info)}\n"
+            f" intended for publication in {first_published}\n"
+            + f"Submitted to Western Publishing{submitted_date}\n"
         )
         return publication_text
     if file_title == MILKMAN_THE:
         # Originally intended for WDCS 215
         publication_text = (
             f"(*) Rejected by Western editors in 1957, this story was originally\n"
-            f" intended for publication in {get_formatted_first_published_str(fanta_info)}\n"
-            + f"Submitted to Western Publishing{get_formatted_submitted_date(fanta_info)}\n"
+            f" intended for publication in {first_published}\n"
+            + f"Submitted to Western Publishing{submitted_date}\n"
             + f"\n"
             + f"Color restoration by {fanta_info.colorist}"
         )
         return publication_text
 
     publication_text = (
-        f"First published in {get_formatted_first_published_str(fanta_info)}\n"
-        + f"Submitted to Western Publishing{get_formatted_submitted_date(fanta_info)}\n"
+        f"First published in {first_published}\n"
+        + f"Submitted to Western Publishing{submitted_date}\n"
         + f"\n"
         + f"This edition published in {fanta_book.pub} CBDL,"
         + f" Volume {fanta_book.volume}, {fanta_book.year}\n"
