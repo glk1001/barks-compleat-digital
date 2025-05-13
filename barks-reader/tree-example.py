@@ -3,7 +3,7 @@ import os.path
 import sys
 from enum import Enum, auto
 from random import randrange
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Callable
 
 import kivy.core.text
 from kivy.app import App
@@ -158,6 +158,7 @@ class TreeNodes(Enum):
     ON_INDEX_NODE = auto()
     ON_CHRONO_BY_YEAR_NODE = auto()
     ON_YEAR_RANGE_NODE = auto()
+    ON_SERIES_NODE = auto()
     ON_CS_NODE = auto()
     ON_DDA_NODE = auto()
     ON_TITLE_NODE = auto()
@@ -328,6 +329,10 @@ class MainScreen(BoxLayout):
 
         self.current_year_range = button.text
 
+    def series_pressed(self, button: Button):
+        self.current_tree_node = TreeNodes.ON_SERIES_NODE
+        self.update_visibilities()
+
     def cs_pressed(self, button: Button):
         self.current_tree_node = TreeNodes.ON_CS_NODE
         self.update_visibilities()
@@ -443,6 +448,8 @@ class MainScreen(BoxLayout):
                 self.top_view_image.source = get_comic_inset_file(Titles.TRUANT_OFFICER_DONALD)
             case TreeNodes.ON_CHRONO_BY_YEAR_NODE:
                 self.top_view_image.source = get_random_image(self.title_lists[ALL_LISTS])
+            case TreeNodes.ON_SERIES_NODE:
+                self.top_view_image.source = get_random_image(self.title_lists[ALL_LISTS])
             case TreeNodes.ON_CS_NODE:
                 self.top_view_image.source = get_random_image(self.title_lists[SERIES_CS])
             case TreeNodes.ON_DDA_NODE:
@@ -557,82 +564,94 @@ class BarksReaderApp(App):
         return self.main_screen
 
     def build_main_screen_tree(self):
-        tree = self.main_screen.reader_contents_tree
+        tree: ReaderTreeView = self.main_screen.reader_contents_tree
 
         tree.bind(on_node_expand=self.main_screen.node_expanded)
 
-        intro_label = MainTreeViewNode(text="Introduction")
-        intro_label.bind(on_press=self.main_screen.intro_pressed)
-        tree.add_node(intro_label)
-
-        the_stories_label = MainTreeViewNode(text="The Stories")
-        the_stories_label.bind(on_press=self.main_screen.the_stories_pressed)
-        the_stories_node = tree.add_node(the_stories_label)
-        self.add_story_nodes(tree, the_stories_node)
-
-        search_label = MainTreeViewNode(text="Search")
-        search_label.bind(on_press=self.main_screen.search_pressed)
-        search_node = tree.add_node(search_label)
-        search_box_label = SearchBoxTreeViewNode()
-        search_box_label.on_pressed = self.main_screen.search_box_pressed
-        search_box_label.bind(text=self.main_screen.search_box_text_changed)
-        search_box_label.spinner.bind(text=self.main_screen.search_box_value_changed)
-        tree.add_node(search_box_label, parent=search_node)
-
-        appendix_label = MainTreeViewNode(text="Appendix")
-        appendix_label.bind(on_press=self.main_screen.appendix_pressed)
-        tree.add_node(appendix_label)
-
-        index_label = MainTreeViewNode(text="Index")
-        index_label.bind(on_press=self.main_screen.index_pressed)
-        tree.add_node(index_label)
+        self.add_intro_node(tree)
+        self.add_the_stories_node(tree)
+        self.add_search_node(tree)
+        self.add_appendix_node(tree)
+        self.add_index_node(tree)
 
         tree.bind(minimum_height=tree.setter("height"))
 
-    def add_story_nodes(self, tree, the_stories_node):
-        by_year_label = CategoryTreeViewNode(text="Chronological by Year")
-        by_year_label.bind(on_press=self.main_screen.chrono_pressed)
-        the_years_node = tree.add_node(by_year_label, parent=the_stories_node)
-        self.add_year_range_nodes(tree, the_years_node)
+    def add_intro_node(self, tree: ReaderTreeView):
+        label = MainTreeViewNode(text="Introduction")
+        label.bind(on_press=self.main_screen.intro_pressed)
+        tree.add_node(label)
 
-        cs_label = CategoryTreeViewNode(text=SERIES_CS)
-        print(cs_label.text)
-        cs_label.bind(on_press=self.main_screen.cs_pressed)
-        self.add_cs_story_nodes(tree, cs_label)
-        tree.add_node(cs_label, parent=the_stories_node)
+    def add_the_stories_node(self, tree: ReaderTreeView):
+        label = MainTreeViewNode(text="The Stories")
+        label.bind(on_press=self.main_screen.the_stories_pressed)
+        new_node = tree.add_node(label)
+        self.add_story_nodes(tree, new_node)
 
-        dda_label = CategoryTreeViewNode(text=SERIES_DDA)
-        print(dda_label.text)
-        dda_label.bind(on_press=self.main_screen.dda_pressed)
-        self.add_dda_story_nodes(tree, dda_label)
-        tree.add_node(dda_label, parent=the_stories_node)
+    def add_search_node(self, tree: ReaderTreeView):
+        label = MainTreeViewNode(text="Search")
+        label.bind(on_press=self.main_screen.search_pressed)
+        search_node = tree.add_node(label)
 
-    def add_year_range_nodes(self, tree, the_years_node):
+        label = SearchBoxTreeViewNode()
+        label.on_pressed = self.main_screen.search_box_pressed
+        label.bind(text=self.main_screen.search_box_text_changed)
+        label.spinner.bind(text=self.main_screen.search_box_value_changed)
+        tree.add_node(label, parent=search_node)
+
+    def add_appendix_node(self, tree: ReaderTreeView):
+        label = MainTreeViewNode(text="Appendix")
+        label.bind(on_press=self.main_screen.appendix_pressed)
+        tree.add_node(label)
+
+    def add_index_node(self, tree: ReaderTreeView):
+        label = MainTreeViewNode(text="Index")
+        label.bind(on_press=self.main_screen.index_pressed)
+        tree.add_node(label)
+
+    def add_story_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
+        label = CategoryTreeViewNode(text="Chronological by Year")
+        label.bind(on_press=self.main_screen.chrono_pressed)
+        new_node = tree.add_node(label, parent=parent_node)
+        self.add_year_range_nodes(tree, new_node)
+
+        label = CategoryTreeViewNode(text="Series")
+        label.bind(on_press=self.main_screen.series_pressed)
+        new_node = tree.add_node(label, parent=parent_node)
+        self.add_series_nodes(tree, new_node)
+
+    def add_year_range_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
         for year_range in self.filtered_title_lists.year_ranges:
             range_str = f"{year_range[0]} - {year_range[1]}"
-            year_range_label = YearRangeTreeViewNode(text=range_str)
-            year_range_label.bind(on_press=self.main_screen.year_range_pressed)
+            label = YearRangeTreeViewNode(text=range_str)
+            label.bind(on_press=self.main_screen.year_range_pressed)
 
-            year_range_node = tree.add_node(year_range_label, parent=the_years_node)
-            self.add_year_range_story_nodes(
-                tree, year_range_node, self.main_screen.title_lists[range_str]
-            )
+            new_node = tree.add_node(label, parent=parent_node)
+            self.add_year_range_story_nodes(tree, new_node, self.main_screen.title_lists[range_str])
 
     def add_year_range_story_nodes(
-        self, tree, year_range_node, title_list: List[FantaComicBookInfo]
+        self,
+        tree: ReaderTreeView,
+        parent_node: TreeViewNode,
+        title_list: List[FantaComicBookInfo],
     ):
-        for title_info in title_list:
-            tree.add_node(self.get_title_tree_view_node(title_info), parent=year_range_node)
-
-    # TODO: Refactor these
-    def add_cs_story_nodes(self, tree, parent_node):
-        title_list = self.main_screen.title_lists[SERIES_CS]
-
         for title_info in title_list:
             tree.add_node(self.get_title_tree_view_node(title_info), parent=parent_node)
 
-    def add_dda_story_nodes(self, tree, parent_node):
-        title_list = self.main_screen.title_lists[SERIES_DDA]
+    def add_series_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
+        self.add_series_node(tree, SERIES_CS, self.main_screen.cs_pressed, parent_node)
+        self.add_series_node(tree, SERIES_DDA, self.main_screen.dda_pressed, parent_node)
+
+    def add_series_node(
+        self, tree: ReaderTreeView, series: str, on_pressed: Callable, parent_node: TreeViewNode
+    ):
+        label = CategoryTreeViewNode(text=series)
+        print(label.text)
+        label.bind(on_press=on_pressed)
+        self.add_series_story_nodes(tree, series, label)
+        tree.add_node(label, parent=parent_node)
+
+    def add_series_story_nodes(self, tree: ReaderTreeView, series: str, parent_node: TreeViewNode):
+        title_list = self.main_screen.title_lists[series]
 
         for title_info in title_list:
             tree.add_node(self.get_title_tree_view_node(title_info), parent=parent_node)
