@@ -9,6 +9,7 @@ from file_paths import (
     get_comic_splash_files,
     get_comic_silhouette_files,
     get_comic_censorship_files,
+    get_comic_favorite_files,
 )
 
 
@@ -25,15 +26,23 @@ def get_random_image(title_list: List[FantaComicBookInfo]) -> str:
 
 
 def __get_random_title_image(title: str) -> str:
-    num_categories = 4
-    silhouette_percent = int(round(100 / num_categories))
-    splashes_percent = 2 * int(round(100 / num_categories))
-    censorship_percent = 3 * int(round(100 / num_categories))
-    covers_percent = 4 * int(round(100 / num_categories))
+    num_categories = 5
+    covers_percent = 1 * int(round(100 / num_categories))
+    silhouette_percent = 2 * int(round(100 / num_categories))
+    splashes_percent = 3 * int(round(100 / num_categories))
+    censorship_percent = 4 * int(round(100 / num_categories))
+    favourites_percent = 5 * int(round(100 / num_categories))
 
     for num_attempts in range(10):
         rand_percent = randrange(0, 100)
         print(f"Attempt {num_attempts}: rand percent = {rand_percent}.")
+
+        if rand_percent <= covers_percent:
+            title_file = get_comic_cover_file(title)
+            if title_file:
+                return title_file
+            covers_percent = -1
+            print(f"No covers.")
 
         if rand_percent <= silhouette_percent:
             title_files = get_comic_silhouette_files(title)
@@ -59,18 +68,20 @@ def __get_random_title_image(title: str) -> str:
             censorship_percent = -1
             print(f"No censorship files.")
 
-        if rand_percent <= covers_percent:
-            title_file = get_comic_cover_file(title)
-            if title_file:
-                return title_file
-            covers_percent = -1
-            print(f"No covers.")
+        if rand_percent <= favourites_percent:
+            title_files = get_comic_favorite_files(title)
+            if title_files:
+                index = randrange(0, len(title_files))
+                return title_files[index]
+            favourites_percent = -1
+            print(f"No favourite files.")
 
         if (
-            silhouette_percent == -1
+            covers_percent == -1
+            and silhouette_percent == -1
             and splashes_percent == -1
             and censorship_percent == -1
-            and covers_percent == -1
+            and favourites_percent == -1
         ):
             break
 

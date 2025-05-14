@@ -23,6 +23,7 @@ BARKS_READER_COVER_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Covers")
 BARKS_READER_SILHOUETTE_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Silhouettes")
 BARKS_READER_SPLASH_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Splash")
 BARKS_READER_CENSORSHIP_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Censorship")
+BARKS_READER_FAVOURITE_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Favourites")
 
 EMERGENCY_INSET_FILE = Titles.BICEPS_BLUES
 EMERGENCY_INSET_FILE_PATH = os.path.join(
@@ -43,6 +44,7 @@ def check_dirs_and_files() -> None:
         BARKS_READER_SILHOUETTE_FILES_DIR,
         BARKS_READER_SPLASH_FILES_DIR,
         BARKS_READER_CENSORSHIP_FILES_DIR,
+        BARKS_READER_FAVOURITE_FILES_DIR,
     ]
     files_to_check = [
         MCOMIX_PYTHON_PATH,
@@ -108,6 +110,10 @@ def get_comic_censorship_files_dir() -> str:
     return BARKS_READER_CENSORSHIP_FILES_DIR
 
 
+def get_comic_favourite_files_dir() -> str:
+    return BARKS_READER_FAVOURITE_FILES_DIR
+
+
 def get_comic_inset_file(title: Titles) -> str:
     title_str = BARKS_TITLES[title]
 
@@ -143,6 +149,14 @@ def get_comic_splash_files(title: str) -> List[str]:
 
 def get_comic_censorship_files(title: str) -> List[str]:
     return get_files(get_comic_censorship_files_dir(), title)
+
+
+def get_comic_favourite_files(title: str) -> List[str]:
+    return get_files(get_comic_favourite_files_dir(), title)
+
+
+def get_comic_favorite_files(title: str) -> List[str]:
+    return get_files(get_comic_favourite_files_dir(), title)
 
 
 def get_files(parent_image_dir: str, title: str) -> List[str]:
