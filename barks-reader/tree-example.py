@@ -24,10 +24,11 @@ from barks_fantagraphics.barks_extra_info import BARKS_EXTRA_INFO
 from barks_fantagraphics.barks_tags import (
     Tags,
     TagCategories,
-    BARKS_TAGGED_TITLES,
     BARKS_TAG_CATEGORIES,
     BARKS_TAG_CATEGORIES_DICT,
-    BARKS_TAG_ALIASES,
+    BARKS_TAG_GROUPS_TITLES,
+    TagGroups,
+    get_tagged_titles,
 )
 from barks_fantagraphics.barks_titles import Titles, ComicBookInfo, BARKS_TITLES, get_title_dict
 from barks_fantagraphics.comic_issues import Issues, ISSUE_NAME
@@ -62,7 +63,16 @@ from filtered_title_lists import FilteredTitleLists
 from mcomix_reader import ComicReader
 from random_title_images import get_random_title_image, get_random_image
 
+TOP_VIEW_EVENT_TIMEOUT_SECS = 1000.0
+BOTTOM_VIEW_EVENT_TIMEOUT_SECS = 1000.0
 APP_TITLE = "The Compleat Barks Reader"
+
+# TODO: how to nicely handle main window
+DEFAULT_ASPECT_RATIO = 1.5
+DEFAULT_WINDOW_HEIGHT = 1000
+DEFAULT_WINDOW_WIDTH = int(round(DEFAULT_WINDOW_HEIGHT / DEFAULT_ASPECT_RATIO))
+DEFAULT_LEFT_POS = 400
+DEFAULT_TOP_POS = 50
 
 Builder.load_file("tree-example.kv")
 
@@ -115,13 +125,18 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
     name = "Tag Search Box"
     text = StringProperty("")
     SELECTED_COLOR = (0, 0, 0, 0.0)
-    TEXT_COLOR = (1, 1, 1, 1)
-    TEXT_BACKGROUND_COLOR = (0.5, 0.5, 0.5, 0.8)
-    SPINNER_TEXT_COLOR = (1, 1, 0, 1)
-    SPINNER_BACKGROUND_COLOR = (0, 0, 1, 1)
+    TAG_LABEL_COLOR = (1, 1, 1, 1)
+    TAG_LABEL_BACKGROUND_COLOR = (0.5, 0.5, 0.5, 0.8)
+    TAG_TEXT_COLOR = (1, 1, 1, 1)
+    TAG_TEXT_BACKGROUND_COLOR = (0.5, 0.5, 0.5, 0.8)
+    TAG_SPINNER_TEXT_COLOR = (1, 1, 0, 1)
+    TAG_SPINNER_BACKGROUND_COLOR = (0, 0, 1, 1)
+    TAG_TITLE_SPINNER_TEXT_COLOR = (1, 1, 0, 1)
+    TAG_TITLE_SPINNER_BACKGROUND_COLOR = (0, 0, 1, 1)
     NODE_SIZE = (dp(100), dp(60))
 
     on_tag_search_box_pressed = None
+    on_tag_search_box_title_pressed = None
 
     def on_touch_down(self, touch):
         if self.tag_search_box.collide_point(*touch.pos):
@@ -130,6 +145,7 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
         if self.tag_spinner.collide_point(*touch.pos):
             return super().on_touch_down(touch)
         if self.tag_title_spinner.collide_point(*touch.pos):
+            self.on_tag_search_box_title_pressed(self)
             return super().on_touch_down(touch)
         return False
 
@@ -260,7 +276,7 @@ class MainScreen(BoxLayout):
 
         self.update_visibilities()
 
-    def node_expanded(self, tree: ReaderTreeView, node: TreeViewNode):
+    def node_expanded(self, _tree: ReaderTreeView, node: TreeViewNode):
         if isinstance(node, YearRangeTreeViewNode):
             self.current_tree_node = TreeNodes.ON_YEAR_RANGE_NODE
             self.current_year_range = node.text
@@ -281,17 +297,17 @@ class MainScreen(BoxLayout):
                 self.set_next_top_view_image()
                 self.set_next_bottom_view_image()
 
-    def intro_pressed(self, button: Button):
+    def intro_pressed(self, _button: Button):
         self.current_tree_node = TreeNodes.ON_INTRO_NODE
         self.update_visibilities()
 
         self.intro_text.text = "hello line 1\nhello line 2\nhello line 3\n"
 
-    def the_stories_pressed(self, button: Button):
+    def the_stories_pressed(self, _button: Button):
         self.current_tree_node = TreeNodes.ON_THE_STORIES_NODE
         self.update_visibilities()
 
-    def search_pressed(self, button: Button):
+    def search_pressed(self, _button: Button):
         self.current_tree_node = TreeNodes.ON_SEARCH_NODE
         self.update_visibilities()
 
@@ -318,12 +334,15 @@ class MainScreen(BoxLayout):
                 instance.spinner.values = titles
                 instance.spinner.text = titles[0]
                 instance.spinner.is_open = True
-                print(f'Spinner text set to "{instance.spinner.text}".')
-                self.title_search_box_value_changed(instance.spinner, instance.spinner.text)
+                self.title_search_box_spinner_value_changed(instance.spinner, instance.spinner.text)
             else:
                 instance.spinner.values = []
                 instance.spinner.text = ""
                 instance.spinner.is_open = False
+
+    def title_search_box_spinner_value_changed(self, _spinner: Spinner, title_str: str):
+        print(f'Title search box spinner value changed: "{title_str}".')
+        self.update_title(title_str, TreeNodes.ON_TITLE_SEARCH_BOX_NODE)
 
     def get_titles_matching_search_title_str(self, value: str) -> List[str]:
         title_list = self.title_search.get_titles_matching_prefix(value)
@@ -331,23 +350,6 @@ class MainScreen(BoxLayout):
             unique_extend(title_list, self.title_search.get_titles_containing(value))
 
         return self.title_search.get_titles_as_strings(title_list)
-
-    def title_search_box_value_changed(self, spinner: Spinner, title_str: str):
-        print(f'Title spinner value changed: "{title_str}".')
-        if not title_str:
-            return
-
-        title_str = ComicBookInfo.get_title_str_from_display_title(title_str)
-
-        if title_str not in self.all_fanta_titles:
-            return
-
-        self.current_tree_node = TreeNodes.ON_TITLE_SEARCH_BOX_NODE
-        self.update_visibilities()
-
-        self.fanta_info = self.all_fanta_titles[title_str]
-        print(f'New fanta_info: "{self.fanta_info.comic_book_info.get_title_str()}".')
-        self.set_title()
 
     def tag_search_box_pressed(self, instance):
         print("Tag search box pressed", instance)
@@ -358,6 +360,14 @@ class MainScreen(BoxLayout):
         instance.tag_spinner.text = ""
         instance.tag_title_spinner.text = ""
         self.tag_search_box_title_spinner = instance.tag_title_spinner
+
+    def tag_search_box_title_spinner_pressed(self, instance):
+        print("Tag search box title spinner pressed", instance)
+
+        self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
+        self.update_visibilities()
+
+        instance.tag_title_spinner.text = ""
 
     def tag_search_box_text_changed(self, instance, value):
         print("Tag search box text changed", instance, "text:", value)
@@ -375,24 +385,21 @@ class MainScreen(BoxLayout):
         else:
             tags = self.get_tags_matching_search_tag_str(str(value))
             if tags:
-                instance.tag_spinner.values = sorted([t.value for t in tags])
-                # instance.tag_spinner.text = tags[0].value
+                instance.tag_spinner.values = sorted([str(t.value) for t in tags])
                 instance.tag_spinner.is_open = True
-                print(f'tag_spinner text set to "{instance.tag_spinner.text}".')
-                self.title_search_box_value_changed(instance.tag_spinner, instance.tag_spinner.text)
             else:
                 instance.tag_spinner.values = []
                 instance.tag_spinner.text = ""
                 instance.tag_spinner.is_open = False
 
-    def tag_search_box_value_changed(self, spinner: Spinner, tag_str: str):
-        print(f'Tag spinner tag value changed: "{tag_str}".')
+    def tag_search_box_tag_spinner_value_changed(self, _spinner: Spinner, tag_str: str):
+        print(f'Tag search box tag spinner value changed: "{tag_str}".')
         if not tag_str:
             return
 
-        tag = BARKS_TAG_ALIASES[tag_str.lower()]
+        titles = self.title_search.get_titles_from_alias_tag(tag_str.lower())
 
-        if tag not in BARKS_TAGGED_TITLES:
+        if not titles:
             self.tag_search_box_title_spinner.values = []
             self.tag_search_box_title_spinner.text = ""
             self.tag_search_box_title_spinner.is_open = False
@@ -401,14 +408,22 @@ class MainScreen(BoxLayout):
         self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
         self.update_visibilities()
 
-        titles = [t[0] for t in BARKS_TAGGED_TITLES[tag]]
-
         self.tag_search_box_title_spinner.values = self.title_search.get_titles_as_strings(titles)
         self.tag_search_box_title_spinner.text = self.tag_search_box_title_spinner.values[0]
         self.tag_search_box_title_spinner.is_open = True
 
-    def tag_search_box_title_value_changed(self, spinner: Spinner, title_str: str):
-        print(f'Tag spinner title value changed: "{title_str}".')
+    def tag_search_box_title_spinner_value_changed(self, _spinner: Spinner, title_str: str):
+        print(f'Tag search box title spinner value changed: "{title_str}".')
+        self.update_title(title_str, TreeNodes.ON_TAG_SEARCH_BOX_NODE)
+
+    def get_tags_matching_search_tag_str(self, value: str) -> List[Union[Tags, TagGroups]]:
+        tag_list = self.title_search.get_tags_matching_prefix(value)
+        # if len(value) > 2:
+        #     unique_extend(title_list, self.title_search.get_titles_containing(value))
+
+        return tag_list
+
+    def update_title(self, title_str: str, tree_node: TreeNodes):
         if not title_str:
             return
 
@@ -417,33 +432,25 @@ class MainScreen(BoxLayout):
         if title_str not in self.all_fanta_titles:
             return
 
-        self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE
+        self.current_tree_node = tree_node
         self.update_visibilities()
 
         self.fanta_info = self.all_fanta_titles[title_str]
-        print(f'New fanta_info: "{self.fanta_info.comic_book_info.get_title_str()}".')
         self.set_title()
-
-    def get_tags_matching_search_tag_str(self, value: str) -> List[Tags]:
-        tag_list = self.title_search.get_tags_matching_prefix(value)
-        # if len(value) > 2:
-        #     unique_extend(title_list, self.title_search.get_titles_containing(value))
-
-        return tag_list
 
     def get_fanta_info_from_title(self, title_str) -> FantaComicBookInfo:
         all_titles = self.title_lists[ALL_LISTS]
         return all_titles[self.title_dict[title_str]]
 
-    def appendix_pressed(self, button: Button):
+    def appendix_pressed(self, _button: Button):
         self.current_tree_node = TreeNodes.ON_APPENDIX_NODE
         self.update_visibilities()
 
-    def index_pressed(self, button: Button):
+    def index_pressed(self, _button: Button):
         self.current_tree_node = TreeNodes.ON_INDEX_NODE
         self.update_visibilities()
 
-    def chrono_pressed(self, button: Button):
+    def chrono_pressed(self, _button: Button):
         self.current_tree_node = TreeNodes.ON_CHRONO_BY_YEAR_NODE
         self.update_visibilities()
 
@@ -453,19 +460,19 @@ class MainScreen(BoxLayout):
 
         self.current_year_range = button.text
 
-    def series_pressed(self, button: Button):
+    def series_pressed(self, _button: Button):
         self.current_tree_node = TreeNodes.ON_SERIES_NODE
         self.update_visibilities()
 
-    def cs_pressed(self, button: Button):
+    def cs_pressed(self, _button: Button):
         self.current_tree_node = TreeNodes.ON_CS_NODE
         self.update_visibilities()
 
-    def dda_pressed(self, button: Button):
+    def dda_pressed(self, _button: Button):
         self.current_tree_node = TreeNodes.ON_DDA_NODE
         self.update_visibilities()
 
-    def categories_pressed(self, button: Button):
+    def categories_pressed(self, _button: Button):
         self.current_tree_node = TreeNodes.ON_CATEGORIES_NODE
         self.update_visibilities()
 
@@ -567,6 +574,7 @@ class MainScreen(BoxLayout):
         self.set_next_bottom_view_image()
 
     def set_next_top_view_image(self):
+        # noinspection PyUnreachableCode
         match self.current_tree_node:
             case TreeNodes.INITIAL:
                 self.top_view_image.source = get_comic_inset_file(Titles.COLD_BARGAIN_A)
@@ -574,15 +582,13 @@ class MainScreen(BoxLayout):
                 self.top_view_image.source = get_comic_inset_file(Titles.ADVENTURE_DOWN_UNDER)
             case TreeNodes.ON_THE_STORIES_NODE:
                 self.top_view_image.source = get_random_image(self.title_lists[ALL_LISTS])
-            case TreeNodes.ON_SEARCH_NODE:
-                self.top_view_image.source = get_comic_inset_file(Titles.TRACKING_SANDY)
-            case TreeNodes.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET:
-                self.top_view_image.source = get_comic_inset_file(Titles.TRACKING_SANDY)
-            case TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET:
-                self.top_view_image.source = get_comic_inset_file(Titles.TRACKING_SANDY)
-            case TreeNodes.ON_TITLE_SEARCH_BOX_NODE:
-                self.top_view_image.source = get_comic_inset_file(Titles.TRACKING_SANDY)
-            case TreeNodes.ON_TAG_SEARCH_BOX_NODE:
+            case (
+                TreeNodes.ON_SEARCH_NODE
+                | TreeNodes.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET
+                | TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
+                | TreeNodes.ON_TITLE_SEARCH_BOX_NODE
+                | TreeNodes.ON_TAG_SEARCH_BOX_NODE
+            ):
                 self.top_view_image.source = get_comic_inset_file(Titles.TRACKING_SANDY)
             case TreeNodes.ON_APPENDIX_NODE:
                 self.top_view_image.source = get_comic_inset_file(
@@ -590,16 +596,16 @@ class MainScreen(BoxLayout):
                 )
             case TreeNodes.ON_INDEX_NODE:
                 self.top_view_image.source = get_comic_inset_file(Titles.TRUANT_OFFICER_DONALD)
-            case TreeNodes.ON_CHRONO_BY_YEAR_NODE:
-                self.top_view_image.source = get_random_image(self.title_lists[ALL_LISTS])
-            case TreeNodes.ON_SERIES_NODE:
+            case (
+                TreeNodes.ON_CHRONO_BY_YEAR_NODE
+                | TreeNodes.ON_SERIES_NODE
+                | TreeNodes.ON_CATEGORIES_NODE
+            ):
                 self.top_view_image.source = get_random_image(self.title_lists[ALL_LISTS])
             case TreeNodes.ON_CS_NODE:
                 self.top_view_image.source = get_random_image(self.title_lists[SERIES_CS])
             case TreeNodes.ON_DDA_NODE:
                 self.top_view_image.source = get_random_image(self.title_lists[SERIES_DDA])
-            case TreeNodes.ON_CATEGORIES_NODE:
-                self.top_view_image.source = get_random_image(self.title_lists[ALL_LISTS])
             case TreeNodes.ON_CATEGORY_NODE:
                 print(f"Current category: '{self.current_category}'")
                 if not self.current_category:
@@ -674,7 +680,7 @@ class MainScreen(BoxLayout):
             self.top_view_change_event.cancel()
 
         self.top_view_change_event = Clock.schedule_interval(
-            lambda dt: self.set_next_top_view_image(), 10.0
+            lambda dt: self.set_next_top_view_image(), TOP_VIEW_EVENT_TIMEOUT_SECS
         )
 
     def schedule_bottom_view_after_event(self):
@@ -682,7 +688,7 @@ class MainScreen(BoxLayout):
             self.bottom_view_change_after_event.cancel()
 
         self.bottom_view_change_after_event = Clock.schedule_interval(
-            lambda dt: self.set_next_bottom_view_image(), 10.0
+            lambda dt: self.set_next_bottom_view_image(), BOTTOM_VIEW_EVENT_TIMEOUT_SECS
         )
 
 
@@ -695,17 +701,11 @@ class BarksReaderApp(App):
 
         self.main_screen: Union[MainScreen, None] = None
 
-        # TODO: how to nicely handle main window
-        DEFAULT_ASPECT_RATIO = 1.5
-        DEFAULT_WINDOW_HEIGHT = 1000
-        DEFAULT_WINDOW_WIDTH = int(round(DEFAULT_WINDOW_HEIGHT / DEFAULT_ASPECT_RATIO))
-        DEFAULT_LEFT_POS = 400
-        DEFAULT_TOP_POS = 50
         Window.size = (DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
         Window.left = DEFAULT_LEFT_POS
         Window.top = DEFAULT_TOP_POS
 
-    def on_request_close_window(self, *args):
+    def on_request_close_window(self, *_args):
         return self.main_screen.comic_reader.on_app_request_close()
 
     def build(self):
@@ -751,14 +751,19 @@ class BarksReaderApp(App):
         label = TitleSearchBoxTreeViewNode()
         label.on_pressed = self.main_screen.title_search_box_pressed
         label.bind(text=self.main_screen.title_search_box_text_changed)
-        label.spinner.bind(text=self.main_screen.title_search_box_value_changed)
+        label.spinner.bind(text=self.main_screen.title_search_box_spinner_value_changed)
         tree.add_node(label, parent=search_node)
 
         label = TagSearchBoxTreeViewNode()
         label.on_tag_search_box_pressed = self.main_screen.tag_search_box_pressed
+        label.on_tag_search_box_title_pressed = (
+            self.main_screen.tag_search_box_title_spinner_pressed
+        )
         label.bind(text=self.main_screen.tag_search_box_text_changed)
-        label.tag_spinner.bind(text=self.main_screen.tag_search_box_value_changed)
-        label.tag_title_spinner.bind(text=self.main_screen.title_search_box_value_changed)
+        label.tag_spinner.bind(text=self.main_screen.tag_search_box_tag_spinner_value_changed)
+        label.tag_title_spinner.bind(
+            text=self.main_screen.tag_search_box_title_spinner_value_changed
+        )
         tree.add_node(label, parent=search_node)
 
     def add_appendix_node(self, tree: ReaderTreeView):
@@ -816,17 +821,37 @@ class BarksReaderApp(App):
     def add_category_node(
         self, tree: ReaderTreeView, category: TagCategories, parent_node: TreeViewNode
     ):
-        for tag in BARKS_TAG_CATEGORIES[category]:
-            label = StoryGroupTreeViewNode(text=tag.value)
-            # TODO: What to do when a category is pressed?
-            # label.bind(on_press=self.category_pressed)
-            self.add_tagged_story_nodes(tree, tag, label)
-            tree.add_node(label, parent=parent_node)
+        for tag_or_group in BARKS_TAG_CATEGORIES[category]:
+            if type(tag_or_group) == Tags:
+                self.add_tag_node(tree, tag_or_group, parent_node)
+            else:
+                assert type(tag_or_group) == TagGroups
+                tag_group_node = self.add_tag_group_node(tree, tag_or_group, parent_node)
+                titles = BARKS_TAG_GROUPS_TITLES[tag_or_group]
+                self.add_title_nodes(tree, titles, tag_group_node)
 
-    def add_tagged_story_nodes(self, tree: ReaderTreeView, tag: Tags, parent_node: TreeViewNode):
-        for title in BARKS_TAGGED_TITLES[tag]:
+    def add_tag_node(self, tree: ReaderTreeView, tag: Tags, parent_node: TreeViewNode):
+        label = StoryGroupTreeViewNode(text=tag.value)
+        self.add_tagged_story_nodes(tree, tag, label)
+        tree.add_node(label, parent=parent_node)
+
+    @staticmethod
+    def add_tag_group_node(tree: ReaderTreeView, tag_group: TagGroups, parent_node: TreeViewNode):
+        label = StoryGroupTreeViewNode(text=tag_group.value)
+        return tree.add_node(label, parent=parent_node)
+
+    def add_tagged_story_nodes(
+        self, tree: ReaderTreeView, tag: Tags, parent_node: TreeViewNode
+    ) -> None:
+        titles = get_tagged_titles(tag)
+        self.add_title_nodes(tree, titles, parent_node)
+
+    def add_title_nodes(
+        self, tree: ReaderTreeView, titles: List[Titles], parent_node: TreeViewNode
+    ) -> None:
+        for title in titles:
             # TODO: Very roundabout way to get fanta info
-            title_str = BARKS_TITLES[title[0]]
+            title_str = BARKS_TITLES[title]
             if title_str not in self.main_screen.all_fanta_titles:
                 print(f'Skipped unconfigured title "{title_str}".')
                 continue
@@ -839,13 +864,15 @@ class BarksReaderApp(App):
 
     def add_series_node(
         self, tree: ReaderTreeView, series: str, on_pressed: Callable, parent_node: TreeViewNode
-    ):
+    ) -> None:
         label = StoryGroupTreeViewNode(text=series)
         label.bind(on_press=on_pressed)
         self.add_series_story_nodes(tree, series, label)
         tree.add_node(label, parent=parent_node)
 
-    def add_series_story_nodes(self, tree: ReaderTreeView, series: str, parent_node: TreeViewNode):
+    def add_series_story_nodes(
+        self, tree: ReaderTreeView, series: str, parent_node: TreeViewNode
+    ) -> None:
         title_list = self.main_screen.title_lists[series]
 
         for title_info in title_list:

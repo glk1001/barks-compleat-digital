@@ -77,8 +77,8 @@
     Label:
         id: tag_search_label_id
         text: "Tags: "
-        color: root.TEXT_COLOR
-        background_color: root.TEXT_BACKGROUND_COLOR
+        color: root.TAG_LABEL_COLOR
+        background_color: root.TAG_LABEL_BACKGROUND_COLOR
         size_hint: (0.08, 0.5)
         x: root.x
         y: root.y + root.tag_search_box.height
@@ -92,9 +92,9 @@
         on_text: root.text = self.text
         font_size: sp(16)
         multiline: False
-        foreground_color: root.TEXT_COLOR
+        foreground_color: root.TAG_TEXT_COLOR
         disabled_foreground_color: (1,1,1,0.5)
-        background_color: root.TEXT_BACKGROUND_COLOR
+        background_color: root.TAG_TEXT_BACKGROUND_COLOR
         size_hint: (0.2, 0.5)
         x: root.tag_search_label.x + root.tag_search_label.width
         y: root.y + root.tag_search_box.height
@@ -107,8 +107,8 @@
         text: ""
         values: []
         bold: True
-        color: root.SPINNER_TEXT_COLOR
-        background_color: root.SPINNER_BACKGROUND_COLOR
+        color: root.TAG_SPINNER_TEXT_COLOR
+        background_color: root.TAG_SPINNER_BACKGROUND_COLOR
         text_autoupdate: False
         is_open: False
         size_hint: (0.715, 0.5)
@@ -120,11 +120,11 @@
 
     Spinner:
         id: tag_title_spinner_id
-        text: "hello"
+        text: ""
         values: ["one", "two", "three"]
         bold: True
-        color: root.SPINNER_TEXT_COLOR
-        background_color: root.SPINNER_BACKGROUND_COLOR
+        color: root.TAG_TITLE_SPINNER_TEXT_COLOR
+        background_color: root.TAG_TITLE_SPINNER_BACKGROUND_COLOR
         text_autoupdate: False
         is_open: False
         size_hint: (0.715, 0.5)

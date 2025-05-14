@@ -132,6 +132,27 @@ class TagCategories(Enum):
     THINGS = "Things"
 
 
+class TagGroups(Enum):
+    AFRICA = "Africa"
+    ASIA = "Asia"
+    AUSTRALIA = "Australia"
+    EUROPE = "Europe"
+    NORTH_AMERICA = "North America"
+    OTHER = "Other"
+    SOUTH_AMERICA = "South America"
+
+
+BARKS_TAG_GROUPS_ALIASES = {
+    "africa": TagGroups.AFRICA,
+    "asia": TagGroups.ASIA,
+    "australia": TagGroups.AUSTRALIA,
+    "europe": TagGroups.EUROPE,
+    "north america": TagGroups.NORTH_AMERICA,
+    "other": TagGroups.OTHER,
+    "south america": TagGroups.SOUTH_AMERICA,
+}
+
+
 BARKS_TAG_CATEGORIES_DICT = {cat.name: cat for cat in TagCategories}
 
 BARKS_TAG_CATEGORIES = {
@@ -152,15 +173,19 @@ BARKS_TAG_CATEGORIES = {
         Tags.NEIGHBOR_JONES,
     ],
     TagCategories.PLACES: [
+        TagGroups.AFRICA,
         Tags.ALGERIA,
         Tags.ANDES,
         Tags.ARABIAN_PENINSULA,
+        TagGroups.ASIA,
         Tags.AUSTRALIA,
+        # TagGroups.AUSTRALIA,
         Tags.CENTRAL_AFRICA,
         Tags.CHINA,
         Tags.CONGO,
         Tags.DUCKBURG,
         Tags.EGYPT,
+        TagGroups.EUROPE,
         Tags.FRANCE,
         Tags.GERMANY,
         Tags.GREECE,
@@ -175,6 +200,7 @@ BARKS_TAG_CATEGORIES = {
         Tags.MONGOLIA,
         Tags.MOROCCO,
         Tags.NIAGARA_FALLS,
+        TagGroups.NORTH_AMERICA,
         Tags.NORWAY,
         Tags.PAKISTAN,
         Tags.PERSIA,
@@ -182,6 +208,7 @@ BARKS_TAG_CATEGORIES = {
         Tags.RUSSIA,
         Tags.SCOTLAND,
         Tags.SOUTH_AFRICA,
+        TagGroups.SOUTH_AMERICA,
         Tags.SPAIN,
         Tags.SUDAN,
         Tags.SWEDEN,
@@ -189,27 +216,6 @@ BARKS_TAG_CATEGORIES = {
         Tags.SYRIA,
         Tags.TANGANYIKA,
     ],
-}
-
-
-class TagGroups(Enum):
-    AFRICA = "Africa"
-    ASIA = "Asia"
-    AUSTRALIA = "Australia"
-    EUROPE = "Europe"
-    NORTH_AMERICA = "Nort America"
-    OTHER = "Other"
-    SOUTH_AMERICA = "South America"
-
-
-BARKS_TAG_GROUPS_ALIASES = {
-    "africa": TagGroups.AFRICA,
-    "asia": TagGroups.ASIA,
-    "australia": TagGroups.AUSTRALIA,
-    "europe": TagGroups.EUROPE,
-    "north america": TagGroups.NORTH_AMERICA,
-    "other": TagGroups.OTHER,
-    "south america": TagGroups.SOUTH_AMERICA,
 }
 
 BARKS_TAG_GROUPS = {
@@ -572,14 +578,46 @@ BARKS_TAGGED_TITLES[Tags.NEIGHBOR_JONES].append((Titles.FEUD_AND_FAR_BETWEEN, []
 BARKS_TAGGED_TITLES[Tags.NEIGHBOR_JONES].append((Titles.UNFRIENDLY_ENEMIES, []))
 
 
+def get_tagged_titles(tag: Tags) -> List[Titles]:
+    """
+    Retrieves a sorted list of unique titles associated with a specific tag.
+    """
+    return sorted([t[0] for t in BARKS_TAGGED_TITLES[tag]])
+
+
 def get_tag_categories_titles() -> Dict[TagCategories, List[Titles]]:
-    tag_categories_titles = defaultdict(list)
+    """
+    Gets a dictionary mapping each TagCategory to a sorted list of unique titles
+    associated with the tags/groups in that category.
+    """
+    tag_categories_titles = {}
 
     for category in TagCategories:
-        for tag in BARKS_TAG_CATEGORIES[category]:
-            tag_categories_titles[category].extend(BARKS_TAGGED_TITLES[tag])
+        tag_categories_titles[category] = __get_tag_titles(BARKS_TAG_CATEGORIES[category])
 
     return tag_categories_titles
 
 
+def get_tag_group_titles() -> Dict[TagGroups, List[Titles]]:
+    """
+    Gets a dictionary mapping each TagGroup to a sorted list of unique titles
+    associated with the tags in that group.
+    """
+    tag_group_titles = {}
+
+    for tag_group in TagGroups:
+        tag_group_titles[tag_group] = __get_tag_titles(BARKS_TAG_GROUPS[tag_group])
+
+    return tag_group_titles
+
+
+def __get_tag_titles(tag_list: List[Tags]) -> List[Titles]:
+    title_list = []
+    for tag in tag_list:
+        title_list.extend([t[0] for t in BARKS_TAGGED_TITLES[tag]])
+
+    return sorted(list(set(title_list)))
+
+
 BARKS_TAG_CATEGORIES_TITLES: Dict[TagCategories, List[Titles]] = get_tag_categories_titles()
+BARKS_TAG_GROUPS_TITLES: Dict[TagGroups, List[Titles]] = get_tag_group_titles()
