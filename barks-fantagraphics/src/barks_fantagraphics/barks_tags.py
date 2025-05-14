@@ -40,6 +40,7 @@ class Tags(Enum):
     SUDAN = "Sudan"
     SWEDEN = "Sweden"
     SWITZERLAND = "Switzerland"
+    SYDNEY = "Sydney"
     SYRIA = "Syria"
     TANGANYIKA = "Tanganyika"
 
@@ -95,6 +96,7 @@ BARKS_TAG_ALIASES = {
     "sudan": Tags.SUDAN,
     "sweden": Tags.SWEDEN,
     "switzerland": Tags.SWITZERLAND,
+    "sydney": Tags.SYDNEY,
     "syria": Tags.SYRIA,
     "tanganyika": Tags.TANGANYIKA,
     "airplane": Tags.AIRPLANE,
@@ -178,8 +180,8 @@ BARKS_TAG_CATEGORIES = {
         Tags.ANDES,
         Tags.ARABIAN_PENINSULA,
         TagGroups.ASIA,
-        Tags.AUSTRALIA,
-        # TagGroups.AUSTRALIA,
+        #Tags.AUSTRALIA,
+        TagGroups.AUSTRALIA,
         Tags.CENTRAL_AFRICA,
         Tags.CHINA,
         Tags.CONGO,
@@ -213,6 +215,7 @@ BARKS_TAG_CATEGORIES = {
         Tags.SUDAN,
         Tags.SWEDEN,
         Tags.SWITZERLAND,
+        Tags.SYDNEY,
         Tags.SYRIA,
         Tags.TANGANYIKA,
     ],
@@ -244,6 +247,7 @@ BARKS_TAG_GROUPS = {
     ],
     TagGroups.AUSTRALIA: [
         Tags.AUSTRALIA,
+        Tags.SYDNEY,
     ],
     TagGroups.EUROPE: [
         Tags.SWITZERLAND,
@@ -339,6 +343,7 @@ BARKS_TAGGED_TITLES[Tags.SPAIN].append((Titles.ROCKET_RACE_AROUND_THE_WORLD, [])
 BARKS_TAGGED_TITLES[Tags.SUDAN].append((Titles.MINES_OF_KING_SOLOMON_THE, []))
 BARKS_TAGGED_TITLES[Tags.SWEDEN].append((Titles.MINES_OF_KING_SOLOMON_THE, []))
 BARKS_TAGGED_TITLES[Tags.SWITZERLAND].append((Titles.DUCKS_EYE_VIEW_OF_EUROPE_A, []))
+BARKS_TAGGED_TITLES[Tags.SYDNEY].append((Titles.ADVENTURE_DOWN_UNDER, []))
 BARKS_TAGGED_TITLES[Tags.SYRIA].append((Titles.FABULOUS_PHILOSOPHERS_STONE_THE, []))
 BARKS_TAGGED_TITLES[Tags.TANGANYIKA].append((Titles.UNSAFE_SAFE_THE, []))
 
