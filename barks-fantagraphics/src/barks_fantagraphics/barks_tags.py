@@ -59,73 +59,25 @@ class Tags(Enum):
     NEIGHBOR_JONES = "Neighbor Jones"
 
 
-BARKS_TAG_ALIASES = {
-    "algeria": Tags.ALGERIA,
-    "andes": Tags.ANDES,
-    "arabian peninsula": Tags.ARABIAN_PENINSULA,
+BARKS_TAG_EXTRA_ALIASES = {
     "arabia": Tags.ARABIAN_PENINSULA,
-    "australia": Tags.AUSTRALIA,
-    "central africa": Tags.CENTRAL_AFRICA,
-    "china": Tags.CHINA,
-    "congo": Tags.CONGO,
-    "duckburg": Tags.DUCKBURG,
-    "egypt": Tags.EGYPT,
-    "france": Tags.FRANCE,
-    "germany": Tags.GERMANY,
-    "greece": Tags.GREECE,
-    "himalayas": Tags.HIMALAYAS,
-    "india": Tags.INDIA,
-    "indian ocean": Tags.INDIAN_OCEAN,
-    "indo-china": Tags.INDO_CHINA,
-    "iraq": Tags.IRAQ,
-    "italy": Tags.ITALY,
-    "libya": Tags.LIBYA,
-    "mali": Tags.MALI,
-    "mongolia": Tags.MONGOLIA,
-    "morocco": Tags.MOROCCO,
-    "niagara falls": Tags.NIAGARA_FALLS,
     "niagara": Tags.NIAGARA_FALLS,
-    "norway": Tags.NORWAY,
-    "pakistan": Tags.PAKISTAN,
-    "persia": Tags.PERSIA,
-    "plain awful": Tags.PLAIN_AWFUL,
-    "russia": Tags.RUSSIA,
-    "scotland": Tags.SCOTLAND,
-    "south africa": Tags.SOUTH_AFRICA,
-    "spain": Tags.SPAIN,
-    "sudan": Tags.SUDAN,
-    "sweden": Tags.SWEDEN,
-    "switzerland": Tags.SWITZERLAND,
-    "sydney": Tags.SYDNEY,
-    "syria": Tags.SYRIA,
-    "tanganyika": Tags.TANGANYIKA,
-    "airplane": Tags.AIRPLANE,
-    "aeroplane": Tags.AIRPLANE,
-    "fire": Tags.FIRE,
-    "square eggs": Tags.SQUARE_EGGS,
-    "argus mcfiendy": Tags.ARGUS_MCFIENDY,
     "argus": Tags.ARGUS_MCFIENDY,
     "mcfiendy": Tags.ARGUS_MCFIENDY,
-    "beagle boys": Tags.BEAGLE_BOYS,
     "the beagle boys": Tags.BEAGLE_BOYS,
     "beagles": Tags.BEAGLE_BOYS,
-    "flintheart glomgold": Tags.FLINTHEART_GLOMGOLD,
     "flintheart": Tags.FLINTHEART_GLOMGOLD,
     "glomgold": Tags.FLINTHEART_GLOMGOLD,
-    "general snozzie": Tags.GENERAL_SNOZZIE,
     "snozzie": Tags.GENERAL_SNOZZIE,
-    "gladstone gander": Tags.GLADSTONE_GANDER,
     "gladstone": Tags.GLADSTONE_GANDER,
-    "gyro gearloose": Tags.GYRO_GEARLOOSE,
     "gyro": Tags.GYRO_GEARLOOSE,
     "gearloose": Tags.GYRO_GEARLOOSE,
-    "herbert": Tags.HERBERT,
-    "magica de spell": Tags.MAGICA_DE_SPELL,
     "magica": Tags.MAGICA_DE_SPELL,
     "spell": Tags.MAGICA_DE_SPELL,
-    "neighbor jones": Tags.NEIGHBOR_JONES,
     "jones": Tags.NEIGHBOR_JONES,
 }
+
+BARKS_TAG_ALIASES = {str(t.value).lower(): t for t in Tags} | BARKS_TAG_EXTRA_ALIASES
 
 
 class TagCategories(Enum):
@@ -144,15 +96,7 @@ class TagGroups(Enum):
     SOUTH_AMERICA = "South America"
 
 
-BARKS_TAG_GROUPS_ALIASES = {
-    "africa": TagGroups.AFRICA,
-    "asia": TagGroups.ASIA,
-    "australia": TagGroups.AUSTRALIA,
-    "europe": TagGroups.EUROPE,
-    "north america": TagGroups.NORTH_AMERICA,
-    "other": TagGroups.OTHER,
-    "south america": TagGroups.SOUTH_AMERICA,
-}
+BARKS_TAG_GROUPS_ALIASES = {str(t.value).lower(): t for t in TagGroups}
 
 
 BARKS_TAG_CATEGORIES_DICT = {cat.name: cat for cat in TagCategories}
@@ -180,7 +124,7 @@ BARKS_TAG_CATEGORIES = {
         Tags.ANDES,
         Tags.ARABIAN_PENINSULA,
         TagGroups.ASIA,
-        #Tags.AUSTRALIA,
+        # Tags.AUSTRALIA,
         TagGroups.AUSTRALIA,
         Tags.CENTRAL_AFRICA,
         Tags.CHINA,
