@@ -121,13 +121,13 @@ class BarksTitleSearch:
 
         if alias_tag_str in BARKS_TAG_ALIASES:
             tag = BARKS_TAG_ALIASES[alias_tag_str]
-            title_list.extend([title[0] for title in BARKS_TAGGED_TITLES[tag]])
+            unique_extend(title_list, BARKS_TAGGED_TITLES[tag])
 
         if alias_tag_str in BARKS_TAG_GROUPS_ALIASES:
             tag_group = BARKS_TAG_GROUPS_ALIASES[alias_tag_str]
             tags = BARKS_TAG_GROUPS[tag_group]
             for tag in tags:
-                unique_extend(title_list, [title[0] for title in BARKS_TAGGED_TITLES[tag]])
+                unique_extend(title_list, BARKS_TAGGED_TITLES[tag])
 
         return sorted(title_list)
 
