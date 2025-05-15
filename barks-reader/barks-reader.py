@@ -74,7 +74,7 @@ DEFAULT_WINDOW_WIDTH = int(round(DEFAULT_WINDOW_HEIGHT / DEFAULT_ASPECT_RATIO))
 DEFAULT_LEFT_POS = 400
 DEFAULT_TOP_POS = 50
 
-Builder.load_file("tree-example.kv")
+Builder.load_file("barks-reader.kv")
 
 
 def get_str_pixel_width(text: str, **kwargs) -> int:
