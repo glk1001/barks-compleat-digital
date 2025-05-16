@@ -51,6 +51,7 @@ class Tags(Enum):
     ARGUS_MCFIENDY = "Argus McFiendy"
     BEAGLE_BOYS = "The Beagle Boys"
     BENZENE_BANZOONY = "Benzene Banzoony"
+    BOMBIE_THE_ZOMBIE = "Bombie the Zombie"
     CARVER_BEAKOFF = "Doctor Carver Beakoff"
     FLINTHEART_GLOMGOLD = "Flintheart Glomgold"
     GENERAL_SNOZZIE = "General Snozzie"
@@ -70,6 +71,8 @@ BARKS_TAG_EXTRA_ALIASES = {
     "beagles": Tags.BEAGLE_BOYS,
     "benzene": Tags.BENZENE_BANZOONY,
     "banzoony": Tags.BENZENE_BANZOONY,
+    "bombie": Tags.BOMBIE_THE_ZOMBIE,
+    "zombie": Tags.BOMBIE_THE_ZOMBIE,
     "carver beakoff": Tags.CARVER_BEAKOFF,
     "beakoff": Tags.CARVER_BEAKOFF,
     "carver": Tags.CARVER_BEAKOFF,
@@ -121,6 +124,7 @@ BARKS_TAG_CATEGORIES = {
         Tags.ARGUS_MCFIENDY,
         Tags.BEAGLE_BOYS,
         Tags.BENZENE_BANZOONY,
+        Tags.BOMBIE_THE_ZOMBIE,
         Tags.CARVER_BEAKOFF,
         Tags.FLINTHEART_GLOMGOLD,
         Tags.GENERAL_SNOZZIE,
@@ -411,6 +415,7 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
         Titles.DELIVERY_DILEMMA,
     ],
     Tags.BENZENE_BANZOONY: [Titles.FIREBUG_THE],
+    Tags.BOMBIE_THE_ZOMBIE: [Titles.VOODOO_HOODOO],
     Tags.CARVER_BEAKOFF: [Titles.FIREBUG_THE],
     Tags.FLINTHEART_GLOMGOLD: [
         Titles.SECOND_RICHEST_DUCK_THE,
