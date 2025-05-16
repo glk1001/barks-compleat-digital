@@ -1,6 +1,17 @@
 from barks_fantagraphics.barks_titles import Titles
 
 BARKS_EXTRA_INFO = {
+    Titles.TOO_MANY_PETS: "In a June 9, 1968 letter to Michael Barrier, Barks wrote:"
+    " [i]\"In the Sept. 1943 D.D. the story 'Too Many Pets' was a sort of collaboration. The script"
+    " was started by a writer at the Disney Studio who found himself so overloaded with work on"
+    " plots for the Mickey comic strips that he had to quit 'Too Many Pets.' I was handed the"
+    " half-outlined plot and asked to do what I could with it. I merely polished up the other"
+    " writer's gags and situations, and lengthened the tale, and lo! it didn't look too bad for"
+    ' that spy-conscious era."[/i]'
+    # " The Disney writer was named Merrill (something-or-other). He had"
+    # " been Walt Kelly's partner in a story unit at Disneys. I understand he got fed up with gag"
+    # ' writing and bought a nursery (plants and trees) and lived happily ever after."'
+    " (The artist's name was Merrill de Maris).",
     Titles.MIGHTY_TRAPPER_THE: "First appearance of [b][i]Daisy.[/i][/b].",
     Titles.GOOD_DEEDS: "First appearance of [b][i]Neighbor Jones.[/i][/b]."
     " (Mr. Jones in this story.)",
@@ -12,18 +23,20 @@ BARKS_EXTRA_INFO = {
     Titles.HIGH_WIRE_DAREDEVILS: "First mention of [b][i]Duckburg.[/i][/b]"
     " (Last panel of last page.)",
     Titles.CHRISTMAS_ON_BEAR_MOUNTAIN: "First appearance of [b][i]Uncle Scrooge.[/i][/b]",
-    Titles.LOST_IN_THE_ANDES: 'In a 1962 interview, Barks agreed that "my best story, technically,'
-    ' is probably the square egg one."\n\n'
-    "From 'www.seriesam.com': \"Western Publishing objected to the accent Barks had given the"
+    Titles.LOST_IN_THE_ANDES: 'In a 1962 interview, Barks agreed that [i]"my best story,'
+    ' technically, is probably the square egg one."[/i]\n\n'
+    "From 'www.seriesam.com': [i]\"Western Publishing objected to the accent Barks had given the"
     " Plain Awful people and so they (for example) replaced incorrect use of 'd' with 'th'"
-    ' in their dialogue." Accordingly, in this digital edition, the Southern accents have been'
+    ' in their dialogue."[/i] Accordingly, in this digital edition, the Southern accents have been'
     " restored to what Barks originally intended, using [i]Dis, Dat, Dey, D', De,[/i] and"
     " [i]Dere.[/i] (Pages 20-24, 26-29, and 31, reconstructed by GLK, April 2025)",
-    Titles.VOODOO_HOODOO: "From 'www.seriesam.com': Barks originally drew 'Bombie the Zombie'"
-    " with blank eyeballs. The editors at Western Publishing feared that the vacant eyes might"
-    " frighten children and so they added pupils and half-closed lids. In this digital edition"
-    " Bombie has been changed back to having blank eyeballs.",
+    Titles.VOODOO_HOODOO: 'From \'www.seriesam.com\': [i]"Barks originally drew \'Bombie the'
+    " Zombie' with blank eyeballs. The editors at Western Publishing feared that the vacant eyes"
+    ' might frighten children and so they added pupils and half-closed lids."[/i] In this digital'
+    " edition, Bombie has been changed back to having blank eyeballs.",
     Titles.WINTERTIME_WAGER: "First appearance of [b][i]Gladstone Gander.[/i][/b]",
+    Titles.LUCK_OF_THE_NORTH: "First appearance of [b][i]Gladstone Gander[/i][/b] in "
+    "the [i]Donald Duck[/i] series.",
     Titles.OPERATION_ST_BERNARD: "First appearance of [b][i]The Junior Woodchucks.[/i][/b]",
     Titles.PIXILATED_PARROT_THE: "First appearance of what looks like the [b][i]Money Bin[/i][/b]"
     " but in this story is called the Safe.",
@@ -34,12 +47,12 @@ BARKS_EXTRA_INFO = {
     Titles.GLADSTONES_TERRIBLE_SECRET: "First appearance of [b][i]Gyro Gearloose.[/i][/b]",
     Titles.CAT_BOX_THE: "First appearance of [b][i]Little Helper.[/i][/b]",
     Titles.MIDAS_TOUCH_THE: "First appearance of [b][i]Magica de Spell.[/i][/b]",
-    Titles.GOLDEN_FLEECING_THE: 'In a letter to Ronald O. Burnett, Barks wrote: "If you read'
+    Titles.GOLDEN_FLEECING_THE: 'In a letter to Ronald O. Burnett, Barks wrote: [i]"If you read'
     " Uncle Scrooge comics, you may have noticed the story in which I had Uncle Scrooge and the"
     " ducks go to the site of ancient Colchis to find the golden fleece. A plot based on the old"
     " Jason myth. Well, I almost had to eat those 32 pages of drawings because I'd use some"
     " harpies as menaces. It seems that Harpy or Harpie is an obscure nickname for a streetwalker."
-    ' I managed to save the story by renaming the old girls Larkies." Therefore, in this digital'
-    " edition, 'Larkie' has been changed to 'Harpie'. (Pages 6, 7, 9, 13-16, and 18-26,"
+    ' I managed to save the story by renaming the old girls Larkies."[/i] Therefore, in this'
+    " digital edition, 'Larkie' has been changed to 'Harpie'. (Pages 6, 7, 9, 13-16, and 18-26,"
     " re-lettered by GLK, December 2023)",
 }
