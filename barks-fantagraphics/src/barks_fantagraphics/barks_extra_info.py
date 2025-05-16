@@ -30,4 +30,12 @@ BARKS_EXTRA_INFO = {
     Titles.GLADSTONES_TERRIBLE_SECRET: "First appearance of [b][i]Gyro Gearloose.[/i][/b]",
     Titles.CAT_BOX_THE: "First appearance of [b][i]Little Helper.[/i][/b]",
     Titles.MIDAS_TOUCH_THE: "First appearance of [b][i]Magica de Spell.[/i][/b]",
+    Titles.GOLDEN_FLEECING_THE: 'In a letter to Ronald O. Burnett, Barks wrote: "If you read'
+    " Uncle Scrooge comics, you may have noticed the story in which I had Uncle Scrooge and the"
+    " ducks go to the site of ancient Colchis to find the golden fleece. A plot based on the old"
+    " Jason myth. Well, I almost had to eat those 32 pages of drawings because I'd use some"
+    " harpies as menaces. It seems that Harpy or Harpie is an obscure nickname for a streetwalker."
+    ' I managed to save the story by renaming the old girls Larkies." Therefore, in this digital'
+    " edition, 'Larkie' has been changed to 'Harpie'. (Pages 6, 7, 9, 13-16, and 18-26,"
+    " re-lettered by GLK, December 2023)",
 }
