@@ -29,6 +29,7 @@ class Tags(Enum):
     MOROCCO = "Morocco"
     NIAGARA_FALLS = "Niagara Falls"
     NORWAY = "Norway"
+    OLD_DEMON_TOOTH = "Old Demon Tooth"
     PAKISTAN = "Pakistan"
     PERSIA = "Persia"
     PLAIN_AWFUL = "Plain Awful"
@@ -49,6 +50,8 @@ class Tags(Enum):
 
     ARGUS_MCFIENDY = "Argus McFiendy"
     BEAGLE_BOYS = "The Beagle Boys"
+    BENZENE_BANZOONY = "Benzene Banzoony"
+    CARVER_BEAKOFF = "Doctor Carver Beakoff"
     FLINTHEART_GLOMGOLD = "Flintheart Glomgold"
     GENERAL_SNOZZIE = "General Snozzie"
     GLADSTONE_GANDER = "Gladstone Gander"
@@ -65,6 +68,14 @@ BARKS_TAG_EXTRA_ALIASES = {
     "mcfiendy": Tags.ARGUS_MCFIENDY,
     "the beagle boys": Tags.BEAGLE_BOYS,
     "beagles": Tags.BEAGLE_BOYS,
+    "benzene": Tags.BENZENE_BANZOONY,
+    "banzoony": Tags.BENZENE_BANZOONY,
+    "carver beakoff": Tags.CARVER_BEAKOFF,
+    "beakoff": Tags.CARVER_BEAKOFF,
+    "carver": Tags.CARVER_BEAKOFF,
+    "demon": Tags.OLD_DEMON_TOOTH,
+    "mount demon tooth": Tags.OLD_DEMON_TOOTH,
+    "old demon tooth": Tags.OLD_DEMON_TOOTH,
     "flintheart": Tags.FLINTHEART_GLOMGOLD,
     "glomgold": Tags.FLINTHEART_GLOMGOLD,
     "snozzie": Tags.GENERAL_SNOZZIE,
@@ -109,6 +120,8 @@ BARKS_TAG_CATEGORIES = {
     TagCategories.CHARACTERS: [
         Tags.ARGUS_MCFIENDY,
         Tags.BEAGLE_BOYS,
+        Tags.BENZENE_BANZOONY,
+        Tags.CARVER_BEAKOFF,
         Tags.FLINTHEART_GLOMGOLD,
         Tags.GENERAL_SNOZZIE,
         Tags.GLADSTONE_GANDER,
@@ -147,6 +160,7 @@ BARKS_TAG_CATEGORIES = {
         Tags.NIAGARA_FALLS,
         TagGroups.NORTH_AMERICA,
         Tags.NORWAY,
+        Tags.OLD_DEMON_TOOTH,
         Tags.PAKISTAN,
         Tags.PERSIA,
         Tags.PLAIN_AWFUL,
@@ -207,6 +221,7 @@ BARKS_TAG_GROUPS = {
     TagGroups.NORTH_AMERICA: [],
     TagGroups.OTHER: [
         Tags.DUCKBURG,
+        Tags.OLD_DEMON_TOOTH,
     ],
     TagGroups.SOUTH_AMERICA: [
         Tags.ANDES,
@@ -333,6 +348,7 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
         Titles.BLACK_WEDNESDAY,
         Titles.DUCKBURG_PET_PARADE_THE,
     ],
+    Tags.OLD_DEMON_TOOTH: [Titles.MONEY_STAIRS_THE],
     # Things
     Tags.AIRPLANE: [
         Titles.TRUANT_NEPHEWS_THE,
@@ -358,7 +374,7 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
         Titles.SMOKE_WRITER_IN_THE_SKY,
         Titles.QUEEN_OF_THE_WILD_DOG_PACK_THE,
     ],
-    Tags.FIRE: [Titles.FIREBUG_THE],
+    Tags.FIRE: [Titles.FIREBUG_THE, Titles.FIREMAN_DONALD],
     Tags.SQUARE_EGGS: [Titles.LOST_IN_THE_ANDES],
     # Characters
     Tags.ARGUS_MCFIENDY: [Titles.DARKEST_AFRICA],
@@ -394,6 +410,8 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
         Titles.MR_PRIVATE_EYE,
         Titles.DELIVERY_DILEMMA,
     ],
+    Tags.BENZENE_BANZOONY: [Titles.FIREBUG_THE],
+    Tags.CARVER_BEAKOFF: [Titles.FIREBUG_THE],
     Tags.FLINTHEART_GLOMGOLD: [
         Titles.SECOND_RICHEST_DUCK_THE,
         Titles.MONEY_CHAMP_THE,
@@ -569,6 +587,7 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
 
 BARKS_TAGGED_PAGES: Dict[Tuple[Tags, Titles], List[str]] = {
     (Tags.NEIGHBOR_JONES, Titles.GOOD_DEEDS): ["1"],
+    (Tags.CARVER_BEAKOFF, Titles.FIREBUG_THE): ["13"],
 }
 # TODO: Assert tagged pages are in tagged titles
 
