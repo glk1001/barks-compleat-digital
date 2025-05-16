@@ -9,7 +9,8 @@ from file_paths import (
     get_comic_splash_files,
     get_comic_silhouette_files,
     get_comic_censorship_files,
-    get_comic_favorite_files,
+    get_comic_favourite_files,
+    get_comic_original_art_files,
 )
 
 
@@ -26,12 +27,13 @@ def get_random_image(title_list: List[FantaComicBookInfo]) -> str:
 
 
 def __get_random_title_image(title: str) -> str:
-    num_categories = 5
+    num_categories = 6
     covers_percent = 1 * int(round(100 / num_categories))
     silhouette_percent = 2 * int(round(100 / num_categories))
     splashes_percent = 3 * int(round(100 / num_categories))
     censorship_percent = 4 * int(round(100 / num_categories))
     favourites_percent = 5 * int(round(100 / num_categories))
+    original_art_percent = 6 * int(round(100 / num_categories))
 
     for num_attempts in range(10):
         rand_percent = randrange(0, 100)
@@ -69,12 +71,20 @@ def __get_random_title_image(title: str) -> str:
             print(f"No censorship files.")
 
         if rand_percent <= favourites_percent:
-            title_files = get_comic_favorite_files(title)
+            title_files = get_comic_favourite_files(title)
             if title_files:
                 index = randrange(0, len(title_files))
                 return title_files[index]
             favourites_percent = -1
             print(f"No favourite files.")
+
+        if rand_percent <= original_art_percent:
+            title_files = get_comic_original_art_files(title)
+            if title_files:
+                index = randrange(0, len(title_files))
+                return title_files[index]
+            favourites_percent = -1
+            print(f"No original art files.")
 
         if (
             covers_percent == -1
@@ -82,6 +92,7 @@ def __get_random_title_image(title: str) -> str:
             and splashes_percent == -1
             and censorship_percent == -1
             and favourites_percent == -1
+            and original_art_percent == -1
         ):
             break
 

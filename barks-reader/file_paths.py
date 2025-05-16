@@ -24,6 +24,7 @@ BARKS_READER_SILHOUETTE_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Silhou
 BARKS_READER_SPLASH_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Splash")
 BARKS_READER_CENSORSHIP_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Censorship")
 BARKS_READER_FAVOURITE_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Favourites")
+BARKS_READER_ORIGINAL_ART_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Original Art")
 
 EMERGENCY_INSET_FILE = Titles.BICEPS_BLUES
 EMERGENCY_INSET_FILE_PATH = os.path.join(
@@ -45,6 +46,7 @@ def check_dirs_and_files() -> None:
         BARKS_READER_SPLASH_FILES_DIR,
         BARKS_READER_CENSORSHIP_FILES_DIR,
         BARKS_READER_FAVOURITE_FILES_DIR,
+        BARKS_READER_ORIGINAL_ART_FILES_DIR,
     ]
     files_to_check = [
         MCOMIX_PYTHON_PATH,
@@ -114,6 +116,10 @@ def get_comic_favourite_files_dir() -> str:
     return BARKS_READER_FAVOURITE_FILES_DIR
 
 
+def get_comic_original_art_files_dir() -> str:
+    return BARKS_READER_ORIGINAL_ART_FILES_DIR
+
+
 def get_comic_inset_file(title: Titles) -> str:
     title_str = BARKS_TITLES[title]
 
@@ -121,7 +127,7 @@ def get_comic_inset_file(title: Titles) -> str:
     if os.path.isfile(main_file):
         return main_file
 
-    edited_file = os.path.join(BARKS_READER_INSET_EDITED_FILES_DIR, title_str + JPG_FILE_EXT)
+    edited_file = os.path.join(BARKS_READER_INSET_EDITED_FILES_DIR, title_str + PNG_FILE_EXT)
 
     # assert os.path.isfile(edited_file)
     # TODO: Fix this when all titles are configured.
@@ -155,8 +161,8 @@ def get_comic_favourite_files(title: str) -> List[str]:
     return get_files(get_comic_favourite_files_dir(), title)
 
 
-def get_comic_favorite_files(title: str) -> List[str]:
-    return get_files(get_comic_favourite_files_dir(), title)
+def get_comic_original_art_files(title: str) -> List[str]:
+    return get_files(get_comic_original_art_files_dir(), title)
 
 
 def get_files(parent_image_dir: str, title: str) -> List[str]:
