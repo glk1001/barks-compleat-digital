@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, List, Union, Tuple
+from typing import Dict, List, Union, Tuple, Set
 
 from .barks_titles import Titles
 
@@ -594,14 +594,64 @@ BARKS_TAGGED_PAGES: Dict[Tuple[Tags, Titles], List[str]] = {
     (Tags.NEIGHBOR_JONES, Titles.GOOD_DEEDS): ["1"],
     (Tags.CARVER_BEAKOFF, Titles.FIREBUG_THE): ["13"],
 }
+
+
 # TODO: Assert tagged pages are in tagged titles
+def validate_tag_data() -> None:
+    """
+    Performs various assertions to ensure the integrity of the tag data.
+    Raises AssertionError if any validation fails.
+    """
+    # Validate BARKS_TAGGED_TITLES keys and values
+    for tag, titles_list in BARKS_TAGGED_TITLES.items():
+        assert isinstance(tag, Tags), f"Invalid tag key in BARKS_TAGGED_TITLES: {tag}"
+        for title in titles_list:
+            assert isinstance(
+                title, Titles
+            ), f"Invalid title '{title}' for tag '{tag.value}' in BARKS_TAGGED_TITLES"
+
+    # Validate BARKS_TAGGED_PAGES
+    for (tag, title), pages in BARKS_TAGGED_PAGES.items():
+        assert isinstance(tag, Tags), f"Invalid tag key in BARKS_TAGGED_PAGES: {tag}"
+        assert isinstance(title, Titles), f"Invalid title key in BARKS_TAGGED_PAGES: {title}"
+        assert (
+            tag in BARKS_TAGGED_TITLES
+        ), f"Tag '{tag.value}' in BARKS_TAGGED_PAGES is not in BARKS_TAGGED_TITLES."
+        assert title in BARKS_TAGGED_TITLES[tag], (
+            f"Title '{title.value}' for tag '{tag.value}' in BARKS_TAGGED_PAGES "
+            f"is not listed under that tag in BARKS_TAGGED_TITLES."
+        )
+        for page in pages:
+            assert isinstance(
+                page, str
+            ), f"Page '{page}' for ({tag.value}, {title.value}) must be a string."
+
+    # Validate BARKS_TAG_CATEGORIES
+    for category, tags_or_groups_list in BARKS_TAG_CATEGORIES.items():
+        assert isinstance(category, TagCategories), f"Invalid category key: {category}"
+        for item in tags_or_groups_list:
+            assert isinstance(
+                item, (Tags, TagGroups)
+            ), f"Invalid item '{item}' in category '{category.value}'. Must be Tags or TagGroups."
+
+    # Validate BARKS_TAG_GROUPS
+    for group, tags_list in BARKS_TAG_GROUPS.items():
+        assert isinstance(group, TagGroups), f"Invalid group key: {group}"
+        for tag_item in tags_list:
+            assert isinstance(
+                tag_item, Tags
+            ), f"Invalid tag '{tag_item}' in group '{group.value}'. Must be Tags."
+    # print("Tag data validation successful.") # Optional: for debugging
 
 
 def get_tagged_titles(tag: Tags) -> List[Titles]:
     """
     Retrieves a sorted list of unique titles associated with a specific tag.
+    Returns an empty list if the tag is not found or has no titles.
     """
-    return sorted(BARKS_TAGGED_TITLES[tag])
+    if tag not in BARKS_TAGGED_TITLES:
+        return []
+    return sorted(list(set(BARKS_TAGGED_TITLES[tag])))  # Ensure uniqueness and sort
 
 
 def get_tag_categories_titles() -> Dict[TagCategories, List[Titles]]:
@@ -609,11 +659,9 @@ def get_tag_categories_titles() -> Dict[TagCategories, List[Titles]]:
     Gets a dictionary mapping each TagCategory to a sorted list of unique titles
     associated with the tags/groups in that category.
     """
-    tag_categories_titles = {}
-
-    for category in TagCategories:
-        tag_categories_titles[category] = __get_tag_titles(BARKS_TAG_CATEGORIES[category])
-
+    tag_categories_titles: Dict[TagCategories, List[Titles]] = {}
+    for category, items_list in BARKS_TAG_CATEGORIES.items():
+        tag_categories_titles[category] = sorted(list(__get_titles_for_tags_or_groups(items_list)))
     return tag_categories_titles
 
 
@@ -622,23 +670,27 @@ def get_all_tag_group_titles() -> Dict[TagGroups, List[Titles]]:
     Gets a dictionary mapping each TagGroup to a sorted list of unique titles
     associated with the tags in that group.
     """
-    tag_group_titles = {}
-
-    for tag_group in TagGroups:
-        tag_group_titles[tag_group] = __get_tag_titles(BARKS_TAG_GROUPS[tag_group])
-
+    tag_group_titles: Dict[TagGroups, List[Titles]] = {}
+    for tag_group, tags_list in BARKS_TAG_GROUPS.items():
+        tag_group_titles[tag_group] = sorted(list(__get_titles_for_tags_or_groups(tags_list)))
     return tag_group_titles
 
 
-def __get_tag_titles(tag_list: List[Union[Tags, TagGroups]]) -> List[Titles]:
-    title_list = []
-    for tag in tag_list:
-        if type(tag) == TagGroups:
-            title_list.extend(__get_tag_titles(BARKS_TAG_GROUPS[TagGroups(tag)]))
-        else:
-            title_list.extend([t for t in BARKS_TAGGED_TITLES[tag]])
-
-    return sorted(list(set(title_list)))
+def __get_titles_for_tags_or_groups(items_list: List[Union[Tags, TagGroups]]) -> Set[Titles]:
+    """
+    Helper function to recursively collect all unique titles for a list
+    that may contain individual Tags or TagGroups.
+    """
+    collected_titles: Set[Titles] = set()
+    for item in items_list:
+        if isinstance(item, TagGroups):
+            # Recursively get titles for tags within this group
+            if item in BARKS_TAG_GROUPS:
+                collected_titles.update(__get_titles_for_tags_or_groups(BARKS_TAG_GROUPS[item]))
+        elif isinstance(item, Tags):
+            if item in BARKS_TAGGED_TITLES:
+                collected_titles.update(BARKS_TAGGED_TITLES[item])
+    return collected_titles
 
 
 BARKS_TAG_CATEGORIES_TITLES: Dict[TagCategories, List[Titles]] = get_tag_categories_titles()
