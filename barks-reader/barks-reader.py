@@ -112,11 +112,15 @@ class TitleSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
     SPINNER_BACKGROUND_COLOR = (0, 0, 1, 1)
     NODE_SIZE = (dp(100), dp(30))
 
-    on_pressed = None
+    on_title_search_box_pressed = None
+    on_title_search_box_title_pressed = None
 
     def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            self.on_pressed(self)
+        if self.title_search_box.collide_point(*touch.pos):
+            self.on_title_search_box_pressed(self)
+            return super().on_touch_down(touch)
+        if self.title_spinner.collide_point(*touch.pos):
+            self.on_title_search_box_title_pressed(self)
             return super().on_touch_down(touch)
         return False
 
@@ -136,6 +140,7 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
     NODE_SIZE = (dp(100), dp(60))
 
     on_tag_search_box_pressed = None
+    on_tag_search_box_tag_pressed = None
     on_tag_search_box_title_pressed = None
 
     def on_touch_down(self, touch):
@@ -143,6 +148,7 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
             self.on_tag_search_box_pressed(self)
             return super().on_touch_down(touch)
         if self.tag_spinner.collide_point(*touch.pos):
+            self.on_tag_search_box_tag_pressed(self)
             return super().on_touch_down(touch)
         if self.tag_title_spinner.collide_point(*touch.pos):
             self.on_tag_search_box_title_pressed(self)
@@ -317,7 +323,16 @@ class MainScreen(BoxLayout):
         self.current_tree_node = TreeNodes.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET
         self.update_visibilities()
 
-        instance.spinner.text = ""
+        if not instance.title_search_box.text:
+            instance.title_spinner.text = ""
+
+    def title_search_box_title_pressed(self, instance):
+        print("Title search box title pressed", instance)
+
+        self.current_tree_node = TreeNodes.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET
+        self.update_visibilities()
+
+        instance.title_spinner.text = ""
 
     def title_search_box_text_changed(self, instance, value):
         print("Title search box text changed", instance, "text:", value)
@@ -326,19 +341,21 @@ class MainScreen(BoxLayout):
         self.update_visibilities()
 
         if len(value) <= 1:
-            instance.spinner.text = ""
-            instance.spinner.is_open = False
+            instance.title_spinner.text = ""
+            instance.title_spinner.is_open = False
         else:
             titles = self.get_titles_matching_search_title_str(str(value))
             if titles:
-                instance.spinner.values = titles
-                instance.spinner.text = titles[0]
-                instance.spinner.is_open = True
-                self.title_search_box_spinner_value_changed(instance.spinner, instance.spinner.text)
+                instance.title_spinner.values = titles
+                instance.title_spinner.text = titles[0]
+                instance.title_spinner.is_open = True
+                self.title_search_box_spinner_value_changed(
+                    instance.title_spinner, instance.title_spinner.text
+                )
             else:
-                instance.spinner.values = []
-                instance.spinner.text = ""
-                instance.spinner.is_open = False
+                instance.title_spinner.values = []
+                instance.title_spinner.text = ""
+                instance.title_spinner.is_open = False
 
     def title_search_box_spinner_value_changed(self, _spinner: Spinner, title_str: str):
         print(f'Title search box spinner value changed: "{title_str}".')
@@ -357,17 +374,32 @@ class MainScreen(BoxLayout):
         self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
         self.update_visibilities()
 
-        instance.tag_spinner.text = ""
-        instance.tag_title_spinner.text = ""
         self.tag_search_box_title_spinner = instance.tag_title_spinner
+
+        if not instance.tag_search_box.text:
+            instance.tag_spinner.text = ""
+            instance.tag_title_spinner.text = ""
+
+    def tag_search_box_tag_spinner_pressed(self, instance):
+        print("Tag search box tag spinner pressed", instance)
+
+        # TODO: Is this correct?
+        self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
+        self.update_visibilities()
+
+        # instance.tag_title_spinner.text = ""
 
     def tag_search_box_title_spinner_pressed(self, instance):
         print("Tag search box title spinner pressed", instance)
 
+        # TODO: Is this correct?
         self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
         self.update_visibilities()
 
-        instance.tag_title_spinner.text = ""
+        if instance.tag_spinner.text and not instance.tag_title_spinner.text:
+            self.tag_search_box_tag_spinner_value_changed(
+                instance.tag_spinner, instance.tag_spinner.text
+            )
 
     def tag_search_box_text_changed(self, instance, value):
         print("Tag search box text changed", instance, "text:", value)
@@ -375,13 +407,12 @@ class MainScreen(BoxLayout):
         self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
         self.update_visibilities()
 
-        self.tag_search_box_title_spinner.values = []
-        self.tag_search_box_title_spinner.text = ""
-        self.tag_search_box_title_spinner.is_open = False
-
         if len(value) <= 1:
             instance.tag_spinner.text = ""
             instance.tag_spinner.is_open = False
+            instance.tag_title_spinner.values = []
+            instance.tag_title_spinner.text = ""
+            instance.tag_title_spinner.is_open = False
         else:
             tags = self.get_tags_matching_search_tag_str(str(value))
             if tags:
@@ -391,6 +422,9 @@ class MainScreen(BoxLayout):
                 instance.tag_spinner.values = []
                 instance.tag_spinner.text = ""
                 instance.tag_spinner.is_open = False
+                instance.tag_title_spinner.values = []
+                instance.tag_title_spinner.text = ""
+                instance.tag_title_spinner.is_open = False
 
     def tag_search_box_tag_spinner_value_changed(self, _spinner: Spinner, tag_str: str):
         print(f'Tag search box tag spinner value changed: "{tag_str}".')
@@ -749,13 +783,15 @@ class BarksReaderApp(App):
         search_node = tree.add_node(label)
 
         label = TitleSearchBoxTreeViewNode()
-        label.on_pressed = self.main_screen.title_search_box_pressed
+        label.on_title_search_box_pressed = self.main_screen.title_search_box_pressed
+        label.on_title_search_box_title_pressed = self.main_screen.title_search_box_title_pressed
         label.bind(text=self.main_screen.title_search_box_text_changed)
-        label.spinner.bind(text=self.main_screen.title_search_box_spinner_value_changed)
+        label.title_spinner.bind(text=self.main_screen.title_search_box_spinner_value_changed)
         tree.add_node(label, parent=search_node)
 
         label = TagSearchBoxTreeViewNode()
         label.on_tag_search_box_pressed = self.main_screen.tag_search_box_pressed
+        label.on_tag_search_box_tag_pressed = self.main_screen.tag_search_box_tag_spinner_pressed
         label.on_tag_search_box_title_pressed = (
             self.main_screen.tag_search_box_title_spinner_pressed
         )
