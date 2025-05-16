@@ -19,6 +19,10 @@ BARKS_EXTRA_INFO = {
     ' in their dialogue." Accordingly, in this digital edition, the Southern accents have been'
     " restored to what Barks originally intended, using [i]Dis, Dat, Dey, D', De,[/i] and"
     " [i]Dere.[/i] (Pages 20-24, 26-29, and 31, reconstructed by GLK, April 2025)",
+    Titles.VOODOO_HOODOO: "From 'www.seriesam.com': Barks originally drew 'Bombie the Zombie'"
+    " with blank eyeballs. The editors at Western Publishing feared that the vacant eyes might"
+    " frighten children and so they added pupils and half-closed lids. In this digital edition"
+    " Bombie has been changed back to having blank eyeballs.",
     Titles.WINTERTIME_WAGER: "First appearance of [b][i]Gladstone Gander.[/i][/b]",
     Titles.OPERATION_ST_BERNARD: "First appearance of [b][i]The Junior Woodchucks.[/i][/b]",
     Titles.PIXILATED_PARROT_THE: "First appearance of what looks like the [b][i]Money Bin[/i][/b]"
