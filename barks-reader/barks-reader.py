@@ -320,11 +320,10 @@ class MainScreen(BoxLayout):
     def title_search_box_pressed(self, instance):
         print("Title search box pressed", instance)
 
-        self.current_tree_node = TreeNodes.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET
-        self.update_visibilities()
-
         if not instance.title_search_box.text:
             instance.title_spinner.text = ""
+            self.current_tree_node = TreeNodes.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET
+            self.update_visibilities()
 
     def title_search_box_title_pressed(self, instance):
         print("Title search box title pressed", instance)
@@ -371,12 +370,11 @@ class MainScreen(BoxLayout):
     def tag_search_box_pressed(self, instance):
         print("Tag search box pressed", instance)
 
-        self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
-        self.update_visibilities()
-
         self.tag_search_box_title_spinner = instance.tag_title_spinner
 
         if not instance.tag_search_box.text:
+            self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
+            self.update_visibilities()
             instance.tag_spinner.text = ""
             instance.tag_title_spinner.text = ""
 
@@ -387,7 +385,7 @@ class MainScreen(BoxLayout):
         self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
         self.update_visibilities()
 
-        # instance.tag_title_spinner.text = ""
+        instance.tag_title_spinner.text = ""
 
     def tag_search_box_title_spinner_pressed(self, instance):
         print("Tag search box title spinner pressed", instance)
@@ -396,10 +394,12 @@ class MainScreen(BoxLayout):
         self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
         self.update_visibilities()
 
-        if instance.tag_spinner.text and not instance.tag_title_spinner.text:
-            self.tag_search_box_tag_spinner_value_changed(
-                instance.tag_spinner, instance.tag_spinner.text
-            )
+        instance.tag_title_spinner.text = ""
+        #
+        # if instance.tag_spinner.text and not instance.tag_title_spinner.text:
+        #     self.tag_search_box_tag_spinner_value_changed(
+        #         instance.tag_spinner, instance.tag_spinner.text
+        #     )
 
     def tag_search_box_text_changed(self, instance, value):
         print("Tag search box text changed", instance, "text:", value)
