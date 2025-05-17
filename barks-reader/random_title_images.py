@@ -1,5 +1,5 @@
 from random import randrange
-from typing import List
+from typing import List, Tuple
 
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
 from file_paths import (
@@ -12,6 +12,17 @@ from file_paths import (
     get_comic_favourite_files,
     get_comic_original_art_files,
 )
+
+Color = Tuple[int, int, int, int]
+
+
+def get_random_color() -> Color:
+    return (
+        randrange(100, 255) / 255.0,
+        randrange(100, 255) / 255.0,
+        randrange(100, 255) / 255.0,
+        randrange(220, 250) / 255.0,
+    )
 
 
 def get_random_image(title_list: List[FantaComicBookInfo]) -> str:
