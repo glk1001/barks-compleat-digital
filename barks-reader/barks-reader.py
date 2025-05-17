@@ -12,14 +12,18 @@ from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.properties import ObjectProperty, StringProperty
+from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.image import Image
+from kivy.uix.scrollview import ScrollView
 from kivy.uix.spinner import Spinner
+from kivy.uix.textinput import TextInput
 from kivy.uix.treeview import TreeView, TreeViewNode
 
+from background_views import BackgroundViews
 from barks_fantagraphics.barks_tags import (
     Tags,
     TagCategories,
@@ -230,22 +234,22 @@ class MainScreen(BoxLayout):
     BOTTOM_VIEW_BEFORE_IMAGE_ENABLED_BG = (1, 0, 0, 0.5)
     BOTTOM_VIEW_BEFORE_IMAGE_DISABLED_BG = (0, 0, 0, 0)
 
-    top_view_image = ObjectProperty()
-    bottom_view = ObjectProperty()
-    reader_contents = ObjectProperty()
+    reader_contents: ScrollView = ObjectProperty()
     reader_tree_view: ReaderTreeView = ObjectProperty()
-    intro_text = ObjectProperty()
+    intro_text: TextInput = ObjectProperty()
     main_title = ObjectProperty()
     title_info = ObjectProperty()
     extra_title_info = ObjectProperty()
     title_page_image = ObjectProperty()
     title_page_button = ObjectProperty()
 
+    top_view_image: Image = ObjectProperty()
+    bottom_view: AnchorLayout = ObjectProperty()
+
     def __init__(self, filtered_title_lists: FilteredTitleLists, **kwargs):
         super().__init__(**kwargs)
 
         self.formatter = ReaderFormatter()
-
         self.fanta_info: Union[FantaComicBookInfo, None] = None
 
         self.title_lists: Dict[str, List[FantaComicBookInfo]] = (
@@ -262,8 +266,9 @@ class MainScreen(BoxLayout):
             get_the_comic_zips_dir(),
         )
 
+        self.background_views = BackgroundViews(self.title_lists)
         self.top_view_image.color = (1, 1, 1, 0.5)
-        self.bottom_view_before_image.color = self.BOTTOM_VIEW_BEFORE_IMAGE_ENABLED_BG
+        self.bottom_view.before_image.color = self.BOTTOM_VIEW_BEFORE_IMAGE_ENABLED_BG
 
         self.current_tree_node = TreeNodes.INITIAL
         self.current_year_range = ""
@@ -273,7 +278,7 @@ class MainScreen(BoxLayout):
         self.top_view_change_event = None
         self.bottom_view_change_after_event = None
 
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.INITIAL)
 
     def node_expanded(self, _tree: ReaderTreeView, node: TreeViewNode):
         if isinstance(node, YearRangeTreeViewNode):
@@ -297,40 +302,34 @@ class MainScreen(BoxLayout):
                 self.set_next_bottom_view_image()
 
     def intro_pressed(self, _button: Button):
-        self.current_tree_node = TreeNodes.ON_INTRO_NODE
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_INTRO_NODE)
 
         self.intro_text.text = "hello line 1\nhello line 2\nhello line 3\n"
 
     def the_stories_pressed(self, _button: Button):
-        self.current_tree_node = TreeNodes.ON_THE_STORIES_NODE
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_THE_STORIES_NODE)
 
     def search_pressed(self, _button: Button):
-        self.current_tree_node = TreeNodes.ON_SEARCH_NODE
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_SEARCH_NODE)
 
     def title_search_box_pressed(self, instance):
         print("Title search box pressed", instance)
 
         if not instance.title_search_box.text:
             instance.title_spinner.text = ""
-            self.current_tree_node = TreeNodes.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET
-            self.update_visibilities()
+            self.update_visibilities(TreeNodes.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET)
 
     def title_search_box_title_pressed(self, instance):
         print("Title search box title pressed", instance)
 
-        self.current_tree_node = TreeNodes.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET)
 
         instance.title_spinner.text = ""
 
     def title_search_box_text_changed(self, instance, value):
         print("Title search box text changed", instance, "text:", value)
 
-        self.current_tree_node = TreeNodes.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET)
 
         if len(value) <= 1:
             instance.title_spinner.text = ""
@@ -366,8 +365,7 @@ class MainScreen(BoxLayout):
         self.tag_search_box_title_spinner = instance.tag_title_spinner
 
         if not instance.tag_search_box.text:
-            self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
-            self.update_visibilities()
+            self.update_visibilities(TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
             instance.tag_spinner.text = ""
             instance.tag_title_spinner.text = ""
 
@@ -375,8 +373,7 @@ class MainScreen(BoxLayout):
         print("Tag search box tag spinner pressed", instance)
 
         # TODO: Is this correct?
-        self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
         instance.tag_title_spinner.text = ""
 
@@ -384,8 +381,7 @@ class MainScreen(BoxLayout):
         print("Tag search box title spinner pressed", instance)
 
         # TODO: Is this correct?
-        self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
         instance.tag_title_spinner.text = ""
         #
@@ -397,8 +393,7 @@ class MainScreen(BoxLayout):
     def tag_search_box_text_changed(self, instance, value):
         print("Tag search box text changed", instance, "text:", value)
 
-        self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
         if len(value) <= 1:
             instance.tag_spinner.text = ""
@@ -432,8 +427,7 @@ class MainScreen(BoxLayout):
             self.tag_search_box_title_spinner.is_open = False
             return
 
-        self.current_tree_node = TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
         self.tag_search_box_title_spinner.values = self.title_search.get_titles_as_strings(titles)
         self.tag_search_box_title_spinner.text = self.tag_search_box_title_spinner.values[0]
@@ -459,8 +453,7 @@ class MainScreen(BoxLayout):
         if title_str not in self.all_fanta_titles:
             return
 
-        self.current_tree_node = tree_node
-        self.update_visibilities()
+        self.update_visibilities(tree_node)
 
         self.fanta_info = self.all_fanta_titles[title_str]
         self.set_title()
@@ -470,48 +463,38 @@ class MainScreen(BoxLayout):
         return all_titles[self.title_dict[title_str]]
 
     def appendix_pressed(self, _button: Button):
-        self.current_tree_node = TreeNodes.ON_APPENDIX_NODE
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_APPENDIX_NODE)
 
     def index_pressed(self, _button: Button):
-        self.current_tree_node = TreeNodes.ON_INDEX_NODE
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_INDEX_NODE)
 
     def chrono_pressed(self, _button: Button):
-        self.current_tree_node = TreeNodes.ON_CHRONO_BY_YEAR_NODE
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_CHRONO_BY_YEAR_NODE)
 
     def year_range_pressed(self, button: Button):
-        self.current_tree_node = TreeNodes.ON_YEAR_RANGE_NODE
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_YEAR_RANGE_NODE)
 
         self.current_year_range = button.text
 
     def series_pressed(self, _button: Button):
-        self.current_tree_node = TreeNodes.ON_SERIES_NODE
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_SERIES_NODE)
 
     def cs_pressed(self, _button: Button):
-        self.current_tree_node = TreeNodes.ON_CS_NODE
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_CS_NODE)
 
     def dda_pressed(self, _button: Button):
-        self.current_tree_node = TreeNodes.ON_DDA_NODE
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_DDA_NODE)
 
     def categories_pressed(self, _button: Button):
-        self.current_tree_node = TreeNodes.ON_CATEGORIES_NODE
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_CATEGORIES_NODE)
 
     def category_pressed(self, button: Button):
-        self.current_tree_node = TreeNodes.ON_CATEGORY_NODE
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_CATEGORY_NODE)
 
         self.current_category = button.text
 
     def title_row_button_pressed(self, button: Button):
-        self.current_tree_node = TreeNodes.ON_TITLE_NODE
-        self.update_visibilities()
+        self.update_visibilities(TreeNodes.ON_TITLE_NODE)
 
         self.fanta_info = button.parent.fanta_info
         self.set_title()
@@ -526,7 +509,7 @@ class MainScreen(BoxLayout):
         self.title_info.text = self.formatter.get_title_info(self.fanta_info)
         self.extra_title_info.text = self.formatter.get_extra_title_info(self.fanta_info)
         self.title_page_image.source = comic_inset_file
-        self.bottom_view_before_image.source = title_info_image
+        self.bottom_view.before_image.source = title_info_image
 
     def get_main_title_str(self):
         if self.fanta_info.comic_book_info.is_barks_title:
@@ -555,12 +538,14 @@ class MainScreen(BoxLayout):
 
         print(f"Exited image press.")
 
-    def update_visibilities(self):
+    def update_visibilities(self, tree_node: TreeNodes):
+        self.current_tree_node = tree_node
+
         if self.current_tree_node == TreeNodes.ON_INTRO_NODE:
             self.bottom_view.opacity = 0.0
             self.intro_text.opacity = 1.0
-            self.bottom_view_after_image.color = self.BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG
-            self.bottom_view_before_image.color = self.BOTTOM_VIEW_BEFORE_IMAGE_DISABLED_BG
+            self.bottom_view.after_image.color = self.BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG
+            self.bottom_view.before_image.color = self.BOTTOM_VIEW_BEFORE_IMAGE_DISABLED_BG
         elif self.current_tree_node in [
             TreeNodes.ON_TITLE_SEARCH_BOX_NODE,
             TreeNodes.ON_TITLE_NODE,
@@ -568,13 +553,13 @@ class MainScreen(BoxLayout):
         ]:
             self.bottom_view.opacity = 1.0
             self.intro_text.opacity = 0.0
-            self.bottom_view_after_image.color = self.BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG
-            self.bottom_view_before_image.color = self.BOTTOM_VIEW_BEFORE_IMAGE_ENABLED_BG
+            self.bottom_view.after_image.color = self.BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG
+            self.bottom_view.before_image.color = self.BOTTOM_VIEW_BEFORE_IMAGE_ENABLED_BG
         else:
             self.bottom_view.opacity = 1.0
             self.intro_text.opacity = 0.0
-            self.bottom_view_after_image.color = self.BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG
-            self.bottom_view_before_image.color = self.BOTTOM_VIEW_BEFORE_IMAGE_DISABLED_BG
+            self.bottom_view.after_image.color = self.BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG
+            self.bottom_view.before_image.color = self.BOTTOM_VIEW_BEFORE_IMAGE_DISABLED_BG
 
         self.set_next_top_view_image()
         self.set_next_bottom_view_image()
@@ -655,9 +640,9 @@ class MainScreen(BoxLayout):
         ]:
             return
 
-        self.bottom_view_after_image.source = get_random_image(self.title_lists[ALL_LISTS])
+        self.bottom_view.after_image.source = get_random_image(self.title_lists[ALL_LISTS])
         print(
-            f"Bottom view after image: '{os.path.basename(self.bottom_view_after_image.source)}'."
+            f"Bottom view after image: '{os.path.basename(self.bottom_view.after_image.source)}'."
         )
 
         self.set_next_bottom_view_after_image_bg()
@@ -669,11 +654,11 @@ class MainScreen(BoxLayout):
         else:
             rand_index = randrange(0, 3)
             rand_color_val = randrange(230, 255) / 255.0
-            rand_color = [0.1, 0.1, 0.1, self.bottom_view_after_image.color[3]]
+            rand_color = [0.1, 0.1, 0.1, self.bottom_view.after_image.color[3]]
             rand_color[rand_index] = rand_color_val
 
-        self.bottom_view_after_image.color = tuple(rand_color)
-        print(f"Bottom view after image bg = {self.bottom_view_after_image.color}")
+        self.bottom_view.after_image.color = tuple(rand_color)
+        print(f"Bottom view after image bg = {self.bottom_view.after_image.color}")
 
     def schedule_top_view_event(self):
         if self.top_view_change_event:

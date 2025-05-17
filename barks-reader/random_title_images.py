@@ -12,8 +12,7 @@ from file_paths import (
     get_comic_favourite_files,
     get_comic_original_art_files,
 )
-
-Color = Tuple[int, int, int, int]
+from reader_types import Color
 
 
 def get_random_color() -> Color:

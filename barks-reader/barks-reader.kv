@@ -16,9 +16,9 @@
 <MainScreen>:
     orientation: 'vertical' if self.width < self.height else 'horizontal'
     size_hint: (1, 1)
-    reader_contents: scroll_view
-    intro_text: intro_text_box
-    reader_tree_view: tree_view
+    reader_contents: scroll_view_id
+    intro_text: intro_text_box_id
+    reader_tree_view: reader_tree_view_id
     title_page_button: title_page_button_id
     title_page_image: title_page_image_id
     main_title: main_title_id
@@ -26,8 +26,6 @@
     extra_title_info: extra_title_info_id
     top_view_image: top_view_image_id
     bottom_view: bottom_view_id
-    bottom_view_after_image: bottom_view_after_image_id
-    bottom_view_before_image: bottom_view_before_image_id
 
     AnchorLayout:
         anchor_x: "left"
@@ -56,7 +54,7 @@
                 mipmap: True
 
             ScrollView:
-                id: scroll_view
+                id: scroll_view_id
                 size_hint: (1, 0.97)
 
                 do_scroll_x: False
@@ -70,7 +68,7 @@
                 bar_width: dp(8)
 
                 ReaderTreeView:
-                    id: tree_view
+                    id: reader_tree_view_id
                     padding: dp(50)
                     indent_start: dp(50)
                     background_color: (0,1,0,1)
@@ -80,7 +78,7 @@
         anchor_y: "center"
 
         TextInput:
-            id: intro_text_box
+            id: intro_text_box_id
             multiline: True
             readonly: True
             background_color: (1, 1, 1, 1)
@@ -90,6 +88,9 @@
         AnchorLayout:
             anchor_x: "center"
             anchor_y: "center"
+            id: bottom_view_id
+            after_image: bottom_view_after_image_id
+            before_image: bottom_view_before_image_id
 
             Image:
                 id: bottom_view_before_image_id
@@ -102,7 +103,6 @@
                 mipmap: True
 
             BoxLayout:
-                id: bottom_view_id
                 orientation: "vertical"
                 opacity: 1
 
