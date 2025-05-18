@@ -1,13 +1,11 @@
+import logging
 from typing import Union, Dict, List
 
-from kivy.core.image import Image
-from kivy.properties import ObjectProperty
-from kivy.uix.anchorlayout import AnchorLayout
+from kivy.metrics import sp
+from kivy.properties import ObjectProperty, StringProperty, ColorProperty, NumericProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.uix.scrollview import ScrollView
 from kivy.uix.spinner import Spinner
-from kivy.uix.textinput import TextInput
 from kivy.uix.treeview import TreeViewNode
 
 from background_views import BackgroundViews, ViewStates
@@ -23,7 +21,6 @@ from barks_fantagraphics.fanta_comics_info import (
     get_all_fanta_comic_book_info,
     SERIES_CS,
     SERIES_DDA,
-    ALL_LISTS,
 )
 from barks_fantagraphics.title_search import BarksTitleSearch, unique_extend
 from file_paths import (
@@ -37,32 +34,44 @@ from filtered_title_lists import FilteredTitleLists
 from mcomix_reader import ComicReader
 from random_title_images import get_random_title_image
 from reader_formatter import ReaderFormatter
-from reader_ui_classes import ReaderTreeView, YearRangeTreeViewNode, StoryGroupTreeViewNode
+from reader_ui_classes import (
+    ReaderTreeView,
+    YearRangeTreeViewNode,
+    StoryGroupTreeViewNode,
+    TitleSearchBoxTreeViewNode,
+    TagSearchBoxTreeViewNode,
+)
 
 
 class MainScreen(BoxLayout):
     MAIN_TITLE_BACKGROUND_COLOR = (1, 1, 1, 0.05)
     MAIN_TITLE_COLOR = (1, 1, 0, 1)
+    MAIN_TITLE_FONT_NAME = "Carl Barks Script"
+    MAIN_TITLE_FONT_SIZE = sp(28)
+    main_title_text = StringProperty()
+
     TITLE_INFO_LABEL_COLOR = (1.0, 0.99, 0.9, 1.0)
     TITLE_EXTRA_INFO_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
+    title_info_text = StringProperty()
+    extra_title_info_text = StringProperty()
+    title_page_image_source = StringProperty()
+
     DEBUG_BACKGROUND_OPACITY = 0
 
-    BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG = (1, 0, 0, 1)
-    BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG = (1, 0, 0, 0)
-    BOTTOM_VIEW_BEFORE_IMAGE_ENABLED_BG = (1, 0, 0, 0.5)
-    BOTTOM_VIEW_BEFORE_IMAGE_DISABLED_BG = (0, 0, 0, 0)
-
-    reader_contents: ScrollView = ObjectProperty()
     reader_tree_view: ReaderTreeView = ObjectProperty()
-    intro_text: TextInput = ObjectProperty()
-    main_title = ObjectProperty()
-    title_info = ObjectProperty()
-    extra_title_info = ObjectProperty()
-    title_page_image = ObjectProperty()
-    title_page_button = ObjectProperty()
 
-    top_view_image: Image = ObjectProperty()
-    bottom_view: AnchorLayout = ObjectProperty()
+    intro_text = StringProperty()
+    intro_text_opacity = NumericProperty(0.0)
+
+    top_view_image_source = StringProperty()
+    top_view_image_color = ColorProperty()
+    top_view_image_opacity = NumericProperty(1.0)
+
+    bottom_view_opacity = NumericProperty(1.0)
+    bottom_view_after_image_source = StringProperty()
+    bottom_view_after_image_color = ColorProperty()
+    bottom_view_before_image_source = StringProperty()
+    bottom_view_before_image_color = ColorProperty()
 
     def __init__(self, filtered_title_lists: FilteredTitleLists, **kwargs):
         super().__init__(**kwargs)
@@ -85,11 +94,6 @@ class MainScreen(BoxLayout):
         )
 
         self.background_views = BackgroundViews(self.title_lists)
-        self.top_view_image.color = (1, 1, 1, 0.5)
-        self.bottom_view.before_image.color = self.BOTTOM_VIEW_BEFORE_IMAGE_ENABLED_BG
-
-        self.tag_search_box_title_spinner = None
-
         self.update_background_views(ViewStates.INITIAL)
 
     def node_expanded(self, _tree: ReaderTreeView, node: TreeViewNode):
@@ -106,7 +110,7 @@ class MainScreen(BoxLayout):
     def intro_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_INTRO_NODE)
 
-        self.intro_text.text = "hello line 1\nhello line 2\nhello line 3\n"
+        self.intro_text = "hello line 1\nhello line 2\nhello line 3\n"
 
     def the_stories_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_THE_STORIES_NODE)
@@ -114,130 +118,91 @@ class MainScreen(BoxLayout):
     def search_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_SEARCH_NODE)
 
-    def title_search_box_pressed(self, instance):
-        print("Title search box pressed", instance)
+    def title_search_box_pressed(self, instance: TitleSearchBoxTreeViewNode):
+        logging.debug(f"Title search box pressed: {instance}.")
 
         if not instance.title_search_box.text:
-            instance.title_spinner.text = ""
+            instance.set_empty_title_spinner_text()
             self.update_background_views(ViewStates.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET)
 
-    def title_search_box_title_pressed(self, instance):
-        print("Title search box title pressed", instance)
+    def title_search_box_title_pressed(self, instance: TitleSearchBoxTreeViewNode):
+        logging.debug(f"Title search box tite pressed: {instance}.")
 
         self.update_background_views(ViewStates.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET)
 
-        instance.title_spinner.text = ""
-
-    def title_search_box_text_changed(self, instance, value):
-        print("Title search box text changed", instance, "text:", value)
-
-        self.update_background_views(ViewStates.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET)
-
-        if len(value) <= 1:
-            instance.title_spinner.text = ""
-            instance.title_spinner.is_open = False
-        else:
-            titles = self.get_titles_matching_search_title_str(str(value))
-            if titles:
-                instance.title_spinner.values = titles
-                instance.title_spinner.text = titles[0]
-                instance.title_spinner.is_open = True
-                self.title_search_box_spinner_value_changed(
-                    instance.title_spinner, instance.title_spinner.text
-                )
-            else:
-                instance.title_spinner.values = []
-                instance.title_spinner.text = ""
-                instance.title_spinner.is_open = False
+        instance.set_empty_title_spinner_text()
 
     def title_search_box_spinner_value_changed(self, _spinner: Spinner, title_str: str):
-        print(f'Title search box spinner value changed: "{title_str}".')
+        logging.debug(f'Title search box spinner value changed: title_str: "{title_str}".')
+        if not title_str:
+            return
+
         self.update_background_views(ViewStates.ON_TITLE_SEARCH_BOX_NODE)
         self.update_title(title_str)
 
-    def get_titles_matching_search_title_str(self, value: str) -> List[str]:
-        title_list = self.title_search.get_titles_matching_prefix(value)
-        if len(value) > 2:
-            unique_extend(title_list, self.title_search.get_titles_containing(value))
-
-        return self.title_search.get_titles_as_strings(title_list)
-
-    def tag_search_box_pressed(self, instance):
-        print("Tag search box pressed", instance)
-
-        self.tag_search_box_title_spinner = instance.tag_title_spinner
+    def tag_search_box_pressed(self, instance: TagSearchBoxTreeViewNode):
+        logging.debug(f"Tag search box pressed: {instance}.")
 
         if not instance.tag_search_box.text:
             self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
-            instance.tag_spinner.text = ""
-            instance.tag_title_spinner.text = ""
+            instance.set_empty_tag_spinner_text()
 
     def tag_search_box_tag_spinner_pressed(self, instance):
-        print("Tag search box tag spinner pressed", instance)
+        logging.debug(f"Tag search box tag spinner pressed: {instance}.")
 
         # TODO: Is this correct?
         self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
-        instance.tag_title_spinner.text = ""
+        instance.set_empty_title_spinner_text()
 
     def tag_search_box_title_spinner_pressed(self, instance):
-        print("Tag search box title spinner pressed", instance)
+        logging.debug(f"Tag search box tag title spinner pressed: {instance}.")
 
         # TODO: Is this correct?
         self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
-        instance.tag_title_spinner.text = ""
+        instance.set_empty_title_spinner_text()
         #
         # if instance.tag_spinner.text and not instance.tag_title_spinner.text:
         #     self.tag_search_box_tag_spinner_value_changed(
         #         instance.tag_spinner, instance.tag_spinner.text
         #     )
 
-    def tag_search_box_text_changed(self, instance, value):
-        print("Tag search box text changed", instance, "text:", value)
+    def tag_search_box_text_changed(self, instance: TagSearchBoxTreeViewNode, value):
+        logging.debug(f'Tag search box text changed: {instance}, text: "{value}".')
 
         self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
         if len(value) <= 1:
-            instance.tag_spinner.text = ""
-            instance.tag_spinner.is_open = False
-            instance.tag_title_spinner.values = []
-            instance.tag_title_spinner.text = ""
-            instance.tag_title_spinner.is_open = False
+            instance.set_empty_tag_spinner_values()
+            instance.set_empty_title_spinner_values()
         else:
             tags = self.get_tags_matching_search_tag_str(str(value))
             if tags:
-                instance.tag_spinner.values = sorted([str(t.value) for t in tags])
-                instance.tag_spinner.is_open = True
+                instance.set_tag_spinner_values(sorted([str(t.value) for t in tags]))
             else:
-                instance.tag_spinner.values = []
-                instance.tag_spinner.text = ""
-                instance.tag_spinner.is_open = False
-                instance.tag_title_spinner.values = []
-                instance.tag_title_spinner.text = ""
-                instance.tag_title_spinner.is_open = False
+                instance.set_empty_tag_spinner_values()
+                instance.set_empty_title_spinner_values()
 
-    def tag_search_box_tag_spinner_value_changed(self, _spinner: Spinner, tag_str: str):
-        print(f'Tag search box tag spinner value changed: "{tag_str}".')
+    def tag_search_box_tag_spinner_value_changed(self, spinner: Spinner, tag_str: str):
+        logging.debug(f'Tag search box tag spinner text changed: {spinner}, text: "{tag_str}".')
         if not tag_str:
             return
 
         titles = self.title_search.get_titles_from_alias_tag(tag_str.lower())
 
         if not titles:
-            self.tag_search_box_title_spinner.values = []
-            self.tag_search_box_title_spinner.text = ""
-            self.tag_search_box_title_spinner.is_open = False
+            spinner.parent.set_empty_title_spinner_values()
             return
 
         self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
-        self.tag_search_box_title_spinner.values = self.title_search.get_titles_as_strings(titles)
-        self.tag_search_box_title_spinner.text = self.tag_search_box_title_spinner.values[0]
-        self.tag_search_box_title_spinner.is_open = True
+        spinner.parent.set_title_spinner_values(self.title_search.get_titles_as_strings(titles))
 
-    def tag_search_box_title_spinner_value_changed(self, _spinner: Spinner, title_str: str):
-        print(f'Tag search box title spinner value changed: "{title_str}".')
+    def tag_search_box_title_spinner_value_changed(self, instance: Spinner, title_str: str):
+        logging.debug(
+            f'Tag search box title spinner text changed: {instance}, text: "{title_str}".'
+        )
         self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE)
         self.update_title(title_str)
 
@@ -259,10 +224,6 @@ class MainScreen(BoxLayout):
 
         self.fanta_info = self.all_fanta_titles[title_str]
         self.set_title()
-
-    def get_fanta_info_from_title(self, title_str) -> FantaComicBookInfo:
-        all_titles = self.title_lists[ALL_LISTS]
-        return all_titles[self.title_dict[title_str]]
 
     def appendix_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_APPENDIX_NODE)
@@ -305,37 +266,37 @@ class MainScreen(BoxLayout):
 
         self.background_views.set_view_state(tree_node)
 
-        self.intro_text.opacity = 0.0
+        self.intro_text_opacity = 0.0
 
-        self.top_view_image.opacity = self.background_views.get_top_view_image_opacity()
-        self.top_view_image.source = self.background_views.get_top_view_image_file()
-        self.top_view_image.color = self.background_views.get_top_view_image_color()
+        self.top_view_image_opacity = self.background_views.get_top_view_image_opacity()
+        self.top_view_image_source = self.background_views.get_top_view_image_file()
+        self.top_view_image_color = self.background_views.get_top_view_image_color()
 
-        self.bottom_view.opacity = self.background_views.get_bottom_view_image_opacity()
-        self.bottom_view.after_image.source = (
+        self.bottom_view_opacity = self.background_views.get_bottom_view_image_opacity()
+        self.bottom_view_after_image_source = (
             self.background_views.get_bottom_view_after_image_file()
         )
-        self.bottom_view.after_image.color = (
+        self.bottom_view_after_image_color = (
             self.background_views.get_bottom_view_after_image_color()
         )
-        self.bottom_view.before_image.source = (
+        self.bottom_view_before_image_source = (
             self.background_views.get_bottom_view_before_image_file()
         )
-        self.bottom_view.before_image.color = (
+        self.bottom_view_before_image_color = (
             self.background_views.get_bottom_view_before_image_color()
         )
 
     def set_title(self) -> None:
-        print(f'Setting title = "{self.fanta_info.comic_book_info.get_title_str()}".')
+        logging.debug(f'Setting title to "{self.fanta_info.comic_book_info.get_title_str()}".')
 
         comic_inset_file = get_comic_inset_file(self.fanta_info.comic_book_info.title)
         title_info_image = get_random_title_image(self.fanta_info.comic_book_info.get_title_str())
 
-        self.main_title.text = self.get_main_title_str()
-        self.title_info.text = self.formatter.get_title_info(self.fanta_info)
-        self.extra_title_info.text = self.formatter.get_extra_title_info(self.fanta_info)
-        self.title_page_image.source = comic_inset_file
-        self.bottom_view.before_image.source = title_info_image
+        self.main_title_text = self.get_main_title_str()
+        self.title_info_text = self.formatter.get_title_info(self.fanta_info)
+        self.extra_title_info_text = self.formatter.get_extra_title_info(self.fanta_info)
+        self.title_page_image_source = comic_inset_file
+        self.bottom_view_before_image_source = title_info_image
 
     def get_main_title_str(self):
         if self.fanta_info.comic_book_info.is_barks_title:
@@ -345,11 +306,13 @@ class MainScreen(BoxLayout):
 
     def image_pressed(self):
         if self.fanta_info is None:
-            print(f'Image "{self.title_page_image.source}" pressed. But no title selected.')
+            logging.debug(f'Image "{self.title_page_image_source}" pressed. But no title selected.')
             return
 
         if self.comic_reader.reader_is_running:
-            print(f'Image "{self.title_page_image.source}" pressed. But already reading comic.')
+            logging.debug(
+                f'Image "{self.title_page_image_source}" pressed. But already reading comic.'
+            )
             return
 
         comic_file_stem = get_dest_comic_zip_file_stem(
@@ -358,8 +321,10 @@ class MainScreen(BoxLayout):
             self.fanta_info.get_short_issue_title(),
         )
 
-        print(f'Image "{self.title_page_image.source}" pressed. Want to run "{comic_file_stem}".')
+        logging.debug(
+            f'Image "{self.title_page_image_source}" pressed. Want to run "{comic_file_stem}".'
+        )
 
         self.comic_reader.show_comic(comic_file_stem)
 
-        print(f"Exited image press.")
+        logging.debug(f"Comic reader is running.")

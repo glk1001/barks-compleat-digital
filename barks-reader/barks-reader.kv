@@ -16,16 +16,7 @@
 <MainScreen>:
     orientation: 'vertical' if self.width < self.height else 'horizontal'
     size_hint: (1, 1)
-    reader_contents: scroll_view_id
-    intro_text: intro_text_box_id
     reader_tree_view: reader_tree_view_id
-    title_page_button: title_page_button_id
-    title_page_image: title_page_image_id
-    main_title: main_title_id
-    title_info: title_info_id
-    extra_title_info: extra_title_info_id
-    top_view_image: top_view_image_id
-    bottom_view: bottom_view_id
 
     AnchorLayout:
         anchor_x: "left"
@@ -43,14 +34,13 @@
             anchor_y: "bottom"
 
             Image:
-                id: top_view_image_id
-                color: (1, 1, 1, 0.5)
+                color: root.top_view_image_color
+                opacity: root.top_view_image_opacity
+                source: root.top_view_image_source
                 x: self.parent.x
                 y: self.parent.y
                 size: self.parent.size
-                source: ""
                 fit_mode: "cover"
-                opacity: 1
                 mipmap: True
 
             ScrollView:
@@ -78,27 +68,24 @@
         anchor_y: "center"
 
         TextInput:
-            id: intro_text_box_id
+            text: root.intro_text
+            opacity: root.intro_text_opacity
+            background_color: (1, 1, 1, 1)
             multiline: True
             readonly: True
-            background_color: (1, 1, 1, 1)
-            opacity: 0.0
             size_hint: (1, 1)
 
         AnchorLayout:
             anchor_x: "center"
             anchor_y: "center"
-            id: bottom_view_id
-            after_image: bottom_view_after_image_id
-            before_image: bottom_view_before_image_id
+            opacity: root.bottom_view_opacity
 
             Image:
-                id: bottom_view_before_image_id
-                color: (1, 1, 1, 0.5)
+                color: root.bottom_view_before_image_color
+                source: root.bottom_view_before_image_source
                 x: self.parent.x
                 y: self.parent.y
                 size: self.parent.size
-                source: ""
                 fit_mode: "cover"
                 mipmap: True
 
@@ -114,10 +101,9 @@
                     text_size: (self.width, self.height)
 
                 BgColorLabel:
-                    id: main_title_id
-                    text: "The Colossalest Surprise Quiz Show"
-                    font_name: "Carl Barks Script"
-                    font_size: sp(28)
+                    text: root.main_title_text
+                    font_name: root.MAIN_TITLE_FONT_NAME
+                    font_size: root.MAIN_TITLE_FONT_SIZE
                     color: root.MAIN_TITLE_COLOR
                     background_color: root.MAIN_TITLE_BACKGROUND_COLOR
                     bold: True
@@ -164,7 +150,7 @@
                             size_hint: (1, 0.2)
 
                             BgColorLabel:
-                                text: "left1"
+                                text: "left1 filler"
                                 background_color: (1.0, 1.0, 0.0, 0.5)
                                 opacity: root.DEBUG_BACKGROUND_OPACITY
                                 size_hint: (0.06, 1)
@@ -173,8 +159,7 @@
                                 text_size: (self.width, self.height)
 
                             BgColorLabel:
-                                id: title_info_id
-                                text: "1st Issue:   [b]Comics & Stories 104, Oct 1949[/b]\nSubmitted: [b]10th January, 1949[/b]\nSource:       Fantagraphics CBDL, Vol 7"
+                                text: root.title_info_text
                                 color: root.TITLE_INFO_LABEL_COLOR
                                 background_color: 0, 1, 0, root.DEBUG_BACKGROUND_OPACITY
                                 markup: True
@@ -189,7 +174,7 @@
                             size_hint: (1, 0.05)
 
                             BgColorLabel:
-                                text: "left2"
+                                text: "left2 filler"
                                 background_color: (0.01, 1.0, 1.0, 0.5)
                                 opacity: root.DEBUG_BACKGROUND_OPACITY
                                 size_hint: (0.06, 1)
@@ -210,7 +195,7 @@
                             size_hint: (1, 0.5)
 
                             BgColorLabel:
-                                text: "left2"
+                                text: "left2 filler"
                                 background_color: (0.5, 1.0, 0.0, 0.5)
                                 opacity: root.DEBUG_BACKGROUND_OPACITY
                                 size_hint: (0.06, 1)
@@ -219,8 +204,7 @@
                                 text_size: (self.width, self.height)
 
                             BgColorLabel:
-                                id: extra_title_info_id
-                                text: "Blah blah blah\netc etc etc"
+                                text: root.extra_title_info_text
                                 color: root.TITLE_EXTRA_INFO_LABEL_COLOR
                                 background_color: 0, 1, 1, root.DEBUG_BACKGROUND_OPACITY
                                 multiline: True
@@ -270,7 +254,6 @@
                                             border_radius: 0, 0, 0, 0
                                             blur_radius: 20 if self.state == "normal" else 10
 
-                                    id: title_page_button_id
                                     background_color: (0.3, 0.3, 1.0, 0.5)
                                     size_hint: (1, 1)
                                     halign: "left"
@@ -278,11 +261,10 @@
                                     text_size: (self.width, self.height)
 
                                     TitlePageImage:
-                                        id: title_page_image_id
+                                        source: root.title_page_image_source
                                         x: self.parent.x + 0.5 * (1.0 - self.TITLE_IMAGE_X_FRAC_OF_PARENT) * self.parent.size[0]
                                         y: self.parent.y + 0.5 * (1.0 - self.TITLE_IMAGE_Y_FRAC_OF_PARENT) * self.parent.size[1]
                                         size: (self.TITLE_IMAGE_X_FRAC_OF_PARENT * self.parent.size[0], self.TITLE_IMAGE_Y_FRAC_OF_PARENT * self.parent.size[1])
-                                        source: ""
                                         fit_mode: "cover"
                                         mipmap: True
                                         on_press: root.image_pressed()
@@ -298,16 +280,15 @@
                     text: "bottom of title image filler"
                     background_color: (0.0, 1.0, 1.0, 0.5)
                     opacity: root.DEBUG_BACKGROUND_OPACITY
-                    size_hint: (1, 0.06)
                     #height: root.TITLE_INFO_BORDER_WIDTH
+                    size_hint: (1, 0.06)
                     text_size: (self.width, self.height)
 
             Image:
-                id: bottom_view_after_image_id
-                color: (1, 1, 1, 0.5)
+                color: root.bottom_view_after_image_color
+                source: root.bottom_view_after_image_source
                 x: self.parent.x
                 y: self.parent.y
                 size: self.parent.size
-                source: ""
                 fit_mode: "cover"
                 mipmap: True

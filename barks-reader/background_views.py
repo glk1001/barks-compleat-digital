@@ -1,3 +1,4 @@
+import logging
 import os
 from enum import Enum, auto
 from random import randrange
@@ -145,7 +146,7 @@ class BackgroundViews:
             case ViewStates.ON_DDA_NODE:
                 self.__top_view_image_file = get_random_image(self.title_lists[SERIES_DDA])
             case ViewStates.ON_CATEGORY_NODE:
-                print(f"Current category: '{self.__current_category}'")
+                logging.debug(f"Current category: '{self.__current_category}'")
                 if not self.__current_category:
                     self.__top_view_image_file = get_comic_inset_file(Titles.GOOD_NEIGHBORS)
                 else:
@@ -153,7 +154,7 @@ class BackgroundViews:
                         self.title_lists[self.__current_category]
                     )
             case ViewStates.ON_YEAR_RANGE_NODE:
-                print(f"Year range: '{self.__current_year_range}'")
+                logging.debug(f"Year range: '{self.__current_year_range}'")
                 if not self.__current_year_range:
                     self.__top_view_image_file = get_comic_inset_file(Titles.GOOD_NEIGHBORS)
                 else:
@@ -168,15 +169,16 @@ class BackgroundViews:
         self.__set_top_view_image_color()
         self.__schedule_top_view_event()
 
-        print(
-            f"Set top view. State: {self.__view_state}."
+        logging.debug(
+            f"Set top view:"
+            f" State: {self.__view_state},"
             f" Image: '{os.path.basename(self.__top_view_image_file)}',"
-            f" opacity: {self.__top_view_image_opacity}."
+            f" Color: '{self.__top_view_image_color}',"
+            f" Opacity: {self.__top_view_image_opacity}."
         )
 
     def __set_top_view_image_color(self):
         self.__top_view_image_color = get_random_color()
-        print(f"Top view image color = {self.__top_view_image_color}")
 
     def __set_bottom_view_after_image(self) -> None:
         if self.__view_state in [
@@ -192,9 +194,12 @@ class BackgroundViews:
         self.__set_bottom_view_after_image_color()
         self.__schedule_bottom_view_after_event()
 
-        print(
-            f"Bottom view after image: '{os.path.basename(self.__bottom_view_after_image_file)}',"
-            f" opacity: {self.__top_view_image_opacity}."
+        logging.debug(
+            f"Set Bottom view after image:"
+            f" State: {self.__view_state},"
+            f" Image: '{os.path.basename(self.__bottom_view_after_image_file)}',"
+            f" Color: '{self.__bottom_view_after_image_color}',"
+            f" Opacity: {self.__bottom_view_image_opacity}."
         )
 
     def __set_bottom_view_after_image_color(self):
@@ -207,7 +212,6 @@ class BackgroundViews:
             rand_color[rand_index] = rand_color_val
 
         self.__bottom_view_after_image_color = tuple(rand_color)
-        print(f"Bottom view after image color = {self.__bottom_view_after_image_color}")
 
     def __schedule_top_view_event(self):
         if self.__top_view_change_event:

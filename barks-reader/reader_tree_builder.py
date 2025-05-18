@@ -1,3 +1,4 @@
+import logging
 from typing import List, Callable
 
 from kivy.uix.treeview import TreeViewNode
@@ -16,6 +17,7 @@ from barks_fantagraphics.comics_utils import (
     get_short_formatted_submitted_date,
 )
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo, SERIES_CS, SERIES_DDA
+from barks_fantagraphics.title_search import BarksTitleSearch
 from filtered_title_lists import FilteredTitleLists
 from main_screen import MainScreen
 from reader_ui_classes import (
@@ -30,8 +32,9 @@ from reader_ui_classes import (
 
 
 class ReaderTreeBuilder:
-    def __init__(self, filtered_title_lists: FilteredTitleLists, main_screen: MainScreen):
+    def __init__(self, filtered_title_lists: FilteredTitleLists, title_search: BarksTitleSearch, main_screen: MainScreen):
         self.filtered_title_lists = filtered_title_lists
+        self.title_search = title_search
         self.main_screen = main_screen
 
     def build_main_screen_tree(self):
@@ -63,10 +66,9 @@ class ReaderTreeBuilder:
         label.bind(on_press=self.main_screen.search_pressed)
         search_node = tree.add_node(label)
 
-        label = TitleSearchBoxTreeViewNode()
+        label = TitleSearchBoxTreeViewNode(self.title_search)
         label.on_title_search_box_pressed = self.main_screen.title_search_box_pressed
         label.on_title_search_box_title_pressed = self.main_screen.title_search_box_title_pressed
-        label.bind(text=self.main_screen.title_search_box_text_changed)
         label.title_spinner.bind(text=self.main_screen.title_search_box_spinner_value_changed)
         tree.add_node(label, parent=search_node)
 
@@ -172,7 +174,7 @@ class ReaderTreeBuilder:
             # TODO: Very roundabout way to get fanta info
             title_str = BARKS_TITLES[title]
             if title_str not in self.main_screen.all_fanta_titles:
-                print(f'Skipped unconfigured title "{title_str}".')
+                logging.debug(f'Skipped unconfigured title "{title_str}".')
                 continue
             title_info = self.main_screen.all_fanta_titles[title_str]
             tree.add_node(self.__get_title_tree_view_node(title_info), parent=parent_node)

@@ -10,6 +10,7 @@ from kivy.lang import Builder
 from barks_fantagraphics.comics_cmd_args import CmdArgs
 from barks_fantagraphics.comics_database import ComicsDatabase
 from barks_fantagraphics.comics_utils import setup_logging
+from barks_fantagraphics.title_search import BarksTitleSearch
 from filtered_title_lists import FilteredTitleLists
 from main_screen import MainScreen
 from reader_tree_builder import ReaderTreeBuilder
@@ -38,6 +39,7 @@ class BarksReaderApp(App):
 
         self.comics_database = comics_db
         self.filtered_title_lists = FilteredTitleLists()
+        self.title_search = BarksTitleSearch()
 
         self.main_screen: Union[MainScreen, None] = None
 
@@ -53,7 +55,7 @@ class BarksReaderApp(App):
 
         self.main_screen = MainScreen(self.filtered_title_lists)
 
-        tree_builder = ReaderTreeBuilder(self.filtered_title_lists, self.main_screen)
+        tree_builder = ReaderTreeBuilder(self.filtered_title_lists, self.title_search, self.main_screen)
         tree_builder.build_main_screen_tree()
 
         self.title = APP_TITLE
@@ -70,7 +72,8 @@ if __name__ == "__main__":
         logging.error(error_msg)
         sys.exit(1)
 
-    setup_logging(cmd_args.get_log_level())
+    setup_logging(log_level=logging.DEBUG)
+#    setup_logging(cmd_args.get_log_level())
 
     comics_database = cmd_args.get_comics_database()
 

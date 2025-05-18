@@ -1,3 +1,6 @@
+import logging
+from typing import List
+
 from kivy.metrics import dp
 from kivy.properties import StringProperty
 from kivy.uix.behaviors import ButtonBehavior
@@ -5,9 +8,11 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.image import Image
+from kivy.uix.spinner import Spinner
 from kivy.uix.treeview import TreeView, TreeViewNode
 
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
+from barks_fantagraphics.title_search import unique_extend, BarksTitleSearch
 
 TREE_VIEW_NODE_TEXT_COLOR = (1, 1, 1, 1)
 TREE_VIEW_NODE_SELECTED_COLOR = (1, 0, 1, 0.8)
@@ -43,6 +48,27 @@ class TitleSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
     on_title_search_box_pressed = None
     on_title_search_box_title_pressed = None
 
+    def __init__(self, title_search: BarksTitleSearch):
+        super().__init__()
+        self.title_search = title_search
+        self.bind(text=self.search_box_text_changed)
+
+    def search_box_text_changed(self, instance, value: str):
+        logging.debug(f'**Title search box text changed: {instance}, text: "{value}".')
+
+        if len(value) <= 1:
+            instance.set_empty_title_spinner_text()
+        else:
+            titles = self.get_titles_matching_search_title_str(str(value))
+            instance.set_title_spinner_values(titles)
+
+    def get_titles_matching_search_title_str(self, value: str) -> List[str]:
+        title_list = self.title_search.get_titles_matching_prefix(value)
+        if len(value) > 2:
+            unique_extend(title_list, self.title_search.get_titles_containing(value))
+
+        return self.title_search.get_titles_as_strings(title_list)
+
     def on_touch_down(self, touch):
         if self.title_search_box.collide_point(*touch.pos):
             self.on_title_search_box_pressed(self)
@@ -51,6 +77,23 @@ class TitleSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
             self.on_title_search_box_title_pressed(self)
             return super().on_touch_down(touch)
         return False
+
+    def set_empty_title_spinner_text(self):
+        self.title_spinner.text = ""
+        self.title_spinner.is_open = False
+
+    def set_empty_title_spinner_values(self):
+        self.title_spinner.values = []
+        self.title_spinner.text = ""
+        self.title_spinner.is_open = False
+
+    def set_title_spinner_values(self, titles: List[str]):
+        if not titles:
+            self.set_empty_title_spinner_values()
+        else:
+            self.title_spinner.values = titles
+            self.title_spinner.text = titles[0]
+            self.title_spinner.is_open = True
 
 
 class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
@@ -82,6 +125,59 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
             self.on_tag_search_box_title_pressed(self)
             return super().on_touch_down(touch)
         return False
+
+    def set_empty_tag_spinner_text(self):
+        self.tag_spinner.text = ""
+        self.tag_spinner.is_open = False
+
+    def set_empty_tag_spinner_values(self):
+        self.tag_spinner.values = []
+        self.tag_spinner.text = ""
+        self.tag_spinner.is_open = False
+
+    def set_tag_spinner_values(self, titles: List[str]):
+        if not titles:
+            self.set_empty_tag_spinner_values()
+        else:
+            self.tag_spinner.values = titles
+            self.tag_spinner.text = titles[0]
+            self.tag_spinner.is_open = True
+
+    def set_empty_title_spinner_text(self):
+        self.tag_title_spinner.text = ""
+        self.tag_title_spinner.is_open = False
+
+    def set_empty_title_spinner_values(self):
+        self.tag_title_spinner.values = []
+        self.tag_title_spinner.text = ""
+        self.tag_title_spinner.is_open = False
+
+    def set_title_spinner_values(self, titles: List[str]):
+        if not titles:
+            self.set_empty_title_spinner_values()
+        else:
+            self.tag_title_spinner.values = titles
+            self.tag_title_spinner.text = titles[0]
+            self.tag_title_spinner.is_open = True
+
+
+class TagSearchBoxTagSpinner(Spinner):
+    def set_empty_text(self):
+        self.text = ""
+        self.is_open = False
+
+    def set_emptyvalues(self):
+        self.values = []
+        self.text = ""
+        self.is_open = False
+
+    def set_values(self, titles: List[str]):
+        if not titles:
+            self.set_empty_values()
+        else:
+            self.values = titles
+            self.text = titles[0]
+            self.is_open = True
 
 
 class StoryGroupTreeViewNode(Button, TreeViewNode):
