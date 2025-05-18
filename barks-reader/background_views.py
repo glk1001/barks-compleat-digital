@@ -107,9 +107,6 @@ class BackgroundViews:
 
     def set_view_state(self, view_state: ViewStates) -> None:
         self.__view_state = view_state
-
-        self.__set_top_view_image()
-        self.__set_bottom_view_after_image()
         self.__update_visibilities()
 
     def __set_top_view_image(self) -> None:
@@ -249,3 +246,11 @@ class BackgroundViews:
 
         self.__set_top_view_image()
         self.__set_bottom_view_after_image()
+
+        logging.debug(
+            f"Set Bottom view before image:"
+            f" State: {self.__view_state},"
+            f" Image: '{os.path.basename(self.__bottom_view_before_image_file)}',"
+            f" Color: '{self.__bottom_view_before_image_color}',"
+            f" Opacity: {self.__bottom_view_image_opacity}."
+        )

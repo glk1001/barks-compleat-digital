@@ -96,6 +96,14 @@ class MainScreen(BoxLayout):
         self.background_views = BackgroundViews(self.title_lists)
         self.update_background_views(ViewStates.INITIAL)
 
+        TagSearchBoxTreeViewNode.on_tag_search_box_text_changed = self.tag_search_box_text_changed
+        TagSearchBoxTreeViewNode.on_tag_search_box_tag_spinner_value_changed = (
+            self.tag_search_box_tag_spinner_value_changed
+        )
+        TagSearchBoxTreeViewNode.on_tag_search_box_title_spinner_value_changed = (
+            self.tag_search_box_title_spinner_value_changed
+        )
+
     def node_expanded(self, _tree: ReaderTreeView, node: TreeViewNode):
         if isinstance(node, YearRangeTreeViewNode):
             self.update_background_views(ViewStates.ON_YEAR_RANGE_NODE, year_range=node.text)
@@ -137,8 +145,8 @@ class MainScreen(BoxLayout):
         if not title_str:
             return
 
-        self.update_background_views(ViewStates.ON_TITLE_SEARCH_BOX_NODE)
         self.update_title(title_str)
+        self.update_background_views(ViewStates.ON_TITLE_SEARCH_BOX_NODE)
 
     def tag_search_box_pressed(self, instance: TagSearchBoxTreeViewNode):
         logging.debug(f"Tag search box pressed: {instance}.")
@@ -173,47 +181,22 @@ class MainScreen(BoxLayout):
 
         self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
-        if len(value) <= 1:
-            instance.set_empty_tag_spinner_values()
-            instance.set_empty_title_spinner_values()
-        else:
-            tags = self.get_tags_matching_search_tag_str(str(value))
-            if tags:
-                instance.set_tag_spinner_values(sorted([str(t.value) for t in tags]))
-            else:
-                instance.set_empty_tag_spinner_values()
-                instance.set_empty_title_spinner_values()
-
     def tag_search_box_tag_spinner_value_changed(self, spinner: Spinner, tag_str: str):
         logging.debug(f'Tag search box tag spinner text changed: {spinner}, text: "{tag_str}".')
         if not tag_str:
             return
 
-        titles = self.title_search.get_titles_from_alias_tag(tag_str.lower())
-
-        if not titles:
-            spinner.parent.set_empty_title_spinner_values()
-            return
-
-        self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
-
-        spinner.parent.set_title_spinner_values(self.title_search.get_titles_as_strings(titles))
+    #        self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
     def tag_search_box_title_spinner_value_changed(self, instance: Spinner, title_str: str):
         logging.debug(
             f'Tag search box title spinner text changed: {instance}, text: "{title_str}".'
         )
-        self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE)
         self.update_title(title_str)
-
-    def get_tags_matching_search_tag_str(self, value: str) -> List[Union[Tags, TagGroups]]:
-        tag_list = self.title_search.get_tags_matching_prefix(value)
-        # if len(value) > 2:
-        #     unique_extend(title_list, self.title_search.get_titles_containing(value))
-
-        return tag_list
+        self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE)
 
     def update_title(self, title_str: str):
+        logging.debug(f'Update title: "{title_str}".')
         if not title_str:
             return
 
@@ -290,13 +273,14 @@ class MainScreen(BoxLayout):
         logging.debug(f'Setting title to "{self.fanta_info.comic_book_info.get_title_str()}".')
 
         comic_inset_file = get_comic_inset_file(self.fanta_info.comic_book_info.title)
-        title_info_image = get_random_title_image(self.fanta_info.comic_book_info.get_title_str())
+        self.background_views.set_bottom_view_before_image(
+            get_random_title_image(self.fanta_info.comic_book_info.get_title_str())
+        )
 
         self.main_title_text = self.get_main_title_str()
         self.title_info_text = self.formatter.get_title_info(self.fanta_info)
         self.extra_title_info_text = self.formatter.get_extra_title_info(self.fanta_info)
         self.title_page_image_source = comic_inset_file
-        self.bottom_view_before_image_source = title_info_image
 
     def get_main_title_str(self):
         if self.fanta_info.comic_book_info.is_barks_title:

@@ -72,16 +72,11 @@ class ReaderTreeBuilder:
         label.title_spinner.bind(text=self.main_screen.title_search_box_spinner_value_changed)
         tree.add_node(label, parent=search_node)
 
-        label = TagSearchBoxTreeViewNode()
+        label = TagSearchBoxTreeViewNode(self.title_search)
         label.on_tag_search_box_pressed = self.main_screen.tag_search_box_pressed
         label.on_tag_search_box_tag_pressed = self.main_screen.tag_search_box_tag_spinner_pressed
         label.on_tag_search_box_title_pressed = (
             self.main_screen.tag_search_box_title_spinner_pressed
-        )
-        label.bind(text=self.main_screen.tag_search_box_text_changed)
-        label.tag_spinner.bind(text=self.main_screen.tag_search_box_tag_spinner_value_changed)
-        label.tag_title_spinner.bind(
-            text=self.main_screen.tag_search_box_title_spinner_value_changed
         )
         tree.add_node(label, parent=search_node)
 
