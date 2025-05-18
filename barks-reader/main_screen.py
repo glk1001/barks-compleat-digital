@@ -10,9 +10,7 @@ from kivy.uix.treeview import TreeViewNode
 
 from background_views import BackgroundViews, ViewStates
 from barks_fantagraphics.barks_tags import (
-    Tags,
     BARKS_TAG_CATEGORIES_DICT,
-    TagGroups,
 )
 from barks_fantagraphics.barks_titles import ComicBookInfo, Titles, get_title_dict
 from barks_fantagraphics.comics_utils import get_dest_comic_zip_file_stem
@@ -22,7 +20,7 @@ from barks_fantagraphics.fanta_comics_info import (
     SERIES_CS,
     SERIES_DDA,
 )
-from barks_fantagraphics.title_search import BarksTitleSearch, unique_extend
+from barks_fantagraphics.title_search import BarksTitleSearch
 from file_paths import (
     get_mcomix_python_bin_path,
     get_mcomix_path,
@@ -96,14 +94,6 @@ class MainScreen(BoxLayout):
         self.background_views = BackgroundViews(self.title_lists)
         self.update_background_views(ViewStates.INITIAL)
 
-        TagSearchBoxTreeViewNode.on_tag_search_box_text_changed = self.tag_search_box_text_changed
-        TagSearchBoxTreeViewNode.on_tag_search_box_tag_spinner_value_changed = (
-            self.tag_search_box_tag_spinner_value_changed
-        )
-        TagSearchBoxTreeViewNode.on_tag_search_box_title_spinner_value_changed = (
-            self.tag_search_box_title_spinner_value_changed
-        )
-
     def node_expanded(self, _tree: ReaderTreeView, node: TreeViewNode):
         if isinstance(node, YearRangeTreeViewNode):
             self.update_background_views(ViewStates.ON_YEAR_RANGE_NODE, year_range=node.text)
@@ -176,22 +166,20 @@ class MainScreen(BoxLayout):
         #         instance.tag_spinner, instance.tag_spinner.text
         #     )
 
-    def tag_search_box_text_changed(self, instance: TagSearchBoxTreeViewNode, value):
-        logging.debug(f'Tag search box text changed: {instance}, text: "{value}".')
+    def tag_search_box_text_changed(self, _instance, text: str):
+        logging.debug(f'Tag search box text changed: text: "{text}".')
 
         self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
-    def tag_search_box_tag_spinner_value_changed(self, spinner: Spinner, tag_str: str):
-        logging.debug(f'Tag search box tag spinner text changed: {spinner}, text: "{tag_str}".')
+    def tag_search_box_tag_changed(self, _instance, tag_str: str):
+        logging.debug(f'Tag search box tag changed: "{tag_str}".')
         if not tag_str:
             return
 
     #        self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
-    def tag_search_box_title_spinner_value_changed(self, instance: Spinner, title_str: str):
-        logging.debug(
-            f'Tag search box title spinner text changed: {instance}, text: "{title_str}".'
-        )
+    def tag_search_box_title_changed(self, _instance, title_str: str):
+        logging.debug(f'Tag search box title changed: "{title_str}".')
         self.update_title(title_str)
         self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE)
 

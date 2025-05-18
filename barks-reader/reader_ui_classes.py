@@ -98,6 +98,33 @@ class TitleSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
 
 
 class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
+    def on_tag_search_box_pressed(self):
+        pass
+
+    def on_tag_search_box_tag_pressed(self):
+        pass
+
+    def on_tag_search_box_title_pressed(self):
+        pass
+
+    def on_tag_search_box_text_changed(self, _value: str):
+        pass
+
+    def on_tag_search_box_tag_changed(self, _value: str):
+        pass
+
+    def on_tag_search_box_title_changed(self, _value: str):
+        pass
+
+    __events__ = (
+        on_tag_search_box_pressed.__name__,
+        on_tag_search_box_tag_pressed.__name__,
+        on_tag_search_box_title_pressed.__name__,
+        on_tag_search_box_text_changed.__name__,
+        on_tag_search_box_tag_changed.__name__,
+        on_tag_search_box_title_changed.__name__,
+    )
+
     name = "Tag Search Box"
     text = StringProperty("")
     SELECTED_COLOR = (0, 0, 0, 0.0)
@@ -111,14 +138,6 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
     TAG_TITLE_SPINNER_BACKGROUND_COLOR = (0, 0, 1, 1)
     NODE_SIZE = (dp(100), dp(60))
 
-    on_tag_search_box_pressed = None
-    on_tag_search_box_tag_pressed = None
-    on_tag_search_box_title_pressed = None
-
-    on_tag_search_box_text_changed = None
-    on_tag_search_box_tag_spinner_value_changed = None
-    on_tag_search_box_title_spinner_value_changed = None
-
     def __init__(self, title_search: BarksTitleSearch):
         super().__init__()
         self.title_search = title_search
@@ -128,20 +147,20 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
 
     def on_touch_down(self, touch):
         if self.tag_search_box.collide_point(*touch.pos):
-            self.on_tag_search_box_pressed(self)
+            self.dispatch("on_tag_search_box_pressed")
             return super().on_touch_down(touch)
         if self.tag_spinner.collide_point(*touch.pos):
-            self.on_tag_search_box_tag_pressed(self)
+            self.dispatch("tag_search_box_tag_pressed")
             return super().on_touch_down(touch)
         if self.tag_title_spinner.collide_point(*touch.pos):
-            self.on_tag_search_box_title_pressed(self)
+            self.dispatch("on_tag_search_box_title_pressed")
             return super().on_touch_down(touch)
         return False
 
     def tag_search_box_text_changed(self, instance, value):
         logging.debug(f'**Tag search box text changed: {instance}, text: "{value}".')
 
-        self.on_tag_search_box_text_changed(instance, value)
+        self.dispatch("on_tag_search_box_text_changed", value)
 
         if len(value) <= 1:
             instance.set_empty_tag_spinner_values()
@@ -157,7 +176,7 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
     def tag_search_box_tag_spinner_value_changed(self, spinner: Spinner, tag_str: str):
         logging.debug(f'**Tag search box tag spinner text changed: {spinner}, text: "{tag_str}".')
 
-        self.on_tag_search_box_tag_spinner_value_changed(spinner, tag_str)
+        self.dispatch("on_tag_search_box_tag_changed", tag_str)
 
         if not tag_str:
             return
@@ -174,7 +193,7 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
         logging.debug(
             f'**Tag search box tag title spinner text changed: {spinner}, text: "{title_str}".'
         )
-        self.on_tag_search_box_title_spinner_value_changed(spinner, title_str)
+        self.dispatch("on_tag_search_box_title_changed", title_str)
 
     def get_tags_matching_search_tag_str(self, value: str) -> List[Union[Tags, TagGroups]]:
         tag_list = self.title_search.get_tags_matching_prefix(value)

@@ -32,7 +32,12 @@ from reader_ui_classes import (
 
 
 class ReaderTreeBuilder:
-    def __init__(self, filtered_title_lists: FilteredTitleLists, title_search: BarksTitleSearch, main_screen: MainScreen):
+    def __init__(
+        self,
+        filtered_title_lists: FilteredTitleLists,
+        title_search: BarksTitleSearch,
+        main_screen: MainScreen,
+    ):
         self.filtered_title_lists = filtered_title_lists
         self.title_search = title_search
         self.main_screen = main_screen
@@ -73,11 +78,16 @@ class ReaderTreeBuilder:
         tree.add_node(label, parent=search_node)
 
         label = TagSearchBoxTreeViewNode(self.title_search)
-        label.on_tag_search_box_pressed = self.main_screen.tag_search_box_pressed
-        label.on_tag_search_box_tag_pressed = self.main_screen.tag_search_box_tag_spinner_pressed
-        label.on_tag_search_box_title_pressed = (
-            self.main_screen.tag_search_box_title_spinner_pressed
+        label.bind(on_tag_search_box_pressed=self.main_screen.tag_search_box_pressed)
+        label.bind(
+            on_tag_search_box_tag_pressed=self.main_screen.tag_search_box_tag_spinner_pressed
         )
+        label.bind(
+            on_tag_search_box_title_pressed=self.main_screen.tag_search_box_title_spinner_pressed
+        )
+        label.bind(on_tag_search_box_text_changed=self.main_screen.tag_search_box_text_changed)
+        label.bind(on_tag_search_box_tag_changed=self.main_screen.tag_search_box_tag_changed)
+        label.bind(on_tag_search_box_title_changed=self.main_screen.tag_search_box_title_changed)
         tree.add_node(label, parent=search_node)
 
     def __add_appendix_node(self, tree: ReaderTreeView):
