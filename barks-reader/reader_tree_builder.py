@@ -17,6 +17,7 @@ from barks_fantagraphics.comics_utils import (
 )
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo, SERIES_CS, SERIES_DDA
 from filtered_title_lists import FilteredTitleLists
+from main_screen import MainScreen
 from reader_ui_classes import (
     ReaderTreeView,
     MainTreeViewNode,
@@ -29,7 +30,7 @@ from reader_ui_classes import (
 
 
 class ReaderTreeBuilder:
-    def __init__(self, filtered_title_lists: FilteredTitleLists, main_screen):
+    def __init__(self, filtered_title_lists: FilteredTitleLists, main_screen: MainScreen):
         self.filtered_title_lists = filtered_title_lists
         self.main_screen = main_screen
 
