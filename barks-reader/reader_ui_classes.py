@@ -14,6 +14,7 @@ from kivy.uix.treeview import TreeView, TreeViewNode
 from barks_fantagraphics.barks_tags import Tags, TagGroups
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
 from barks_fantagraphics.title_search import unique_extend, BarksTitleSearch
+from reader_formatter import get_markup_text_with_num_titles, text_includes_num_titles
 
 TREE_VIEW_NODE_TEXT_COLOR = (1, 1, 1, 1)
 TREE_VIEW_NODE_SELECTED_COLOR = (1, 0, 1, 0.8)
@@ -48,7 +49,6 @@ class TitleSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
 
     __events__ = (
         on_title_search_box_pressed.__name__,
-        on_title_search_box_title_pressed.__name__,
         on_title_search_box_title_changed.__name__,
     )
 
@@ -68,13 +68,8 @@ class TitleSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
         self.ids.title_spinner.bind(text=self._on_internal_title_search_box_title_changed)
 
     def on_touch_down(self, touch):
-        if self.ids.title_search_box.collide_point(*touch.pos):
-            self.dispatch(self.on_title_search_box_pressed.__name__)
-            return super().on_touch_down(touch)
-        if self.ids.title_spinner.collide_point(*touch.pos):
-            self.dispatch(self.on_title_search_box_title_pressed.__name__)
-            return super().on_touch_down(touch)
-        return False
+        self.dispatch(self.on_title_search_box_pressed.__name__)
+        return super().on_touch_down(touch)
 
     def get_current_title(self) -> str:
         return self.ids.title_search_box.text
@@ -126,12 +121,6 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
     def on_tag_search_box_pressed(self):
         pass
 
-    def on_tag_search_box_tag_pressed(self):
-        pass
-
-    def on_tag_search_box_title_pressed(self):
-        pass
-
     def on_tag_search_box_text_changed(self, _value: str):
         pass
 
@@ -143,8 +132,6 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
 
     __events__ = (
         on_tag_search_box_pressed.__name__,
-        on_tag_search_box_tag_pressed.__name__,
-        on_tag_search_box_title_pressed.__name__,
         on_tag_search_box_text_changed.__name__,
         on_tag_search_box_tag_changed.__name__,
         on_tag_search_box_title_changed.__name__,
@@ -171,16 +158,8 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
         self.ids.tag_title_spinner.bind(text=self._on_internal_tag_search_box_title_changed)
 
     def on_touch_down(self, touch):
-        if self.ids.tag_search_box.collide_point(*touch.pos):
-            self.dispatch(self.on_tag_search_box_pressed.__name__)
-            return super().on_touch_down(touch)
-        if self.ids.tag_spinner.collide_point(*touch.pos):
-            self.dispatch(self.on_tag_search_box_tag_pressed.__name__)
-            return super().on_touch_down(touch)
-        if self.ids.tag_title_spinner.collide_point(*touch.pos):
-            self.dispatch(self.on_tag_search_box_title_pressed.__name__)
-            return super().on_touch_down(touch)
-        return False
+        self.dispatch(self.on_tag_search_box_pressed.__name__)
+        return super().on_touch_down(touch)
 
     def get_current_tag(self) -> str:
         return self.ids.tag_spinner.text
@@ -206,6 +185,8 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
 
     def _on_internal_tag_search_box_tag_changed(self, spinner: Spinner, tag_str: str):
         logging.debug(f'**Tag search box tag spinner text changed: {spinner}, text: "{tag_str}".')
+        if text_includes_num_titles(tag_str):
+            return
 
         self.dispatch(self.on_tag_search_box_tag_changed.__name__, tag_str)
 
@@ -214,11 +195,13 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
 
         titles = self.__title_search.get_titles_from_alias_tag(tag_str.lower())
 
+        self.ids.tag_spinner.text = get_markup_text_with_num_titles(tag_str, len(titles))
+
         if not titles:
-            spinner.parent.__set_empty_title_spinner_values()
+            self.__set_empty_title_spinner_values()
             return
 
-        spinner.parent.__set_title_spinner_values(self.__title_search.get_titles_as_strings(titles))
+        self.__set_title_spinner_values(self.__title_search.get_titles_as_strings(titles))
 
     def _on_internal_tag_search_box_title_changed(self, spinner: Spinner, title_str: str) -> None:
         logging.debug(
@@ -274,7 +257,7 @@ class StoryGroupTreeViewNode(Button, TreeViewNode):
     TEXT_COLOR = TREE_VIEW_NODE_TEXT_COLOR
     SELECTED_COLOR = TREE_VIEW_NODE_SELECTED_COLOR
     BACKGROUND_COLOR = TREE_VIEW_NODE_BACKGROUND_COLOR
-    NODE_WIDTH = dp(170)
+    NODE_WIDTH = dp(250)
     NODE_HEIGHT = dp(30)
 
 
@@ -282,7 +265,7 @@ class YearRangeTreeViewNode(Button, TreeViewNode):
     TEXT_COLOR = TREE_VIEW_NODE_TEXT_COLOR
     SELECTED_COLOR = TREE_VIEW_NODE_SELECTED_COLOR
     BACKGROUND_COLOR = TREE_VIEW_NODE_BACKGROUND_COLOR
-    NODE_WIDTH = dp(100)
+    NODE_WIDTH = dp(150)
     NODE_HEIGHT = dp(30)
 
 

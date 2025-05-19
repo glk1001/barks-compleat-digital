@@ -20,6 +20,7 @@ from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo, SERIES_CS,
 from barks_fantagraphics.title_search import BarksTitleSearch
 from filtered_title_lists import FilteredTitleLists
 from main_screen import MainScreen
+from reader_formatter import get_markup_text_with_num_titles, get_bold_markup_text
 from reader_ui_classes import (
     ReaderTreeView,
     MainTreeViewNode,
@@ -38,14 +39,14 @@ class ReaderTreeBuilder:
         title_search: BarksTitleSearch,
         main_screen: MainScreen,
     ):
-        self.filtered_title_lists = filtered_title_lists
-        self.title_search = title_search
-        self.main_screen = main_screen
+        self.__filtered_title_lists = filtered_title_lists
+        self.__title_search = title_search
+        self.__main_screen = main_screen
 
     def build_main_screen_tree(self):
-        tree: ReaderTreeView = self.main_screen.reader_tree_view
+        tree: ReaderTreeView = self.__main_screen.reader_tree_view
 
-        tree.bind(on_node_expand=self.main_screen.on_node_expanded)
+        tree.bind(on_node_expand=self.__main_screen.on_node_expanded)
 
         self.__add_intro_node(tree)
         self.__add_the_stories_node(tree)
@@ -57,75 +58,74 @@ class ReaderTreeBuilder:
 
     def __add_intro_node(self, tree: ReaderTreeView):
         label = MainTreeViewNode(text="Introduction")
-        label.bind(on_press=self.main_screen.on_intro_pressed)
+        label.bind(on_press=self.__main_screen.on_intro_pressed)
         tree.add_node(label)
 
     def __add_the_stories_node(self, tree: ReaderTreeView):
         label = MainTreeViewNode(text="The Stories")
-        label.bind(on_press=self.main_screen.on_the_stories_pressed)
+        label.bind(on_press=self.__main_screen.on_the_stories_pressed)
         new_node = tree.add_node(label)
         self.__add_story_nodes(tree, new_node)
 
     def __add_search_node(self, tree: ReaderTreeView):
         node = MainTreeViewNode(text="Search")
-        node.bind(on_press=self.main_screen.on_search_pressed)
+        node.bind(on_press=self.__main_screen.on_search_pressed)
         search_node = tree.add_node(node)
 
-        node = TitleSearchBoxTreeViewNode(self.title_search)
-        node.bind(on_title_search_box_pressed=self.main_screen.on_title_search_box_pressed)
+        node = TitleSearchBoxTreeViewNode(self.__title_search)
+        node.bind(on_title_search_box_pressed=self.__main_screen.on_title_search_box_pressed)
         node.bind(
-            on_title_search_box_title_pressed=self.main_screen.on_title_search_box_title_pressed
-        )
-        node.bind(
-            on_title_search_box_title_changed=self.main_screen.on_title_search_box_title_changed
+            on_title_search_box_title_changed=self.__main_screen.on_title_search_box_title_changed
         )
         tree.add_node(node, parent=search_node)
 
-        node = TagSearchBoxTreeViewNode(self.title_search)
-        node.bind(on_tag_search_box_pressed=self.main_screen.on_tag_search_box_pressed)
-        node.bind(on_tag_search_box_tag_pressed=self.main_screen.on_tag_search_box_tag_pressed)
-        node.bind(on_tag_search_box_title_pressed=self.main_screen.on_tag_search_box_title_pressed)
-        node.bind(on_tag_search_box_text_changed=self.main_screen.on_tag_search_box_text_changed)
-        node.bind(on_tag_search_box_tag_changed=self.main_screen.on_tag_search_box_tag_changed)
-        node.bind(on_tag_search_box_title_changed=self.main_screen.on_tag_search_box_title_changed)
+        node = TagSearchBoxTreeViewNode(self.__title_search)
+        node.bind(on_tag_search_box_pressed=self.__main_screen.on_tag_search_box_pressed)
+        node.bind(on_tag_search_box_text_changed=self.__main_screen.on_tag_search_box_text_changed)
+        node.bind(on_tag_search_box_tag_changed=self.__main_screen.on_tag_search_box_tag_changed)
+        node.bind(
+            on_tag_search_box_title_changed=self.__main_screen.on_tag_search_box_title_changed
+        )
         tree.add_node(node, parent=search_node)
 
     def __add_appendix_node(self, tree: ReaderTreeView):
         node = MainTreeViewNode(text="Appendix")
-        node.bind(on_press=self.main_screen.on_appendix_pressed)
+        node.bind(on_press=self.__main_screen.on_appendix_pressed)
         tree.add_node(node)
 
     def __add_index_node(self, tree: ReaderTreeView):
         node = MainTreeViewNode(text="Index")
-        node.bind(on_press=self.main_screen.on_index_pressed)
+        node.bind(on_press=self.__main_screen.on_index_pressed)
         tree.add_node(node)
 
     def __add_story_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
-        node = StoryGroupTreeViewNode(text="Chronological")
-        node.bind(on_press=self.main_screen.on_chrono_pressed)
+        node = StoryGroupTreeViewNode(text=get_bold_markup_text("Chronological"))
+        node.bind(on_press=self.__main_screen.on_chrono_pressed)
         new_node = tree.add_node(node, parent=parent_node)
         self.__add_year_range_nodes(tree, new_node)
 
-        node = StoryGroupTreeViewNode(text="Series")
-        node.bind(on_press=self.main_screen.on_series_pressed)
+        node = StoryGroupTreeViewNode(text=get_bold_markup_text("Series"))
+        node.bind(on_press=self.__main_screen.on_series_pressed)
         new_node = tree.add_node(node, parent=parent_node)
         self.__add_series_nodes(tree, new_node)
 
-        node = StoryGroupTreeViewNode(text="Categories")
-        node.bind(on_press=self.main_screen.on_categories_pressed)
+        node = StoryGroupTreeViewNode(text=get_bold_markup_text("Categories"))
+        node.bind(on_press=self.__main_screen.on_categories_pressed)
         new_node = tree.add_node(node, parent=parent_node)
         self.__add_categories_nodes(tree, new_node)
 
     def __add_year_range_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
-        for year_range in self.filtered_title_lists.year_ranges:
-            range_str = f"{year_range[0]} - {year_range[1]}"
-            node = YearRangeTreeViewNode(text=range_str)
-            node.bind(on_press=self.main_screen.on_year_range_pressed)
+        for year_range in self.__filtered_title_lists.year_ranges:
+            year_range_str = f"{year_range[0]} - {year_range[1]}"
+            year_range_titles = self.__main_screen.title_lists[year_range_str]
+            year_range_text = get_markup_text_with_num_titles(
+                year_range_str, len(year_range_titles)
+            )
+            node = YearRangeTreeViewNode(text=year_range_text)
+            node.bind(on_press=self.__main_screen.on_year_range_pressed)
 
             new_node = tree.add_node(node, parent=parent_node)
-            self.__add_year_range_story_nodes(
-                tree, new_node, self.main_screen.title_lists[range_str]
-            )
+            self.__add_year_range_story_nodes(tree, new_node, year_range_titles)
 
     def __add_year_range_story_nodes(
         self,
@@ -138,8 +138,8 @@ class ReaderTreeBuilder:
 
     def __add_categories_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
         for category in TagCategories:
-            node = StoryGroupTreeViewNode(text=category.value)
-            node.bind(on_press=self.main_screen.on_category_pressed)
+            node = StoryGroupTreeViewNode(text=get_bold_markup_text(category.value))
+            node.bind(on_press=self.__main_screen.on_category_pressed)
 
             new_node = tree.add_node(node, parent=parent_node)
             self.__add_category_node(tree, category, new_node)
@@ -152,24 +152,28 @@ class ReaderTreeBuilder:
                 self.__add_tag_node(tree, tag_or_group, parent_node)
             else:
                 assert type(tag_or_group) == TagGroups
-                tag_group_node = self.__add_tag_group_node(tree, tag_or_group, parent_node)
                 titles = BARKS_TAG_GROUPS_TITLES[tag_or_group]
+                tag_group_node = self.__add_tag_group_node(tree, tag_or_group, titles, parent_node)
                 self.__add_title_nodes(tree, titles, tag_group_node)
 
     def __add_tag_node(self, tree: ReaderTreeView, tag: Tags, parent_node: TreeViewNode):
-        node = StoryGroupTreeViewNode(text=tag.value)
-        self.__add_tagged_story_nodes(tree, tag, node)
+        titles = get_tagged_titles(tag)
+        node = StoryGroupTreeViewNode(text=get_markup_text_with_num_titles(tag.value, len(titles)))
+        self.__add_tagged_story_nodes(tree, titles, node)
         tree.add_node(node, parent=parent_node)
 
     @staticmethod
-    def __add_tag_group_node(tree: ReaderTreeView, tag_group: TagGroups, parent_node: TreeViewNode):
-        node = StoryGroupTreeViewNode(text=tag_group.value)
+    def __add_tag_group_node(
+        tree: ReaderTreeView, tag_group: TagGroups, titles: List[Titles], parent_node: TreeViewNode
+    ):
+        node = StoryGroupTreeViewNode(
+            text=get_markup_text_with_num_titles(tag_group.value, len(titles))
+        )
         return tree.add_node(node, parent=parent_node)
 
     def __add_tagged_story_nodes(
-        self, tree: ReaderTreeView, tag: Tags, parent_node: TreeViewNode
+        self, tree: ReaderTreeView, titles: List[Titles], parent_node: TreeViewNode
     ) -> None:
-        titles = get_tagged_titles(tag)
         self.__add_title_nodes(tree, titles, parent_node)
 
     def __add_title_nodes(
@@ -178,29 +182,33 @@ class ReaderTreeBuilder:
         for title in titles:
             # TODO: Very roundabout way to get fanta info
             title_str = BARKS_TITLES[title]
-            if title_str not in self.main_screen.all_fanta_titles:
+            if title_str not in self.__main_screen.all_fanta_titles:
                 logging.debug(f'Skipped unconfigured title "{title_str}".')
                 continue
-            title_info = self.main_screen.all_fanta_titles[title_str]
+            title_info = self.__main_screen.all_fanta_titles[title_str]
             tree.add_node(self.__get_title_tree_view_node(title_info), parent=parent_node)
 
     def __add_series_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
-        self.__add_series_node(tree, SERIES_CS, self.main_screen.cs_pressed, parent_node)
-        self.__add_series_node(tree, SERIES_DDA, self.main_screen.dda_pressed, parent_node)
+        self.__add_series_node(tree, SERIES_CS, self.__main_screen.cs_pressed, parent_node)
+        self.__add_series_node(tree, SERIES_DDA, self.__main_screen.dda_pressed, parent_node)
 
     def __add_series_node(
         self, tree: ReaderTreeView, series: str, on_pressed: Callable, parent_node: TreeViewNode
     ) -> None:
-        node = StoryGroupTreeViewNode(text=series)
+        title_list = self.__main_screen.title_lists[series]
+        series_text = get_markup_text_with_num_titles(series, len(title_list))
+
+        node = StoryGroupTreeViewNode(text=series_text)
         node.bind(on_press=on_pressed)
-        self.__add_series_story_nodes(tree, series, node)
+        self.__add_series_story_nodes(tree, title_list, node)
         tree.add_node(node, parent=parent_node)
 
     def __add_series_story_nodes(
-        self, tree: ReaderTreeView, series: str, parent_node: TreeViewNode
+        self,
+        tree: ReaderTreeView,
+        title_list: List[FantaComicBookInfo],
+        parent_node: TreeViewNode,
     ) -> None:
-        title_list = self.main_screen.title_lists[series]
-
         for title_info in title_list:
             tree.add_node(self.__get_title_tree_view_node(title_info), parent=parent_node)
 
@@ -208,12 +216,12 @@ class ReaderTreeBuilder:
         title_node = TitleTreeViewNode(full_fanta_info)
 
         title_node.num_label.text = str(full_fanta_info.fanta_chronological_number)
-        title_node.num_label.bind(on_press=self.main_screen.on_title_row_button_pressed)
+        title_node.num_label.bind(on_press=self.__main_screen.on_title_row_button_pressed)
 
         title_node.num_label.color_selected = (0, 0, 1, 1)
 
         title_node.title_label.text = full_fanta_info.comic_book_info.get_display_title()
-        title_node.title_label.bind(on_press=self.main_screen.on_title_row_button_pressed)
+        title_node.title_label.bind(on_press=self.__main_screen.on_title_row_button_pressed)
 
         issue_info = (
             f"{get_short_formatted_first_published_str(full_fanta_info.comic_book_info)}"
@@ -221,6 +229,6 @@ class ReaderTreeBuilder:
         )
 
         title_node.issue_label.text = issue_info
-        title_node.issue_label.bind(on_press=self.main_screen.on_title_row_button_pressed)
+        title_node.issue_label.bind(on_press=self.__main_screen.on_title_row_button_pressed)
 
         return title_node

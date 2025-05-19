@@ -31,7 +31,7 @@ from file_paths import (
 from filtered_title_lists import FilteredTitleLists
 from mcomix_reader import ComicReader
 from random_title_images import get_random_title_image
-from reader_formatter import ReaderFormatter
+from reader_formatter import ReaderFormatter, get_clean_text_without_num_titles
 from reader_ui_classes import (
     ReaderTreeView,
     YearRangeTreeViewNode,
@@ -122,12 +122,6 @@ class MainScreen(BoxLayout):
         if not instance.get_current_title():
             self.update_background_views(ViewStates.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET)
 
-    def on_title_search_box_title_pressed(self, instance: TitleSearchBoxTreeViewNode):
-        logging.debug(f"Title search box title pressed: {instance}.")
-
-        if not instance.get_current_title():
-            self.update_background_views(ViewStates.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET)
-
     def on_title_search_box_title_changed(self, _spinner: Spinner, title_str: str):
         logging.debug(f'Title search box title changed: "{title_str}".')
 
@@ -142,18 +136,6 @@ class MainScreen(BoxLayout):
         logging.debug(f"Tag search box pressed: {instance}.")
 
         if not instance.get_current_tag():
-            self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
-
-    def on_tag_search_box_tag_pressed(self, instance: TagSearchBoxTreeViewNode):
-        logging.debug(f"Tag search box tag spinner pressed: {instance}.")
-
-        if not instance.get_current_title():
-            self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
-
-    def on_tag_search_box_title_pressed(self, instance: TagSearchBoxTreeViewNode):
-        logging.debug(f"Tag search box tag title spinner pressed: {instance}.")
-
-        if not instance.get_current_title():
             self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
     def on_tag_search_box_text_changed(self, instance: TagSearchBoxTreeViewNode, text: str):
@@ -232,7 +214,7 @@ class MainScreen(BoxLayout):
         self, tree_node: ViewStates, category: str = "", year_range: str = ""
     ) -> None:
         self.background_views.set_current_category(category)
-        self.background_views.set_current_year_range(year_range)
+        self.background_views.set_current_year_range(get_clean_text_without_num_titles(year_range))
 
         self.background_views.set_view_state(tree_node)
 

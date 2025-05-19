@@ -1,3 +1,5 @@
+import re
+
 from barks_fantagraphics.barks_extra_info import BARKS_EXTRA_INFO
 from barks_fantagraphics.comic_issues import ISSUE_NAME, Issues
 from barks_fantagraphics.comics_utils import (
@@ -5,6 +7,26 @@ from barks_fantagraphics.comics_utils import (
     get_long_formatted_submitted_date,
 )
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo, FANTA_SOURCE_COMICS, FAN
+
+
+def get_bold_markup_text(text: str) -> str:
+    return f"[b]{text}[/b]"
+
+
+def get_markup_text_with_num_titles(text: str, num_titles: int) -> str:
+    return f"[b]{text}[/b] [i]({num_titles})[/i]"
+
+
+def get_clean_text_without_num_titles(markup_text: str) -> str:
+    match = re.search(r"\[b](.*)\[/b]", markup_text)
+    if match:
+        return match.group(1)
+
+    return markup_text
+
+
+def text_includes_num_titles(text: str) -> bool:
+    return text.endswith(")[/i]")
 
 
 class ReaderFormatter:
