@@ -15,7 +15,7 @@ from barks_fantagraphics.fanta_comics_info import (
 )
 from file_paths import get_comic_inset_file
 from random_title_images import get_random_image, get_random_color
-from reader_types import Color
+from reader_types import Color, get_formatted_color
 
 
 class ViewStates(Enum):
@@ -170,7 +170,7 @@ class BackgroundViews:
             f"Set top view:"
             f" State: {self.__view_state},"
             f" Image: '{os.path.basename(self.__top_view_image_file)}',"
-            f" Color: '{self.__top_view_image_color}',"
+            f" Color: {get_formatted_color(self.__top_view_image_color)},"
             f" Opacity: {self.__top_view_image_opacity}."
         )
 
@@ -195,7 +195,7 @@ class BackgroundViews:
             f"Set Bottom view after image:"
             f" State: {self.__view_state},"
             f" Image: '{os.path.basename(self.__bottom_view_after_image_file)}',"
-            f" Color: '{self.__bottom_view_after_image_color}',"
+            f" Color: {get_formatted_color(self.__bottom_view_after_image_color)},"
             f" Opacity: {self.__bottom_view_image_opacity}."
         )
 
@@ -204,8 +204,9 @@ class BackgroundViews:
             rand_color = [1, 1, 1, 1]
         else:
             rand_index = randrange(0, 3)
+            rgb_val = 0.5 if rand_index == 2 else 0.1
             rand_color_val = randrange(230, 255) / 255.0
-            rand_color = [0.1, 0.1, 0.1, self.__bottom_view_after_image_color[3]]
+            rand_color = [rgb_val, rgb_val, rgb_val, self.__bottom_view_after_image_color[3]]
             rand_color[rand_index] = rand_color_val
 
         self.__bottom_view_after_image_color = tuple(rand_color)
@@ -251,6 +252,6 @@ class BackgroundViews:
             f"Set Bottom view before image:"
             f" State: {self.__view_state},"
             f" Image: '{os.path.basename(self.__bottom_view_before_image_file)}',"
-            f" Color: '{self.__bottom_view_before_image_color}',"
+            f" Color: {get_formatted_color(self.__bottom_view_before_image_color)},"
             f" Opacity: {self.__bottom_view_image_opacity}."
         )

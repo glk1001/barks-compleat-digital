@@ -116,21 +116,21 @@ class MainScreen(BoxLayout):
     def search_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_SEARCH_NODE)
 
-    def title_search_box_pressed(self, instance: TitleSearchBoxTreeViewNode):
+    def on_title_search_box_pressed(self, instance: TitleSearchBoxTreeViewNode):
         logging.debug(f"Title search box pressed: {instance}.")
 
         if not instance.title_search_box.text:
             instance.set_empty_title_spinner_text()
             self.update_background_views(ViewStates.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET)
 
-    def title_search_box_title_pressed(self, instance: TitleSearchBoxTreeViewNode):
+    def on_title_search_box_title_pressed(self, instance: TitleSearchBoxTreeViewNode):
         logging.debug(f"Title search box tite pressed: {instance}.")
 
         self.update_background_views(ViewStates.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET)
 
         instance.set_empty_title_spinner_text()
 
-    def title_search_box_spinner_value_changed(self, _spinner: Spinner, title_str: str):
+    def on_title_search_box_title_changed(self, _spinner: Spinner, title_str: str):
         logging.debug(f'Title search box spinner value changed: title_str: "{title_str}".')
         if not title_str:
             return
@@ -138,55 +138,57 @@ class MainScreen(BoxLayout):
         self.update_title(title_str)
         self.update_background_views(ViewStates.ON_TITLE_SEARCH_BOX_NODE)
 
-    def tag_search_box_pressed(self, instance: TagSearchBoxTreeViewNode):
+    def on_tag_search_box_pressed(self, instance: TagSearchBoxTreeViewNode):
         logging.debug(f"Tag search box pressed: {instance}.")
 
         if not instance.tag_search_box.text:
             self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
-            instance.set_empty_tag_spinner_text()
 
-    def tag_search_box_tag_spinner_pressed(self, instance):
+    def on_tag_search_box_tag_pressed(self, instance: TagSearchBoxTreeViewNode):
         logging.debug(f"Tag search box tag spinner pressed: {instance}.")
 
-        # TODO: Is this correct?
-        self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
+        if not instance.get_current_title():
+            self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
-        instance.set_empty_title_spinner_text()
-
-    def tag_search_box_title_spinner_pressed(self, instance):
+    def on_tag_search_box_title_pressed(self, instance: TagSearchBoxTreeViewNode):
         logging.debug(f"Tag search box tag title spinner pressed: {instance}.")
 
-        # TODO: Is this correct?
-        self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
+        if not instance.get_current_title():
+            self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
-        instance.set_empty_title_spinner_text()
         #
         # if instance.tag_spinner.text and not instance.tag_title_spinner.text:
         #     self.tag_search_box_tag_spinner_value_changed(
         #         instance.tag_spinner, instance.tag_spinner.text
         #     )
 
-    def tag_search_box_text_changed(self, _instance, text: str):
+    def on_tag_search_box_text_changed(self, instance: TagSearchBoxTreeViewNode, text: str):
         logging.debug(f'Tag search box text changed: text: "{text}".')
 
-        self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
+        if not instance.get_current_title():
+            self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
-    def tag_search_box_tag_changed(self, _instance, tag_str: str):
+    def on_tag_search_box_tag_changed(self, instance: TagSearchBoxTreeViewNode, tag_str: str):
         logging.debug(f'Tag search box tag changed: "{tag_str}".')
+
         if not tag_str:
             return
 
-    #        self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
+        if not instance.get_current_title():
+            self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
 
-    def tag_search_box_title_changed(self, _instance, title_str: str):
+    def on_tag_search_box_title_changed(self, _instance, title_str: str):
         logging.debug(f'Tag search box title changed: "{title_str}".')
-        self.update_title(title_str)
-        self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE)
+
+        if not title_str:
+            self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
+        else:
+            self.update_title(title_str)
+            self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE)
 
     def update_title(self, title_str: str):
         logging.debug(f'Update title: "{title_str}".')
-        if not title_str:
-            return
+        assert title_str != ""
 
         title_str = ComicBookInfo.get_title_str_from_display_title(title_str)
 

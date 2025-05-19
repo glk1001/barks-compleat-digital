@@ -91,9 +91,12 @@ class TitleSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
     def set_title_spinner_values(self, titles: List[str]):
         if not titles:
             self.set_empty_title_spinner_values()
-        else:
+        elif len(titles) == 1:
             self.title_spinner.values = titles
             self.title_spinner.text = titles[0]
+            self.title_spinner.is_open = False
+        else:
+            self.title_spinner.values = titles
             self.title_spinner.is_open = True
 
 
@@ -150,12 +153,15 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
             self.dispatch("on_tag_search_box_pressed")
             return super().on_touch_down(touch)
         if self.tag_spinner.collide_point(*touch.pos):
-            self.dispatch("tag_search_box_tag_pressed")
+            self.dispatch("on_tag_search_box_tag_pressed")
             return super().on_touch_down(touch)
         if self.tag_title_spinner.collide_point(*touch.pos):
             self.dispatch("on_tag_search_box_title_pressed")
             return super().on_touch_down(touch)
         return False
+
+    def get_current_title(self) -> str:
+        return self.tag_title_spinner.text
 
     def tag_search_box_text_changed(self, instance, value):
         logging.debug(f'**Tag search box text changed: {instance}, text: "{value}".')
@@ -202,21 +208,20 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
 
         return tag_list
 
-    def set_empty_tag_spinner_text(self):
-        self.tag_spinner.text = ""
-        self.tag_spinner.is_open = False
-
     def set_empty_tag_spinner_values(self):
         self.tag_spinner.values = []
         self.tag_spinner.text = ""
         self.tag_spinner.is_open = False
 
-    def set_tag_spinner_values(self, titles: List[str]):
-        if not titles:
+    def set_tag_spinner_values(self, tags: List[str]):
+        if not tags:
             self.set_empty_tag_spinner_values()
+        elif len(tags) == 1:
+            self.tag_spinner.values = tags
+            self.tag_spinner.text = tags[0]
+            self.tag_spinner.is_open = False
         else:
-            self.tag_spinner.values = titles
-            self.tag_spinner.text = titles[0]
+            self.tag_spinner.values = tags
             self.tag_spinner.is_open = True
 
     def set_empty_title_spinner_text(self):
@@ -231,9 +236,12 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
     def set_title_spinner_values(self, titles: List[str]):
         if not titles:
             self.set_empty_title_spinner_values()
-        else:
+        elif len(titles) == 1:
             self.tag_title_spinner.values = titles
             self.tag_title_spinner.text = titles[0]
+            self.tag_title_spinner.is_open = False
+        else:
+            self.tag_title_spinner.values = titles
             self.tag_title_spinner.is_open = True
 
 
