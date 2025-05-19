@@ -208,7 +208,7 @@ def get_title_flags(
             display_ttl = ttl if comic_book.is_barks_title() else f"({ttl})"
             fixes_flg = FIXES_FLAG if has_fixes(comic_book) else EMPTY_FLAG
             build_state_flg = get_build_state_flag(comic_book)
-            page_lst = ", ".join(get_abbrev_jpg_page_list(comic_book))
+            page_lst = ", ".join(get_abbrev_jpg_page_list(comic_book)).replace(" - ", "-")
             num_pgs = get_total_num_pages(comic_book)
             if num_pgs <= 1:
                 raise Exception(f'For title "{ttl}", the page count is to small.')
