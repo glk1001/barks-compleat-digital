@@ -123,18 +123,17 @@ def get_comic_original_art_files_dir() -> str:
 def get_comic_inset_file(title: Titles) -> str:
     title_str = BARKS_TITLES[title]
 
+    edited_file = os.path.join(BARKS_READER_INSET_EDITED_FILES_DIR, title_str + PNG_FILE_EXT)
+    if os.path.isfile(edited_file):
+        return edited_file
+
     main_file = os.path.join(get_comic_inset_files_dir(), title_str + JPG_FILE_EXT)
+    # TODO: Fix this when all titles are configured.
+    # assert os.path.isfile(edited_file)
     if os.path.isfile(main_file):
         return main_file
 
-    edited_file = os.path.join(BARKS_READER_INSET_EDITED_FILES_DIR, title_str + PNG_FILE_EXT)
-
-    # assert os.path.isfile(edited_file)
-    # TODO: Fix this when all titles are configured.
-    if not os.path.isfile(edited_file):
-        return EMERGENCY_INSET_FILE_PATH
-
-    return edited_file
+    return EMERGENCY_INSET_FILE_PATH
 
 
 def get_comic_cover_file(title: str) -> str:
