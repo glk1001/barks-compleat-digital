@@ -37,6 +37,21 @@ class TitlePageImage(ButtonBehavior, Image):
 
 
 class TitleSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
+    def on_title_search_box_pressed(self):
+        pass
+
+    def on_title_search_box_title_pressed(self):
+        pass
+
+    def on_title_search_box_title_changed(self, _value: str):
+        pass
+
+    __events__ = (
+        on_title_search_box_pressed.__name__,
+        on_title_search_box_title_pressed.__name__,
+        on_title_search_box_title_changed.__name__,
+    )
+
     name = "Title Search Box"
     text = StringProperty("")
     SELECTED_COLOR = (0, 0, 0, 0.0)
@@ -46,58 +61,65 @@ class TitleSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
     SPINNER_BACKGROUND_COLOR = (0, 0, 1, 1)
     NODE_SIZE = (dp(100), dp(30))
 
-    on_title_search_box_pressed = None
-    on_title_search_box_title_pressed = None
-
     def __init__(self, title_search: BarksTitleSearch):
         super().__init__()
         self.title_search = title_search
-        self.bind(text=self.search_box_text_changed)
+        self.bind(text=self._on_internal_search_box_text_changed)
+        self.ids.title_spinner.bind(text=self._on_internal_title_search_box_title_changed)
 
     def on_touch_down(self, touch):
-        if self.title_search_box.collide_point(*touch.pos):
-            self.on_title_search_box_pressed(self)
+        if self.ids.title_search_box.collide_point(*touch.pos):
+            self.dispatch(self.on_title_search_box_pressed.__name__)
             return super().on_touch_down(touch)
-        if self.title_spinner.collide_point(*touch.pos):
-            self.on_title_search_box_title_pressed(self)
+        if self.ids.title_spinner.collide_point(*touch.pos):
+            self.dispatch(self.on_title_search_box_title_pressed.__name__)
             return super().on_touch_down(touch)
         return False
 
-    def search_box_text_changed(self, instance, value: str):
+    def get_current_title(self) -> str:
+        return self.ids.title_search_box.text
+
+    def _on_internal_search_box_text_changed(self, instance, value: str):
         logging.debug(f'**Title search box text changed: {instance}, text: "{value}".')
 
         if len(value) <= 1:
-            instance.set_empty_title_spinner_text()
+            instance.__set_empty_title_spinner_text()
         else:
-            titles = self.get_titles_matching_search_title_str(str(value))
-            instance.set_title_spinner_values(titles)
+            titles = self.__get_titles_matching_search_title_str(str(value))
+            instance.__set_title_spinner_values(titles)
 
-    def get_titles_matching_search_title_str(self, value: str) -> List[str]:
+    def _on_internal_title_search_box_title_changed(self, spinner: Spinner, title_str: str) -> None:
+        logging.debug(
+            f'**Title search box title spinner text changed: {spinner}, text: "{title_str}".'
+        )
+        self.dispatch(self.on_title_search_box_title_changed.__name__, title_str)
+
+    def __get_titles_matching_search_title_str(self, value: str) -> List[str]:
         title_list = self.title_search.get_titles_matching_prefix(value)
         if len(value) > 2:
             unique_extend(title_list, self.title_search.get_titles_containing(value))
 
         return self.title_search.get_titles_as_strings(title_list)
 
-    def set_empty_title_spinner_text(self):
-        self.title_spinner.text = ""
-        self.title_spinner.is_open = False
+    def __set_empty_title_spinner_text(self):
+        self.ids.title_spinner.text = ""
+        self.ids.title_spinner.is_open = False
 
-    def set_empty_title_spinner_values(self):
-        self.title_spinner.values = []
-        self.title_spinner.text = ""
-        self.title_spinner.is_open = False
+    def __set_empty_title_spinner_values(self):
+        self.ids.title_spinner.values = []
+        self.ids.title_spinner.text = ""
+        self.ids.title_spinner.is_open = False
 
-    def set_title_spinner_values(self, titles: List[str]):
+    def __set_title_spinner_values(self, titles: List[str]):
         if not titles:
-            self.set_empty_title_spinner_values()
+            self.__set_empty_title_spinner_values()
         elif len(titles) == 1:
-            self.title_spinner.values = titles
-            self.title_spinner.text = titles[0]
-            self.title_spinner.is_open = False
+            self.ids.title_spinner.values = titles
+            self.ids.title_spinner.text = titles[0]
+            self.ids.title_spinner.is_open = False
         else:
-            self.title_spinner.values = titles
-            self.title_spinner.is_open = True
+            self.ids.title_spinner.values = titles
+            self.ids.title_spinner.is_open = True
 
 
 class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
@@ -143,106 +165,109 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
 
     def __init__(self, title_search: BarksTitleSearch):
         super().__init__()
-        self.title_search = title_search
-        self.bind(text=self.tag_search_box_text_changed)
-        self.tag_spinner.bind(text=self.tag_search_box_tag_spinner_value_changed)
-        self.tag_title_spinner.bind(text=self.tag_search_box_title_spinner_value_changed)
+        self.__title_search = title_search
+        self.bind(text=self._on_internal_tag_search_box_text_changed)
+        self.ids.tag_spinner.bind(text=self._on_internal_tag_search_box_tag_changed)
+        self.ids.tag_title_spinner.bind(text=self._on_internal_tag_search_box_title_changed)
 
     def on_touch_down(self, touch):
-        if self.tag_search_box.collide_point(*touch.pos):
-            self.dispatch("on_tag_search_box_pressed")
+        if self.ids.tag_search_box.collide_point(*touch.pos):
+            self.dispatch(self.on_tag_search_box_pressed.__name__)
             return super().on_touch_down(touch)
-        if self.tag_spinner.collide_point(*touch.pos):
-            self.dispatch("on_tag_search_box_tag_pressed")
+        if self.ids.tag_spinner.collide_point(*touch.pos):
+            self.dispatch(self.on_tag_search_box_tag_pressed.__name__)
             return super().on_touch_down(touch)
-        if self.tag_title_spinner.collide_point(*touch.pos):
-            self.dispatch("on_tag_search_box_title_pressed")
+        if self.ids.tag_title_spinner.collide_point(*touch.pos):
+            self.dispatch(self.on_tag_search_box_title_pressed.__name__)
             return super().on_touch_down(touch)
         return False
 
-    def get_current_title(self) -> str:
-        return self.tag_title_spinner.text
+    def get_current_tag(self) -> str:
+        return self.ids.tag_spinner.text
 
-    def tag_search_box_text_changed(self, instance, value):
+    def get_current_title(self) -> str:
+        return self.ids.tag_title_spinner.text
+
+    def _on_internal_tag_search_box_text_changed(self, instance, value):
         logging.debug(f'**Tag search box text changed: {instance}, text: "{value}".')
 
-        self.dispatch("on_tag_search_box_text_changed", value)
+        self.dispatch(self.on_tag_search_box_text_changed.__name__, value)
 
         if len(value) <= 1:
-            instance.set_empty_tag_spinner_values()
-            instance.set_empty_title_spinner_values()
+            instance.__set_empty_tag_spinner_values()
+            instance.__set_empty_title_spinner_values()
         else:
-            tags = self.get_tags_matching_search_tag_str(str(value))
+            tags = self.__get_tags_matching_search_tag_str(str(value))
             if tags:
-                instance.set_tag_spinner_values(sorted([str(t.value) for t in tags]))
+                instance.__set_tag_spinner_values(sorted([str(t.value) for t in tags]))
             else:
-                instance.set_empty_tag_spinner_values()
-                instance.set_empty_title_spinner_values()
+                instance.__set_empty_tag_spinner_values()
+                instance.__set_empty_title_spinner_values()
 
-    def tag_search_box_tag_spinner_value_changed(self, spinner: Spinner, tag_str: str):
+    def _on_internal_tag_search_box_tag_changed(self, spinner: Spinner, tag_str: str):
         logging.debug(f'**Tag search box tag spinner text changed: {spinner}, text: "{tag_str}".')
 
-        self.dispatch("on_tag_search_box_tag_changed", tag_str)
+        self.dispatch(self.on_tag_search_box_tag_changed.__name__, tag_str)
 
         if not tag_str:
             return
 
-        titles = self.title_search.get_titles_from_alias_tag(tag_str.lower())
+        titles = self.__title_search.get_titles_from_alias_tag(tag_str.lower())
 
         if not titles:
-            spinner.parent.set_empty_title_spinner_values()
+            spinner.parent.__set_empty_title_spinner_values()
             return
 
-        spinner.parent.set_title_spinner_values(self.title_search.get_titles_as_strings(titles))
+        spinner.parent.__set_title_spinner_values(self.__title_search.get_titles_as_strings(titles))
 
-    def tag_search_box_title_spinner_value_changed(self, spinner: Spinner, title_str: str) -> None:
+    def _on_internal_tag_search_box_title_changed(self, spinner: Spinner, title_str: str) -> None:
         logging.debug(
             f'**Tag search box tag title spinner text changed: {spinner}, text: "{title_str}".'
         )
-        self.dispatch("on_tag_search_box_title_changed", title_str)
+        self.dispatch(self.on_tag_search_box_title_changed.__name__, title_str)
 
-    def get_tags_matching_search_tag_str(self, value: str) -> List[Union[Tags, TagGroups]]:
-        tag_list = self.title_search.get_tags_matching_prefix(value)
+    def __get_tags_matching_search_tag_str(self, value: str) -> List[Union[Tags, TagGroups]]:
+        tag_list = self.__title_search.get_tags_matching_prefix(value)
         # if len(value) > 2:
         #     unique_extend(title_list, self.title_search.get_titles_containing(value))
 
         return tag_list
 
-    def set_empty_tag_spinner_values(self):
-        self.tag_spinner.values = []
-        self.tag_spinner.text = ""
-        self.tag_spinner.is_open = False
+    def __set_empty_tag_spinner_values(self):
+        self.ids.tag_spinner.values = []
+        self.ids.tag_spinner.text = ""
+        self.ids.tag_spinner.is_open = False
 
-    def set_tag_spinner_values(self, tags: List[str]):
+    def __set_tag_spinner_values(self, tags: List[str]):
         if not tags:
-            self.set_empty_tag_spinner_values()
+            self.__set_empty_tag_spinner_values()
         elif len(tags) == 1:
-            self.tag_spinner.values = tags
-            self.tag_spinner.text = tags[0]
-            self.tag_spinner.is_open = False
+            self.ids.tag_spinner.values = tags
+            self.ids.tag_spinner.text = tags[0]
+            self.ids.tag_spinner.is_open = False
         else:
-            self.tag_spinner.values = tags
-            self.tag_spinner.is_open = True
+            self.ids.tag_spinner.values = tags
+            self.ids.tag_spinner.is_open = True
 
-    def set_empty_title_spinner_text(self):
-        self.tag_title_spinner.text = ""
-        self.tag_title_spinner.is_open = False
+    def __set_empty_title_spinner_text(self):
+        self.ids.tag_title_spinner.text = ""
+        self.ids.tag_title_spinner.is_open = False
 
-    def set_empty_title_spinner_values(self):
-        self.tag_title_spinner.values = []
-        self.tag_title_spinner.text = ""
-        self.tag_title_spinner.is_open = False
+    def __set_empty_title_spinner_values(self):
+        self.ids.tag_title_spinner.values = []
+        self.ids.tag_title_spinner.text = ""
+        self.ids.tag_title_spinner.is_open = False
 
-    def set_title_spinner_values(self, titles: List[str]):
+    def __set_title_spinner_values(self, titles: List[str]):
         if not titles:
-            self.set_empty_title_spinner_values()
+            self.__set_empty_title_spinner_values()
         elif len(titles) == 1:
-            self.tag_title_spinner.values = titles
-            self.tag_title_spinner.text = titles[0]
-            self.tag_title_spinner.is_open = False
+            self.ids.tag_title_spinner.values = titles
+            self.ids.tag_title_spinner.text = titles[0]
+            self.ids.tag_title_spinner.is_open = False
         else:
-            self.tag_title_spinner.values = titles
-            self.tag_title_spinner.is_open = True
+            self.ids.tag_title_spinner.values = titles
+            self.ids.tag_title_spinner.is_open = True
 
 
 class StoryGroupTreeViewNode(Button, TreeViewNode):

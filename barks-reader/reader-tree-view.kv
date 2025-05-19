@@ -17,13 +17,10 @@
 
 <TitleSearchBoxTreeViewNode>:
     size: root.NODE_SIZE
-    title_search_box_label: title_search_box_label_id
-    title_search_box: title_search_box_id
-    title_spinner: title_spinner_id
     color_selected: root.SELECTED_COLOR
 
     Label:
-        id: title_search_box_label_id
+        id: title_search_box_label
         text: "Titles: "
         color: root.TEXT_COLOR
         background_color: root.TEXT_BACKGROUND_COLOR
@@ -35,7 +32,7 @@
         text_size: (self.width, self.height)
 
     TextInput:
-        id: title_search_box_id
+        id: title_search_box
         text: root.text
         on_text: root.text = self.text
         font_size: sp(16)
@@ -44,14 +41,14 @@
         disabled_foreground_color: (1,1,1,0.5)
         background_color: root.TEXT_BACKGROUND_COLOR
         size_hint: (0.2, 1)
-        x: root.title_search_box_label.x + root.title_search_box_label.width
+        x: root.ids.title_search_box_label.x + root.ids.title_search_box_label.width
         y: root.y
         halign: "left"
         valign: "middle"
         text_size: (self.width, self.height)
 
     Spinner:
-        id: title_spinner_id
+        id: title_spinner
         text: ""
         values: []
         bold: True
@@ -60,7 +57,7 @@
         text_autoupdate: False
         is_open: False
         size_hint: (0.715, 1)
-        x: root.title_search_box.x + root.title_search_box.width
+        x: root.ids.title_search_box.x + root.ids.title_search_box.width
         y: root.y
         halign: "center"
         valign: "middle"
@@ -68,26 +65,22 @@
 
 <TagSearchBoxTreeViewNode>:
     size: root.NODE_SIZE
-    tag_search_label: tag_search_label_id
-    tag_search_box: tag_search_box_id
-    tag_spinner: tag_spinner_id
-    tag_title_spinner: tag_title_spinner_id
     color_selected: root.SELECTED_COLOR
 
     Label:
-        id: tag_search_label_id
+        id: tag_search_label
         text: "Tags: "
         color: root.TAG_LABEL_COLOR
         background_color: root.TAG_LABEL_BACKGROUND_COLOR
         size_hint: (0.08, 0.5)
         x: root.x
-        y: root.y + root.tag_search_box.height
+        y: root.y + root.ids.tag_search_box.height
         halign: "left"
         valign: "middle"
         text_size: (self.width, self.height)
 
     TextInput:
-        id: tag_search_box_id
+        id: tag_search_box
         text: root.text
         on_text: root.text = self.text
         font_size: sp(16)
@@ -96,14 +89,14 @@
         disabled_foreground_color: (1,1,1,0.5)
         background_color: root.TAG_TEXT_BACKGROUND_COLOR
         size_hint: (0.2, 0.5)
-        x: root.tag_search_label.x + root.tag_search_label.width
-        y: root.y + root.tag_search_box.height
+        x: root.ids.tag_search_label.x + root.ids.tag_search_label.width
+        y: root.y + root.ids.tag_search_box.height
         halign: "left"
         valign: "middle"
         text_size: (self.width, self.height)
 
     Spinner:
-        id: tag_spinner_id
+        id: tag_spinner
         text: ""
         values: []
         bold: True
@@ -112,14 +105,14 @@
         text_autoupdate: False
         is_open: False
         size_hint: (0.715, 0.5)
-        x: root.tag_search_box.x + root.tag_search_box.width
-        y: root.y + root.tag_search_box.height
+        x: root.ids.tag_search_box.x + root.ids.tag_search_box.width
+        y: root.y + root.ids.tag_search_box.height
         halign: "center"
         valign: "middle"
         text_size: (self.width, self.height)
 
     Spinner:
-        id: tag_title_spinner_id
+        id: tag_title_spinner
         text: ""
         values: ["one", "two", "three"]
         bold: True
@@ -128,7 +121,7 @@
         text_autoupdate: False
         is_open: False
         size_hint: (0.715, 0.5)
-        x: root.tag_search_box.x + root.tag_search_box.width
+        x: root.ids.tag_search_box.x + root.ids.tag_search_box.width
         y: root.y
         halign: "center"
         valign: "middle"

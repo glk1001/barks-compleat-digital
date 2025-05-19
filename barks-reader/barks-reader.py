@@ -15,8 +15,6 @@ from filtered_title_lists import FilteredTitleLists
 from main_screen import MainScreen
 from reader_tree_builder import ReaderTreeBuilder
 
-TOP_VIEW_EVENT_TIMEOUT_SECS = 1000.0
-BOTTOM_VIEW_EVENT_TIMEOUT_SECS = 1000.0
 APP_TITLE = "The Compleat Barks Reader"
 
 # TODO: how to nicely handle main window

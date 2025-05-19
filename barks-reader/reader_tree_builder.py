@@ -67,58 +67,62 @@ class ReaderTreeBuilder:
         self.__add_story_nodes(tree, new_node)
 
     def __add_search_node(self, tree: ReaderTreeView):
-        label = MainTreeViewNode(text="Search")
-        label.bind(on_press=self.main_screen.on_search_pressed)
-        search_node = tree.add_node(label)
+        node = MainTreeViewNode(text="Search")
+        node.bind(on_press=self.main_screen.on_search_pressed)
+        search_node = tree.add_node(node)
 
-        label = TitleSearchBoxTreeViewNode(self.title_search)
-        label.on_title_search_box_pressed = self.main_screen.on_title_search_box_pressed
-        label.on_title_search_box_title_pressed = self.main_screen.on_title_search_box_title_pressed
-        label.title_spinner.bind(text=self.main_screen.on_title_search_box_title_changed)
-        tree.add_node(label, parent=search_node)
+        node = TitleSearchBoxTreeViewNode(self.title_search)
+        node.bind(on_title_search_box_pressed=self.main_screen.on_title_search_box_pressed)
+        node.bind(
+            on_title_search_box_title_pressed=self.main_screen.on_title_search_box_title_pressed
+        )
+        node.bind(
+            on_title_search_box_title_changed=self.main_screen.on_title_search_box_title_changed
+        )
+        tree.add_node(node, parent=search_node)
 
-        label = TagSearchBoxTreeViewNode(self.title_search)
-        label.bind(on_tag_search_box_pressed=self.main_screen.on_tag_search_box_pressed)
-        label.bind(on_tag_search_box_tag_pressed=self.main_screen.on_tag_search_box_tag_pressed)
-        label.bind(on_tag_search_box_title_pressed=self.main_screen.on_tag_search_box_title_pressed)
-        label.bind(on_tag_search_box_text_changed=self.main_screen.on_tag_search_box_text_changed)
-        label.bind(on_tag_search_box_tag_changed=self.main_screen.on_tag_search_box_tag_changed)
-        label.bind(on_tag_search_box_title_changed=self.main_screen.on_tag_search_box_title_changed)
-        tree.add_node(label, parent=search_node)
+        node = TagSearchBoxTreeViewNode(self.title_search)
+        node.bind(on_tag_search_box_pressed=self.main_screen.on_tag_search_box_pressed)
+        node.bind(on_tag_search_box_tag_pressed=self.main_screen.on_tag_search_box_tag_pressed)
+        node.bind(on_tag_search_box_title_pressed=self.main_screen.on_tag_search_box_title_pressed)
+        node.bind(on_tag_search_box_text_changed=self.main_screen.on_tag_search_box_text_changed)
+        node.bind(on_tag_search_box_tag_changed=self.main_screen.on_tag_search_box_tag_changed)
+        node.bind(on_tag_search_box_title_changed=self.main_screen.on_tag_search_box_title_changed)
+        tree.add_node(node, parent=search_node)
 
     def __add_appendix_node(self, tree: ReaderTreeView):
-        label = MainTreeViewNode(text="Appendix")
-        label.bind(on_press=self.main_screen.on_appendix_pressed)
-        tree.add_node(label)
+        node = MainTreeViewNode(text="Appendix")
+        node.bind(on_press=self.main_screen.on_appendix_pressed)
+        tree.add_node(node)
 
     def __add_index_node(self, tree: ReaderTreeView):
-        label = MainTreeViewNode(text="Index")
-        label.bind(on_press=self.main_screen.on_index_pressed)
-        tree.add_node(label)
+        node = MainTreeViewNode(text="Index")
+        node.bind(on_press=self.main_screen.on_index_pressed)
+        tree.add_node(node)
 
     def __add_story_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
-        label = StoryGroupTreeViewNode(text="Chronological")
-        label.bind(on_press=self.main_screen.on_chrono_pressed)
-        new_node = tree.add_node(label, parent=parent_node)
+        node = StoryGroupTreeViewNode(text="Chronological")
+        node.bind(on_press=self.main_screen.on_chrono_pressed)
+        new_node = tree.add_node(node, parent=parent_node)
         self.__add_year_range_nodes(tree, new_node)
 
-        label = StoryGroupTreeViewNode(text="Series")
-        label.bind(on_press=self.main_screen.on_series_pressed)
-        new_node = tree.add_node(label, parent=parent_node)
+        node = StoryGroupTreeViewNode(text="Series")
+        node.bind(on_press=self.main_screen.on_series_pressed)
+        new_node = tree.add_node(node, parent=parent_node)
         self.__add_series_nodes(tree, new_node)
 
-        label = StoryGroupTreeViewNode(text="Categories")
-        label.bind(on_press=self.main_screen.on_categories_pressed)
-        new_node = tree.add_node(label, parent=parent_node)
+        node = StoryGroupTreeViewNode(text="Categories")
+        node.bind(on_press=self.main_screen.on_categories_pressed)
+        new_node = tree.add_node(node, parent=parent_node)
         self.__add_categories_nodes(tree, new_node)
 
     def __add_year_range_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
         for year_range in self.filtered_title_lists.year_ranges:
             range_str = f"{year_range[0]} - {year_range[1]}"
-            label = YearRangeTreeViewNode(text=range_str)
-            label.bind(on_press=self.main_screen.on_year_range_pressed)
+            node = YearRangeTreeViewNode(text=range_str)
+            node.bind(on_press=self.main_screen.on_year_range_pressed)
 
-            new_node = tree.add_node(label, parent=parent_node)
+            new_node = tree.add_node(node, parent=parent_node)
             self.__add_year_range_story_nodes(
                 tree, new_node, self.main_screen.title_lists[range_str]
             )
@@ -134,10 +138,10 @@ class ReaderTreeBuilder:
 
     def __add_categories_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
         for category in TagCategories:
-            label = StoryGroupTreeViewNode(text=category.value)
-            label.bind(on_press=self.main_screen.on_category_pressed)
+            node = StoryGroupTreeViewNode(text=category.value)
+            node.bind(on_press=self.main_screen.on_category_pressed)
 
-            new_node = tree.add_node(label, parent=parent_node)
+            new_node = tree.add_node(node, parent=parent_node)
             self.__add_category_node(tree, category, new_node)
 
     def __add_category_node(
@@ -153,14 +157,14 @@ class ReaderTreeBuilder:
                 self.__add_title_nodes(tree, titles, tag_group_node)
 
     def __add_tag_node(self, tree: ReaderTreeView, tag: Tags, parent_node: TreeViewNode):
-        label = StoryGroupTreeViewNode(text=tag.value)
-        self.__add_tagged_story_nodes(tree, tag, label)
-        tree.add_node(label, parent=parent_node)
+        node = StoryGroupTreeViewNode(text=tag.value)
+        self.__add_tagged_story_nodes(tree, tag, node)
+        tree.add_node(node, parent=parent_node)
 
     @staticmethod
     def __add_tag_group_node(tree: ReaderTreeView, tag_group: TagGroups, parent_node: TreeViewNode):
-        label = StoryGroupTreeViewNode(text=tag_group.value)
-        return tree.add_node(label, parent=parent_node)
+        node = StoryGroupTreeViewNode(text=tag_group.value)
+        return tree.add_node(node, parent=parent_node)
 
     def __add_tagged_story_nodes(
         self, tree: ReaderTreeView, tag: Tags, parent_node: TreeViewNode
@@ -187,10 +191,10 @@ class ReaderTreeBuilder:
     def __add_series_node(
         self, tree: ReaderTreeView, series: str, on_pressed: Callable, parent_node: TreeViewNode
     ) -> None:
-        label = StoryGroupTreeViewNode(text=series)
-        label.bind(on_press=on_pressed)
-        self.__add_series_story_nodes(tree, series, label)
-        tree.add_node(label, parent=parent_node)
+        node = StoryGroupTreeViewNode(text=series)
+        node.bind(on_press=on_pressed)
+        self.__add_series_story_nodes(tree, series, node)
+        tree.add_node(node, parent=parent_node)
 
     def __add_series_story_nodes(
         self, tree: ReaderTreeView, series: str, parent_node: TreeViewNode
