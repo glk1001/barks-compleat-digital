@@ -200,16 +200,36 @@ class BackgroundViews:
         )
 
     def __set_bottom_view_after_image_color(self):
+        alpha = self.__bottom_view_after_image_color[3]
+        if alpha < 0.01:
+            return
+
         if randrange(0, 100) < 20:
-            rand_color = [1, 1, 1, 1]
+            rand_color = [1, 1, 1, alpha]
         else:
             rand_index = randrange(0, 3)
             rgb_val = 0.5 if rand_index == 2 else 0.1
             rand_color_val = randrange(230, 255) / 255.0
-            rand_color = [rgb_val, rgb_val, rgb_val, self.__bottom_view_after_image_color[3]]
+            rand_color = [rgb_val, rgb_val, rgb_val, alpha]
             rand_color[rand_index] = rand_color_val
 
         self.__bottom_view_after_image_color = tuple(rand_color)
+
+    def __set_bottom_view_before_image_color(self):
+        alpha = self.__bottom_view_before_image_color[3]
+        if alpha < 0.01:
+            return
+
+        if randrange(0, 100) < 20:
+            rand_color = [1, 1, 1, alpha]
+        else:
+            rand_index = randrange(0, 3)
+            rgb_val = 0.5 if rand_index == 2 else 0.1
+            rand_color_val = randrange(230, 255) / 255.0
+            rand_color = [rgb_val, rgb_val, rgb_val, alpha]
+            rand_color[rand_index] = rand_color_val
+
+        self.__bottom_view_before_image_color = tuple(rand_color)
 
     def __schedule_top_view_event(self):
         if self.__top_view_change_event:
@@ -247,6 +267,7 @@ class BackgroundViews:
 
         self.__set_top_view_image()
         self.__set_bottom_view_after_image()
+        self.__set_bottom_view_before_image_color()
 
         logging.debug(
             f"Set Bottom view before image:"

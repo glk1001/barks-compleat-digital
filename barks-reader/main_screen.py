@@ -94,7 +94,7 @@ class MainScreen(BoxLayout):
         self.background_views = BackgroundViews(self.title_lists)
         self.update_background_views(ViewStates.INITIAL)
 
-    def node_expanded(self, _tree: ReaderTreeView, node: TreeViewNode):
+    def on_node_expanded(self, _tree: ReaderTreeView, node: TreeViewNode):
         if isinstance(node, YearRangeTreeViewNode):
             self.update_background_views(ViewStates.ON_YEAR_RANGE_NODE, year_range=node.text)
         elif isinstance(node, StoryGroupTreeViewNode):
@@ -105,15 +105,15 @@ class MainScreen(BoxLayout):
             elif node.text in BARKS_TAG_CATEGORIES_DICT:
                 self.update_background_views(ViewStates.ON_CATEGORY_NODE, category=node.text)
 
-    def intro_pressed(self, _button: Button):
+    def on_intro_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_INTRO_NODE)
 
         self.intro_text = "hello line 1\nhello line 2\nhello line 3\n"
 
-    def the_stories_pressed(self, _button: Button):
+    def on_the_stories_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_THE_STORIES_NODE)
 
-    def search_pressed(self, _button: Button):
+    def on_search_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_SEARCH_NODE)
 
     def on_title_search_box_pressed(self, instance: TitleSearchBoxTreeViewNode):
@@ -198,19 +198,19 @@ class MainScreen(BoxLayout):
         self.fanta_info = self.all_fanta_titles[title_str]
         self.set_title()
 
-    def appendix_pressed(self, _button: Button):
+    def on_appendix_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_APPENDIX_NODE)
 
-    def index_pressed(self, _button: Button):
+    def on_index_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_INDEX_NODE)
 
-    def chrono_pressed(self, _button: Button):
+    def on_chrono_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_CHRONO_BY_YEAR_NODE)
 
-    def year_range_pressed(self, button: Button):
+    def on_year_range_pressed(self, button: Button):
         self.update_background_views(ViewStates.ON_YEAR_RANGE_NODE, year_range=button.text)
 
-    def series_pressed(self, _button: Button):
+    def on_series_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_SERIES_NODE)
 
     def cs_pressed(self, _button: Button):
@@ -219,17 +219,17 @@ class MainScreen(BoxLayout):
     def dda_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_DDA_NODE)
 
-    def categories_pressed(self, _button: Button):
+    def on_categories_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_CATEGORIES_NODE)
 
-    def category_pressed(self, button: Button):
+    def on_category_pressed(self, button: Button):
         self.update_background_views(ViewStates.ON_CATEGORY_NODE, category=button.text)
 
-    def title_row_button_pressed(self, button: Button):
-        self.update_background_views(ViewStates.ON_TITLE_NODE)
-
+    def on_title_row_button_pressed(self, button: Button):
         self.fanta_info = button.parent.fanta_info
         self.set_title()
+
+        self.update_background_views(ViewStates.ON_TITLE_NODE)
 
     def update_background_views(
         self, tree_node: ViewStates, category: str = "", year_range: str = ""
@@ -278,7 +278,7 @@ class MainScreen(BoxLayout):
 
         return self.fanta_info.comic_book_info.get_title_from_issue_name()
 
-    def image_pressed(self):
+    def on_image_pressed(self):
         if self.fanta_info is None:
             logging.debug(f'Image "{self.title_page_image_source}" pressed. But no title selected.')
             return

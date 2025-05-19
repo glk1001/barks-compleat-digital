@@ -45,7 +45,7 @@ class ReaderTreeBuilder:
     def build_main_screen_tree(self):
         tree: ReaderTreeView = self.main_screen.reader_tree_view
 
-        tree.bind(on_node_expand=self.main_screen.node_expanded)
+        tree.bind(on_node_expand=self.main_screen.on_node_expanded)
 
         self.__add_intro_node(tree)
         self.__add_the_stories_node(tree)
@@ -57,18 +57,18 @@ class ReaderTreeBuilder:
 
     def __add_intro_node(self, tree: ReaderTreeView):
         label = MainTreeViewNode(text="Introduction")
-        label.bind(on_press=self.main_screen.intro_pressed)
+        label.bind(on_press=self.main_screen.on_intro_pressed)
         tree.add_node(label)
 
     def __add_the_stories_node(self, tree: ReaderTreeView):
         label = MainTreeViewNode(text="The Stories")
-        label.bind(on_press=self.main_screen.the_stories_pressed)
+        label.bind(on_press=self.main_screen.on_the_stories_pressed)
         new_node = tree.add_node(label)
         self.__add_story_nodes(tree, new_node)
 
     def __add_search_node(self, tree: ReaderTreeView):
         label = MainTreeViewNode(text="Search")
-        label.bind(on_press=self.main_screen.search_pressed)
+        label.bind(on_press=self.main_screen.on_search_pressed)
         search_node = tree.add_node(label)
 
         label = TitleSearchBoxTreeViewNode(self.title_search)
@@ -88,27 +88,27 @@ class ReaderTreeBuilder:
 
     def __add_appendix_node(self, tree: ReaderTreeView):
         label = MainTreeViewNode(text="Appendix")
-        label.bind(on_press=self.main_screen.appendix_pressed)
+        label.bind(on_press=self.main_screen.on_appendix_pressed)
         tree.add_node(label)
 
     def __add_index_node(self, tree: ReaderTreeView):
         label = MainTreeViewNode(text="Index")
-        label.bind(on_press=self.main_screen.index_pressed)
+        label.bind(on_press=self.main_screen.on_index_pressed)
         tree.add_node(label)
 
     def __add_story_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
         label = StoryGroupTreeViewNode(text="Chronological")
-        label.bind(on_press=self.main_screen.chrono_pressed)
+        label.bind(on_press=self.main_screen.on_chrono_pressed)
         new_node = tree.add_node(label, parent=parent_node)
         self.__add_year_range_nodes(tree, new_node)
 
         label = StoryGroupTreeViewNode(text="Series")
-        label.bind(on_press=self.main_screen.series_pressed)
+        label.bind(on_press=self.main_screen.on_series_pressed)
         new_node = tree.add_node(label, parent=parent_node)
         self.__add_series_nodes(tree, new_node)
 
         label = StoryGroupTreeViewNode(text="Categories")
-        label.bind(on_press=self.main_screen.categories_pressed)
+        label.bind(on_press=self.main_screen.on_categories_pressed)
         new_node = tree.add_node(label, parent=parent_node)
         self.__add_categories_nodes(tree, new_node)
 
@@ -116,7 +116,7 @@ class ReaderTreeBuilder:
         for year_range in self.filtered_title_lists.year_ranges:
             range_str = f"{year_range[0]} - {year_range[1]}"
             label = YearRangeTreeViewNode(text=range_str)
-            label.bind(on_press=self.main_screen.year_range_pressed)
+            label.bind(on_press=self.main_screen.on_year_range_pressed)
 
             new_node = tree.add_node(label, parent=parent_node)
             self.__add_year_range_story_nodes(
@@ -135,7 +135,7 @@ class ReaderTreeBuilder:
     def __add_categories_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
         for category in TagCategories:
             label = StoryGroupTreeViewNode(text=category.value)
-            label.bind(on_press=self.main_screen.category_pressed)
+            label.bind(on_press=self.main_screen.on_category_pressed)
 
             new_node = tree.add_node(label, parent=parent_node)
             self.__add_category_node(tree, category, new_node)
@@ -204,12 +204,12 @@ class ReaderTreeBuilder:
         title_node = TitleTreeViewNode(full_fanta_info)
 
         title_node.num_label.text = str(full_fanta_info.fanta_chronological_number)
-        title_node.num_label.bind(on_press=self.main_screen.title_row_button_pressed)
+        title_node.num_label.bind(on_press=self.main_screen.on_title_row_button_pressed)
 
         title_node.num_label.color_selected = (0, 0, 1, 1)
 
         title_node.title_label.text = full_fanta_info.comic_book_info.get_display_title()
-        title_node.title_label.bind(on_press=self.main_screen.title_row_button_pressed)
+        title_node.title_label.bind(on_press=self.main_screen.on_title_row_button_pressed)
 
         issue_info = (
             f"{get_short_formatted_first_published_str(full_fanta_info.comic_book_info)}"
@@ -217,6 +217,6 @@ class ReaderTreeBuilder:
         )
 
         title_node.issue_label.text = issue_info
-        title_node.issue_label.bind(on_press=self.main_screen.title_row_button_pressed)
+        title_node.issue_label.bind(on_press=self.main_screen.on_title_row_button_pressed)
 
         return title_node
