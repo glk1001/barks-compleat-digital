@@ -199,6 +199,7 @@ class BackgroundViews:
             f" Opacity: {self.__bottom_view_image_opacity}."
         )
 
+    # TODO: Rationalize image color setters
     def __set_bottom_view_after_image_color(self):
         alpha = self.__bottom_view_after_image_color[3]
         if alpha < 0.01:
@@ -207,6 +208,9 @@ class BackgroundViews:
         if randrange(0, 100) < 20:
             rand_color = [1, 1, 1, alpha]
         else:
+            if randrange(0, 100) < 30:
+                alpha = randrange(130, 230) / 255.0
+
             rand_index = randrange(0, 3)
             rgb_val = 0.5 if rand_index == 2 else 0.1
             rand_color_val = randrange(230, 255) / 255.0
@@ -223,6 +227,9 @@ class BackgroundViews:
         if randrange(0, 100) < 20:
             rand_color = [1, 1, 1, alpha]
         else:
+            if randrange(0, 100) < 30:
+                alpha = randrange(130, 230) / 255.0
+
             rand_index = randrange(0, 3)
             rgb_val = 0.5 if rand_index == 2 else 0.1
             rand_color_val = randrange(230, 255) / 255.0
