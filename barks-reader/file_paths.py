@@ -137,6 +137,10 @@ def get_comic_inset_file(title: Titles) -> str:
 
 
 def get_comic_cover_file(title: str) -> str:
+    edited_file = os.path.join(get_comic_cover_files_dir(), "edited", title + PNG_FILE_EXT)
+    if os.path.isfile(edited_file):
+        return edited_file
+
     cover_file = os.path.join(get_comic_cover_files_dir(), title + JPG_FILE_EXT)
     if not os.path.isfile(cover_file):
         return ""
