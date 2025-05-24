@@ -44,7 +44,7 @@
                 mipmap: True
 
             ScrollView:
-                id: scroll_view_id
+                id: scroll_view
                 size_hint: (1, 0.97)
 
                 do_scroll_x: False
@@ -302,3 +302,14 @@
                     size: self.parent.size
                     fit_mode: "cover"
                     mipmap: True
+
+                    Button:
+                        text: "HELLO"
+                        on_press: root.on_goto_title_button_pressed(self)
+                        background_color: (0.3, 0.3, 1.0, 0.5)
+                        x: self.parent.x + self.parent.width - dp(20)
+                        y: self.parent.y
+                        size: (dp(20), dp(20))
+                        halign: "left"
+                        valign: "top"
+                        text_size: (self.width, self.height)

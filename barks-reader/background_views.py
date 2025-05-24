@@ -14,7 +14,7 @@ from barks_fantagraphics.fanta_comics_info import (
     SERIES_DDA,
 )
 from file_paths import get_comic_inset_file
-from random_title_images import get_random_image, get_random_color
+from random_title_images import get_random_image, get_random_image_file, get_random_color
 from reader_types import Color, get_formatted_color
 
 
@@ -54,6 +54,7 @@ class BackgroundViews:
         self.__bottom_view_title_info_opacity = 0.0
 
         self.__bottom_view_after_image_opacity = 0.0
+        self.__bottom_view_after_image_title = None
         self.__bottom_view_after_image_file = ""
         self.__bottom_view_after_image_color: Color = (0, 0, 0, 0)
         self.__bottom_view_change_after_event = None
@@ -87,6 +88,9 @@ class BackgroundViews:
     def get_bottom_view_after_image_color(self) -> Color:
         return self.__bottom_view_after_image_color
 
+    def get_bottom_view_after_image_title(self) -> Titles:
+        return self.__bottom_view_after_image_title
+
     def get_bottom_view_after_image_file(self) -> str:
         return self.__bottom_view_after_image_file
 
@@ -102,7 +106,7 @@ class BackgroundViews:
     def set_current_year_range(self, year_range: str) -> None:
         self.__current_year_range = year_range
 
-    def set_bottom_view_before_image(self, image_file: str) -> None:
+    def set_bottom_view_before_image_file(self, image_file: str) -> None:
         self.__bottom_view_before_image_file = image_file
 
     def set_view_state(self, view_state: ViewStates) -> None:
@@ -117,7 +121,7 @@ class BackgroundViews:
             case ViewStates.ON_INTRO_NODE:
                 self.__top_view_image_file = get_comic_inset_file(Titles.ADVENTURE_DOWN_UNDER)
             case ViewStates.ON_THE_STORIES_NODE:
-                self.__top_view_image_file = get_random_image(self.title_lists[ALL_LISTS])
+                self.__top_view_image_file = get_random_image_file(self.title_lists[ALL_LISTS])
             case (
                 ViewStates.ON_SEARCH_NODE
                 | ViewStates.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET
@@ -137,17 +141,17 @@ class BackgroundViews:
                 | ViewStates.ON_SERIES_NODE
                 | ViewStates.ON_CATEGORIES_NODE
             ):
-                self.__top_view_image_file = get_random_image(self.title_lists[ALL_LISTS])
+                self.__top_view_image_file = get_random_image_file(self.title_lists[ALL_LISTS])
             case ViewStates.ON_CS_NODE:
-                self.__top_view_image_file = get_random_image(self.title_lists[SERIES_CS])
+                self.__top_view_image_file = get_random_image_file(self.title_lists[SERIES_CS])
             case ViewStates.ON_DDA_NODE:
-                self.__top_view_image_file = get_random_image(self.title_lists[SERIES_DDA])
+                self.__top_view_image_file = get_random_image_file(self.title_lists[SERIES_DDA])
             case ViewStates.ON_CATEGORY_NODE:
                 logging.debug(f"Current category: '{self.__current_category}'")
                 if not self.__current_category:
                     self.__top_view_image_file = get_comic_inset_file(Titles.GOOD_NEIGHBORS)
                 else:
-                    self.__top_view_image_file = get_random_image(
+                    self.__top_view_image_file = get_random_image_file(
                         self.title_lists[self.__current_category]
                     )
             case ViewStates.ON_YEAR_RANGE_NODE:
@@ -155,7 +159,7 @@ class BackgroundViews:
                 if not self.__current_year_range:
                     self.__top_view_image_file = get_comic_inset_file(Titles.GOOD_NEIGHBORS)
                 else:
-                    self.__top_view_image_file = get_random_image(
+                    self.__top_view_image_file = get_random_image_file(
                         self.title_lists[self.__current_year_range]
                     )
             case ViewStates.ON_TITLE_NODE:
@@ -187,7 +191,9 @@ class BackgroundViews:
         ]:
             return
 
-        self.__bottom_view_after_image_file = get_random_image(self.title_lists[ALL_LISTS])
+        self.__bottom_view_after_image_file, self.__bottom_view_after_image_title = (
+            get_random_image(self.title_lists[ALL_LISTS])
+        )
         self.__set_bottom_view_after_image_color()
         self.__schedule_bottom_view_after_event()
 

@@ -1,5 +1,5 @@
 import logging
-from typing import List, Callable
+from typing import List, Callable, Tuple, Dict
 
 from kivy.uix.treeview import TreeViewNode
 
@@ -42,6 +42,8 @@ class ReaderTreeBuilder:
         self.__filtered_title_lists = filtered_title_lists
         self.__title_search = title_search
         self.__main_screen = main_screen
+
+        self.year_range_nodes: Dict[Tuple[int, int], TreeViewNode] = {}
 
     def build_main_screen_tree(self):
         tree: ReaderTreeView = self.__main_screen.reader_tree_view
@@ -126,6 +128,8 @@ class ReaderTreeBuilder:
 
             new_node = tree.add_node(node, parent=parent_node)
             self.__add_year_range_story_nodes(tree, new_node, year_range_titles)
+
+            self.year_range_nodes[year_range] = new_node
 
     def __add_year_range_story_nodes(
         self,

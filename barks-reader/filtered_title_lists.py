@@ -1,4 +1,4 @@
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, Union
 
 from barks_fantagraphics.barks_tags import TagCategories, BARKS_TAG_CATEGORIES_TITLES
 from barks_fantagraphics.fanta_comics_info import (
@@ -35,8 +35,19 @@ class FilteredTitleLists:
         self.categories = list(TagCategories)
 
     @staticmethod
-    def get_range_str(year_range: Tuple[int, int]):
+    def get_range_str(year_range: Tuple[int, int]) -> str:
         return f"{year_range[0]} - {year_range[1]}"
+
+    def get_year_range_from_info(
+        self, fanta_info: FantaComicBookInfo
+    ) -> Union[None, Tuple[int, int]]:
+        sub_year = fanta_info.comic_book_info.submitted_year
+
+        for year_range in self.year_ranges:
+            if year_range[0] <= sub_year <= year_range[1]:
+                return year_range
+
+        return None
 
     def get_title_lists(self) -> Dict[str, List[FantaComicBookInfo]]:
 

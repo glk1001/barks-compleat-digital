@@ -60,6 +60,8 @@ class BarksReaderApp(App):
 
         self.title = APP_TITLE
 
+        self.main_screen.year_range_nodes = tree_builder.year_range_nodes
+
         return self.main_screen
 
 

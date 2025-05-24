@@ -1,6 +1,7 @@
 import logging
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Tuple
 
+from kivy.clock import Clock
 from kivy.metrics import sp
 from kivy.properties import ObjectProperty, StringProperty, ColorProperty, NumericProperty
 from kivy.uix.boxlayout import BoxLayout
@@ -12,7 +13,7 @@ from background_views import BackgroundViews, ViewStates
 from barks_fantagraphics.barks_tags import (
     BARKS_TAG_CATEGORIES_DICT,
 )
-from barks_fantagraphics.barks_titles import ComicBookInfo, Titles, get_title_dict
+from barks_fantagraphics.barks_titles import ComicBookInfo, Titles, get_title_dict, BARKS_TITLES
 from barks_fantagraphics.comics_utils import get_dest_comic_zip_file_stem
 from barks_fantagraphics.fanta_comics_info import (
     FantaComicBookInfo,
@@ -77,7 +78,9 @@ class MainScreen(BoxLayout):
 
         self.formatter = ReaderFormatter()
         self.fanta_info: Union[FantaComicBookInfo, None] = None
+        self.year_range_nodes = None
 
+        self.filtered_title_lists: FilteredTitleLists = filtered_title_lists
         self.title_lists: Dict[str, List[FantaComicBookInfo]] = (
             filtered_title_lists.get_title_lists()
         )
@@ -92,8 +95,52 @@ class MainScreen(BoxLayout):
             get_the_comic_zips_dir(),
         )
 
+        self.bottom_view_after_image_title = None
+
         self.background_views = BackgroundViews(self.title_lists)
         self.update_background_views(ViewStates.INITIAL)
+
+    def on_goto_title_button_pressed(self, _button: Button):
+        after_image_title = self.bottom_view_after_image_title
+
+        year_nodes = self.year_range_nodes[self.get_year_range(after_image_title)]
+        self.open_all_parent_nodes(year_nodes)
+
+        title_node = self.find_title_node(year_nodes, after_image_title)
+        self.goto_node(title_node)
+
+    def goto_node(self, node: TreeViewNode) -> None:
+        def show_node(n):
+            self.reader_tree_view.select_node(n)
+            self.ids.scroll_view.scroll_to(n)
+
+        Clock.schedule_once(lambda dt, item=node: show_node(item))
+
+    def get_year_range(self, title: Titles) -> Tuple[int, int]:
+        # TODO: Very roundabout way to get fanta info
+        title_str = BARKS_TITLES[title]
+        fanta_info = self.all_fanta_titles[title_str]
+        return self.filtered_title_lists.get_year_range_from_info(fanta_info)
+
+    def open_all_parent_nodes(self, node: TreeViewNode) -> None:
+        parent_node = node
+        while parent_node and isinstance(parent_node, TreeViewNode):
+            if not parent_node.is_open:
+                self.reader_tree_view.toggle_node(parent_node)
+            parent_node = parent_node.parent_node
+
+    @staticmethod
+    def find_title_node(start_node: TreeViewNode, target_title: Titles):
+        nodes_to_visit = start_node.nodes.copy()
+
+        while nodes_to_visit:
+            current_node = nodes_to_visit.pop()
+            node_title = current_node.get_title()
+            if node_title == target_title:
+                return current_node
+            nodes_to_visit.extend(current_node.nodes)
+
+        return None
 
     def on_node_expanded(self, _tree: ReaderTreeView, node: TreeViewNode):
         if isinstance(node, YearRangeTreeViewNode):
@@ -231,6 +278,9 @@ class MainScreen(BoxLayout):
         self.bottom_view_title_info_opacity = (
             self.background_views.get_bottom_view_title_info_opacity()
         )
+        self.bottom_view_after_image_title = (
+            self.background_views.get_bottom_view_after_image_title()
+        )
         self.bottom_view_after_image_source = (
             self.background_views.get_bottom_view_after_image_file()
         )
@@ -248,7 +298,7 @@ class MainScreen(BoxLayout):
         logging.debug(f'Setting title to "{self.fanta_info.comic_book_info.get_title_str()}".')
 
         comic_inset_file = get_comic_inset_file(self.fanta_info.comic_book_info.title)
-        self.background_views.set_bottom_view_before_image(
+        self.background_views.set_bottom_view_before_image_file(
             get_random_title_image(self.fanta_info.comic_book_info.get_title_str())
         )
 

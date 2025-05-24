@@ -12,6 +12,7 @@ from kivy.uix.spinner import Spinner
 from kivy.uix.treeview import TreeView, TreeViewNode
 
 from barks_fantagraphics.barks_tags import Tags, TagGroups
+from barks_fantagraphics.barks_titles import Titles
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
 from barks_fantagraphics.title_search import unique_extend, BarksTitleSearch
 from reader_formatter import get_markup_text_with_num_titles, text_includes_num_titles
@@ -289,6 +290,9 @@ class TitleTreeViewNode(BoxLayout, TreeViewNode):
     def __init__(self, fanta_info: FantaComicBookInfo, **kwargs):
         super().__init__(**kwargs)
         self.fanta_info = fanta_info
+
+    def get_title(self) -> Titles:
+        return self.fanta_info.comic_book_info.title
 
 
 class TreeViewButton(Button):
