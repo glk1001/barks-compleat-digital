@@ -65,7 +65,8 @@ class MainScreen(BoxLayout):
     top_view_image_color = ColorProperty()
     top_view_image_opacity = NumericProperty(1.0)
 
-    bottom_view_opacity = NumericProperty(1.0)
+    bottom_view_title_info_opacity = NumericProperty(0.0)
+    bottom_view_after_image_opacity = NumericProperty(1.0)
     bottom_view_after_image_source = StringProperty()
     bottom_view_after_image_color = ColorProperty()
     bottom_view_before_image_source = StringProperty()
@@ -224,7 +225,12 @@ class MainScreen(BoxLayout):
         self.top_view_image_source = self.background_views.get_top_view_image_file()
         self.top_view_image_color = self.background_views.get_top_view_image_color()
 
-        self.bottom_view_opacity = self.background_views.get_bottom_view_image_opacity()
+        self.bottom_view_after_image_opacity = (
+            self.background_views.get_bottom_view_after_image_opacity()
+        )
+        self.bottom_view_title_info_opacity = (
+            self.background_views.get_bottom_view_title_info_opacity()
+        )
         self.bottom_view_after_image_source = (
             self.background_views.get_bottom_view_after_image_file()
         )

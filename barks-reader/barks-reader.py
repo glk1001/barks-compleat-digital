@@ -53,7 +53,9 @@ class BarksReaderApp(App):
 
         self.main_screen = MainScreen(self.filtered_title_lists)
 
-        tree_builder = ReaderTreeBuilder(self.filtered_title_lists, self.title_search, self.main_screen)
+        tree_builder = ReaderTreeBuilder(
+            self.filtered_title_lists, self.title_search, self.main_screen
+        )
         tree_builder.build_main_screen_tree()
 
         self.title = APP_TITLE
@@ -71,7 +73,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     setup_logging(log_level=logging.DEBUG)
-#    setup_logging(cmd_args.get_log_level())
+    #    setup_logging(cmd_args.get_log_level())
 
     comics_database = cmd_args.get_comics_database()
 

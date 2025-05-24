@@ -40,10 +40,6 @@ class ViewStates(Enum):
 
 
 class BackgroundViews:
-    BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG = (1, 0, 0, 1)
-    BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG = (1, 0, 0, 0)
-    BOTTOM_VIEW_BEFORE_IMAGE_ENABLED_BG = (1, 0, 0, 0.5)
-    BOTTOM_VIEW_BEFORE_IMAGE_DISABLED_BG = (0, 0, 0, 0)
     TOP_VIEW_EVENT_TIMEOUT_SECS = 1000.0
     BOTTOM_VIEW_EVENT_TIMEOUT_SECS = 1000.0
 
@@ -55,8 +51,9 @@ class BackgroundViews:
         self.__top_view_image_opacity = 1.0
         self.__top_view_change_event = None
 
-        self.__bottom_view_image_opacity = 0.0
+        self.__bottom_view_title_info_opacity = 0.0
 
+        self.__bottom_view_after_image_opacity = 0.0
         self.__bottom_view_after_image_file = ""
         self.__bottom_view_after_image_color: Color = (0, 0, 0, 0)
         self.__bottom_view_change_after_event = None
@@ -81,8 +78,11 @@ class BackgroundViews:
     def get_top_view_image_file(self) -> str:
         return self.__top_view_image_file
 
-    def get_bottom_view_image_opacity(self) -> float:
-        return self.__bottom_view_image_opacity
+    def get_bottom_view_title_info_opacity(self) -> float:
+        return self.__bottom_view_title_info_opacity
+
+    def get_bottom_view_after_image_opacity(self) -> float:
+        return self.__bottom_view_after_image_opacity
 
     def get_bottom_view_after_image_color(self) -> Color:
         return self.__bottom_view_after_image_color
@@ -196,20 +196,15 @@ class BackgroundViews:
             f" State: {self.__view_state},"
             f" Image: '{os.path.basename(self.__bottom_view_after_image_file)}',"
             f" Color: {get_formatted_color(self.__bottom_view_after_image_color)},"
-            f" Opacity: {self.__bottom_view_image_opacity}."
+            f" Opacity: {self.__bottom_view_after_image_opacity}."
         )
 
     # TODO: Rationalize image color setters
     def __set_bottom_view_after_image_color(self):
-        alpha = self.__bottom_view_after_image_color[3]
-        if alpha < 0.01:
-            return
-
         if randrange(0, 100) < 20:
-            rand_color = [1, 1, 1, alpha]
+            rand_color = [1, 1, 1, 1]
         else:
-            if randrange(0, 100) < 30:
-                alpha = randrange(130, 230) / 255.0
+            alpha = randrange(130, 230) / 255.0
 
             rand_index = randrange(0, 3)
             rgb_val = 0.5 if rand_index == 2 else 0.1
@@ -220,15 +215,10 @@ class BackgroundViews:
         self.__bottom_view_after_image_color = tuple(rand_color)
 
     def __set_bottom_view_before_image_color(self):
-        alpha = self.__bottom_view_before_image_color[3]
-        if alpha < 0.01:
-            return
-
         if randrange(0, 100) < 20:
-            rand_color = [1, 1, 1, alpha]
+            rand_color = [1, 1, 1, 0.5]
         else:
-            if randrange(0, 100) < 30:
-                alpha = randrange(130, 230) / 255.0
+            alpha = randrange(130, 230) / 255.0
 
             rand_index = randrange(0, 3)
             rgb_val = 0.5 if rand_index == 2 else 0.1
@@ -256,21 +246,18 @@ class BackgroundViews:
 
     def __update_visibilities(self):
         if self.__view_state == ViewStates.ON_INTRO_NODE:
-            self.__bottom_view_image_opacity = 0.0
-            self.__bottom_view_after_image_color = self.BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG
-            self.__bottom_view_before_image_color = self.BOTTOM_VIEW_BEFORE_IMAGE_DISABLED_BG
+            self.__bottom_view_after_image_opacity = 0.0
+            self.__bottom_view_title_info_opacity = 0.0
         elif self.__view_state in [
             ViewStates.ON_TITLE_SEARCH_BOX_NODE,
             ViewStates.ON_TITLE_NODE,
             ViewStates.ON_TAG_SEARCH_BOX_NODE,
         ]:
-            self.__bottom_view_image_opacity = 1.0
-            self.__bottom_view_after_image_color = self.BOTTOM_VIEW_AFTER_IMAGE_DISABLED_BG
-            self.__bottom_view_before_image_color = self.BOTTOM_VIEW_BEFORE_IMAGE_ENABLED_BG
+            self.__bottom_view_after_image_opacity = 0.0
+            self.__bottom_view_title_info_opacity = 1.0
         else:
-            self.__bottom_view_image_opacity = 1.0
-            self.__bottom_view_after_image_color = self.BOTTOM_VIEW_AFTER_IMAGE_ENABLED_BG
-            self.__bottom_view_before_image_color = self.BOTTOM_VIEW_BEFORE_IMAGE_DISABLED_BG
+            self.__bottom_view_after_image_opacity = 1.0
+            self.__bottom_view_title_info_opacity = 0.0
 
         self.__set_top_view_image()
         self.__set_bottom_view_after_image()
@@ -281,5 +268,5 @@ class BackgroundViews:
             f" State: {self.__view_state},"
             f" Image: '{os.path.basename(self.__bottom_view_before_image_file)}',"
             f" Color: {get_formatted_color(self.__bottom_view_before_image_color)},"
-            f" Opacity: {self.__bottom_view_image_opacity}."
+            f" Opacity: {self.__bottom_view_title_info_opacity}."
         )
