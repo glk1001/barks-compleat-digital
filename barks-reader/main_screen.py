@@ -31,7 +31,7 @@ from file_paths import (
 )
 from filtered_title_lists import FilteredTitleLists
 from mcomix_reader import ComicReader
-from random_title_images import get_random_title_image
+from random_title_images import get_random_title_image, ALL_BUT_ORIGINAL_ART
 from reader_formatter import ReaderFormatter, get_clean_text_without_num_titles
 from reader_ui_classes import (
     ReaderTreeView,
@@ -299,7 +299,9 @@ class MainScreen(BoxLayout):
 
         comic_inset_file = get_comic_inset_file(self.fanta_info.comic_book_info.title)
         self.background_views.set_bottom_view_before_image_file(
-            get_random_title_image(self.fanta_info.comic_book_info.get_title_str())
+            get_random_title_image(
+                self.fanta_info.comic_book_info.get_title_str(), ALL_BUT_ORIGINAL_ART
+            )
         )
 
         self.main_title_text = self.get_main_title_str()
