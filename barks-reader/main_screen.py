@@ -1,5 +1,5 @@
 import logging
-from typing import Union, Dict, List, Tuple
+from typing import Union, Dict, List
 
 from kivy.clock import Clock
 from kivy.metrics import sp
@@ -101,13 +101,19 @@ class MainScreen(BoxLayout):
         self.update_background_views(ViewStates.INITIAL)
 
     def on_goto_title_button_pressed(self, _button: Button):
-        after_image_title = self.bottom_view_fun_image_title
+        fun_image_title = self.bottom_view_fun_image_title
+        fun_image_source = self.bottom_view_fun_image_source
+        fun_fanta_info = self.get_fanta_info(fun_image_title)
 
-        year_nodes = self.year_range_nodes[self.get_year_range(after_image_title)]
+        year_nodes = self.year_range_nodes[
+            self.filtered_title_lists.get_year_range_from_info(fun_fanta_info)
+        ]
         self.open_all_parent_nodes(year_nodes)
 
-        title_node = self.find_title_node(year_nodes, after_image_title)
+        title_node = self.find_title_node(year_nodes, fun_image_title)
         self.goto_node(title_node)
+
+        self.title_row_selected(fun_fanta_info, fun_image_source)
 
     def goto_node(self, node: TreeViewNode) -> None:
         def show_node(n):
@@ -116,11 +122,10 @@ class MainScreen(BoxLayout):
 
         Clock.schedule_once(lambda dt, item=node: show_node(item))
 
-    def get_year_range(self, title: Titles) -> Tuple[int, int]:
+    def get_fanta_info(self, title: Titles) -> FantaComicBookInfo:
         # TODO: Very roundabout way to get fanta info
         title_str = BARKS_TITLES[title]
-        fanta_info = self.all_fanta_titles[title_str]
-        return self.filtered_title_lists.get_year_range_from_info(fanta_info)
+        return self.all_fanta_titles[title_str]
 
     def open_all_parent_nodes(self, node: TreeViewNode) -> None:
         parent_node = node
@@ -141,6 +146,12 @@ class MainScreen(BoxLayout):
             nodes_to_visit.extend(current_node.nodes)
 
         return None
+
+    def title_row_selected(self, new_fanta_info: FantaComicBookInfo, title_image_file: str):
+        self.fanta_info = new_fanta_info
+        self.set_title(title_image_file)
+
+        self.update_background_views(ViewStates.ON_TITLE_NODE)
 
     def on_node_expanded(self, _tree: ReaderTreeView, node: TreeViewNode):
         if isinstance(node, YearRangeTreeViewNode):
@@ -275,18 +286,10 @@ class MainScreen(BoxLayout):
         self.bottom_view_fun_image_opacity = (
             self.background_views.get_bottom_view_fun_image_opacity()
         )
-        self.bottom_view_fun_image_title = (
-            self.background_views.get_bottom_view_fun_image_title()
-        )
-        self.bottom_view_fun_image_source = (
-            self.background_views.get_bottom_view_fun_image_file()
-        )
-        self.bottom_view_fun_image_color = (
-            self.background_views.get_bottom_view_fun_image_color()
-        )
-        self.bottom_view_title_opacity = (
-            self.background_views.get_bottom_view_title_opacity()
-        )
+        self.bottom_view_fun_image_title = self.background_views.get_bottom_view_fun_image_title()
+        self.bottom_view_fun_image_source = self.background_views.get_bottom_view_fun_image_file()
+        self.bottom_view_fun_image_color = self.background_views.get_bottom_view_fun_image_color()
+        self.bottom_view_title_opacity = self.background_views.get_bottom_view_title_opacity()
         self.bottom_view_title_image_source = (
             self.background_views.get_bottom_view_title_image_file()
         )
@@ -294,15 +297,16 @@ class MainScreen(BoxLayout):
             self.background_views.get_bottom_view_title_image_color()
         )
 
-    def set_title(self) -> None:
+    def set_title(self, title_image_file: str = "") -> None:
         logging.debug(f'Setting title to "{self.fanta_info.comic_book_info.get_title_str()}".')
 
         comic_inset_file = get_comic_inset_file(self.fanta_info.comic_book_info.title)
-        self.background_views.set_bottom_view_title_image_file(
-            get_random_title_image(
+
+        if not title_image_file:
+            title_image_file = get_random_title_image(
                 self.fanta_info.comic_book_info.get_title_str(), ALL_BUT_ORIGINAL_ART
             )
-        )
+        self.background_views.set_bottom_view_title_image_file(title_image_file)
 
         self.main_title_text = self.get_main_title_str()
         self.title_info_text = self.formatter.get_title_info(self.fanta_info)
