@@ -66,12 +66,12 @@ class MainScreen(BoxLayout):
     top_view_image_color = ColorProperty()
     top_view_image_opacity = NumericProperty(1.0)
 
-    bottom_view_title_info_opacity = NumericProperty(0.0)
-    bottom_view_after_image_opacity = NumericProperty(1.0)
-    bottom_view_after_image_source = StringProperty()
-    bottom_view_after_image_color = ColorProperty()
-    bottom_view_before_image_source = StringProperty()
-    bottom_view_before_image_color = ColorProperty()
+    bottom_view_title_opacity = NumericProperty(0.0)
+    bottom_view_title_image_source = StringProperty()
+    bottom_view_title_image_color = ColorProperty()
+    bottom_view_fun_image_opacity = NumericProperty(1.0)
+    bottom_view_fun_image_source = StringProperty()
+    bottom_view_fun_image_color = ColorProperty()
 
     def __init__(self, filtered_title_lists: FilteredTitleLists, **kwargs):
         super().__init__(**kwargs)
@@ -95,13 +95,13 @@ class MainScreen(BoxLayout):
             get_the_comic_zips_dir(),
         )
 
-        self.bottom_view_after_image_title = None
+        self.bottom_view_fun_image_title = None
 
         self.background_views = BackgroundViews(self.title_lists)
         self.update_background_views(ViewStates.INITIAL)
 
     def on_goto_title_button_pressed(self, _button: Button):
-        after_image_title = self.bottom_view_after_image_title
+        after_image_title = self.bottom_view_fun_image_title
 
         year_nodes = self.year_range_nodes[self.get_year_range(after_image_title)]
         self.open_all_parent_nodes(year_nodes)
@@ -272,33 +272,33 @@ class MainScreen(BoxLayout):
         self.top_view_image_source = self.background_views.get_top_view_image_file()
         self.top_view_image_color = self.background_views.get_top_view_image_color()
 
-        self.bottom_view_after_image_opacity = (
-            self.background_views.get_bottom_view_after_image_opacity()
+        self.bottom_view_fun_image_opacity = (
+            self.background_views.get_bottom_view_fun_image_opacity()
         )
-        self.bottom_view_title_info_opacity = (
-            self.background_views.get_bottom_view_title_info_opacity()
+        self.bottom_view_fun_image_title = (
+            self.background_views.get_bottom_view_fun_image_title()
         )
-        self.bottom_view_after_image_title = (
-            self.background_views.get_bottom_view_after_image_title()
+        self.bottom_view_fun_image_source = (
+            self.background_views.get_bottom_view_fun_image_file()
         )
-        self.bottom_view_after_image_source = (
-            self.background_views.get_bottom_view_after_image_file()
+        self.bottom_view_fun_image_color = (
+            self.background_views.get_bottom_view_fun_image_color()
         )
-        self.bottom_view_after_image_color = (
-            self.background_views.get_bottom_view_after_image_color()
+        self.bottom_view_title_opacity = (
+            self.background_views.get_bottom_view_title_opacity()
         )
-        self.bottom_view_before_image_source = (
-            self.background_views.get_bottom_view_before_image_file()
+        self.bottom_view_title_image_source = (
+            self.background_views.get_bottom_view_title_image_file()
         )
-        self.bottom_view_before_image_color = (
-            self.background_views.get_bottom_view_before_image_color()
+        self.bottom_view_title_image_color = (
+            self.background_views.get_bottom_view_title_image_color()
         )
 
     def set_title(self) -> None:
         logging.debug(f'Setting title to "{self.fanta_info.comic_book_info.get_title_str()}".')
 
         comic_inset_file = get_comic_inset_file(self.fanta_info.comic_book_info.title)
-        self.background_views.set_bottom_view_before_image_file(
+        self.background_views.set_bottom_view_title_image_file(
             get_random_title_image(
                 self.fanta_info.comic_book_info.get_title_str(), ALL_BUT_ORIGINAL_ART
             )

@@ -51,16 +51,16 @@ class BackgroundViews:
         self.__top_view_image_opacity = 1.0
         self.__top_view_change_event = None
 
-        self.__bottom_view_title_info_opacity = 0.0
+        self.__bottom_view_title_opacity = 0.0
 
-        self.__bottom_view_after_image_opacity = 0.0
-        self.__bottom_view_after_image_title = None
-        self.__bottom_view_after_image_file = ""
-        self.__bottom_view_after_image_color: Color = (0, 0, 0, 0)
-        self.__bottom_view_change_after_event = None
+        self.__bottom_view_fun_image_opacity = 0.0
+        self.__bottom_view_fun_image_title = None
+        self.__bottom_view_fun_image_file = ""
+        self.__bottom_view_fun_image_color: Color = (0, 0, 0, 0)
+        self.__bottom_view_change_fun_image_event = None
 
-        self.__bottom_view_before_image_file = ""
-        self.__bottom_view_before_image_color: Color = (0, 0, 0, 0)
+        self.__bottom_view_title_image_file = ""
+        self.__bottom_view_title_image_color: Color = (0, 0, 0, 0)
 
         self.__current_year_range = ""
         self.__current_category = ""
@@ -79,26 +79,26 @@ class BackgroundViews:
     def get_top_view_image_file(self) -> str:
         return self.__top_view_image_file
 
-    def get_bottom_view_title_info_opacity(self) -> float:
-        return self.__bottom_view_title_info_opacity
+    def get_bottom_view_title_opacity(self) -> float:
+        return self.__bottom_view_title_opacity
 
-    def get_bottom_view_after_image_opacity(self) -> float:
-        return self.__bottom_view_after_image_opacity
+    def get_bottom_view_fun_image_opacity(self) -> float:
+        return self.__bottom_view_fun_image_opacity
 
-    def get_bottom_view_after_image_color(self) -> Color:
-        return self.__bottom_view_after_image_color
+    def get_bottom_view_fun_image_color(self) -> Color:
+        return self.__bottom_view_fun_image_color
 
-    def get_bottom_view_after_image_title(self) -> Titles:
-        return self.__bottom_view_after_image_title
+    def get_bottom_view_fun_image_title(self) -> Titles:
+        return self.__bottom_view_fun_image_title
 
-    def get_bottom_view_after_image_file(self) -> str:
-        return self.__bottom_view_after_image_file
+    def get_bottom_view_fun_image_file(self) -> str:
+        return self.__bottom_view_fun_image_file
 
-    def get_bottom_view_before_image_color(self) -> Color:
-        return self.__bottom_view_before_image_color
+    def get_bottom_view_title_image_color(self) -> Color:
+        return self.__bottom_view_title_image_color
 
-    def get_bottom_view_before_image_file(self) -> str:
-        return self.__bottom_view_before_image_file
+    def get_bottom_view_title_image_file(self) -> str:
+        return self.__bottom_view_title_image_file
 
     def set_current_category(self, cat: str) -> None:
         self.__current_category = cat
@@ -106,8 +106,8 @@ class BackgroundViews:
     def set_current_year_range(self, year_range: str) -> None:
         self.__current_year_range = year_range
 
-    def set_bottom_view_before_image_file(self, image_file: str) -> None:
-        self.__bottom_view_before_image_file = image_file
+    def set_bottom_view_title_image_file(self, image_file: str) -> None:
+        self.__bottom_view_title_image_file = image_file
 
     def set_view_state(self, view_state: ViewStates) -> None:
         self.__view_state = view_state
@@ -181,7 +181,7 @@ class BackgroundViews:
     def __set_top_view_image_color(self):
         self.__top_view_image_color = get_random_color()
 
-    def __set_bottom_view_after_image(self) -> None:
+    def __set_bottom_view_fun_image(self) -> None:
         if self.__view_state in [
             ViewStates.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET,
             ViewStates.ON_TITLE_SEARCH_BOX_NODE,
@@ -191,22 +191,22 @@ class BackgroundViews:
         ]:
             return
 
-        self.__bottom_view_after_image_file, self.__bottom_view_after_image_title = (
+        self.__bottom_view_fun_image_file, self.__bottom_view_fun_image_title = (
             get_random_image(self.title_lists[ALL_LISTS])
         )
-        self.__set_bottom_view_after_image_color()
-        self.__schedule_bottom_view_after_event()
+        self.__set_bottom_view_fun_image_color()
+        self.__schedule_bottom_view_fun_image_event()
 
         logging.debug(
-            f"Set Bottom view after image:"
+            f"Set Bottom view fun image:"
             f" State: {self.__view_state},"
-            f" Image: '{os.path.basename(self.__bottom_view_after_image_file)}',"
-            f" Color: {get_formatted_color(self.__bottom_view_after_image_color)},"
-            f" Opacity: {self.__bottom_view_after_image_opacity}."
+            f" Image: '{os.path.basename(self.__bottom_view_fun_image_file)}',"
+            f" Color: {get_formatted_color(self.__bottom_view_fun_image_color)},"
+            f" Opacity: {self.__bottom_view_fun_image_opacity}."
         )
 
     # TODO: Rationalize image color setters
-    def __set_bottom_view_after_image_color(self):
+    def __set_bottom_view_fun_image_color(self):
         if randrange(0, 100) < 20:
             rand_color = [1, 1, 1, 1]
         else:
@@ -218,9 +218,9 @@ class BackgroundViews:
             rand_color = [rgb_val, rgb_val, rgb_val, alpha]
             rand_color[rand_index] = rand_color_val
 
-        self.__bottom_view_after_image_color = tuple(rand_color)
+        self.__bottom_view_fun_image_color = tuple(rand_color)
 
-    def __set_bottom_view_before_image_color(self):
+    def __set_bottom_view_title_image_color(self):
         if randrange(0, 100) < 20:
             rand_color = [1, 1, 1, 0.5]
         else:
@@ -232,7 +232,7 @@ class BackgroundViews:
             rand_color = [rgb_val, rgb_val, rgb_val, alpha]
             rand_color[rand_index] = rand_color_val
 
-        self.__bottom_view_before_image_color = tuple(rand_color)
+        self.__bottom_view_title_image_color = tuple(rand_color)
 
     def __schedule_top_view_event(self):
         if self.__top_view_change_event:
@@ -242,37 +242,37 @@ class BackgroundViews:
             lambda dt: self.__set_top_view_image(), self.TOP_VIEW_EVENT_TIMEOUT_SECS
         )
 
-    def __schedule_bottom_view_after_event(self):
-        if self.__bottom_view_change_after_event:
-            self.__bottom_view_change_after_event.cancel()
+    def __schedule_bottom_view_fun_image_event(self):
+        if self.__bottom_view_change_fun_image_event:
+            self.__bottom_view_change_fun_image_event.cancel()
 
-        self.__bottom_view_change_after_event = Clock.schedule_interval(
-            lambda dt: self.__set_bottom_view_after_image(), self.BOTTOM_VIEW_EVENT_TIMEOUT_SECS
+        self.__bottom_view_change_fun_image_event = Clock.schedule_interval(
+            lambda dt: self.__set_bottom_view_fun_image(), self.BOTTOM_VIEW_EVENT_TIMEOUT_SECS
         )
 
     def __update_visibilities(self):
         if self.__view_state == ViewStates.ON_INTRO_NODE:
-            self.__bottom_view_after_image_opacity = 0.0
-            self.__bottom_view_title_info_opacity = 0.0
+            self.__bottom_view_fun_image_opacity = 0.0
+            self.__bottom_view_title_opacity = 0.0
         elif self.__view_state in [
             ViewStates.ON_TITLE_SEARCH_BOX_NODE,
             ViewStates.ON_TITLE_NODE,
             ViewStates.ON_TAG_SEARCH_BOX_NODE,
         ]:
-            self.__bottom_view_after_image_opacity = 0.0
-            self.__bottom_view_title_info_opacity = 1.0
+            self.__bottom_view_fun_image_opacity = 0.0
+            self.__bottom_view_title_opacity = 1.0
         else:
-            self.__bottom_view_after_image_opacity = 1.0
-            self.__bottom_view_title_info_opacity = 0.0
+            self.__bottom_view_fun_image_opacity = 1.0
+            self.__bottom_view_title_opacity = 0.0
 
         self.__set_top_view_image()
-        self.__set_bottom_view_after_image()
-        self.__set_bottom_view_before_image_color()
+        self.__set_bottom_view_fun_image()
+        self.__set_bottom_view_title_image_color()
 
         logging.debug(
-            f"Set Bottom view before image:"
+            f"Set Bottom view title image:"
             f" State: {self.__view_state},"
-            f" Image: '{os.path.basename(self.__bottom_view_before_image_file)}',"
-            f" Color: {get_formatted_color(self.__bottom_view_before_image_color)},"
-            f" Opacity: {self.__bottom_view_title_info_opacity}."
+            f" Image: '{os.path.basename(self.__bottom_view_title_image_file)}',"
+            f" Color: {get_formatted_color(self.__bottom_view_title_image_color)},"
+            f" Opacity: {self.__bottom_view_title_opacity}."
         )
