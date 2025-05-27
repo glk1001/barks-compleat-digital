@@ -95,6 +95,7 @@ class MainScreen(BoxLayout):
             get_the_comic_zips_dir(),
         )
 
+        self.top_view_image_title = None
         self.bottom_view_fun_image_title = None
 
         self.background_views = BackgroundViews(self.title_lists)
@@ -150,20 +151,28 @@ class MainScreen(BoxLayout):
     def on_action_bar_pressed(self, button: Button):
         print(f"Action bar pressed: '{button.text}'")
 
-    def on_goto_title_button_pressed(self, _button: Button):
-        fun_image_title = self.bottom_view_fun_image_title
-        fun_image_source = self.bottom_view_fun_image_source
-        fun_fanta_info = self.get_fanta_info(fun_image_title)
+    def on_goto_top_view_title(self) -> None:
+        print("Pressed goto top view title.")
+
+        self.goto_chrono_title(self.top_view_image_title, self.top_view_image_source)
+
+    def on_goto_fun_view_title(self, _button: Button) -> None:
+        print("Pressed goto bottom view title.")
+
+        self.goto_chrono_title(self.bottom_view_fun_image_title, self.bottom_view_fun_image_source)
+
+    def goto_chrono_title(self, title: Titles, image_source: str) -> None:
+        title_fanta_info = self.get_fanta_info(title)
 
         year_nodes = self.year_range_nodes[
-            self.filtered_title_lists.get_year_range_from_info(fun_fanta_info)
+            self.filtered_title_lists.get_year_range_from_info(title_fanta_info)
         ]
         self.open_all_parent_nodes(year_nodes)
 
-        title_node = self.find_title_node(year_nodes, fun_image_title)
+        title_node = self.find_title_node(year_nodes, title)
         self.goto_node(title_node)
 
-        self.title_row_selected(fun_fanta_info, fun_image_source)
+        self.title_row_selected(title_fanta_info, image_source)
 
     def goto_node(self, node: TreeViewNode) -> None:
         def show_node(n):
@@ -336,6 +345,7 @@ class MainScreen(BoxLayout):
 
         self.intro_text_opacity = 0.0
 
+        self.top_view_image_title = self.background_views.get_top_view_image_title()
         self.top_view_image_opacity = self.background_views.get_top_view_image_opacity()
         self.top_view_image_source = self.background_views.get_top_view_image_file()
         self.top_view_image_color = self.background_views.get_top_view_image_color()

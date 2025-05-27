@@ -56,6 +56,13 @@
                 ActionButton:
                     text: 'Categories'
                     on_press:root.on_action_bar_goto(self)
+                ActionButton:
+                    text: 'Upper Title'
+                    on_press:root.on_goto_top_view_title()
+                ActionButton:
+                    text: 'Lower Title'
+                    on_press:root.on_goto_fun_view_title(self)
+                    disabled: root.bottom_view_title_opacity > 0.99
 
             ActionGroup:
                 mode: "spinner"
@@ -313,6 +320,7 @@
                                                 border_radius: 0, 0, 0, 0
                                                 blur_radius: 20 if self.state == "normal" else 10
 
+                                        disabled: root.bottom_view_title_opacity < 0.01
                                         background_color: (0.3, 0.3, 1.0, 0.5)
                                         size_hint: (1, 1)
                                         halign: "left"
@@ -361,7 +369,7 @@
 
                     Button:
                         text: "HELLO"
-                        on_press: root.on_goto_title_button_pressed(self)
+                        on_press: root.on_goto_fun_view_title(self)
                         background_color: (0.3, 0.3, 1.0, 0.5)
                         x: self.parent.x + self.parent.width - dp(20)
                         y: self.parent.y
