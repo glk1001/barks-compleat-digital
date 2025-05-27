@@ -118,6 +118,35 @@ class MainScreen(BoxLayout):
                 self.reader_tree_view.toggle_node(node)
                 self.close_open_nodes(node)
 
+    def on_action_bar_change_view_images(self):
+        print(f"Action bar change pics pressed.")
+        self.change_background_views()
+
+    def on_action_bar_goto(self, button: Button):
+        print(f"Action bar goto pressed: '{button.text}'")
+        node = self.find_node(self.reader_tree_view.root, button.text)
+        if node:
+            print(f"Found node '{node.text}'.")
+            self.close_open_nodes(self.reader_tree_view.root)
+            self.open_all_parent_nodes(node)
+            self.goto_node(node)
+            # TODO: Need on_press to be called
+
+    @staticmethod
+    def find_node(start_node: TreeViewNode, node_text: str):
+        nodes_to_visit = start_node.nodes.copy()
+
+        while nodes_to_visit:
+            current_node = nodes_to_visit.pop()
+            if not hasattr(current_node, "text"):
+                continue
+            current_node_text = get_clean_text_without_num_titles(current_node.text)
+            if current_node_text == node_text:
+                return current_node
+            nodes_to_visit.extend(current_node.nodes)
+
+        return None
+
     def on_action_bar_pressed(self, button: Button):
         print(f"Action bar pressed: '{button.text}'")
 
@@ -148,13 +177,6 @@ class MainScreen(BoxLayout):
         title_str = BARKS_TITLES[title]
         return self.all_fanta_titles[title_str]
 
-    def open_all_parent_nodes(self, node: TreeViewNode) -> None:
-        parent_node = node
-        while parent_node and isinstance(parent_node, TreeViewNode):
-            if not parent_node.is_open:
-                self.reader_tree_view.toggle_node(parent_node)
-            parent_node = parent_node.parent_node
-
     @staticmethod
     def find_title_node(start_node: TreeViewNode, target_title: Titles):
         nodes_to_visit = start_node.nodes.copy()
@@ -173,6 +195,13 @@ class MainScreen(BoxLayout):
         self.set_title(title_image_file)
 
         self.update_background_views(ViewStates.ON_TITLE_NODE)
+
+    def open_all_parent_nodes(self, node: TreeViewNode) -> None:
+        parent_node = node
+        while parent_node and isinstance(parent_node, TreeViewNode):
+            if not parent_node.is_open:
+                self.reader_tree_view.toggle_node(parent_node)
+            parent_node = parent_node.parent_node
 
     def on_node_expanded(self, _tree: ReaderTreeView, node: TreeViewNode):
         if isinstance(node, YearRangeTreeViewNode):
@@ -289,6 +318,13 @@ class MainScreen(BoxLayout):
         self.set_title()
 
         self.update_background_views(ViewStates.ON_TITLE_NODE)
+
+    def change_background_views(self) -> None:
+        self.update_background_views(
+            self.background_views.get_view_state(),
+            self.background_views.get_current_category(),
+            self.background_views.get_current_year_range(),
+        )
 
     def update_background_views(
         self, tree_node: ViewStates, category: str = "", year_range: str = ""

@@ -39,18 +39,23 @@
                 text: 'Collapse'
                 on_press:root.on_action_bar_collapse()
 
+            ActionButton:
+                important: True
+                text: 'Change Pics'
+                on_press:root.on_action_bar_change_view_images()
+
             ActionGroup:
                 mode: "spinner"
-                text: "View"
+                text: "Goto"
                 ActionButton:
-                    text: 'view button 1'
-                    on_press:root.on_action_bar_pressed(self)
+                    text: 'Chronological'
+                    on_press:root.on_action_bar_goto(self)
                 ActionButton:
-                    text: 'view button 2'
-                    on_press:root.on_action_bar_pressed(self)
+                    text: 'Series'
+                    on_press:root.on_action_bar_goto(self)
                 ActionButton:
-                    text: 'view button 3'
-                    on_press:root.on_action_bar_pressed(self)
+                    text: 'Categories'
+                    on_press:root.on_action_bar_goto(self)
 
             ActionGroup:
                 mode: "spinner"

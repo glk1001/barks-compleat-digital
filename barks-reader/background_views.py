@@ -100,8 +100,14 @@ class BackgroundViews:
     def get_bottom_view_title_image_file(self) -> str:
         return self.__bottom_view_title_image_file
 
+    def get_current_category(self) -> str:
+        return self.__current_category
+
     def set_current_category(self, cat: str) -> None:
         self.__current_category = cat
+
+    def get_current_year_range(self) -> str:
+        return self.__current_year_range
 
     def set_current_year_range(self, year_range: str) -> None:
         self.__current_year_range = year_range
@@ -191,8 +197,8 @@ class BackgroundViews:
         ]:
             return
 
-        self.__bottom_view_fun_image_file, self.__bottom_view_fun_image_title = (
-            get_random_image(self.title_lists[ALL_LISTS])
+        self.__bottom_view_fun_image_file, self.__bottom_view_fun_image_title = get_random_image(
+            self.title_lists[ALL_LISTS]
         )
         self.__set_bottom_view_fun_image_color()
         self.__schedule_bottom_view_fun_image_event()
