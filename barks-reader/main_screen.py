@@ -100,6 +100,27 @@ class MainScreen(BoxLayout):
         self.background_views = BackgroundViews(self.title_lists)
         self.update_background_views(ViewStates.INITIAL)
 
+    def on_action_bar_collapse(self):
+        print(f"Action bar collapse pressed.")
+        something_was_open = False
+        for node in self.reader_tree_view.iterate_open_nodes():
+            if node.is_open:
+                self.reader_tree_view.toggle_node(node)
+                self.close_open_nodes(node)
+                something_was_open = True
+
+        if something_was_open:
+            self.update_background_views(ViewStates.INITIAL)
+
+    def close_open_nodes(self, start_node: TreeViewNode) -> None:
+        for node in start_node.nodes:
+            if node.is_open:
+                self.reader_tree_view.toggle_node(node)
+                self.close_open_nodes(node)
+
+    def on_action_bar_pressed(self, button: Button):
+        print(f"Action bar pressed: '{button.text}'")
+
     def on_goto_title_button_pressed(self, _button: Button):
         fun_image_title = self.bottom_view_fun_image_title
         fun_image_source = self.bottom_view_fun_image_source

@@ -17,17 +17,61 @@
     orientation: 'vertical' if self.width < self.height else 'horizontal'
     size_hint: (1, 1)
     reader_tree_view: reader_tree_view_id
+    view_width: self.width
+    view_height: self.height - self.ids.action_bar.height
+
+    ActionBar:
+        id: action_bar
+        size:root.width, dp(30)
+        x: 0
+        y: 0
+        background_color: 0.6, 4, 0.2, 1
+        ActionView:
+            use_separator: True
+            #HiddenIcon_ActionPrevious:
+
+            ActionPrevious:
+                title: 'Hello'
+                with_previous: False  # can use to change screens
+
+            ActionButton:
+                important: True
+                text: 'Collapse'
+                on_press:root.on_action_bar_collapse()
+
+            ActionGroup:
+                mode: "spinner"
+                text: "View"
+                ActionButton:
+                    text: 'view button 1'
+                    on_press:root.on_action_bar_pressed(self)
+                ActionButton:
+                    text: 'view button 2'
+                    on_press:root.on_action_bar_pressed(self)
+                ActionButton:
+                    text: 'view button 3'
+                    on_press:root.on_action_bar_pressed(self)
+
+            ActionGroup:
+                mode: "spinner"
+                text: "Misc"
+                ActionButton:
+                    text: 'misc button 1'
+                    on_press:root.on_action_bar_pressed(self)
+                ActionButton:
+                    text: 'misc button 2'
+                    on_press:root.on_action_bar_pressed(self)
+
+            ActionOverflow:
+                ActionButton:
+                    icon: 'atlas://data/images/defaulttheme/audio-volume-high'
+                ActionButton:
+                    text: 'Btn1'
+                    on_press:root.on_action_bar_pressed(self)
 
     AnchorLayout:
         anchor_x: "left"
         anchor_y: "top"
-
-        AnchorLayout:
-            anchor_x: "left"
-            anchor_y: "top"
-
-            Label:
-                size_hint: (0.34, 0.03)
 
         AnchorLayout:
             anchor_x: "left"
@@ -39,13 +83,15 @@
                 source: root.top_view_image_source
                 x: self.parent.x
                 y: self.parent.y
-                size: self.parent.size
+                width: root.view_width
+                height: root.view_height
                 fit_mode: "cover"
                 mipmap: True
 
             ScrollView:
                 id: scroll_view
-                size_hint: (1, 0.97)
+                width: root.view_width
+                height: root.view_height
 
                 do_scroll_x: False
                 do_scroll_y: True
@@ -73,7 +119,8 @@
             background_color: (1, 1, 1, 1)
             multiline: True
             readonly: True
-            size_hint: (1, 1)
+            width: root.view_width
+            height: root.view_height
 
         AnchorLayout:
             anchor_x: "center"
@@ -89,13 +136,16 @@
                     source: root.bottom_view_title_image_source
                     x: self.parent.x
                     y: self.parent.y
-                    size: self.parent.size
+                    width: root.view_width
+                    height: root.view_height
                     fit_mode: "cover"
                     mipmap: True
 
                 BoxLayout:
                     orientation: "vertical"
                     opacity: 1
+                    width: root.view_width
+                    height: root.view_height
 
                     BgColorLabel:
                         text: "before title filler"
@@ -299,7 +349,8 @@
                     source: root.bottom_view_fun_image_source
                     x: self.parent.x
                     y: self.parent.y
-                    size: self.parent.size
+                    width: root.view_width
+                    height: root.view_height
                     fit_mode: "cover"
                     mipmap: True
 
