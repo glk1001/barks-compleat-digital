@@ -17,10 +17,10 @@ from barks_fantagraphics.fanta_comics_info import (
 class FilteredTitleLists:
     def __init__(self):
         self.year_ranges = [
-            (1942, 1945),
-            (1946, 1949),
-            (1950, 1953),
-            (1954, 1957),
+            (1942, 1946),
+            (1947, 1950),
+            (1951, 1954),
+            (1955, 1957),
             (1958, 1961),
         ]
         self.series_names = [
