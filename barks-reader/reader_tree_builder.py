@@ -46,7 +46,7 @@ class ReaderTreeBuilder:
         self.year_range_nodes: Dict[Tuple[int, int], TreeViewNode] = {}
 
     def build_main_screen_tree(self):
-        tree: ReaderTreeView = self.__main_screen.reader_tree_view
+        tree: ReaderTreeView = self.__main_screen.ids.reader_tree_view
 
         tree.bind(on_node_expand=self.__main_screen.on_node_expanded)
 
@@ -219,20 +219,20 @@ class ReaderTreeBuilder:
     def __get_title_tree_view_node(self, full_fanta_info: FantaComicBookInfo) -> TitleTreeViewNode:
         title_node = TitleTreeViewNode(full_fanta_info)
 
-        title_node.num_label.text = str(full_fanta_info.fanta_chronological_number)
-        title_node.num_label.bind(on_press=self.__main_screen.on_title_row_button_pressed)
+        title_node.ids.num_label.text = str(full_fanta_info.fanta_chronological_number)
+        title_node.ids.num_label.bind(on_press=self.__main_screen.on_title_row_button_pressed)
 
-        title_node.num_label.color_selected = (0, 0, 1, 1)
+        title_node.ids.num_label.color_selected = (0, 0, 1, 1)
 
-        title_node.title_label.text = full_fanta_info.comic_book_info.get_display_title()
-        title_node.title_label.bind(on_press=self.__main_screen.on_title_row_button_pressed)
+        title_node.ids.title_label.text = full_fanta_info.comic_book_info.get_display_title()
+        title_node.ids.title_label.bind(on_press=self.__main_screen.on_title_row_button_pressed)
 
         issue_info = (
             f"{get_short_formatted_first_published_str(full_fanta_info.comic_book_info)}"
             f"  [{get_short_formatted_submitted_date(full_fanta_info.comic_book_info)}]"
         )
 
-        title_node.issue_label.text = issue_info
-        title_node.issue_label.bind(on_press=self.__main_screen.on_title_row_button_pressed)
+        title_node.ids.issue_label.text = issue_info
+        title_node.ids.issue_label.bind(on_press=self.__main_screen.on_title_row_button_pressed)
 
         return title_node

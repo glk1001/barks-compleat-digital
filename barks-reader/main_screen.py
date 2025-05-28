@@ -59,8 +59,6 @@ class MainScreen(BoxLayout):
 
     DEBUG_BACKGROUND_OPACITY = 0
 
-    reader_tree_view: ReaderTreeView = ObjectProperty()
-
     intro_text = StringProperty()
     intro_text_opacity = NumericProperty(0.0)
 
@@ -106,9 +104,9 @@ class MainScreen(BoxLayout):
     def on_action_bar_collapse(self):
         print(f"Action bar collapse pressed.")
         something_was_open = False
-        for node in self.reader_tree_view.iterate_open_nodes():
+        for node in self.ids.reader_tree_view.iterate_open_nodes():
             if node.is_open:
-                self.reader_tree_view.toggle_node(node)
+                self.ids.reader_tree_view.toggle_node(node)
                 self.close_open_nodes(node)
                 something_was_open = True
 
@@ -118,7 +116,7 @@ class MainScreen(BoxLayout):
     def close_open_nodes(self, start_node: TreeViewNode) -> None:
         for node in start_node.nodes:
             if node.is_open:
-                self.reader_tree_view.toggle_node(node)
+                self.ids.reader_tree_view.toggle_node(node)
                 self.close_open_nodes(node)
 
     def on_action_bar_change_view_images(self):
@@ -127,10 +125,10 @@ class MainScreen(BoxLayout):
 
     def on_action_bar_goto(self, button: Button):
         print(f"Action bar goto pressed: '{button.text}'")
-        node = self.find_node(self.reader_tree_view.root, button.text)
+        node = self.find_node(self.ids.reader_tree_view.root, button.text)
         if node:
             print(f"Found node '{node.text}'.")
-            self.close_open_nodes(self.reader_tree_view.root)
+            self.close_open_nodes(self.ids.reader_tree_view.root)
             self.open_all_parent_nodes(node)
             self.goto_node(node)
             # TODO: Need on_press to be called
@@ -178,7 +176,7 @@ class MainScreen(BoxLayout):
 
     def goto_node(self, node: TreeViewNode, scroll_to=False) -> None:
         def show_node(n):
-            self.reader_tree_view.select_node(n)
+            self.ids.reader_tree_view.select_node(n)
             if scroll_to:
                 self.ids.scroll_view.scroll_to(n)
 
@@ -212,7 +210,7 @@ class MainScreen(BoxLayout):
         parent_node = node
         while parent_node and isinstance(parent_node, TreeViewNode):
             if not parent_node.is_open:
-                self.reader_tree_view.toggle_node(parent_node)
+                self.ids.reader_tree_view.toggle_node(parent_node)
             parent_node = parent_node.parent_node
 
     def on_node_expanded(self, _tree: ReaderTreeView, node: TreeViewNode):

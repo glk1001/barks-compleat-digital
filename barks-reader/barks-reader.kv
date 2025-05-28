@@ -16,7 +16,6 @@
 <MainScreen>:
     orientation: 'vertical' if self.width < self.height else 'horizontal'
     size_hint: (1, 1)
-    reader_tree_view: reader_tree_view_id
     view_width: self.width
     view_height: self.height - self.ids.action_bar.height
 
@@ -117,7 +116,7 @@
                 bar_width: dp(10)
 
                 ReaderTreeView:
-                    id: reader_tree_view_id
+                    id: reader_tree_view
                     padding: dp(50)
                     indent_start: dp(50)
                     background_color: (0,1,0,1)

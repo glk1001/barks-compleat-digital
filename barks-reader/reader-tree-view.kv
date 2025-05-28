@@ -168,18 +168,14 @@
     minimum_height: self.height
     minimum_width: self.width
 
-    num_label: num_label_id
-    issue_label: issue_label_id
-    title_label: title_label_id
-
     TreeViewRowNode:
         TreeViewButton:
+            id: num_label
+            parent: root
             color: root.NUM_LABEL_COLOR
             background_color: root.ROW_BACKGROUND_COLOR
             color_selected: (1,0,1,1)
             bg_color: (1,1,0,0.5)
-            id: num_label_id
-            parent: root
             bold: True
             size_hint: (None, None)
             width: root.NUM_LABEL_WIDTH
@@ -201,7 +197,7 @@
             text_size: (self.width, self.height)
 
         TitleTreeViewLabel:
-            id: title_label_id
+            id: title_label
             parent: root
             color: root.TITLE_LABEL_COLOR
             background_color: root.ROW_BACKGROUND_COLOR
@@ -239,7 +235,7 @@
             text_size: (self.width, self.height)
 
         TitleTreeViewLabel:
-            id: issue_label_id
+            id: issue_label
             parent: root
             color: root.ISSUE_LABEL_COLOR
             background_color: root.ROW_BACKGROUND_COLOR
