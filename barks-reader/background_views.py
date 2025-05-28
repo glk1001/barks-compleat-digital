@@ -116,12 +116,9 @@ class BackgroundViews:
     def set_current_year_range(self, year_range: str) -> None:
         self.__current_year_range = year_range
 
-    def set_bottom_view_title_image_file(self, image_file: str) -> None:
-        self.__bottom_view_title_image_file = image_file
-
     def set_view_state(self, view_state: ViewStates) -> None:
         self.__view_state = view_state
-        self.__update_visibilities()
+        self.__update_views()
 
     def __set_top_view_image(self) -> None:
         # noinspection PyUnreachableCode
@@ -194,7 +191,7 @@ class BackgroundViews:
         self.__schedule_top_view_event()
 
         logging.debug(
-            f"Set top view:"
+            f"Top view image:"
             f" State: {self.__view_state},"
             f" Image: '{os.path.basename(self.__top_view_image_file)}',"
             f" Color: {get_formatted_color(self.__top_view_image_color)},"
@@ -221,7 +218,7 @@ class BackgroundViews:
         self.__schedule_bottom_view_fun_image_event()
 
         logging.debug(
-            f"Set Bottom view fun image:"
+            f"Bottom view fun image:"
             f" State: {self.__view_state},"
             f" Image: '{os.path.basename(self.__bottom_view_fun_image_file)}',"
             f" Color: {get_formatted_color(self.__bottom_view_fun_image_color)},"
@@ -243,6 +240,10 @@ class BackgroundViews:
 
         self.__bottom_view_fun_image_color = tuple(rand_color)
 
+    def set_bottom_view_title_image_file(self, image_file: str) -> None:
+        self.__bottom_view_title_image_file = image_file
+        self.__log_bottom_view_title_state()
+
     def __set_bottom_view_title_image_color(self):
         if randrange(0, 100) < 20:
             rand_color = [1, 1, 1, 0.5]
@@ -256,6 +257,17 @@ class BackgroundViews:
             rand_color[rand_index] = rand_color_val
 
         self.__bottom_view_title_image_color = tuple(rand_color)
+
+        self.__log_bottom_view_title_state()
+
+    def __log_bottom_view_title_state(self):
+        logging.debug(
+            f"Bottom view title image:"
+            f" State: {self.__view_state},"
+            f" Image: '{os.path.basename(self.__bottom_view_title_image_file)}',"
+            f" Color: {get_formatted_color(self.__bottom_view_title_image_color)},"
+            f" Opacity: {self.__bottom_view_title_opacity}."
+        )
 
     def __schedule_top_view_event(self):
         if self.__top_view_change_event:
@@ -273,11 +285,13 @@ class BackgroundViews:
             lambda dt: self.__set_bottom_view_fun_image(), self.BOTTOM_VIEW_EVENT_TIMEOUT_SECS
         )
 
-    def __update_visibilities(self):
+    def __update_views(self):
         if self.__view_state == ViewStates.ON_INTRO_NODE:
             self.__bottom_view_fun_image_opacity = 0.0
             self.__bottom_view_title_opacity = 0.0
-        elif self.__view_state in [
+            return
+
+        if self.__view_state in [
             ViewStates.ON_TITLE_SEARCH_BOX_NODE,
             ViewStates.ON_TITLE_NODE,
             ViewStates.ON_TAG_SEARCH_BOX_NODE,
@@ -291,11 +305,3 @@ class BackgroundViews:
         self.__set_top_view_image()
         self.__set_bottom_view_fun_image()
         self.__set_bottom_view_title_image_color()
-
-        logging.debug(
-            f"Set Bottom view title image:"
-            f" State: {self.__view_state},"
-            f" Image: '{os.path.basename(self.__bottom_view_title_image_file)}',"
-            f" Color: {get_formatted_color(self.__bottom_view_title_image_color)},"
-            f" Opacity: {self.__bottom_view_title_opacity}."
-        )

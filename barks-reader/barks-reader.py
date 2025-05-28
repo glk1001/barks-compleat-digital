@@ -48,8 +48,9 @@ class BarksReaderApp(App):
     def on_request_close_window(self, *_args):
         return self.main_screen.comic_reader.on_app_request_close()
 
-    @staticmethod
-    def on_action_bar_quit():
+    def on_action_bar_quit(self):
+        if self.main_screen.comic_reader.on_app_request_close() == True:
+            return
         App.get_running_app().stop()
         Window.close()
 
