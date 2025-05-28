@@ -134,7 +134,7 @@ class BackgroundViews:
                 self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
             case ViewStates.ON_THE_STORIES_NODE:
                 self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-                    self.title_lists[ALL_LISTS]
+                    self.title_lists[ALL_LISTS], use_edited=True
                 )
             case (
                 ViewStates.ON_SEARCH_NODE
@@ -157,15 +157,15 @@ class BackgroundViews:
                 | ViewStates.ON_CATEGORIES_NODE
             ):
                 self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-                    self.title_lists[ALL_LISTS]
+                    self.title_lists[ALL_LISTS], use_edited=True
                 )
             case ViewStates.ON_CS_NODE:
                 self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-                    self.title_lists[SERIES_CS]
+                    self.title_lists[SERIES_CS], use_edited=True
                 )
             case ViewStates.ON_DDA_NODE:
                 self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-                    self.title_lists[SERIES_DDA]
+                    self.title_lists[SERIES_DDA], use_edited=True
                 )
             case ViewStates.ON_CATEGORY_NODE:
                 logging.debug(f"Current category: '{self.__current_category}'")
@@ -174,7 +174,7 @@ class BackgroundViews:
                     self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
                 else:
                     self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-                        self.title_lists[self.__current_category]
+                        self.title_lists[self.__current_category], use_edited=True
                     )
             case ViewStates.ON_YEAR_RANGE_NODE:
                 logging.debug(f"Year range: '{self.__current_year_range}'")
@@ -183,7 +183,7 @@ class BackgroundViews:
                     self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
                 else:
                     self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-                        self.title_lists[self.__current_year_range]
+                        self.title_lists[self.__current_year_range], use_edited=True
                     )
             case ViewStates.ON_TITLE_NODE:
                 pass

@@ -3,7 +3,7 @@ from typing import Union, Dict, List
 
 from kivy.clock import Clock
 from kivy.metrics import sp
-from kivy.properties import ObjectProperty, StringProperty, ColorProperty, NumericProperty
+from kivy.properties import StringProperty, ColorProperty, NumericProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.spinner import Spinner
@@ -29,6 +29,7 @@ from file_paths import (
     get_the_comic_zips_dir,
     get_comic_inset_file,
     get_barks_reader_app_icon_file,
+    get_edited_version,
 )
 from filtered_title_lists import FilteredTitleLists
 from mcomix_reader import ComicReader
@@ -368,9 +369,13 @@ class MainScreen(BoxLayout):
     def set_title(self, title_image_file: str = "") -> None:
         logging.debug(f'Setting title to "{self.fanta_info.comic_book_info.get_title_str()}".')
 
-        if not title_image_file:
+        if title_image_file:
+            title_image_file = get_edited_version(title_image_file)
+        else:
             title_image_file = get_random_title_image(
-                self.fanta_info.comic_book_info.get_title_str(), ALL_BUT_ORIGINAL_ART
+                self.fanta_info.comic_book_info.get_title_str(),
+                ALL_BUT_ORIGINAL_ART,
+                use_edited=True,
             )
         self.background_views.set_bottom_view_title_image_file(title_image_file)
 

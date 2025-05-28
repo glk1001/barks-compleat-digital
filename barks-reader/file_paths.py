@@ -5,6 +5,8 @@ from typing import List
 from barks_fantagraphics.barks_titles import Titles, BARKS_TITLE_INFO, BARKS_TITLES
 from barks_fantagraphics.comics_consts import JPG_FILE_EXT, PNG_FILE_EXT
 
+EDITED_SUBDIR = "edited"
+
 HOME_DIR = os.environ.get("HOME")
 
 MCOMIX_PYTHON_PATH = os.path.join(HOME_DIR, "Prj/github/mcomix-git-glk1001/.venv/bin/python")
@@ -18,7 +20,7 @@ THE_COMIC_ZIPS_DIR = os.path.join(THE_COMICS_DIR, "Chronological")
 THE_COMIC_FILES_DIR = os.path.join(THE_COMICS_DIR, "aaa-Chronological-dirs")
 BARKS_READER_FILES_DIR = os.path.join(THE_COMICS_DIR, "Reader Files")
 BARKS_READER_INSET_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Insets")
-BARKS_READER_INSET_EDITED_FILES_DIR = os.path.join(BARKS_READER_INSET_FILES_DIR, "Edited")
+BARKS_READER_INSET_EDITED_FILES_DIR = os.path.join(BARKS_READER_INSET_FILES_DIR, EDITED_SUBDIR)
 BARKS_READER_COVER_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Covers")
 BARKS_READER_SILHOUETTE_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Silhouettes")
 BARKS_READER_SPLASH_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Splash")
@@ -143,10 +145,11 @@ def get_comic_inset_file(title: Titles, use_edited: bool = False) -> str:
     return EMERGENCY_INSET_FILE_PATH
 
 
-def get_comic_cover_file(title: str) -> str:
-    edited_file = os.path.join(get_comic_cover_files_dir(), "edited", title + PNG_FILE_EXT)
-    if os.path.isfile(edited_file):
-        return edited_file
+def get_comic_cover_file(title: str, use_edited: bool = False) -> str:
+    if use_edited:
+        edited_file = os.path.join(get_comic_cover_files_dir(), EDITED_SUBDIR, title + PNG_FILE_EXT)
+        if os.path.isfile(edited_file):
+            return edited_file
 
     cover_file = os.path.join(get_comic_cover_files_dir(), title + JPG_FILE_EXT)
     if not os.path.isfile(cover_file):
@@ -155,43 +158,51 @@ def get_comic_cover_file(title: str) -> str:
     return cover_file
 
 
-def get_comic_silhouette_files(title: str) -> List[str]:
-    return get_files(get_comic_silhouette_files_dir(), title)
+def get_comic_silhouette_files(title: str, use_edited: bool = False) -> List[str]:
+    return get_files(get_comic_silhouette_files_dir(), title, use_edited)
 
 
-def get_comic_splash_files(title: str) -> List[str]:
-    return get_files(get_comic_splash_files_dir(), title)
+def get_comic_splash_files(title: str, use_edited: bool = False) -> List[str]:
+    return get_files(get_comic_splash_files_dir(), title, use_edited)
 
 
-def get_comic_censorship_files(title: str) -> List[str]:
-    return get_files(get_comic_censorship_files_dir(), title)
+def get_comic_censorship_files(title: str, use_edited: bool = False) -> List[str]:
+    return get_files(get_comic_censorship_files_dir(), title, use_edited)
 
 
-def get_comic_favourite_files(title: str) -> List[str]:
-    return get_files(get_comic_favourite_files_dir(), title)
+def get_comic_favourite_files(title: str, use_edited: bool = False) -> List[str]:
+    return get_files(get_comic_favourite_files_dir(), title, use_edited)
 
 
-def get_comic_original_art_files(title: str) -> List[str]:
-    return get_files(get_comic_original_art_files_dir(), title)
+def get_comic_original_art_files(title: str, use_edited: bool = False) -> List[str]:
+    return get_files(get_comic_original_art_files_dir(), title, use_edited)
 
 
-def get_files(parent_image_dir: str, title: str) -> List[str]:
+def get_files(parent_image_dir: str, title: str, use_edited: bool) -> List[str]:
     image_dir = os.path.join(parent_image_dir, title)
     if not os.path.isdir(image_dir):
         return list()
 
-    edited_image_dir = os.path.join(image_dir, "edited")
+    edited_image_dir = os.path.join(image_dir, EDITED_SUBDIR)
 
     image_files = []
     for file in os.listdir(image_dir):
-        image_file = os.path.join(image_dir, file)
-        if not os.path.isfile(image_file):
-            continue
+        if use_edited:
+            edited_image_file = os.path.join(edited_image_dir, Path(file).stem + PNG_FILE_EXT)
+            if os.path.isfile(edited_image_file):
+                image_files.append(edited_image_file)
 
-        edited_image_file = os.path.join(edited_image_dir, Path(file).stem + PNG_FILE_EXT)
-        if os.path.isfile(edited_image_file):
-            image_files.append(edited_image_file)
-        else:
+        image_file = os.path.join(image_dir, file)
+        if os.path.isfile(image_file):
             image_files.append(image_file)
 
     return image_files
+
+
+def get_edited_version(image_file: str) -> str:
+    dir_path = os.path.dirname(image_file)
+    edited_image_file = os.path.join(dir_path, EDITED_SUBDIR, Path(image_file).stem + PNG_FILE_EXT)
+    if os.path.isfile(edited_image_file):
+        return edited_image_file
+
+    return image_file

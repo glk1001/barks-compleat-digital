@@ -40,14 +40,18 @@ ALL_BUT_ORIGINAL_ART = {t for t in FileTypes if t != FileTypes.ORIGINAL_ART}
 
 
 def get_random_image(
-    title_list: List[FantaComicBookInfo], file_types: Union[Set[FileTypes], None] = None
+    title_list: List[FantaComicBookInfo],
+    file_types: Union[Set[FileTypes], None] = None,
+    use_edited: bool = False,
 ) -> Tuple[str, Titles]:
     title_index = randrange(0, len(title_list))
 
     comic_book_info = title_list[title_index].comic_book_info
     title = comic_book_info.title
 
-    title_image_file = __get_random_title_image_file(comic_book_info.get_title_str(), file_types)
+    title_image_file = __get_random_title_image_file(
+        comic_book_info.get_title_str(), file_types, use_edited
+    )
     if title_image_file:
         return title_image_file, title
 
@@ -60,15 +64,17 @@ def get_random_image_file(
     return get_random_image(title_list, file_types)[0]
 
 
-def get_random_title_image(title: str, file_types: Set[FileTypes]) -> str:
-    title_image_file = __get_random_title_image_file(title, file_types)
+def get_random_title_image(title: str, file_types: Set[FileTypes], use_edited: bool = False) -> str:
+    title_image_file = __get_random_title_image_file(title, file_types, use_edited)
     if title_image_file:
         return title_image_file
 
     return get_comic_inset_file(EMERGENCY_INSET_FILE)
 
 
-def __get_random_title_image_file(title_str: str, file_types: Union[Set[FileTypes], None]) -> str:
+def __get_random_title_image_file(
+    title_str: str, file_types: Union[Set[FileTypes], None], use_edited: bool
+) -> str:
     if file_types is None:
         file_types: Set[FileTypes] = ALL_TYPES
 
@@ -86,7 +92,7 @@ def __get_random_title_image_file(title_str: str, file_types: Union[Set[FileType
 
         for file_type in percent:
             if rand_percent <= percent[file_type]:
-                title_file = __get_comic_file(title_str, file_type)
+                title_file = __get_comic_file(title_str, file_type, use_edited)
                 if title_file:
                     return title_file
                 percent[file_type] = -1
@@ -97,25 +103,27 @@ def __get_random_title_image_file(title_str: str, file_types: Union[Set[FileType
     return ""
 
 
-def __get_comic_file(title_str: str, file_type: FileTypes) -> str:
+def __get_comic_file(title_str: str, file_type: FileTypes, use_edited: bool) -> str:
     if file_type == FileTypes.COVER:
-        return get_comic_cover_file(title_str)
+        return get_comic_cover_file(title_str, use_edited)
     if file_type == FileTypes.SILHOUETTE:
-        return __get_random_comic_file(title_str, get_comic_silhouette_files)
+        return __get_random_comic_file(title_str, get_comic_silhouette_files, use_edited)
     if file_type == FileTypes.SPLASH:
-        return __get_random_comic_file(title_str, get_comic_splash_files)
+        return __get_random_comic_file(title_str, get_comic_splash_files, use_edited)
     if file_type == FileTypes.CENSORSHIP:
-        return __get_random_comic_file(title_str, get_comic_censorship_files)
+        return __get_random_comic_file(title_str, get_comic_censorship_files, use_edited)
     if file_type == FileTypes.FAVOURITE:
-        return __get_random_comic_file(title_str, get_comic_favourite_files)
+        return __get_random_comic_file(title_str, get_comic_favourite_files, use_edited)
     if file_type == FileTypes.ORIGINAL_ART:
-        return __get_random_comic_file(title_str, get_comic_original_art_files)
+        return __get_random_comic_file(title_str, get_comic_original_art_files, use_edited)
 
     return ""
 
 
-def __get_random_comic_file(title_str: str, get_file_func: Callable[[str], List[str]]) -> str:
-    title_files = get_file_func(title_str)
+def __get_random_comic_file(
+    title_str: str, get_file_func: Callable[[str, bool], List[str]], use_edited: bool
+) -> str:
+    title_files = get_file_func(title_str, use_edited)
     if title_files:
         index = randrange(0, len(title_files))
         return title_files[index]
