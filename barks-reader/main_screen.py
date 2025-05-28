@@ -28,6 +28,7 @@ from file_paths import (
     get_mcomix_barks_reader_config_path,
     get_the_comic_zips_dir,
     get_comic_inset_file,
+    get_barks_reader_app_icon_file,
 )
 from filtered_title_lists import FilteredTitleLists
 from mcomix_reader import ComicReader
@@ -54,6 +55,7 @@ class MainScreen(BoxLayout):
     title_info_text = StringProperty()
     extra_title_info_text = StringProperty()
     title_page_image_source = StringProperty()
+    app_icon_file = StringProperty(get_barks_reader_app_icon_file())
 
     DEBUG_BACKGROUND_OPACITY = 0
 
@@ -170,14 +172,15 @@ class MainScreen(BoxLayout):
         self.open_all_parent_nodes(year_nodes)
 
         title_node = self.find_title_node(year_nodes, title)
-        self.goto_node(title_node)
+        self.goto_node(title_node, scroll_to=True)
 
         self.title_row_selected(title_fanta_info, image_source)
 
-    def goto_node(self, node: TreeViewNode) -> None:
+    def goto_node(self, node: TreeViewNode, scroll_to=False) -> None:
         def show_node(n):
             self.reader_tree_view.select_node(n)
-            self.ids.scroll_view.scroll_to(n)
+            if scroll_to:
+                self.ids.scroll_view.scroll_to(n)
 
         Clock.schedule_once(lambda dt, item=node: show_node(item))
 
@@ -367,8 +370,6 @@ class MainScreen(BoxLayout):
     def set_title(self, title_image_file: str = "") -> None:
         logging.debug(f'Setting title to "{self.fanta_info.comic_book_info.get_title_str()}".')
 
-        comic_inset_file = get_comic_inset_file(self.fanta_info.comic_book_info.title)
-
         if not title_image_file:
             title_image_file = get_random_title_image(
                 self.fanta_info.comic_book_info.get_title_str(), ALL_BUT_ORIGINAL_ART
@@ -378,7 +379,9 @@ class MainScreen(BoxLayout):
         self.main_title_text = self.get_main_title_str()
         self.title_info_text = self.formatter.get_title_info(self.fanta_info)
         self.extra_title_info_text = self.formatter.get_extra_title_info(self.fanta_info)
-        self.title_page_image_source = comic_inset_file
+        self.title_page_image_source = get_comic_inset_file(
+            self.fanta_info.comic_book_info.title, use_edited=True
+        )
 
     def get_main_title_str(self):
         if self.fanta_info.comic_book_info.is_barks_title:

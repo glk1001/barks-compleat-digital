@@ -25,62 +25,63 @@
         size:root.width, dp(30)
         x: 0
         y: 0
-        background_color: 0.6, 4, 0.2, 1
+        background_color: 0.6, 4.0, 0.2, 1
+
         ActionView:
-            use_separator: True
-            #HiddenIcon_ActionPrevious:
+            use_separator: False
 
             ActionPrevious:
-                title: 'Hello'
+                title: 'The Compleat Barks Reader'
                 with_previous: False  # can use to change screens
+                app_icon: root.app_icon_file
 
             ActionButton:
+                text: 'Quit'
+                on_release: app.on_action_bar_quit()
                 important: True
+                draggable: False
+
+            ActionSeparator:
+
+            ActionButton:
                 text: 'Collapse'
-                on_press:root.on_action_bar_collapse()
+                on_release: root.on_action_bar_collapse()
+                important: False
+                draggable: False
 
             ActionButton:
-                important: True
                 text: 'Change Pics'
-                on_press:root.on_action_bar_change_view_images()
+                on_release: root.on_action_bar_change_view_images()
+                important: False
+                draggable: False
 
             ActionGroup:
-                mode: "spinner"
                 text: "Goto"
+                draggable: False
+                mode: "normal"
                 ActionButton:
                     text: 'Chronological'
-                    on_press:root.on_action_bar_goto(self)
+                    on_release: root.on_action_bar_goto(self)
                 ActionButton:
                     text: 'Series'
-                    on_press:root.on_action_bar_goto(self)
+                    on_release: root.on_action_bar_goto(self)
                 ActionButton:
                     text: 'Categories'
-                    on_press:root.on_action_bar_goto(self)
+                    on_release: root.on_action_bar_goto(self)
                 ActionButton:
                     text: 'Upper Title'
-                    on_press:root.on_goto_top_view_title()
+                    on_release: root.on_goto_top_view_title()
                 ActionButton:
                     text: 'Lower Title'
-                    on_press:root.on_goto_fun_view_title(self)
+                    on_release: root.on_goto_fun_view_title(self)
                     disabled: root.bottom_view_title_opacity > 0.99
 
-            ActionGroup:
-                mode: "spinner"
-                text: "Misc"
-                ActionButton:
-                    text: 'misc button 1'
-                    on_press:root.on_action_bar_pressed(self)
-                ActionButton:
-                    text: 'misc button 2'
-                    on_press:root.on_action_bar_pressed(self)
+    # Vertical filler before scroll view.
+    Widget:
+        size_hint_y: None
+        height: dp(10)
 
-            ActionOverflow:
-                ActionButton:
-                    icon: 'atlas://data/images/defaulttheme/audio-volume-high'
-                ActionButton:
-                    text: 'Btn1'
-                    on_press:root.on_action_bar_pressed(self)
-
+    # Scroll view with top view image
     AnchorLayout:
         anchor_x: "left"
         anchor_y: "top"
@@ -113,14 +114,17 @@
 
                 bar_color: (0.8, 0.8, 0.8, 1)
                 bar_inactive_color: (0.8, 0.8, 0.8, 0.8)
-                bar_width: dp(8)
+                bar_width: dp(10)
 
                 ReaderTreeView:
                     id: reader_tree_view_id
                     padding: dp(50)
                     indent_start: dp(50)
                     background_color: (0,1,0,1)
+                    size_hint_y: None
+                    height: self.minimum_height
 
+    # Bottom view
     AnchorLayout:
         anchor_x: "right"
         anchor_y: "center"

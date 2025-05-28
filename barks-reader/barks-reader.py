@@ -48,10 +48,22 @@ class BarksReaderApp(App):
     def on_request_close_window(self, *_args):
         return self.main_screen.comic_reader.on_app_request_close()
 
+    @staticmethod
+    def on_action_bar_quit():
+        App.get_running_app().stop()
+        Window.close()
+
     def build(self):
         Window.bind(on_request_close=self.on_request_close_window)
 
         self.main_screen = MainScreen(self.filtered_title_lists)
+
+        Window.custom_titlebar = True
+        title_bar = self.main_screen.ids.action_bar
+        if Window.set_custom_titlebar(title_bar):
+            logging.info("Window: setting custom titlebar successful")
+        else:
+            logging.info("Window: setting custom titlebar " "Not allowed on this system ")
 
         tree_builder = ReaderTreeBuilder(
             self.filtered_title_lists, self.title_search, self.main_screen

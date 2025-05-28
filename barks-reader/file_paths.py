@@ -25,6 +25,7 @@ BARKS_READER_SPLASH_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Splash")
 BARKS_READER_CENSORSHIP_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Censorship")
 BARKS_READER_FAVOURITE_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Favourites")
 BARKS_READER_ORIGINAL_ART_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Original Art")
+BARKS_READER_APP_ICON = os.path.join(BARKS_READER_FILES_DIR, "Barks Reader Icon 1.png")
 
 EMERGENCY_INSET_FILE = Titles.BICEPS_BLUES
 EMERGENCY_INSET_FILE_PATH = os.path.join(
@@ -51,8 +52,9 @@ def check_dirs_and_files() -> None:
     files_to_check = [
         MCOMIX_PYTHON_PATH,
         MCOMIX_PATH,
-        BARKS_READER_CONFIG_PATH,
         EMERGENCY_INSET_FILE_PATH,
+        BARKS_READER_CONFIG_PATH,
+        BARKS_READER_APP_ICON,
     ]
 
     if HOME_DIR is None:
@@ -120,12 +122,17 @@ def get_comic_original_art_files_dir() -> str:
     return BARKS_READER_ORIGINAL_ART_FILES_DIR
 
 
-def get_comic_inset_file(title: Titles) -> str:
+def get_barks_reader_app_icon_file() -> str:
+    return BARKS_READER_APP_ICON
+
+
+def get_comic_inset_file(title: Titles, use_edited: bool = False) -> str:
     title_str = BARKS_TITLES[title]
 
-    edited_file = os.path.join(BARKS_READER_INSET_EDITED_FILES_DIR, title_str + PNG_FILE_EXT)
-    if os.path.isfile(edited_file):
-        return edited_file
+    if use_edited:
+        edited_file = os.path.join(BARKS_READER_INSET_EDITED_FILES_DIR, title_str + PNG_FILE_EXT)
+        if os.path.isfile(edited_file):
+            return edited_file
 
     main_file = os.path.join(get_comic_inset_files_dir(), title_str + JPG_FILE_EXT)
     # TODO: Fix this when all titles are configured.
