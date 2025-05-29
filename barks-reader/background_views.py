@@ -120,19 +120,51 @@ class BackgroundViews:
         self.__view_state = view_state
         self.__update_views()
 
+    def __update_views(self):
+        if self.__view_state == ViewStates.ON_INTRO_NODE:
+            self.__bottom_view_fun_image_opacity = 0.0
+            self.__bottom_view_title_opacity = 0.0
+            return
+
+        if self.__view_state in [
+            ViewStates.ON_TITLE_SEARCH_BOX_NODE,
+            ViewStates.ON_TITLE_NODE,
+            ViewStates.ON_TAG_SEARCH_BOX_NODE,
+        ]:
+            self.__bottom_view_fun_image_opacity = 0.0
+            self.__bottom_view_title_opacity = 1.0
+        else:
+            self.__bottom_view_fun_image_opacity = 1.0
+            self.__bottom_view_title_opacity = 0.0
+
+        self.__set_top_view_image()
+        self.__set_bottom_view_fun_image()
+        self.__set_bottom_view_title_image_color()
+
     def __set_top_view_image(self) -> None:
         # noinspection PyUnreachableCode
         match self.__view_state:
             case ViewStates.INITIAL:
-                self.__top_view_image_title = Titles.COLD_BARGAIN_A
-                self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+                self.__set_initial_top_view_image()
             case ViewStates.ON_INTRO_NODE:
-                self.__top_view_image_title = Titles.ADVENTURE_DOWN_UNDER
-                self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
-            case ViewStates.ON_THE_STORIES_NODE:
-                self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-                    self.title_lists[ALL_LISTS], use_edited=True
-                )
+                self.__set_top_view_image_for_intro()
+            case (
+                ViewStates.ON_THE_STORIES_NODE
+                | ViewStates.ON_CHRONO_BY_YEAR_NODE
+                | ViewStates.ON_SERIES_NODE
+                | ViewStates.ON_CATEGORIES_NODE
+            ):
+                self.__set_top_view_image_for_stories()
+            case ViewStates.ON_CS_NODE:
+                self.__set_top_view_image_for_cs()
+            case ViewStates.ON_DDA_NODE:
+                self.__set_top_view_image_for_dda()
+            case ViewStates.ON_YEAR_RANGE_NODE:
+                self.__set_top_view_image_for_year_range()
+            case ViewStates.ON_CATEGORY_NODE:
+                self.__set_top_view_image_for_category()
+            case ViewStates.ON_TITLE_NODE:
+                pass
             case (
                 ViewStates.ON_SEARCH_NODE
                 | ViewStates.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET
@@ -140,50 +172,11 @@ class BackgroundViews:
                 | ViewStates.ON_TITLE_SEARCH_BOX_NODE
                 | ViewStates.ON_TAG_SEARCH_BOX_NODE
             ):
-                self.__top_view_image_title = Titles.TRACKING_SANDY
-                self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+                self.__set_top_view_image_for_search()
             case ViewStates.ON_APPENDIX_NODE:
-                self.__top_view_image_title = Titles.FABULOUS_PHILOSOPHERS_STONE_THE
-                self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+                self.__set_top_view_image_for_appendix()
             case ViewStates.ON_INDEX_NODE:
-                self.__top_view_image_title = Titles.TRUANT_OFFICER_DONALD
-                self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
-            case (
-                ViewStates.ON_CHRONO_BY_YEAR_NODE
-                | ViewStates.ON_SERIES_NODE
-                | ViewStates.ON_CATEGORIES_NODE
-            ):
-                self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-                    self.title_lists[ALL_LISTS], use_edited=True
-                )
-            case ViewStates.ON_CS_NODE:
-                self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-                    self.title_lists[SERIES_CS], use_edited=True
-                )
-            case ViewStates.ON_DDA_NODE:
-                self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-                    self.title_lists[SERIES_DDA], use_edited=True
-                )
-            case ViewStates.ON_CATEGORY_NODE:
-                logging.debug(f"Current category: '{self.__current_category}'")
-                if not self.__current_category:
-                    self.__top_view_image_title = Titles.GOOD_NEIGHBORS
-                    self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
-                else:
-                    self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-                        self.title_lists[self.__current_category], use_edited=True
-                    )
-            case ViewStates.ON_YEAR_RANGE_NODE:
-                logging.debug(f"Year range: '{self.__current_year_range}'")
-                if not self.__current_year_range:
-                    self.__top_view_image_title = Titles.GOOD_NEIGHBORS
-                    self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
-                else:
-                    self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-                        self.title_lists[self.__current_year_range], use_edited=True
-                    )
-            case ViewStates.ON_TITLE_NODE:
-                pass
+                self.__set_top_view_image_for_index()
             case _:
                 assert False
 
@@ -197,6 +190,61 @@ class BackgroundViews:
             f" Color: {get_formatted_color(self.__top_view_image_color)},"
             f" Opacity: {self.__top_view_image_opacity}."
         )
+
+    def __set_initial_top_view_image(self):
+        self.__top_view_image_title = Titles.COLD_BARGAIN_A
+        self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+
+    def __set_top_view_image_for_intro(self):
+        self.__top_view_image_title = Titles.ADVENTURE_DOWN_UNDER
+        self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+
+    def __set_top_view_image_for_stories(self):
+        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+            self.title_lists[ALL_LISTS], use_edited=True
+        )
+
+    def __set_top_view_image_for_cs(self):
+        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+            self.title_lists[SERIES_CS], use_edited=True
+        )
+
+    def __set_top_view_image_for_dda(self):
+        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+            self.title_lists[SERIES_DDA], use_edited=True
+        )
+
+    def __set_top_view_image_for_category(self):
+        logging.debug(f"Current category: '{self.__current_category}'")
+        if not self.__current_category:
+            self.__top_view_image_title = Titles.GOOD_NEIGHBORS
+            self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+        else:
+            self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+                self.title_lists[self.__current_category], use_edited=True
+            )
+
+    def __set_top_view_image_for_year_range(self):
+        logging.debug(f"Year range: '{self.__current_year_range}'")
+        if not self.__current_year_range:
+            self.__top_view_image_title = Titles.GOOD_NEIGHBORS
+            self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+        else:
+            self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+                self.title_lists[self.__current_year_range], use_edited=True
+            )
+
+    def __set_top_view_image_for_search(self):
+        self.__top_view_image_title = Titles.TRACKING_SANDY
+        self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+
+    def __set_top_view_image_for_appendix(self):
+        self.__top_view_image_title = Titles.FABULOUS_PHILOSOPHERS_STONE_THE
+        self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+
+    def __set_top_view_image_for_index(self):
+        self.__top_view_image_title = Titles.TRUANT_OFFICER_DONALD
+        self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
 
     def __set_top_view_image_color(self):
         self.__top_view_image_color = get_random_color()
@@ -284,24 +332,3 @@ class BackgroundViews:
         self.__bottom_view_change_fun_image_event = Clock.schedule_interval(
             lambda dt: self.__set_bottom_view_fun_image(), self.BOTTOM_VIEW_EVENT_TIMEOUT_SECS
         )
-
-    def __update_views(self):
-        if self.__view_state == ViewStates.ON_INTRO_NODE:
-            self.__bottom_view_fun_image_opacity = 0.0
-            self.__bottom_view_title_opacity = 0.0
-            return
-
-        if self.__view_state in [
-            ViewStates.ON_TITLE_SEARCH_BOX_NODE,
-            ViewStates.ON_TITLE_NODE,
-            ViewStates.ON_TAG_SEARCH_BOX_NODE,
-        ]:
-            self.__bottom_view_fun_image_opacity = 0.0
-            self.__bottom_view_title_opacity = 1.0
-        else:
-            self.__bottom_view_fun_image_opacity = 1.0
-            self.__bottom_view_title_opacity = 0.0
-
-        self.__set_top_view_image()
-        self.__set_bottom_view_fun_image()
-        self.__set_bottom_view_title_image_color()
