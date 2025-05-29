@@ -2,7 +2,7 @@ import logging
 from typing import Union, Dict, List
 
 from kivy.clock import Clock
-from kivy.metrics import sp
+from kivy.metrics import dp, sp
 from kivy.properties import StringProperty, ColorProperty, NumericProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -28,8 +28,9 @@ from file_paths import (
     get_mcomix_barks_reader_config_path,
     get_the_comic_zips_dir,
     get_comic_inset_file,
-    get_barks_reader_app_icon_file,
     get_edited_version,
+    get_barks_reader_app_icon_file,
+    get_barks_reader_up_arrow_file,
 )
 from filtered_title_lists import FilteredTitleLists
 from mcomix_reader import ComicReader
@@ -57,6 +58,8 @@ class MainScreen(BoxLayout):
     extra_title_info_text = StringProperty()
     title_page_image_source = StringProperty()
     app_icon_file = StringProperty(get_barks_reader_app_icon_file())
+    up_arrow_file = StringProperty(get_barks_reader_up_arrow_file())
+    UP_ARROW_WIDTH = dp(20)
 
     DEBUG_BACKGROUND_OPACITY = 0
 

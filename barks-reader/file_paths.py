@@ -27,7 +27,8 @@ BARKS_READER_SPLASH_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Splash")
 BARKS_READER_CENSORSHIP_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Censorship")
 BARKS_READER_FAVOURITE_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Favourites")
 BARKS_READER_ORIGINAL_ART_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Original Art")
-BARKS_READER_APP_ICON = os.path.join(BARKS_READER_FILES_DIR, "Barks Reader Icon 1.png")
+BARKS_READER_APP_ICON_PATH = os.path.join(BARKS_READER_FILES_DIR, "Barks Reader Icon 1.png")
+BARKS_READER_UP_ARROW_PATH = os.path.join(BARKS_READER_FILES_DIR, "up-arrow.png")
 
 EMERGENCY_INSET_FILE = Titles.BICEPS_BLUES
 EMERGENCY_INSET_FILE_PATH = os.path.join(
@@ -56,7 +57,8 @@ def check_dirs_and_files() -> None:
         MCOMIX_PATH,
         EMERGENCY_INSET_FILE_PATH,
         BARKS_READER_CONFIG_PATH,
-        BARKS_READER_APP_ICON,
+        BARKS_READER_APP_ICON_PATH,
+        BARKS_READER_UP_ARROW_PATH,
     ]
 
     if HOME_DIR is None:
@@ -125,7 +127,11 @@ def get_comic_original_art_files_dir() -> str:
 
 
 def get_barks_reader_app_icon_file() -> str:
-    return BARKS_READER_APP_ICON
+    return BARKS_READER_APP_ICON_PATH
+
+
+def get_barks_reader_up_arrow_file() -> str:
+    return BARKS_READER_UP_ARROW_PATH
 
 
 def get_comic_inset_file(title: Titles, use_edited: bool = False) -> str:

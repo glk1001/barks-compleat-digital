@@ -373,12 +373,21 @@
                     mipmap: True
 
                     Button:
-                        text: "HELLO"
+                        text: ""
                         on_press: root.on_goto_fun_view_title(self)
-                        background_color: (0.3, 0.3, 1.0, 0.5)
-                        x: self.parent.x + self.parent.width - dp(20)
-                        y: self.parent.y
-                        size: (dp(20), dp(20))
+                        background_color: (0.3, 0.3, 0.3, 0.0)
+                        background_normal: ""
+                        x: self.parent.x + self.parent.width - (root.UP_ARROW_WIDTH + dp(1))
+                        y: self.parent.y + dp(1)
+                        size: (root.UP_ARROW_WIDTH, root.UP_ARROW_WIDTH)
                         halign: "left"
                         valign: "top"
                         text_size: (self.width, self.height)
+
+                        Image:
+                            source: root.up_arrow_file
+                            y: self.parent.y
+                            x: self.parent.x
+                            size: self.parent.size
+                            fit_mode: "cover"
+                            mipmap: True
