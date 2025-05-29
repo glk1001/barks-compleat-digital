@@ -75,11 +75,6 @@
                     on_release: root.on_goto_fun_view_title(self)
                     disabled: root.bottom_view_title_opacity > 0.99
 
-    # Vertical filler before scroll view.
-    Widget:
-        size_hint_y: None
-        height: dp(10)
-
     # Scroll view with top view image
     AnchorLayout:
         anchor_x: "left"
@@ -100,28 +95,35 @@
                 fit_mode: "cover"
                 mipmap: True
 
-            ScrollView:
-                id: scroll_view
-                width: root.view_width
-                height: root.view_height
+            BoxLayout:
+                orientation: "vertical"
 
-                do_scroll_x: False
-                do_scroll_y: True
-                always_overscroll: False
-                effect_cls: "ScrollEffect"
-                scroll_type: ["bars", "content"]
+                # Vertical filler before scroll view.
+                Widget:
+                    size_hint_y: 0.02
 
-                bar_color: (0.8, 0.8, 0.8, 1)
-                bar_inactive_color: (0.8, 0.8, 0.8, 0.8)
-                bar_width: dp(10)
+                ScrollView:
+                    id: scroll_view
+                    width: root.view_width
+                    height: root.view_height
 
-                ReaderTreeView:
-                    id: reader_tree_view
-                    padding: dp(50)
-                    indent_start: dp(50)
-                    background_color: (0,1,0,1)
-                    size_hint_y: None
-                    height: self.minimum_height
+                    do_scroll_x: False
+                    do_scroll_y: True
+                    always_overscroll: False
+                    effect_cls: "ScrollEffect"
+                    scroll_type: ["bars", "content"]
+
+                    bar_color: (0.8, 0.8, 0.8, 1)
+                    bar_inactive_color: (0.8, 0.8, 0.8, 0.8)
+                    bar_width: dp(10)
+
+                    ReaderTreeView:
+                        id: reader_tree_view
+                        padding: dp(50)
+                        indent_start: dp(50)
+                        background_color: (0,1,0,1)
+                        size_hint_y: None
+                        height: self.minimum_height
 
     # Bottom view
     AnchorLayout:
