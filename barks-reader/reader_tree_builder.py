@@ -254,8 +254,10 @@ class ReaderTreeBuilder:
             f" {left_sq_bracket}"
             f"{get_short_submitted_day_and_month(comic_book_info)}"
             f" [b][color={TitleTreeViewNode.ISSUE_LABEL_SUBMITTED_YEAR_COLOR}]"
+            f" [b]"
             f"{comic_book_info.submitted_year}"
             f"[/color][/b]"
+            f"[/b]"
             f"{right_sq_bracket}"
         )
 

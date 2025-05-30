@@ -9,7 +9,8 @@ from barks_fantagraphics.barks_titles import get_title_dict
 #html_file = "/home/greg/Downloads/herbert_I.N.D.U.C.K.S.html"
 #html_file = "/home/greg/Downloads/jones_I.N.D.U.C.K.S.html"
 #html_file = "/home/greg/Downloads/snozzie_I.N.D.U.C.K.S.html"
-html_file = "/home/greg/Downloads/duckburg_I.N.D.U.C.K.S.html"
+#html_file = "/home/greg/Downloads/duckburg_I.N.D.U.C.K.S.html"
+html_file = "/home/greg/Downloads/thepayments1943.html"
 
 # def get_normalised_title(title_str: str) -> str:
 #     if title_str.startswith("The"):
@@ -25,26 +26,31 @@ with open(html_file, "r") as f:
 
 bs = BeautifulSoup(html, "html.parser")
 
-table = bs.find('table')
+table = bs.find('table', border="3")
 data = []
 
 for row in table.find_all('tr'):
+    print(row)
     cols = row.find_all(['td', 'th'])
-    cols = [col.find('div', class_='title') for col in cols]
+    #cols = [col.find('div', class_='title') for col in cols]
     cols = [col.text.strip() for col in cols if col is not None]
     if cols:
         data.append(cols)
 
-for row in data:
-    print(row[0])
+    for cols in data:
+        print(cols)
 
-barks_titles = get_title_dict()
-for row in data:
-    title = row[0]
-    if title in barks_titles:
-        print(f"BARKS_TAGS[Tags.DUCKBURG].append((Titles.{barks_titles[title].name}, []))")
-    else:
-        print("Not a Barks title: ", title)
+# for row in data:
+#     print(row[0])
+
+# Character searches
+# barks_titles = get_title_dict()
+# for row in data:
+#     title = row[0]
+#     if title in barks_titles:
+#         print(f"BARKS_TAGS[Tags.DUCKBURG].append((Titles.{barks_titles[title].name}, []))")
+#     else:
+#         print("Not a Barks title: ", title)
 
 # title_tags = bs.body.find_all("div", "title")
 # for div in title_tags:
