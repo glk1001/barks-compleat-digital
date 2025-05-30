@@ -2,6 +2,7 @@ import logging
 from typing import List, Callable, Tuple, Dict
 
 from kivy.uix.treeview import TreeViewNode
+from kivy.utils import escape_markup
 
 from barks_fantagraphics.barks_tags import (
     TagCategories,
@@ -11,14 +12,12 @@ from barks_fantagraphics.barks_tags import (
     BARKS_TAG_GROUPS_TITLES,
     get_tagged_titles,
 )
-from barks_fantagraphics.barks_titles import BARKS_TITLES, Titles
+from barks_fantagraphics.barks_titles import BARKS_TITLES, Titles, ComicBookInfo
 from barks_fantagraphics.comics_utils import (
     get_short_formatted_first_published_str,
-    get_short_formatted_submitted_date,
+    get_short_submitted_day_and_month,
 )
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo, SERIES_CS, SERIES_DDA
-from barks_fantagraphics.title_search import BarksTitleSearch
-from filtered_title_lists import FilteredTitleLists
 from main_screen import MainScreen
 from reader_formatter import get_markup_text_with_num_titles, get_bold_markup_text
 from reader_ui_classes import (
@@ -35,12 +34,8 @@ from reader_ui_classes import (
 class ReaderTreeBuilder:
     def __init__(
         self,
-        filtered_title_lists: FilteredTitleLists,
-        title_search: BarksTitleSearch,
         main_screen: MainScreen,
     ):
-        self.__filtered_title_lists = filtered_title_lists
-        self.__title_search = title_search
         self.__main_screen = main_screen
 
         self.year_range_nodes: Dict[Tuple[int, int], TreeViewNode] = {}
@@ -113,7 +108,7 @@ class ReaderTreeBuilder:
         self.__add_categories_nodes(tree, new_node)
 
     def __add_year_range_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
-        for year_range in self.__filtered_title_lists.year_ranges:
+        for year_range in self.__main_screen.filtered_title_lists.year_ranges:
             new_node, year_range_titles = self.__add_year_range_node(tree, year_range, parent_node)
             self.__add_year_range_story_nodes(tree, year_range_titles, new_node)
 
@@ -241,15 +236,28 @@ class ReaderTreeBuilder:
         title_node.ids.title_label.text = full_fanta_info.comic_book_info.get_display_title()
         title_node.ids.title_label.bind(on_press=self.__main_screen.on_title_row_button_pressed)
 
-        issue_info = (
-            f"{get_short_formatted_first_published_str(full_fanta_info.comic_book_info)}"
-            f"  [{get_short_formatted_submitted_date(full_fanta_info.comic_book_info)}]"
-        )
+        first_published = get_short_formatted_first_published_str(full_fanta_info.comic_book_info)
+        submitted_date = self.get_formatted_submitted_str(full_fanta_info.comic_book_info)
+        issue_info = f"[i]{first_published}" f"{submitted_date}[/i]"
 
         title_node.ids.issue_label.text = issue_info
         title_node.ids.issue_label.bind(on_press=self.__main_screen.on_title_row_button_pressed)
 
         return title_node
+
+    @staticmethod
+    def get_formatted_submitted_str(comic_book_info: ComicBookInfo) -> str:
+        left_sq_bracket = escape_markup("[")
+        right_sq_bracket = escape_markup("]")
+
+        return (
+            f" {left_sq_bracket}"
+            f"{get_short_submitted_day_and_month(comic_book_info)}"
+            f" [b][color={TitleTreeViewNode.ISSUE_LABEL_SUBMITTED_YEAR_COLOR}]"
+            f"{comic_book_info.submitted_year}"
+            f"[/color][/b]"
+            f"{right_sq_bracket}"
+        )
 
     @staticmethod
     def __create_and_add_simple_node(
@@ -270,7 +278,7 @@ class ReaderTreeBuilder:
     def __create_and_add_title_search_box_node(
         self, tree: ReaderTreeView, parent_node: TreeViewNode
     ):
-        new_node = TitleSearchBoxTreeViewNode(self.__title_search)
+        new_node = TitleSearchBoxTreeViewNode(self.__main_screen.title_search)
 
         new_node.bind(on_title_search_box_pressed=self.__main_screen.on_title_search_box_pressed)
         new_node.bind(
@@ -280,7 +288,7 @@ class ReaderTreeBuilder:
         return tree.add_node(new_node, parent=parent_node)
 
     def __create_and_add_tag_search_box_node(self, tree: ReaderTreeView, parent_node: TreeViewNode):
-        new_node = TagSearchBoxTreeViewNode(self.__title_search)
+        new_node = TagSearchBoxTreeViewNode(self.__main_screen.title_search)
 
         new_node.bind(on_tag_search_box_pressed=self.__main_screen.on_tag_search_box_pressed)
         new_node.bind(

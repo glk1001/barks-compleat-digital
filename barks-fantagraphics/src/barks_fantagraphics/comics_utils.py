@@ -242,3 +242,13 @@ def get_formatted_submitted_date(comic_book_info: ComicBookInfo) -> str:
         f" {get_formatted_day(comic_book_info.submitted_day)},"
         f" {comic_book_info.submitted_year}"
     )
+
+
+def get_short_submitted_day_and_month(comic_book_info: ComicBookInfo) -> str:
+    if comic_book_info.submitted_day == -1:
+        return f"{MONTH_AS_SHORT_STR[comic_book_info.submitted_month]}"
+
+    return (
+        f"{get_formatted_day(comic_book_info.submitted_day)}"
+        f" {MONTH_AS_SHORT_STR[comic_book_info.submitted_month]}"
+    )

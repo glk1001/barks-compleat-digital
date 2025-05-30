@@ -286,6 +286,7 @@ class TitleTreeViewNode(BoxLayout, TreeViewNode):
     NUM_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
     TITLE_LABEL_COLOR = (1.0, 1.0, 0.0, 1.0)
     ISSUE_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
+    ISSUE_LABEL_SUBMITTED_YEAR_COLOR = "#FFFF00"
 
     def __init__(self, fanta_info: FantaComicBookInfo, **kwargs):
         super().__init__(**kwargs)
