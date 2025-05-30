@@ -296,7 +296,7 @@ class BackgroundViews:
         if randrange(0, 100) < 20:
             rand_color = [1, 1, 1, 0.5]
         else:
-            alpha = randrange(130, 230) / 255.0
+            alpha = randrange(130, 200) / 255.0
 
             rand_index = randrange(0, 3)
             rgb_val = 0.5 if rand_index == 2 else 0.1
