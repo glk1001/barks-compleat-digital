@@ -35,7 +35,7 @@ from file_paths import (
 from filtered_title_lists import FilteredTitleLists
 from mcomix_reader import ComicReader
 from random_title_images import get_random_title_image, ALL_BUT_ORIGINAL_ART
-from reader_formatter import ReaderFormatter, get_clean_text_without_num_titles
+from reader_formatter import ReaderFormatter, get_clean_text_without_num_titles, LONG_TITLE_SPLITS
 from reader_ui_classes import (
     ReaderTreeView,
     YearRangeTreeViewNode,
@@ -49,7 +49,7 @@ class MainScreen(BoxLayout):
     MAIN_TITLE_BACKGROUND_COLOR = (1, 1, 1, 0.05)
     MAIN_TITLE_COLOR = (1, 1, 0, 1)
     MAIN_TITLE_FONT_NAME = "Carl Barks Script"
-    MAIN_TITLE_FONT_SIZE = sp(28)
+    MAIN_TITLE_FONT_SIZE = sp(30)
     main_title_text = StringProperty()
 
     TITLE_INFO_LABEL_COLOR = (1.0, 0.99, 0.9, 1.0)
@@ -391,6 +391,8 @@ class MainScreen(BoxLayout):
 
     def get_main_title_str(self):
         if self.fanta_info.comic_book_info.is_barks_title:
+            if self.fanta_info.comic_book_info.title in LONG_TITLE_SPLITS:
+                return LONG_TITLE_SPLITS[self.fanta_info.comic_book_info.title]
             return self.fanta_info.comic_book_info.get_title_str()
 
         return self.fanta_info.comic_book_info.get_title_from_issue_name()

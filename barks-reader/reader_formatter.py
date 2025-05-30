@@ -1,12 +1,17 @@
 import re
 
 from barks_fantagraphics.barks_extra_info import BARKS_EXTRA_INFO
+from barks_fantagraphics.barks_titles import Titles
 from barks_fantagraphics.comic_issues import ISSUE_NAME, Issues
 from barks_fantagraphics.comics_utils import (
     get_formatted_first_published_str,
     get_long_formatted_submitted_date,
 )
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo, FANTA_SOURCE_COMICS, FAN
+
+LONG_TITLE_SPLITS = {
+    Titles.LOST_CROWN_OF_GENGHIS_KHAN_THE: "The Lost Crown\nof Genghis Khan!",
+}
 
 
 def get_bold_markup_text(text: str) -> str:
@@ -50,7 +55,8 @@ class ReaderFormatter:
             f"[i]Source:[/i]       [b]{source}[/b]"
         )
 
-    def get_extra_title_info(self, fanta_info: FantaComicBookInfo) -> str:
+    @staticmethod
+    def get_extra_title_info(fanta_info: FantaComicBookInfo) -> str:
         title = fanta_info.comic_book_info.title
         if title not in BARKS_EXTRA_INFO:
             return ""
