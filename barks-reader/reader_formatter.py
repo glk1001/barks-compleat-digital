@@ -56,7 +56,7 @@ class ReaderFormatter:
         return (
             f"[i]1st Issue:[/i]   [b]{issue_info}[/b]\n"
             f"[i]Submitted:[/i] [b]{submitted_info}[/b]\n"
-            f"[i]Payment:[/i]    [b]{payment_info}[/b]\n"
+            f"[i]Payslip:[/i]      [b]{payment_info}[/b]\n"
             f"[i]Source:[/i]       [b]{source}[/b]"
         )
 
