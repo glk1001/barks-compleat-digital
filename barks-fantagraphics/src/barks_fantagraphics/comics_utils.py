@@ -4,6 +4,7 @@ import re
 from datetime import datetime, date
 from pathlib import Path
 from typing import Union, List, Tuple, Dict
+from cpi import inflate
 
 from .barks_payments import PaymentInfo
 from .barks_titles import ComicBookInfo
@@ -216,11 +217,14 @@ def get_long_formatted_submitted_date(comic_book_info: ComicBookInfo) -> str:
 
 
 def get_formatted_payment_info(payment_info: PaymentInfo) -> str:
+    current_year = datetime.now().year
+    cpi_adjusted_payment = inflate(payment_info.payment, payment_info.accepted_year)
+
     return (
-        f"${payment_info.payment:.0f} [$xx in 2025]"
-        f" ({get_formatted_day(payment_info.accepted_day)}"
-        f" {MONTH_AS_SHORT_STR[payment_info.accepted_month]}"
-        f" {payment_info.accepted_year})"
+        f"${payment_info.payment:.0f} (${cpi_adjusted_payment:.0f} in {current_year})"
+#        f" ({get_formatted_day(payment_info.accepted_day)}"
+#        f" {MONTH_AS_SHORT_STR[payment_info.accepted_month]}"
+#        f" {payment_info.accepted_year})"
     )
 
 
