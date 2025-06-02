@@ -30,6 +30,11 @@ class FilteredTitleLists:
             (1955, 1957),
             (1958, 1961),
         ]
+        self.us_year_ranges = [
+            (1951, 1954),
+            (1955, 1957),
+            (1958, 1961),
+        ]
         self.series_names = [
             SERIES_CS,
             SERIES_DDA,
@@ -51,6 +56,13 @@ class FilteredTitleLists:
     @staticmethod
     def get_cs_range_str_from_str(year_range_str: str) -> str:
         return f"CS-{year_range_str}"
+
+    def get_us_range_str(self, year_range: Tuple[int, int]) -> str:
+        return self.get_us_range_str_from_str(self.get_range_str(year_range))
+
+    @staticmethod
+    def get_us_range_str_from_str(year_range_str: str) -> str:
+        return f"US-{year_range_str}"
 
     def get_year_range_from_info(
         self, fanta_info: FantaComicBookInfo
@@ -77,6 +89,12 @@ class FilteredTitleLists:
                 and yr_range[0] <= info.comic_book_info.submitted_year <= yr_range[1]
             )
 
+        def create_us_range_lamba(yr_range: Tuple[int, int]):
+            return (
+                lambda info: info.series_name == SERIES_USA
+                and yr_range[0] <= info.comic_book_info.submitted_year <= yr_range[1]
+            )
+
         def create_category_lamba(cat: TagCategories):
             return lambda info: info.comic_book_info.title in BARKS_TAG_CATEGORIES_TITLES[cat]
 
@@ -87,6 +105,8 @@ class FilteredTitleLists:
             filters[name] = create_series_lamba(name)
         for year_range in self.cs_year_ranges:
             filters[self.get_cs_range_str(year_range)] = create_cs_range_lamba(year_range)
+        for year_range in self.us_year_ranges:
+            filters[self.get_us_range_str(year_range)] = create_us_range_lamba(year_range)
         for category in self.categories:
             filters[category.name] = create_category_lamba(category)
 

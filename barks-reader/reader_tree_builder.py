@@ -17,7 +17,12 @@ from barks_fantagraphics.comics_utils import (
     get_short_formatted_first_published_str,
     get_short_submitted_day_and_month,
 )
-from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo, SERIES_CS, SERIES_DDA
+from barks_fantagraphics.fanta_comics_info import (
+    FantaComicBookInfo,
+    SERIES_CS,
+    SERIES_DDA,
+    SERIES_USA,
+)
 from filtered_title_lists import FilteredTitleLists
 from main_screen import MainScreen
 from reader_formatter import (
@@ -34,6 +39,7 @@ from reader_ui_classes import (
     YearRangeTreeViewNode,
     CsYearRangeTreeViewNode,
     TitleTreeViewNode,
+    UsYearRangeTreeViewNode,
 )
 
 
@@ -203,12 +209,15 @@ class ReaderTreeBuilder:
     def __add_series_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
         self.__add_series_node(tree, SERIES_CS, self.__main_screen.cs_pressed, parent_node)
         self.__add_series_node(tree, SERIES_DDA, self.__main_screen.dda_pressed, parent_node)
+        self.__add_series_node(tree, SERIES_USA, self.__main_screen.us_pressed, parent_node)
 
     def __add_series_node(
         self, tree: ReaderTreeView, series: str, on_pressed: Callable, parent_node: TreeViewNode
     ) -> None:
         if series == SERIES_CS:
             self.__add_cs_node(tree, on_pressed, parent_node)
+        elif series == SERIES_USA:
+            self.__add_us_node(tree, on_pressed, parent_node)
         else:
             title_list = self.__main_screen.title_lists[series]
             series_text = get_markup_text_with_num_titles(series, len(title_list))
@@ -259,6 +268,47 @@ class ReaderTreeBuilder:
         ).comic_book_info.issue_number
 
         return f"WDCS {first_issue}-{last_issue}"
+
+    def __add_us_node(
+        self, tree: ReaderTreeView, on_pressed: Callable, parent_node: TreeViewNode
+    ) -> None:
+        title_list = self.__main_screen.title_lists[SERIES_USA]
+
+        series_text = get_markup_text_with_num_titles(SERIES_USA, len(title_list))
+        series_node = StoryGroupTreeViewNode(text=series_text)
+        series_node.bind(on_press=on_pressed)
+
+        for year_range in self.__main_screen.filtered_title_lists.us_year_ranges:
+            new_node, year_range_titles = self.__add_us_year_range_node(
+                tree, year_range, series_node
+            )
+            self.__add_year_range_story_nodes(tree, year_range_titles, new_node)
+
+        tree.add_node(series_node, parent=parent_node)
+
+    def __add_us_year_range_node(
+        self, tree: ReaderTreeView, year_range: Tuple[int, int], parent_node: TreeViewNode
+    ) -> Tuple[TreeViewNode, List[FantaComicBookInfo]]:
+        return self.__create_and_add_year_range_node(
+            tree,
+            year_range,
+            self.__main_screen.on_us_year_range_pressed,
+            FilteredTitleLists.get_us_range_str_from_str,
+            self.__get_us_year_range_extra_text,
+            UsYearRangeTreeViewNode,
+            parent_node,
+        )
+
+    @staticmethod
+    def __get_us_year_range_extra_text(title_list: List[FantaComicBookInfo]) -> str:
+        first_issue = min(
+            title_list, key=lambda x: x.comic_book_info.issue_number
+        ).comic_book_info.issue_number
+        last_issue = max(
+            title_list, key=lambda x: x.comic_book_info.issue_number
+        ).comic_book_info.issue_number
+
+        return f"US {first_issue}-{last_issue}"
 
     def __add_series_story_nodes(
         self,

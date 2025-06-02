@@ -11,7 +11,7 @@ from barks_fantagraphics.fanta_comics_info import (
     FantaComicBookInfo,
     ALL_LISTS,
     SERIES_CS,
-    SERIES_DDA,
+    SERIES_DDA, SERIES_USA,
 )
 from file_paths import get_comic_inset_file
 from filtered_title_lists import FilteredTitleLists
@@ -32,6 +32,8 @@ class ViewStates(Enum):
     ON_CS_NODE = auto()
     ON_CS_YEAR_RANGE_NODE = auto()
     ON_DDA_NODE = auto()
+    ON_US_NODE = auto()
+    ON_US_YEAR_RANGE_NODE = auto()
     ON_CATEGORIES_NODE = auto()
     ON_CATEGORY_NODE = auto()
     ON_TITLE_NODE = auto()
@@ -67,6 +69,7 @@ class BackgroundViews:
 
         self.__current_year_range = ""
         self.__current_cs_year_range = ""
+        self.__current_us_year_range = ""
         self.__current_category = ""
 
         self.__view_state = ViewStates.INITIAL
@@ -125,6 +128,12 @@ class BackgroundViews:
     def set_current_cs_year_range(self, year_range: str) -> None:
         self.__current_cs_year_range = year_range
 
+    def get_current_us_year_range(self) -> str:
+        return self.__current_us_year_range
+
+    def set_current_us_year_range(self, year_range: str) -> None:
+        self.__current_us_year_range = year_range
+
     def set_view_state(self, view_state: ViewStates) -> None:
         self.__view_state = view_state
         self.__update_views()
@@ -170,6 +179,10 @@ class BackgroundViews:
                 self.__set_top_view_image_for_cs_year_range()
             case ViewStates.ON_DDA_NODE:
                 self.__set_top_view_image_for_dda()
+            case ViewStates.ON_US_NODE:
+                self.__set_top_view_image_for_us()
+            case ViewStates.ON_US_YEAR_RANGE_NODE:
+                self.__set_top_view_image_for_us_year_range()
             case ViewStates.ON_YEAR_RANGE_NODE:
                 self.__set_top_view_image_for_year_range()
             case ViewStates.ON_CATEGORY_NODE:
@@ -225,6 +238,11 @@ class BackgroundViews:
             self.title_lists[SERIES_DDA], use_edited=True
         )
 
+    def __set_top_view_image_for_us(self):
+        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+            self.title_lists[SERIES_USA], use_edited=True
+        )
+
     def __set_top_view_image_for_category(self):
         logging.debug(f"Current category: '{self.__current_category}'.")
         if not self.__current_category:
@@ -255,6 +273,18 @@ class BackgroundViews:
             logging.debug(f"CS Year range key: '{cs_range}'.")
             self.__top_view_image_file, self.__top_view_image_title = get_random_image(
                 self.title_lists[cs_range], use_edited=True
+            )
+
+    def __set_top_view_image_for_us_year_range(self):
+        logging.debug(f"US Year range: '{self.__current_us_year_range}'.")
+        if not self.__current_us_year_range:
+            self.__top_view_image_title = Titles.BACK_TO_THE_KLONDIKE
+            self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+        else:
+            us_range = FilteredTitleLists.get_us_range_str_from_str(self.__current_us_year_range)
+            logging.debug(f"US Year range key: '{us_range}'.")
+            self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+                self.title_lists[us_range], use_edited=True
             )
 
     def __set_top_view_image_for_search(self):
