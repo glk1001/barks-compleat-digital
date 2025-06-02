@@ -108,6 +108,6 @@ class FilteredTitleLists:
         for year_range in self.us_year_ranges:
             filters[self.get_us_range_str(year_range)] = create_us_range_lamba(year_range)
         for category in self.categories:
-            filters[category.name] = create_category_lamba(category)
+            filters[category.value] = create_category_lamba(category)
 
         return get_filtered_title_lists(filters)

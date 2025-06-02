@@ -22,6 +22,10 @@ from barks_fantagraphics.fanta_comics_info import (
     SERIES_CS,
     SERIES_DDA,
     SERIES_USA,
+    SERIES_DDS,
+    SERIES_USS,
+    SERIES_GG,
+    SERIES_MISC,
 )
 from filtered_title_lists import FilteredTitleLists
 from main_screen import MainScreen
@@ -29,6 +33,16 @@ from reader_formatter import (
     get_markup_text_with_num_titles,
     get_bold_markup_text,
     get_markup_text_with_extra,
+)
+from reader_types import (
+    INTRO_NODE_TEXT,
+    THE_STORIES_NODE_TEXT,
+    CHRONOLOGICAL_NODE_TEXT,
+    SERIES_NODE_TEXT,
+    CATEGORIES_NODE_TEXT,
+    SEARCH_NODE_TEXT,
+    APPENDIX_NODE_TEXT,
+    INDEX_NODE_TEXT,
 )
 from reader_ui_classes import (
     ReaderTreeView,
@@ -66,32 +80,38 @@ class ReaderTreeBuilder:
         tree.bind(minimum_height=tree.setter("height"))
 
     def __add_intro_node(self, tree: ReaderTreeView):
-        self.__create_and_add_simple_node(tree, "Introduction", self.__main_screen.on_intro_pressed)
+        self.__create_and_add_simple_node(
+            tree, INTRO_NODE_TEXT, self.__main_screen.on_intro_pressed
+        )
 
     def __add_the_stories_node(self, tree: ReaderTreeView):
         new_node = self.__create_and_add_simple_node(
-            tree, "The Stories", self.__main_screen.on_the_stories_pressed
+            tree, THE_STORIES_NODE_TEXT, self.__main_screen.on_the_stories_pressed
         )
         self.__add_story_nodes(tree, new_node)
 
     def __add_search_node(self, tree: ReaderTreeView):
         search_node = self.__create_and_add_simple_node(
-            tree, "Search", self.__main_screen.on_search_pressed
+            tree, SEARCH_NODE_TEXT, self.__main_screen.on_search_pressed
         )
 
         self.__create_and_add_title_search_box_node(tree, search_node)
         self.__create_and_add_tag_search_box_node(tree, search_node)
 
     def __add_appendix_node(self, tree: ReaderTreeView):
-        self.__create_and_add_simple_node(tree, "Appendix", self.__main_screen.on_appendix_pressed)
+        self.__create_and_add_simple_node(
+            tree, APPENDIX_NODE_TEXT, self.__main_screen.on_appendix_pressed
+        )
 
     def __add_index_node(self, tree: ReaderTreeView):
-        self.__create_and_add_simple_node(tree, "Index", self.__main_screen.on_index_pressed)
+        self.__create_and_add_simple_node(
+            tree, INDEX_NODE_TEXT, self.__main_screen.on_index_pressed
+        )
 
     def __add_story_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
         new_node = self.__create_and_add_simple_node(
             tree,
-            "Chronological",
+            CHRONOLOGICAL_NODE_TEXT,
             self.__main_screen.on_chrono_pressed,
             True,
             StoryGroupTreeViewNode,
@@ -101,7 +121,7 @@ class ReaderTreeBuilder:
 
         new_node = self.__create_and_add_simple_node(
             tree,
-            "Series",
+            SERIES_NODE_TEXT,
             self.__main_screen.on_series_pressed,
             True,
             StoryGroupTreeViewNode,
@@ -111,7 +131,7 @@ class ReaderTreeBuilder:
 
         new_node = self.__create_and_add_simple_node(
             tree,
-            "Categories",
+            CATEGORIES_NODE_TEXT,
             self.__main_screen.on_categories_pressed,
             True,
             StoryGroupTreeViewNode,
@@ -208,8 +228,12 @@ class ReaderTreeBuilder:
 
     def __add_series_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
         self.__add_series_node(tree, SERIES_CS, self.__main_screen.cs_pressed, parent_node)
-        self.__add_series_node(tree, SERIES_DDA, self.__main_screen.dda_pressed, parent_node)
+        self.__add_series_node(tree, SERIES_DDA, self.__main_screen.dd_pressed, parent_node)
         self.__add_series_node(tree, SERIES_USA, self.__main_screen.us_pressed, parent_node)
+        self.__add_series_node(tree, SERIES_DDS, self.__main_screen.dds_pressed, parent_node)
+        self.__add_series_node(tree, SERIES_USS, self.__main_screen.uss_pressed, parent_node)
+        self.__add_series_node(tree, SERIES_GG, self.__main_screen.gg_pressed, parent_node)
+        self.__add_series_node(tree, SERIES_MISC, self.__main_screen.misc_pressed, parent_node)
 
     def __add_series_node(
         self, tree: ReaderTreeView, series: str, on_pressed: Callable, parent_node: TreeViewNode

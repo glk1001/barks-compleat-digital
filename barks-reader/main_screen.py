@@ -21,6 +21,11 @@ from barks_fantagraphics.fanta_comics_info import (
     get_all_fanta_comic_book_info,
     SERIES_CS,
     SERIES_DDA,
+    SERIES_MISC,
+    SERIES_GG,
+    SERIES_USS,
+    SERIES_DDS,
+    SERIES_USA,
 )
 from barks_fantagraphics.title_search import BarksTitleSearch
 from file_paths import (
@@ -37,13 +42,26 @@ from filtered_title_lists import FilteredTitleLists
 from mcomix_reader import ComicReader
 from random_title_images import get_random_title_image, ALL_BUT_ORIGINAL_ART
 from reader_formatter import ReaderFormatter, get_clean_text_without_extra, LONG_TITLE_SPLITS
+from reader_types import (
+    THE_STORIES_NODE_TEXT,
+    CHRONOLOGICAL_NODE_TEXT,
+    SERIES_NODE_TEXT,
+    CATEGORIES_NODE_TEXT,
+    SEARCH_NODE_TEXT,
+    INTRO_NODE_TEXT,
+    APPENDIX_NODE_TEXT,
+    INDEX_NODE_TEXT,
+)
 from reader_ui_classes import (
     ReaderTreeView,
+    ButtonTreeViewNode,
+    MainTreeViewNode,
     YearRangeTreeViewNode,
     CsYearRangeTreeViewNode,
+    UsYearRangeTreeViewNode,
     StoryGroupTreeViewNode,
     TitleSearchBoxTreeViewNode,
-    TagSearchBoxTreeViewNode, UsYearRangeTreeViewNode,
+    TagSearchBoxTreeViewNode,
 )
 
 
@@ -219,20 +237,50 @@ class MainScreen(BoxLayout):
                 self.ids.reader_tree_view.toggle_node(parent_node)
             parent_node = parent_node.parent_node
 
-    def on_node_expanded(self, _tree: ReaderTreeView, node: TreeViewNode):
+    def on_node_expanded(self, _tree: ReaderTreeView, node: ButtonTreeViewNode):
+        logging.debug(f'Node expanded: "{node.text}"')
         if type(node) == YearRangeTreeViewNode:
             self.update_background_views(ViewStates.ON_YEAR_RANGE_NODE, year_range=node.text)
         elif type(node) == CsYearRangeTreeViewNode:
             self.update_background_views(ViewStates.ON_CS_YEAR_RANGE_NODE, cs_year_range=node.text)
         elif type(node) == UsYearRangeTreeViewNode:
             self.update_background_views(ViewStates.ON_US_YEAR_RANGE_NODE, us_year_range=node.text)
+        elif isinstance(node, MainTreeViewNode):
+            if node.text == INTRO_NODE_TEXT:
+                self.update_background_views(ViewStates.ON_INTRO_NODE)
+            elif node.text == THE_STORIES_NODE_TEXT:
+                self.update_background_views(ViewStates.ON_THE_STORIES_NODE)
+            elif node.text == SEARCH_NODE_TEXT:
+                self.update_background_views(ViewStates.ON_SEARCH_NODE)
+            elif node.text == APPENDIX_NODE_TEXT:
+                self.update_background_views(ViewStates.ON_APPENDIX_NODE)
+            elif node.text == INDEX_NODE_TEXT:
+                self.update_background_views(ViewStates.ON_INDEX_NODE)
         elif isinstance(node, StoryGroupTreeViewNode):
-            if node.text == SERIES_CS:
+            node_text = get_clean_text_without_extra(node.text)
+            logging.debug(f'Clean node text: "{node_text}"')
+            if node_text == CHRONOLOGICAL_NODE_TEXT:
+                self.update_background_views(ViewStates.ON_CHRONO_BY_YEAR_NODE)
+            elif node_text == SERIES_NODE_TEXT:
+                self.update_background_views(ViewStates.ON_SERIES_NODE)
+            elif node_text == CATEGORIES_NODE_TEXT:
+                self.update_background_views(ViewStates.ON_CATEGORIES_NODE)
+            elif node_text == SERIES_CS:
                 self.update_background_views(ViewStates.ON_CS_NODE)
-            elif node.text == SERIES_DDA:
-                self.update_background_views(ViewStates.ON_DDA_NODE)
-            elif node.text in BARKS_TAG_CATEGORIES_DICT:
-                self.update_background_views(ViewStates.ON_CATEGORY_NODE, category=node.text)
+            elif node_text == SERIES_DDA:
+                self.update_background_views(ViewStates.ON_DD_NODE)
+            elif node_text == SERIES_USA:
+                self.update_background_views(ViewStates.ON_US_NODE)
+            elif node_text == SERIES_DDS:
+                self.update_background_views(ViewStates.ON_DDS_NODE)
+            elif node_text == SERIES_USS:
+                self.update_background_views(ViewStates.ON_USS_NODE)
+            elif node_text == SERIES_GG:
+                self.update_background_views(ViewStates.ON_GG_NODE)
+            elif node_text == SERIES_MISC:
+                self.update_background_views(ViewStates.ON_MISC_NODE)
+            elif node_text in BARKS_TAG_CATEGORIES_DICT:
+                self.update_background_views(ViewStates.ON_CATEGORY_NODE, category=node_text)
 
     def on_intro_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_INTRO_NODE)
@@ -330,11 +378,23 @@ class MainScreen(BoxLayout):
     def cs_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_CS_NODE)
 
-    def dda_pressed(self, _button: Button):
-        self.update_background_views(ViewStates.ON_DDA_NODE)
+    def dd_pressed(self, _button: Button):
+        self.update_background_views(ViewStates.ON_DD_NODE)
 
     def us_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_US_NODE)
+
+    def dds_pressed(self, _button: Button):
+        self.update_background_views(ViewStates.ON_DDS_NODE)
+
+    def uss_pressed(self, _button: Button):
+        self.update_background_views(ViewStates.ON_USS_NODE)
+
+    def gg_pressed(self, _button: Button):
+        self.update_background_views(ViewStates.ON_GG_NODE)
+
+    def misc_pressed(self, _button: Button):
+        self.update_background_views(ViewStates.ON_MISC_NODE)
 
     def on_categories_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_CATEGORIES_NODE)

@@ -112,7 +112,7 @@ class TagGroups(Enum):
 BARKS_TAG_GROUPS_ALIASES = {str(t.value).lower(): t for t in TagGroups}
 
 
-BARKS_TAG_CATEGORIES_DICT = {cat.name: cat for cat in TagCategories}
+BARKS_TAG_CATEGORIES_DICT = {cat.value: cat for cat in TagCategories}
 
 BARKS_TAG_CATEGORIES = {
     TagCategories.THINGS: [

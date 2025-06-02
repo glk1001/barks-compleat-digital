@@ -26,13 +26,6 @@ class ReaderTreeView(TreeView):
     TREE_VIEW_INDENT_LEVEL = dp(30)
 
 
-class MainTreeViewNode(Button, TreeViewNode):
-    TEXT_COLOR = TREE_VIEW_NODE_TEXT_COLOR
-    SELECTED_COLOR = TREE_VIEW_NODE_SELECTED_COLOR
-    BACKGROUND_COLOR = TREE_VIEW_NODE_BACKGROUND_COLOR
-    NODE_SIZE = (dp(100), dp(30))
-
-
 class TitlePageImage(ButtonBehavior, Image):
     TITLE_IMAGE_X_FRAC_OF_PARENT = 0.98
     TITLE_IMAGE_Y_FRAC_OF_PARENT = 0.98 * 0.97
@@ -254,7 +247,18 @@ class TagSearchBoxTreeViewNode(FloatLayout, TreeViewNode):
             self.ids.tag_title_spinner.is_open = True
 
 
-class StoryGroupTreeViewNode(Button, TreeViewNode):
+class ButtonTreeViewNode(Button, TreeViewNode):
+    pass
+
+
+class MainTreeViewNode(ButtonTreeViewNode):
+    TEXT_COLOR = TREE_VIEW_NODE_TEXT_COLOR
+    SELECTED_COLOR = TREE_VIEW_NODE_SELECTED_COLOR
+    BACKGROUND_COLOR = TREE_VIEW_NODE_BACKGROUND_COLOR
+    NODE_SIZE = (dp(100), dp(30))
+
+
+class StoryGroupTreeViewNode(ButtonTreeViewNode):
     TEXT_COLOR = TREE_VIEW_NODE_TEXT_COLOR
     SELECTED_COLOR = TREE_VIEW_NODE_SELECTED_COLOR
     BACKGROUND_COLOR = TREE_VIEW_NODE_BACKGROUND_COLOR
@@ -262,7 +266,7 @@ class StoryGroupTreeViewNode(Button, TreeViewNode):
     NODE_HEIGHT = dp(30)
 
 
-class YearRangeTreeViewNode(Button, TreeViewNode):
+class YearRangeTreeViewNode(ButtonTreeViewNode):
     TEXT_COLOR = TREE_VIEW_NODE_TEXT_COLOR
     SELECTED_COLOR = TREE_VIEW_NODE_SELECTED_COLOR
     BACKGROUND_COLOR = TREE_VIEW_NODE_BACKGROUND_COLOR
@@ -302,7 +306,7 @@ class TitleTreeViewNode(BoxLayout, TreeViewNode):
     NUM_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
     TITLE_LABEL_COLOR = (1.0, 1.0, 0.0, 1.0)
     ISSUE_LABEL_COLOR = (1.0, 1.0, 1.0, 1.0)
-    ISSUE_LABEL_SUBMITTED_YEAR_COLOR = "#FCFABE" # "#FFFF00"
+    ISSUE_LABEL_SUBMITTED_YEAR_COLOR = "#FCFABE"  # "#FFFF00"
 
     def __init__(self, fanta_info: FantaComicBookInfo, **kwargs):
         super().__init__(**kwargs)

@@ -11,7 +11,12 @@ from barks_fantagraphics.fanta_comics_info import (
     FantaComicBookInfo,
     ALL_LISTS,
     SERIES_CS,
-    SERIES_DDA, SERIES_USA,
+    SERIES_DDA,
+    SERIES_USA,
+    SERIES_DDS,
+    SERIES_USS,
+    SERIES_GG,
+    SERIES_MISC,
 )
 from file_paths import get_comic_inset_file
 from filtered_title_lists import FilteredTitleLists
@@ -31,9 +36,13 @@ class ViewStates(Enum):
     ON_SERIES_NODE = auto()
     ON_CS_NODE = auto()
     ON_CS_YEAR_RANGE_NODE = auto()
-    ON_DDA_NODE = auto()
+    ON_DD_NODE = auto()
     ON_US_NODE = auto()
     ON_US_YEAR_RANGE_NODE = auto()
+    ON_DDS_NODE = auto()
+    ON_USS_NODE = auto()
+    ON_GG_NODE = auto()
+    ON_MISC_NODE = auto()
     ON_CATEGORIES_NODE = auto()
     ON_CATEGORY_NODE = auto()
     ON_TITLE_NODE = auto()
@@ -140,6 +149,7 @@ class BackgroundViews:
 
     def __update_views(self):
         if self.__view_state == ViewStates.ON_INTRO_NODE:
+            self.__set_top_view_image()
             self.__bottom_view_fun_image_opacity = 0.0
             self.__bottom_view_title_opacity = 0.0
             return
@@ -177,12 +187,20 @@ class BackgroundViews:
                 self.__set_top_view_image_for_cs()
             case ViewStates.ON_CS_YEAR_RANGE_NODE:
                 self.__set_top_view_image_for_cs_year_range()
-            case ViewStates.ON_DDA_NODE:
-                self.__set_top_view_image_for_dda()
+            case ViewStates.ON_DD_NODE:
+                self.__set_top_view_image_for_dd()
             case ViewStates.ON_US_NODE:
                 self.__set_top_view_image_for_us()
             case ViewStates.ON_US_YEAR_RANGE_NODE:
                 self.__set_top_view_image_for_us_year_range()
+            case ViewStates.ON_DDS_NODE:
+                self.__set_top_view_image_for_dds()
+            case ViewStates.ON_USS_NODE:
+                self.__set_top_view_image_for_uss()
+            case ViewStates.ON_GG_NODE:
+                self.__set_top_view_image_for_gg()
+            case ViewStates.ON_MISC_NODE:
+                self.__set_top_view_image_for_misc()
             case ViewStates.ON_YEAR_RANGE_NODE:
                 self.__set_top_view_image_for_year_range()
             case ViewStates.ON_CATEGORY_NODE:
@@ -233,7 +251,7 @@ class BackgroundViews:
             self.title_lists[SERIES_CS], use_edited=True
         )
 
-    def __set_top_view_image_for_dda(self):
+    def __set_top_view_image_for_dd(self):
         self.__top_view_image_file, self.__top_view_image_title = get_random_image(
             self.title_lists[SERIES_DDA], use_edited=True
         )
@@ -241,6 +259,26 @@ class BackgroundViews:
     def __set_top_view_image_for_us(self):
         self.__top_view_image_file, self.__top_view_image_title = get_random_image(
             self.title_lists[SERIES_USA], use_edited=True
+        )
+
+    def __set_top_view_image_for_dds(self):
+        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+            self.title_lists[SERIES_DDS], use_edited=True
+        )
+
+    def __set_top_view_image_for_uss(self):
+        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+            self.title_lists[SERIES_USS], use_edited=True
+        )
+
+    def __set_top_view_image_for_gg(self):
+        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+            self.title_lists[SERIES_GG], use_edited=True
+        )
+
+    def __set_top_view_image_for_misc(self):
+        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+            self.title_lists[SERIES_MISC], use_edited=True
         )
 
     def __set_top_view_image_for_category(self):
