@@ -13,6 +13,8 @@ from background_views import BackgroundViews, ViewStates
 from barks_fantagraphics.barks_payments import BARKS_PAYMENTS
 from barks_fantagraphics.barks_tags import (
     BARKS_TAG_CATEGORIES_DICT,
+    Tags,
+    is_tag_enum,
 )
 from barks_fantagraphics.barks_titles import ComicBookInfo, Titles, get_title_dict, BARKS_TITLES
 from barks_fantagraphics.comics_utils import get_dest_comic_zip_file_stem
@@ -122,7 +124,7 @@ class MainScreen(BoxLayout):
         self.top_view_image_title = None
         self.bottom_view_fun_image_title = None
 
-        self.background_views = BackgroundViews(self.title_lists)
+        self.background_views = BackgroundViews(self.all_fanta_titles, self.title_lists)
         self.update_background_views(ViewStates.INITIAL)
 
     def on_action_bar_collapse(self):
@@ -281,6 +283,9 @@ class MainScreen(BoxLayout):
                 self.update_background_views(ViewStates.ON_MISC_NODE)
             elif node_text in BARKS_TAG_CATEGORIES_DICT:
                 self.update_background_views(ViewStates.ON_CATEGORY_NODE, category=node_text)
+            elif is_tag_enum(node_text):
+                self.goto_node(node.nodes[0], True)
+                self.update_background_views(ViewStates.ON_TAG_NODE, tag=Tags(node_text))
 
     def on_intro_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_INTRO_NODE)
@@ -415,6 +420,7 @@ class MainScreen(BoxLayout):
             self.background_views.get_current_year_range(),
             self.background_views.get_current_cs_year_range(),
             self.background_views.get_current_us_year_range(),
+            self.background_views.get_current_tag(),
         )
 
     def update_background_views(
@@ -424,11 +430,13 @@ class MainScreen(BoxLayout):
         year_range: str = "",
         cs_year_range: str = "",
         us_year_range: str = "",
+        tag: Union[None, Tags] = None,
     ) -> None:
         self.background_views.set_current_category(category)
         self.background_views.set_current_year_range(get_clean_text_without_extra(year_range))
         self.background_views.set_current_cs_year_range(get_clean_text_without_extra(cs_year_range))
         self.background_views.set_current_us_year_range(get_clean_text_without_extra(us_year_range))
+        self.background_views.set_current_tag(tag)
 
         self.background_views.set_view_state(tree_node)
 

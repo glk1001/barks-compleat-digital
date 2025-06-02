@@ -2,13 +2,15 @@ import logging
 import os
 from enum import Enum, auto
 from random import randrange
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from kivy.clock import Clock
 
-from barks_fantagraphics.barks_titles import Titles
+from barks_fantagraphics.barks_tags import Tags, BARKS_TAGGED_TITLES
+from barks_fantagraphics.barks_titles import Titles, BARKS_TITLES
 from barks_fantagraphics.fanta_comics_info import (
     FantaComicBookInfo,
+    FantaComicBookInfoDict,
     ALL_LISTS,
     SERIES_CS,
     SERIES_DDA,
@@ -45,6 +47,7 @@ class ViewStates(Enum):
     ON_MISC_NODE = auto()
     ON_CATEGORIES_NODE = auto()
     ON_CATEGORY_NODE = auto()
+    ON_TAG_NODE = auto()
     ON_TITLE_NODE = auto()
     ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET = auto()
     ON_TITLE_SEARCH_BOX_NODE = auto()
@@ -56,7 +59,12 @@ class BackgroundViews:
     TOP_VIEW_EVENT_TIMEOUT_SECS = 1000.0
     BOTTOM_VIEW_EVENT_TIMEOUT_SECS = 1000.0
 
-    def __init__(self, title_lists: Dict[str, List[FantaComicBookInfo]]):
+    def __init__(
+        self,
+        all_fanta_titles: FantaComicBookInfoDict,
+        title_lists: Dict[str, List[FantaComicBookInfo]],
+    ):
+        self.all_fanta_titles = all_fanta_titles
         self.title_lists = title_lists
 
         self.__top_view_image_opacity = 1.0
@@ -80,8 +88,21 @@ class BackgroundViews:
         self.__current_cs_year_range = ""
         self.__current_us_year_range = ""
         self.__current_category = ""
+        self.__current_tag = None
 
         self.__view_state = ViewStates.INITIAL
+
+    def __get_fanta_info(self, title: Titles) -> Union[None, FantaComicBookInfo]:
+        # TODO: Very roundabout way to get fanta info
+        # TODO: And duplicated in main_screen
+        title_str = BARKS_TITLES[title]
+        if title_str not in self.all_fanta_titles:
+            return None
+        return self.all_fanta_titles[title_str]
+
+    def __get_fanta_title_list(self, titles: List[Titles]) -> List[FantaComicBookInfo]:
+        fanta_title_list = [self.__get_fanta_info(title) for title in titles]
+        return [title for title in fanta_title_list if title]
 
     def get_view_state(self) -> ViewStates:
         return self.__view_state
@@ -124,6 +145,12 @@ class BackgroundViews:
 
     def set_current_category(self, cat: str) -> None:
         self.__current_category = cat
+
+    def get_current_tag(self) -> Union[None, Tags]:
+        return self.__current_tag
+
+    def set_current_tag(self, tag: Union[None, Tags]) -> None:
+        self.__current_tag = tag
 
     def get_current_year_range(self) -> str:
         return self.__current_year_range
@@ -205,6 +232,8 @@ class BackgroundViews:
                 self.__set_top_view_image_for_year_range()
             case ViewStates.ON_CATEGORY_NODE:
                 self.__set_top_view_image_for_category()
+            case ViewStates.ON_TAG_NODE:
+                self.__set_top_view_image_for_tag()
             case ViewStates.ON_TITLE_NODE:
                 pass
             case (
@@ -289,6 +318,17 @@ class BackgroundViews:
         else:
             self.__top_view_image_file, self.__top_view_image_title = get_random_image(
                 self.title_lists[self.__current_category], use_edited=True
+            )
+
+    def __set_top_view_image_for_tag(self):
+        logging.debug(f"Current tag: '{self.__current_tag}'.")
+        if not self.__current_tag:
+            self.__top_view_image_title = Titles.GOOD_NEIGHBORS
+            self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+        else:
+            fanta_title_list = self.__get_fanta_title_list(BARKS_TAGGED_TITLES[self.__current_tag])
+            self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+                fanta_title_list, use_edited=True
             )
 
     def __set_top_view_image_for_year_range(self):

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, List, Union, Tuple, Set
+from typing import Dict, List, Tuple, Set, Union
 
 from .barks_titles import Titles
 
@@ -60,6 +60,7 @@ class Tags(Enum):
     HERBERT = "Herbert"
     MAGICA_DE_SPELL = "Magica de Spell"
     NEIGHBOR_JONES = "Neighbor Jones"
+    SCROOGE_NOT_IN_US = "Uncle Scrooge not in US"
 
 
 BARKS_TAG_EXTRA_ALIASES = {
@@ -88,6 +89,8 @@ BARKS_TAG_EXTRA_ALIASES = {
     "magica": Tags.MAGICA_DE_SPELL,
     "spell": Tags.MAGICA_DE_SPELL,
     "jones": Tags.NEIGHBOR_JONES,
+    "uncle": Tags.SCROOGE_NOT_IN_US,
+    "scrooge": Tags.SCROOGE_NOT_IN_US,
 }
 
 BARKS_TAG_ALIASES = {str(t.value).lower(): t for t in Tags} | BARKS_TAG_EXTRA_ALIASES
@@ -133,6 +136,7 @@ BARKS_TAG_CATEGORIES = {
         Tags.HERBERT,
         Tags.MAGICA_DE_SPELL,
         Tags.NEIGHBOR_JONES,
+        Tags.SCROOGE_NOT_IN_US,
     ],
     TagCategories.PLACES: [
         TagGroups.AFRICA,
@@ -586,12 +590,85 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
         Titles.FEUD_AND_FAR_BETWEEN,
         Titles.UNFRIENDLY_ENEMIES,
     ],
+    Tags.SCROOGE_NOT_IN_US: [
+        Titles.CHRISTMAS_ON_BEAR_MOUNTAIN,
+        Titles.OLD_CASTLES_SECRET_THE,
+        Titles.FOXY_RELATIONS,
+        Titles.SUNKEN_YACHT_THE,
+        Titles.RACE_TO_THE_SOUTH_SEAS,
+        Titles.VOODOO_HOODOO,
+        Titles.LETTER_TO_SANTA,
+        Titles.TRAIL_OF_THE_UNICORN,
+        Titles.PIXILATED_PARROT_THE,
+        Titles.MAGIC_HOURGLASS_THE,
+        Titles.YOU_CANT_GUESS,
+        Titles.NO_SUCH_VARMINT,
+        Titles.BILLIONS_TO_SNEEZE_AT,
+        Titles.FINANCIAL_FABLE_A,
+        Titles.TROUBLE_WITH_DIMES_THE,
+        Titles.CHRISTMAS_FOR_SHACKTOWN_A,
+        Titles.TERROR_OF_THE_BEAGLE_BOYS,
+        Titles.BIG_BIN_ON_KILLMOTOR_HILL_THE,
+        Titles.STATUESQUE_SPENDTHRIFTS,
+        Titles.GLADSTONES_TERRIBLE_SECRET,
+        Titles.SPENDING_MONEY,
+        Titles.HYPNO_GUN_THE,
+        Titles.TURKEY_WITH_ALL_THE_SCHEMINGS,
+        Titles.SOME_HEIR_OVER_THE_RAINBOW,
+        Titles.MONEY_STAIRS_THE,
+        Titles.WISPY_WILLIE,
+        Titles.TURKEY_TROT_AT_ONE_WHISTLE,
+        Titles.FLOUR_FOLLIES,
+        Titles.TOO_SAFE_SAFE,
+        Titles.SEARCH_FOR_THE_CUSPIDORIA,
+        Titles.SECRET_OF_HONDORICA,
+        Titles.TROUBLE_INDEMNITY,
+        Titles.SEARCHING_FOR_A_SUCCESSOR,
+        Titles.SMOKE_WRITER_IN_THE_SKY,
+        Titles.RUNAWAY_TRAIN_THE,
+        Titles.IN_KAKIMAW_COUNTRY,
+        Titles.LOST_PEG_LEG_MINE_THE,
+        Titles.SAGMORE_SPRINGS_HOTEL,
+        Titles.TENDERFOOT_TRAP_THE,
+        Titles.BLACK_PEARLS_OF_TABU_YAMA_THE,
+        Titles.SEPTEMBER_SCRIMMAGE,
+        Titles.TITANIC_ANTS_THE,
+        Titles.MOCKING_BIRD_RIDGE,
+        Titles.FORBIDIUM_MONEY_BIN_THE,
+        Titles.TRACKING_SANDY,
+        Titles.FLOATING_ISLAND_THE,
+        Titles.BLACK_WEDNESDAY,
+        Titles.FUN_WHATS_THAT,
+        Titles.STUBBORN_STORK_THE,
+        Titles.CAVE_OF_THE_WINDS,
+        Titles.VILLAGE_BLACKSMITH_THE,
+        Titles.ROCKS_TO_RICHES,
+        Titles.MADCAP_MARINER_THE,
+        Titles.MR_PRIVATE_EYE,
+        Titles.BOAT_BUSTER,
+        Titles.TEN_CENT_VALENTINE,
+        Titles.RAVEN_MAD,
+        Titles.MATTER_OF_FACTORY_A,
+        Titles.CHRISTMAS_CHEERS,
+        Titles.ZERO_HERO,
+        Titles.DUCKBURG_PET_PARADE_THE,
+        Titles.DOUBLE_MASQUERADE,
+        Titles.DELIVERY_DILEMMA,
+    ],
 }
 
 BARKS_TAGGED_PAGES: Dict[Tuple[Tags, Titles], List[str]] = {
     (Tags.NEIGHBOR_JONES, Titles.GOOD_DEEDS): ["1"],
     (Tags.CARVER_BEAKOFF, Titles.FIREBUG_THE): ["13"],
 }
+
+
+def is_tag_enum(value: str) -> bool:
+    try:
+        Tags(value)
+        return True
+    except ValueError:
+        return False
 
 
 # TODO: Assert tagged pages are in tagged titles
