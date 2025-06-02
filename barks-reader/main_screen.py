@@ -36,10 +36,11 @@ from file_paths import (
 from filtered_title_lists import FilteredTitleLists
 from mcomix_reader import ComicReader
 from random_title_images import get_random_title_image, ALL_BUT_ORIGINAL_ART
-from reader_formatter import ReaderFormatter, get_clean_text_without_num_titles, LONG_TITLE_SPLITS
+from reader_formatter import ReaderFormatter, get_clean_text_without_extra, LONG_TITLE_SPLITS
 from reader_ui_classes import (
     ReaderTreeView,
     YearRangeTreeViewNode,
+    CsYearRangeTreeViewNode,
     StoryGroupTreeViewNode,
     TitleSearchBoxTreeViewNode,
     TagSearchBoxTreeViewNode,
@@ -146,7 +147,7 @@ class MainScreen(BoxLayout):
             current_node = nodes_to_visit.pop()
             if not hasattr(current_node, "text"):
                 continue
-            current_node_text = get_clean_text_without_num_titles(current_node.text)
+            current_node_text = get_clean_text_without_extra(current_node.text)
             if current_node_text == node_text:
                 return current_node
             nodes_to_visit.extend(current_node.nodes)
@@ -221,6 +222,8 @@ class MainScreen(BoxLayout):
     def on_node_expanded(self, _tree: ReaderTreeView, node: TreeViewNode):
         if isinstance(node, YearRangeTreeViewNode):
             self.update_background_views(ViewStates.ON_YEAR_RANGE_NODE, year_range=node.text)
+        elif isinstance(node, CsYearRangeTreeViewNode):
+            self.update_background_views(ViewStates.ON_CS_YEAR_RANGE_NODE, cs_year_range=node.text)
         elif isinstance(node, StoryGroupTreeViewNode):
             if node.text == SERIES_CS:
                 self.update_background_views(ViewStates.ON_CS_NODE)
@@ -313,6 +316,9 @@ class MainScreen(BoxLayout):
     def on_year_range_pressed(self, button: Button):
         self.update_background_views(ViewStates.ON_YEAR_RANGE_NODE, year_range=button.text)
 
+    def on_cs_year_range_pressed(self, button: Button):
+        self.update_background_views(ViewStates.ON_CS_YEAR_RANGE_NODE, cs_year_range=button.text)
+
     def on_series_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_SERIES_NODE)
 
@@ -339,13 +345,19 @@ class MainScreen(BoxLayout):
             self.background_views.get_view_state(),
             self.background_views.get_current_category(),
             self.background_views.get_current_year_range(),
+            self.background_views.get_current_cs_year_range(),
         )
 
     def update_background_views(
-        self, tree_node: ViewStates, category: str = "", year_range: str = ""
+        self,
+        tree_node: ViewStates,
+        category: str = "",
+        year_range: str = "",
+        cs_year_range: str = "",
     ) -> None:
         self.background_views.set_current_category(category)
-        self.background_views.set_current_year_range(get_clean_text_without_num_titles(year_range))
+        self.background_views.set_current_year_range(get_clean_text_without_extra(year_range))
+        self.background_views.set_current_cs_year_range(get_clean_text_without_extra(cs_year_range))
 
         self.background_views.set_view_state(tree_node)
 

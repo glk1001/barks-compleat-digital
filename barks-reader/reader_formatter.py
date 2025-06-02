@@ -21,10 +21,14 @@ def get_bold_markup_text(text: str) -> str:
 
 
 def get_markup_text_with_num_titles(text: str, num_titles: int) -> str:
-    return f"[b]{text}[/b] [i]({num_titles})[/i]"
+    return get_markup_text_with_extra(text, str(num_titles))
 
 
-def get_clean_text_without_num_titles(markup_text: str) -> str:
+def get_markup_text_with_extra(text: str, extra: str) -> str:
+    return f"[b]{text}[/b] [i]({extra})[/i]"
+
+
+def get_clean_text_without_extra(markup_text: str) -> str:
     match = re.search(r"\[b](.*)\[/b]", markup_text)
     if match:
         return match.group(1)

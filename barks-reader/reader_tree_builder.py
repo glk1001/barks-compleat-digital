@@ -18,8 +18,13 @@ from barks_fantagraphics.comics_utils import (
     get_short_submitted_day_and_month,
 )
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo, SERIES_CS, SERIES_DDA
+from filtered_title_lists import FilteredTitleLists
 from main_screen import MainScreen
-from reader_formatter import get_markup_text_with_num_titles, get_bold_markup_text
+from reader_formatter import (
+    get_markup_text_with_num_titles,
+    get_bold_markup_text,
+    get_markup_text_with_extra,
+)
 from reader_ui_classes import (
     ReaderTreeView,
     MainTreeViewNode,
@@ -27,6 +32,7 @@ from reader_ui_classes import (
     TagSearchBoxTreeViewNode,
     StoryGroupTreeViewNode,
     YearRangeTreeViewNode,
+    CsYearRangeTreeViewNode,
     TitleTreeViewNode,
 )
 
@@ -108,7 +114,7 @@ class ReaderTreeBuilder:
         self.__add_categories_nodes(tree, new_node)
 
     def __add_year_range_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
-        for year_range in self.__main_screen.filtered_title_lists.year_ranges:
+        for year_range in self.__main_screen.filtered_title_lists.chrono_year_ranges:
             new_node, year_range_titles = self.__add_year_range_node(tree, year_range, parent_node)
             self.__add_year_range_story_nodes(tree, year_range_titles, new_node)
 
@@ -116,18 +122,20 @@ class ReaderTreeBuilder:
 
     def __add_year_range_node(
         self, tree: ReaderTreeView, year_range: Tuple[int, int], parent_node: TreeViewNode
-    ):
-        year_range_str = f"{year_range[0]} - {year_range[1]}"
+    ) -> Tuple[TreeViewNode, List[FantaComicBookInfo]]:
+        return self.__create_and_add_year_range_node(
+            tree,
+            year_range,
+            self.__main_screen.on_year_range_pressed,
+            lambda x: x,
+            self.__get_year_range_extra_text,
+            YearRangeTreeViewNode,
+            parent_node,
+        )
 
-        year_range_titles = self.__main_screen.title_lists[year_range_str]
-        year_range_text = get_markup_text_with_num_titles(year_range_str, len(year_range_titles))
-
-        new_node = YearRangeTreeViewNode(text=year_range_text)
-        new_node.bind(on_press=self.__main_screen.on_year_range_pressed)
-
-        new_node = tree.add_node(new_node, parent=parent_node)
-
-        return new_node, year_range_titles
+    @staticmethod
+    def __get_year_range_extra_text(title_list: List[FantaComicBookInfo]) -> str:
+        return str(len(title_list))
 
     def __add_year_range_story_nodes(
         self, tree: ReaderTreeView, title_list: List[FantaComicBookInfo], parent_node: TreeViewNode
@@ -199,14 +207,58 @@ class ReaderTreeBuilder:
     def __add_series_node(
         self, tree: ReaderTreeView, series: str, on_pressed: Callable, parent_node: TreeViewNode
     ) -> None:
-        title_list = self.__main_screen.title_lists[series]
-        series_text = get_markup_text_with_num_titles(series, len(title_list))
+        if series == SERIES_CS:
+            self.__add_cs_node(tree, on_pressed, parent_node)
+        else:
+            title_list = self.__main_screen.title_lists[series]
+            series_text = get_markup_text_with_num_titles(series, len(title_list))
 
-        new_node = StoryGroupTreeViewNode(text=series_text)
-        new_node.bind(on_press=on_pressed)
-        self.__add_series_story_nodes(tree, title_list, new_node)
+            new_node = StoryGroupTreeViewNode(text=series_text)
+            new_node.bind(on_press=on_pressed)
+            self.__add_series_story_nodes(tree, title_list, new_node)
 
-        tree.add_node(new_node, parent=parent_node)
+            tree.add_node(new_node, parent=parent_node)
+
+    def __add_cs_node(
+        self, tree: ReaderTreeView, on_pressed: Callable, parent_node: TreeViewNode
+    ) -> None:
+        title_list = self.__main_screen.title_lists[SERIES_CS]
+
+        series_text = get_markup_text_with_num_titles(SERIES_CS, len(title_list))
+        series_node = StoryGroupTreeViewNode(text=series_text)
+        series_node.bind(on_press=on_pressed)
+
+        for year_range in self.__main_screen.filtered_title_lists.cs_year_ranges:
+            new_node, year_range_titles = self.__add_cs_year_range_node(
+                tree, year_range, series_node
+            )
+            self.__add_year_range_story_nodes(tree, year_range_titles, new_node)
+
+        tree.add_node(series_node, parent=parent_node)
+
+    def __add_cs_year_range_node(
+        self, tree: ReaderTreeView, year_range: Tuple[int, int], parent_node: TreeViewNode
+    ) -> Tuple[TreeViewNode, List[FantaComicBookInfo]]:
+        return self.__create_and_add_year_range_node(
+            tree,
+            year_range,
+            self.__main_screen.on_cs_year_range_pressed,
+            FilteredTitleLists.get_cs_range_str_from_str,
+            self.__get_cs_year_range_extra_text,
+            CsYearRangeTreeViewNode,
+            parent_node,
+        )
+
+    @staticmethod
+    def __get_cs_year_range_extra_text(title_list: List[FantaComicBookInfo]) -> str:
+        first_issue = min(
+            title_list, key=lambda x: x.comic_book_info.issue_number
+        ).comic_book_info.issue_number
+        last_issue = max(
+            title_list, key=lambda x: x.comic_book_info.issue_number
+        ).comic_book_info.issue_number
+
+        return f"WDCS {first_issue}-{last_issue}"
 
     def __add_series_story_nodes(
         self,
@@ -304,3 +356,27 @@ class ReaderTreeBuilder:
         )
 
         return tree.add_node(new_node, parent=parent_node)
+
+    def __create_and_add_year_range_node(
+        self,
+        tree: ReaderTreeView,
+        year_range: Tuple[int, int],
+        on_press_handler: Callable,
+        get_title_key_func: Callable[[str], str],
+        get_year_range_extra_text_func: Callable[[List[FantaComicBookInfo]], str],
+        node_class: type,
+        parent_node: TreeViewNode,
+    ) -> Tuple[TreeViewNode, List[FantaComicBookInfo]]:
+        year_range_str = FilteredTitleLists.get_range_str(year_range)
+        year_range_key = get_title_key_func(year_range_str)
+        year_range_titles = self.__main_screen.title_lists[year_range_key]
+
+        year_range_extra_text = get_year_range_extra_text_func(year_range_titles)
+        year_range_text = get_markup_text_with_extra(year_range_str, year_range_extra_text)
+
+        new_node = node_class(text=year_range_text)
+        new_node.bind(on_press=on_press_handler)
+
+        new_node = tree.add_node(new_node, parent=parent_node)
+
+        return new_node, year_range_titles

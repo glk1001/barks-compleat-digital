@@ -270,6 +270,14 @@ class YearRangeTreeViewNode(Button, TreeViewNode):
     NODE_HEIGHT = dp(30)
 
 
+class CsYearRangeTreeViewNode(YearRangeTreeViewNode):
+    TEXT_COLOR = TREE_VIEW_NODE_TEXT_COLOR
+    SELECTED_COLOR = TREE_VIEW_NODE_SELECTED_COLOR
+    BACKGROUND_COLOR = TREE_VIEW_NODE_BACKGROUND_COLOR
+    NODE_WIDTH = dp(250)
+    NODE_HEIGHT = dp(30)
+
+
 class TitleTreeViewNode(BoxLayout, TreeViewNode):
     TEXT_COLOR = TREE_VIEW_NODE_TEXT_COLOR
     SELECTED_COLOR = TREE_VIEW_NODE_SELECTED_COLOR

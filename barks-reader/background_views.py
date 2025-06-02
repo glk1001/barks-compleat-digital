@@ -14,6 +14,7 @@ from barks_fantagraphics.fanta_comics_info import (
     SERIES_DDA,
 )
 from file_paths import get_comic_inset_file
+from filtered_title_lists import FilteredTitleLists
 from random_title_images import get_random_image, get_random_color
 from reader_types import Color, get_formatted_color
 
@@ -29,6 +30,7 @@ class ViewStates(Enum):
     ON_YEAR_RANGE_NODE = auto()
     ON_SERIES_NODE = auto()
     ON_CS_NODE = auto()
+    ON_CS_YEAR_RANGE_NODE = auto()
     ON_DDA_NODE = auto()
     ON_CATEGORIES_NODE = auto()
     ON_CATEGORY_NODE = auto()
@@ -64,6 +66,7 @@ class BackgroundViews:
         self.__bottom_view_title_image_color: Color = (0, 0, 0, 0)
 
         self.__current_year_range = ""
+        self.__current_cs_year_range = ""
         self.__current_category = ""
 
         self.__view_state = ViewStates.INITIAL
@@ -116,6 +119,12 @@ class BackgroundViews:
     def set_current_year_range(self, year_range: str) -> None:
         self.__current_year_range = year_range
 
+    def get_current_cs_year_range(self) -> str:
+        return self.__current_cs_year_range
+
+    def set_current_cs_year_range(self, year_range: str) -> None:
+        self.__current_cs_year_range = year_range
+
     def set_view_state(self, view_state: ViewStates) -> None:
         self.__view_state = view_state
         self.__update_views()
@@ -157,6 +166,8 @@ class BackgroundViews:
                 self.__set_top_view_image_for_stories()
             case ViewStates.ON_CS_NODE:
                 self.__set_top_view_image_for_cs()
+            case ViewStates.ON_CS_YEAR_RANGE_NODE:
+                self.__set_top_view_image_for_cs_year_range()
             case ViewStates.ON_DDA_NODE:
                 self.__set_top_view_image_for_dda()
             case ViewStates.ON_YEAR_RANGE_NODE:
@@ -215,7 +226,7 @@ class BackgroundViews:
         )
 
     def __set_top_view_image_for_category(self):
-        logging.debug(f"Current category: '{self.__current_category}'")
+        logging.debug(f"Current category: '{self.__current_category}'.")
         if not self.__current_category:
             self.__top_view_image_title = Titles.GOOD_NEIGHBORS
             self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
@@ -225,13 +236,25 @@ class BackgroundViews:
             )
 
     def __set_top_view_image_for_year_range(self):
-        logging.debug(f"Year range: '{self.__current_year_range}'")
+        logging.debug(f"Year range: '{self.__current_year_range}'.")
         if not self.__current_year_range:
             self.__top_view_image_title = Titles.GOOD_NEIGHBORS
             self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
         else:
             self.__top_view_image_file, self.__top_view_image_title = get_random_image(
                 self.title_lists[self.__current_year_range], use_edited=True
+            )
+
+    def __set_top_view_image_for_cs_year_range(self):
+        logging.debug(f"CS Year range: '{self.__current_cs_year_range}'.")
+        if not self.__current_cs_year_range:
+            self.__top_view_image_title = Titles.GOOD_NEIGHBORS
+            self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+        else:
+            cs_range = FilteredTitleLists.get_cs_range_str_from_str(self.__current_cs_year_range)
+            logging.debug(f"CS Year range key: '{cs_range}'.")
+            self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+                self.title_lists[cs_range], use_edited=True
             )
 
     def __set_top_view_image_for_search(self):
