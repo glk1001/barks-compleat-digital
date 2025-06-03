@@ -22,7 +22,7 @@ from barks_fantagraphics.fanta_comics_info import (
 )
 from file_paths import get_comic_inset_file
 from filtered_title_lists import FilteredTitleLists
-from random_title_images import get_random_image, get_random_color
+from random_title_images import get_random_image, get_random_color, get_random_search_image
 from reader_types import Color, get_formatted_color
 
 
@@ -366,8 +366,7 @@ class BackgroundViews:
             )
 
     def __set_top_view_image_for_search(self):
-        self.__top_view_image_title = Titles.TRACKING_SANDY
-        self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+        self.__top_view_image_file, self.__top_view_image_title = get_random_search_image()
 
     def __set_top_view_image_for_appendix(self):
         self.__top_view_image_title = Titles.FABULOUS_PHILOSOPHERS_STONE_THE

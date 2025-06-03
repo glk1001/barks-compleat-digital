@@ -27,6 +27,7 @@ BARKS_READER_SPLASH_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Splash")
 BARKS_READER_CENSORSHIP_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Censorship")
 BARKS_READER_FAVOURITE_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Favourites")
 BARKS_READER_ORIGINAL_ART_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Original Art")
+BARKS_READER_SEARCH_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Search")
 BARKS_READER_APP_ICON_PATH = os.path.join(BARKS_READER_FILES_DIR, "Barks Reader Icon 2.png")
 BARKS_READER_UP_ARROW_PATH = os.path.join(BARKS_READER_FILES_DIR, "up-arrow.png")
 
@@ -51,6 +52,7 @@ def check_dirs_and_files() -> None:
         BARKS_READER_CENSORSHIP_FILES_DIR,
         BARKS_READER_FAVOURITE_FILES_DIR,
         BARKS_READER_ORIGINAL_ART_FILES_DIR,
+        BARKS_READER_SEARCH_FILES_DIR,
     ]
     files_to_check = [
         MCOMIX_PYTHON_PATH,
@@ -126,6 +128,10 @@ def get_comic_original_art_files_dir() -> str:
     return BARKS_READER_ORIGINAL_ART_FILES_DIR
 
 
+def get_comic_search_files_dir() -> str:
+    return BARKS_READER_SEARCH_FILES_DIR
+
+
 def get_barks_reader_app_icon_file() -> str:
     return BARKS_READER_APP_ICON_PATH
 
@@ -182,6 +188,10 @@ def get_comic_favourite_files(title: str, use_edited: bool = False) -> List[str]
 
 def get_comic_original_art_files(title: str, use_edited: bool = False) -> List[str]:
     return get_files(get_comic_original_art_files_dir(), title, use_edited)
+
+
+def get_comic_search_files(title: str, use_edited: bool = False) -> List[str]:
+    return get_files(get_comic_search_files_dir(), title, use_edited)
 
 
 def get_files(parent_image_dir: str, title: str, use_edited: bool) -> List[str]:

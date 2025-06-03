@@ -2,7 +2,7 @@ from enum import Enum, auto
 from random import randrange
 from typing import List, Tuple, Callable, Union, Set
 
-from barks_fantagraphics.barks_titles import Titles
+from barks_fantagraphics.barks_titles import Titles, BARKS_TITLES
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
 from file_paths import (
     EMERGENCY_INSET_FILE,
@@ -13,6 +13,7 @@ from file_paths import (
     get_comic_censorship_files,
     get_comic_favourite_files,
     get_comic_original_art_files,
+    get_comic_search_files,
 )
 from reader_types import Color
 
@@ -35,8 +36,21 @@ class FileTypes(Enum):
     ORIGINAL_ART = auto()
 
 
+SEARCH_TITLES = [
+    Titles.BACK_TO_LONG_AGO,
+    Titles.TRACKING_SANDY,
+    Titles.SEARCH_FOR_THE_CUSPIDORIA,
+]
+
 ALL_TYPES = {t for t in FileTypes}
 ALL_BUT_ORIGINAL_ART = {t for t in FileTypes if t != FileTypes.ORIGINAL_ART}
+
+
+def get_random_search_image() -> Tuple[str, Titles]:
+    title_index = randrange(0, len(SEARCH_TITLES))
+    title = SEARCH_TITLES[title_index]
+
+    return __get_random_comic_file(BARKS_TITLES[title], get_comic_search_files, False), title
 
 
 def get_random_image(
