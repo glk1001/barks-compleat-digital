@@ -12,6 +12,10 @@ from .comic_issues import (
 
 NUM_TITLES = 616
 
+US_1_FC_ISSUE_NUM = 386
+US_2_FC_ISSUE_NUM = 456
+US_3_FC_ISSUE_NUM = 495
+
 ADVENTURE_DOWN_UNDER = "Adventure Down Under"
 ALL_AT_SEA = "All at Sea"
 ALL_CHOKED_UP = "All Choked Up"
@@ -2102,10 +2106,10 @@ BARKS_TITLE_INFO: List[ComicBookInfo] = [
     ComicBookInfo(Titles.STATUESQUE_SPENDTHRIFTS, False, Issues.CS, 138, 3, 1952, 12, 7, 1951),
     ComicBookInfo(Titles.ROCKET_WING_SAVES_THE_DAY, False, Issues.CS, 139, 4, 1952, 26, 7, 1951),
     ComicBookInfo(Titles.GLADSTONES_TERRIBLE_SECRET, False, Issues.CS, 140, 5, 1952, 23, 8, 1951),
-    ComicBookInfo(Titles.ONLY_A_POOR_OLD_MAN, True, Issues.FC, 386, 3, 1952, 27, 9, 1951),
-    ComicBookInfo(Titles.OSOGOOD_SILVER_POLISH, False, Issues.FC, 386, 3, 1952, 27, 9, 1951),
-    ComicBookInfo(Titles.COFFEE_FOR_TWO, False, Issues.FC, 386, 3, 1952, 27, 9, 1951),
-    ComicBookInfo(Titles.SOUPLINE_EIGHT, False, Issues.FC, 386, 3, 1952, 27, 9, 1951),
+    ComicBookInfo(Titles.ONLY_A_POOR_OLD_MAN, True, Issues.FC, US_1_FC_ISSUE_NUM, 3, 1952, 27, 9, 1951),
+    ComicBookInfo(Titles.OSOGOOD_SILVER_POLISH, False, Issues.FC, US_1_FC_ISSUE_NUM, 3, 1952, 27, 9, 1951),
+    ComicBookInfo(Titles.COFFEE_FOR_TWO, False, Issues.FC, US_1_FC_ISSUE_NUM, 3, 1952, 27, 9, 1951),
+    ComicBookInfo(Titles.SOUPLINE_EIGHT, False, Issues.FC, US_1_FC_ISSUE_NUM, 3, 1952, 27, 9, 1951),
     ComicBookInfo(Titles.THINK_BOX_BOLLIX_THE, False, Issues.CS, 141, 6, 1952, 18, 10, 1951),
     ComicBookInfo(Titles.GOLDEN_HELMET_THE, True, Issues.FC, 408, 7, 1952, 3, 12, 1951),
     ComicBookInfo(Titles.FULL_SERVICE_WINDOWS, False, Issues.FC, 408, 7, 1952, 3, 1, 1952),
@@ -2128,11 +2132,11 @@ BARKS_TITLE_INFO: List[ComicBookInfo] = [
     ComicBookInfo(Titles.TURKEY_WITH_ALL_THE_SCHEMINGS, False, Issues.CS, 148, 1, 1953, 12, 6, 1952),
     ComicBookInfo(Titles.FLIP_DECISION, False, Issues.CS, 149, 2, 1953, 30, 6, 1952),
     ComicBookInfo(Titles.MY_LUCKY_VALENTINE, False, Issues.CS, 150, 3, 1953, 30, 6, 1952),
-    ComicBookInfo(Titles.FARE_DELAY, False, Issues.FC, 456, 3, 1953, 28, 8, 1952),
-    ComicBookInfo(Titles.SOMETHIN_FISHY_HERE, True, Issues.FC, 456, 3, 1953, -1, 9, 1952),
-    ComicBookInfo(Titles.BACK_TO_THE_KLONDIKE, True, Issues.FC, 456, 3, 1953, 18, 9, 1952),
-    ComicBookInfo(Titles.MONEY_LADDER_THE, False, Issues.FC, 456, 3, 1953, 16, 10, 1952),
-    ComicBookInfo(Titles.CHECKER_GAME_THE, False, Issues.FC, 456, 3, 1953, 16, 10, 1952),
+    ComicBookInfo(Titles.FARE_DELAY, False, Issues.FC, US_2_FC_ISSUE_NUM, 3, 1953, 28, 8, 1952),
+    ComicBookInfo(Titles.SOMETHIN_FISHY_HERE, True, Issues.FC, US_2_FC_ISSUE_NUM, 3, 1953, -1, 9, 1952),
+    ComicBookInfo(Titles.BACK_TO_THE_KLONDIKE, True, Issues.FC, US_2_FC_ISSUE_NUM, 3, 1953, 18, 9, 1952),
+    ComicBookInfo(Titles.MONEY_LADDER_THE, False, Issues.FC, US_2_FC_ISSUE_NUM, 3, 1953, 16, 10, 1952),
+    ComicBookInfo(Titles.CHECKER_GAME_THE, False, Issues.FC, US_2_FC_ISSUE_NUM, 3, 1953, 16, 10, 1952),
     ComicBookInfo(Titles.EASTER_ELECTION_THE, False, Issues.CS, 151, 4, 1953, 23, 10, 1952),
     ComicBookInfo(Titles.TALKING_DOG_THE, False, Issues.CS, 152, 5, 1953, 30, 10, 1952),
     ComicBookInfo(Titles.WORM_WEARY, False, Issues.CS, 153, 6, 1953, 27, 11, 1952),
@@ -2143,11 +2147,11 @@ BARKS_TITLE_INFO: List[ComicBookInfo] = [
     ComicBookInfo(Titles.MILLION_DOLLAR_PIGEON, False, Issues.US, 7, 9, 1954, 25, 2, 1953),
     ComicBookInfo(Titles.TEMPER_TAMPERING, False, Issues.US, 7, 9, 1954, 25, 2, 1953),
     ComicBookInfo(Titles.DINER_DILEMMA, False, Issues.US, 7, 9, 1954, 25, 2, 1953),
-    ComicBookInfo(Titles.HORSERADISH_STORY_THE, False, Issues.FC, 495, 9, 1953, 26, 2, 1953),
-    ComicBookInfo(Titles.ROUND_MONEY_BIN_THE, False, Issues.FC, 495, 9, 1953, 26, 2, 1953),
-    ComicBookInfo(Titles.BARBER_COLLEGE, False, Issues.FC, 495, 9, 1953, 26, 2, 1953),
-    ComicBookInfo(Titles.FOLLOW_THE_RAINBOW, False, Issues.FC, 495, 9, 1953, 26, 2, 1953),
-    ComicBookInfo(Titles.ITCHING_TO_SHARE, False, Issues.FC, 495, 9, 1953, 26, 2, 1953),
+    ComicBookInfo(Titles.HORSERADISH_STORY_THE, False, Issues.FC, US_3_FC_ISSUE_NUM, 9, 1953, 26, 2, 1953),
+    ComicBookInfo(Titles.ROUND_MONEY_BIN_THE, False, Issues.FC, US_3_FC_ISSUE_NUM, 9, 1953, 26, 2, 1953),
+    ComicBookInfo(Titles.BARBER_COLLEGE, False, Issues.FC, US_3_FC_ISSUE_NUM, 9, 1953, 26, 2, 1953),
+    ComicBookInfo(Titles.FOLLOW_THE_RAINBOW, False, Issues.FC, US_3_FC_ISSUE_NUM, 9, 1953, 26, 2, 1953),
+    ComicBookInfo(Titles.ITCHING_TO_SHARE, False, Issues.FC, US_3_FC_ISSUE_NUM, 9, 1953, 26, 2, 1953),
     ComicBookInfo(Titles.WISPY_WILLIE, False, Issues.CS, 159, 12, 1953, 6, 4, 1953),
     ComicBookInfo(Titles.HAMMY_CAMEL_THE, False, Issues.CS, 160, 1, 1954, 23, 4, 1953),
     ComicBookInfo(Titles.BALLET_EVASIONS, False, Issues.US, 4, 12, 1953, 21, 5, 1953),

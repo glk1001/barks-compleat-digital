@@ -6,13 +6,20 @@ from kivy.utils import escape_markup
 
 from barks_fantagraphics.barks_tags import (
     TagCategories,
-    BARKS_TAG_CATEGORIES,
     Tags,
     TagGroups,
-    BARKS_TAG_GROUPS_TITLES,
     get_tagged_titles,
+    BARKS_TAG_CATEGORIES,
+    BARKS_TAG_GROUPS_TITLES,
 )
-from barks_fantagraphics.barks_titles import BARKS_TITLES, Titles, ComicBookInfo
+from barks_fantagraphics.barks_titles import (
+    Titles,
+    ComicBookInfo,
+    BARKS_TITLES,
+    US_1_FC_ISSUE_NUM,
+    US_2_FC_ISSUE_NUM,
+    US_3_FC_ISSUE_NUM,
+)
 from barks_fantagraphics.comics_utils import (
     get_short_formatted_first_published_str,
     get_short_submitted_day_and_month,
@@ -30,8 +37,8 @@ from barks_fantagraphics.fanta_comics_info import (
 from filtered_title_lists import FilteredTitleLists
 from main_screen import MainScreen
 from reader_formatter import (
-    get_markup_text_with_num_titles,
     get_bold_markup_text,
+    get_markup_text_with_num_titles,
     get_markup_text_with_extra,
 )
 from reader_types import (
@@ -47,13 +54,13 @@ from reader_types import (
 from reader_ui_classes import (
     ReaderTreeView,
     MainTreeViewNode,
-    TitleSearchBoxTreeViewNode,
-    TagSearchBoxTreeViewNode,
     StoryGroupTreeViewNode,
     YearRangeTreeViewNode,
     CsYearRangeTreeViewNode,
-    TitleTreeViewNode,
     UsYearRangeTreeViewNode,
+    TitleSearchBoxTreeViewNode,
+    TagSearchBoxTreeViewNode,
+    TitleTreeViewNode,
 )
 
 
@@ -325,12 +332,18 @@ class ReaderTreeBuilder:
 
     @staticmethod
     def __get_us_year_range_extra_text(title_list: List[FantaComicBookInfo]) -> str:
-        first_issue = min(
-            title_list, key=lambda x: x.comic_book_info.issue_number
-        ).comic_book_info.issue_number
-        last_issue = max(
-            title_list, key=lambda x: x.comic_book_info.issue_number
-        ).comic_book_info.issue_number
+        def get_us_issue_number(fanta_info: FantaComicBookInfo) -> int:
+            num = fanta_info.comic_book_info.issue_number
+            if num == US_1_FC_ISSUE_NUM:
+                return 1
+            if num == US_2_FC_ISSUE_NUM:
+                return 2
+            if num == US_3_FC_ISSUE_NUM:
+                return 3
+            return num
+
+        first_issue = get_us_issue_number(min(title_list, key=lambda x: get_us_issue_number(x)))
+        last_issue = get_us_issue_number(max(title_list, key=lambda x: get_us_issue_number(x)))
 
         return f"US {first_issue}-{last_issue}"
 
