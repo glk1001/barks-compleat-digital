@@ -1,3 +1,4 @@
+import os.path
 from enum import Enum, auto
 from random import randrange
 from typing import List, Tuple, Callable, Union, Set
@@ -14,6 +15,7 @@ from file_paths import (
     get_comic_favourite_files,
     get_comic_original_art_files,
     get_comic_search_files,
+    get_app_splash_images_dir,
 )
 from reader_types import Color
 
@@ -41,6 +43,9 @@ SEARCH_TITLES = [
     Titles.TRACKING_SANDY,
     Titles.SEARCH_FOR_THE_CUSPIDORIA,
 ]
+APP_SPLASH_IMAGES = [
+    "006.png",
+]
 
 ALL_TYPES = {t for t in FileTypes}
 ALL_BUT_ORIGINAL_ART = {t for t in FileTypes if t != FileTypes.ORIGINAL_ART}
@@ -51,6 +56,11 @@ def get_random_search_image() -> Tuple[str, Titles]:
     title = SEARCH_TITLES[title_index]
 
     return __get_random_comic_file(BARKS_TITLES[title], get_comic_search_files, False), title
+
+
+def get_random_app_splash_image() -> str:
+    index = randrange(0, len(APP_SPLASH_IMAGES))
+    return os.path.join(get_app_splash_images_dir(), APP_SPLASH_IMAGES[index])
 
 
 def get_random_image(

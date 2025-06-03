@@ -1,6 +1,7 @@
 import logging
-from typing import List, Callable, Tuple, Dict
+from typing import List, Callable, Tuple, Dict, Union
 
+from kivy.clock import Clock
 from kivy.uix.treeview import TreeViewNode
 from kivy.utils import escape_markup
 
@@ -53,6 +54,7 @@ from reader_types import (
 )
 from reader_ui_classes import (
     ReaderTreeView,
+    ReaderTreeBuilderEventDispatcher,
     MainTreeViewNode,
     StoryGroupTreeViewNode,
     YearRangeTreeViewNode,
@@ -70,32 +72,54 @@ class ReaderTreeBuilder:
         main_screen: MainScreen,
     ):
         self.__main_screen = main_screen
-
         self.year_range_nodes: Dict[Tuple[int, int], TreeViewNode] = {}
+        self.events = ReaderTreeBuilderEventDispatcher()
+
+        self.all_series_pressed_funcs = {
+            SERIES_CS: self.__main_screen.cs_pressed,
+            SERIES_DDA: self.__main_screen.dd_pressed,
+            SERIES_USA: self.__main_screen.us_pressed,
+            SERIES_DDS: self.__main_screen.dds_pressed,
+            SERIES_USS: self.__main_screen.uss_pressed,
+            SERIES_GG: self.__main_screen.gg_pressed,
+            SERIES_MISC: self.__main_screen.misc_pressed,
+        }
+
+        # TODO: Try and get progress bar working.
+        # print(f"max calc = {(
+        #     self.__get_total_num_year_range_nodes()
+        #     + self.__get_total_num_series_nodes()
+        #     + self.__get_total_num_category_nodes()
+        # )}")
 
     def build_main_screen_tree(self):
         tree: ReaderTreeView = self.__main_screen.ids.reader_tree_view
 
         tree.bind(on_node_expand=self.__main_screen.on_node_expanded)
 
+        logging.debug("Building simple nodes...")
         self.__add_intro_node(tree)
-        self.__add_the_stories_node(tree)
+        the_stories_node = self.__add_the_stories_node(tree)
         self.__add_search_node(tree)
         self.__add_appendix_node(tree)
         self.__add_index_node(tree)
 
+        logging.debug("Building story nodes...")
+        self.__add_story_nodes(tree, the_stories_node)
+
         tree.bind(minimum_height=tree.setter("height"))
+
+        logging.debug("Finished building tree.")
 
     def __add_intro_node(self, tree: ReaderTreeView):
         self.__create_and_add_simple_node(
             tree, INTRO_NODE_TEXT, self.__main_screen.on_intro_pressed
         )
 
-    def __add_the_stories_node(self, tree: ReaderTreeView):
-        new_node = self.__create_and_add_simple_node(
+    def __add_the_stories_node(self, tree: ReaderTreeView) -> MainTreeViewNode:
+        return self.__create_and_add_simple_node(
             tree, THE_STORIES_NODE_TEXT, self.__main_screen.on_the_stories_pressed
         )
-        self.__add_story_nodes(tree, new_node)
 
     def __add_search_node(self, tree: ReaderTreeView):
         search_node = self.__create_and_add_simple_node(
@@ -116,35 +140,54 @@ class ReaderTreeBuilder:
         )
 
     def __add_story_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
-        new_node = self.__create_and_add_simple_node(
-            tree,
-            CHRONOLOGICAL_NODE_TEXT,
-            self.__main_screen.on_chrono_pressed,
-            True,
-            StoryGroupTreeViewNode,
-            parent_node,
-        )
-        self.__add_year_range_nodes(tree, new_node)
+        def build_nodes(_dt):
+            logging.debug("Start building chronological nodes...")
+            new_node = self.__create_and_add_simple_node(
+                tree,
+                CHRONOLOGICAL_NODE_TEXT,
+                self.__main_screen.on_chrono_pressed,
+                True,
+                StoryGroupTreeViewNode,
+                parent_node,
+            )
+            self.__add_year_range_nodes(tree, new_node)
+            logging.debug("Finished adding chronological nodes.")
 
-        new_node = self.__create_and_add_simple_node(
-            tree,
-            SERIES_NODE_TEXT,
-            self.__main_screen.on_series_pressed,
-            True,
-            StoryGroupTreeViewNode,
-            parent_node,
-        )
-        self.__add_series_nodes(tree, new_node)
+            logging.debug("Start building series nodes...")
+            new_node = self.__create_and_add_simple_node(
+                tree,
+                SERIES_NODE_TEXT,
+                self.__main_screen.on_series_pressed,
+                True,
+                StoryGroupTreeViewNode,
+                parent_node,
+            )
+            self.__add_series_nodes(tree, new_node)
+            logging.debug("Finished adding series nodes.")
 
-        new_node = self.__create_and_add_simple_node(
-            tree,
-            CATEGORIES_NODE_TEXT,
-            self.__main_screen.on_categories_pressed,
-            True,
-            StoryGroupTreeViewNode,
-            parent_node,
-        )
-        self.__add_categories_nodes(tree, new_node)
+            logging.debug("Start building category nodes...")
+            new_node = self.__create_and_add_simple_node(
+                tree,
+                CATEGORIES_NODE_TEXT,
+                self.__main_screen.on_categories_pressed,
+                True,
+                StoryGroupTreeViewNode,
+                parent_node,
+            )
+            self.__add_categories_nodes(tree, new_node)
+            logging.debug("Finished adding category nodes.")
+            self.__main_screen.reader_tree_events.finished_building()
+
+        Clock.schedule_once(build_nodes, 1)
+
+    def __get_total_num_year_range_nodes(self):
+        num = 0
+        for year_range in self.__main_screen.filtered_title_lists.chrono_year_ranges:
+            year_range_str = FilteredTitleLists.get_range_str(year_range)
+            year_range_key = year_range_str
+            num += len(self.__main_screen.title_lists[year_range_key])
+
+        return num
 
     def __add_year_range_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
         for year_range in self.__main_screen.filtered_title_lists.chrono_year_ranges:
@@ -186,6 +229,20 @@ class ReaderTreeBuilder:
                 parent_node,
             )
             self.__add_category_node(tree, category, new_node)
+
+    @staticmethod
+    def __get_total_num_category_nodes():
+        num = 0
+
+        for category in TagCategories:
+            for tag_or_group in BARKS_TAG_CATEGORIES[category]:
+                if type(tag_or_group) == Tags:
+                    num += len(get_tagged_titles(tag_or_group))
+                else:
+                    assert type(tag_or_group) == TagGroups
+                    num += len(BARKS_TAG_GROUPS_TITLES[tag_or_group])
+
+        return num
 
     def __add_category_node(
         self, tree: ReaderTreeView, category: TagCategories, parent_node: TreeViewNode
@@ -234,13 +291,16 @@ class ReaderTreeBuilder:
             tree.add_node(self.__get_title_tree_view_node(title_info), parent=parent_node)
 
     def __add_series_nodes(self, tree: ReaderTreeView, parent_node: TreeViewNode):
-        self.__add_series_node(tree, SERIES_CS, self.__main_screen.cs_pressed, parent_node)
-        self.__add_series_node(tree, SERIES_DDA, self.__main_screen.dd_pressed, parent_node)
-        self.__add_series_node(tree, SERIES_USA, self.__main_screen.us_pressed, parent_node)
-        self.__add_series_node(tree, SERIES_DDS, self.__main_screen.dds_pressed, parent_node)
-        self.__add_series_node(tree, SERIES_USS, self.__main_screen.uss_pressed, parent_node)
-        self.__add_series_node(tree, SERIES_GG, self.__main_screen.gg_pressed, parent_node)
-        self.__add_series_node(tree, SERIES_MISC, self.__main_screen.misc_pressed, parent_node)
+        for series, on_pressed in self.all_series_pressed_funcs.items():
+            self.__add_series_node(tree, series, on_pressed, parent_node)
+
+    def __get_total_num_series_nodes(self):
+        num = 0
+
+        for series in self.all_series_pressed_funcs:
+            num += len(self.__main_screen.title_lists[series])
+
+        return num
 
     def __add_series_node(
         self, tree: ReaderTreeView, series: str, on_pressed: Callable, parent_node: TreeViewNode
@@ -408,7 +468,7 @@ class ReaderTreeBuilder:
         is_bold: bool = False,
         node_class: type = MainTreeViewNode,
         parent_node: TreeViewNode = None,
-    ) -> TreeViewNode:
+    ) -> Union[MainTreeViewNode, StoryGroupTreeViewNode]:
         node_text = get_bold_markup_text(text) if is_bold else text
 
         new_node = node_class(text=node_text)

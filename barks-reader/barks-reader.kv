@@ -12,6 +12,46 @@
 <BgColorLabel@Label+BackgroundColor>
     background_color: (0, 0, 0, 0)
 
+<LoadingDataPopup>:
+    title: ""
+    title_align: "center"
+    title_color: (0,0,0,0)
+    separator_color: (47/255.0, 167/255.0, 212/255.0, 1.0)
+    separator_height: dp(0)
+    size_hint: (1, 0.5)
+    x: 0
+    y: 0
+    auto_dismiss: False
+
+    AnchorLayout:
+        anchor_x: "center"
+        anchor_y: "center"
+
+        Image:
+            color: (1,1,1,1)
+            opacity: 0.3
+            source: root.splash_image_path
+            x: self.parent.x
+            y: self.parent.y
+            width: self.parent.width
+            height: self.parent.height
+            fit_mode: "cover"
+            mipmap: True
+
+        Label:
+            font_size: sp(50)
+            color: (1,1,0,1)
+            text: "Please wait\n\nLoading all the titles..."
+            multiline: True
+            halign: "center"
+
+        #ProgressBar:
+        #    id: loading_data_progress_bar
+        #    x: self.parent.x
+        #    y: self.parent.y
+        #    value: root.progress_bar_value
+        #    min: 0
+        #    max: 3
 
 <MainScreen>:
     orientation: "vertical"
@@ -139,7 +179,7 @@
 
                         bar_color: (0.8, 0.8, 0.8, 1)
                         bar_inactive_color: (0.8, 0.8, 0.8, 0.8)
-                        bar_width: dp(10)
+                        bar_width: dp(12)
 
                         ReaderTreeView:
                             id: reader_tree_view

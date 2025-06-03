@@ -29,6 +29,7 @@ BARKS_READER_FAVOURITE_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Favouri
 BARKS_READER_ORIGINAL_ART_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Original Art")
 BARKS_READER_SEARCH_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Search")
 BARKS_READER_ICON_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Reader Icons")
+BARKS_READER_APP_SPLASH_IMAGES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Reader Splashes")
 BARKS_READER_APP_ICON_PATH = os.path.join(BARKS_READER_ICON_FILES_DIR, "Barks Reader Icon 1.png")
 BARKS_READER_UP_ARROW_PATH = os.path.join(BARKS_READER_FILES_DIR, "up-arrow.png")
 
@@ -54,6 +55,7 @@ def check_dirs_and_files() -> None:
         BARKS_READER_FAVOURITE_FILES_DIR,
         BARKS_READER_ORIGINAL_ART_FILES_DIR,
         BARKS_READER_SEARCH_FILES_DIR,
+        BARKS_READER_APP_SPLASH_IMAGES_DIR,
         BARKS_READER_ICON_FILES_DIR,
     ]
     files_to_check = [
@@ -132,6 +134,10 @@ def get_comic_original_art_files_dir() -> str:
 
 def get_comic_search_files_dir() -> str:
     return BARKS_READER_SEARCH_FILES_DIR
+
+
+def get_app_splash_images_dir() -> str:
+    return BARKS_READER_APP_SPLASH_IMAGES_DIR
 
 
 def get_barks_reader_app_icon_file() -> str:

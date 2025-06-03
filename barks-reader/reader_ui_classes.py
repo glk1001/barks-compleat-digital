@@ -1,6 +1,7 @@
 import logging
 from typing import List, Union
 
+from kivy.event import EventDispatcher
 from kivy.metrics import dp
 from kivy.properties import StringProperty
 from kivy.uix.behaviors import ButtonBehavior
@@ -8,6 +9,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.image import Image
+from kivy.uix.popup import Popup
 from kivy.uix.spinner import Spinner
 from kivy.uix.treeview import TreeView, TreeViewNode
 
@@ -24,6 +26,25 @@ TREE_VIEW_NODE_BACKGROUND_COLOR = (0.0, 0.0, 0.0, 0.0)
 
 class ReaderTreeView(TreeView):
     TREE_VIEW_INDENT_LEVEL = dp(30)
+
+
+class ReaderTreeBuilderEventDispatcher(EventDispatcher):
+    def __init__(self, **kwargs):
+        self.register_event_type(self.on_finished_building_event.__name__)
+        super(ReaderTreeBuilderEventDispatcher, self).__init__(**kwargs)
+
+    def on_finished_building_event(self):
+        pass
+
+    def finished_building(self):
+        logging.debug(f"Dispatching '{self.on_finished_building_event.__name__}'.")
+        self.dispatch(self.on_finished_building_event.__name__)
+
+
+class LoadingDataPopup(Popup):
+    # progress_bar_value = NumericProperty(0)
+    splash_image_path = StringProperty()
+    pass
 
 
 class TitlePageImage(ButtonBehavior, Image):

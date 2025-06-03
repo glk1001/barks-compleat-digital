@@ -20,7 +20,7 @@ from barks_fantagraphics.barks_titles import ComicBookInfo, Titles, get_title_di
 from barks_fantagraphics.comics_utils import get_dest_comic_zip_file_stem
 from barks_fantagraphics.fanta_comics_info import (
     FantaComicBookInfo,
-    get_all_fanta_comic_book_info,
+    ALL_FANTA_COMIC_BOOK_INFO,
     SERIES_CS,
     SERIES_DDA,
     SERIES_MISC,
@@ -42,7 +42,11 @@ from file_paths import (
 )
 from filtered_title_lists import FilteredTitleLists
 from mcomix_reader import ComicReader
-from random_title_images import get_random_title_image, ALL_BUT_ORIGINAL_ART
+from random_title_images import (
+    get_random_title_image,
+    get_random_app_splash_image,
+    ALL_BUT_ORIGINAL_ART,
+)
 from reader_formatter import ReaderFormatter, get_clean_text_without_extra, LONG_TITLE_SPLITS
 from reader_types import (
     THE_STORIES_NODE_TEXT,
@@ -56,6 +60,8 @@ from reader_types import (
 )
 from reader_ui_classes import (
     ReaderTreeView,
+    ReaderTreeBuilderEventDispatcher,
+    LoadingDataPopup,
     ButtonTreeViewNode,
     MainTreeViewNode,
     YearRangeTreeViewNode,
@@ -90,17 +96,27 @@ class MainScreen(BoxLayout):
 
     top_view_image_source = StringProperty()
     top_view_image_color = ColorProperty()
-    top_view_image_opacity = NumericProperty(1.0)
+    top_view_image_opacity = NumericProperty(0.0)
 
     bottom_view_title_opacity = NumericProperty(0.0)
     bottom_view_title_image_source = StringProperty()
     bottom_view_title_image_color = ColorProperty()
-    bottom_view_fun_image_opacity = NumericProperty(1.0)
+    bottom_view_fun_image_opacity = NumericProperty(0.0)
     bottom_view_fun_image_source = StringProperty()
     bottom_view_fun_image_color = ColorProperty()
 
-    def __init__(self, filtered_title_lists: FilteredTitleLists, **kwargs):
+    def __init__(
+        self,
+        reader_tree_events: ReaderTreeBuilderEventDispatcher,
+        filtered_title_lists: FilteredTitleLists,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
+
+        self.popup = LoadingDataPopup()
+        self.popup.splash_image_path = get_random_app_splash_image()
+        self.reader_tree_events = reader_tree_events
+        self.reader_tree_events.bind(on_finished_building_event=self.on_tree_build_finished)
 
         self.formatter = ReaderFormatter()
         self.fanta_info: Union[FantaComicBookInfo, None] = None
@@ -112,7 +128,7 @@ class MainScreen(BoxLayout):
         )
         self.title_dict: Dict[str, Titles] = get_title_dict()
         self.title_search = BarksTitleSearch()
-        self.all_fanta_titles = get_all_fanta_comic_book_info()
+        self.all_fanta_titles = ALL_FANTA_COMIC_BOOK_INFO
 
         self.comic_reader = ComicReader(
             get_mcomix_python_bin_path(),
@@ -125,6 +141,11 @@ class MainScreen(BoxLayout):
         self.bottom_view_fun_image_title = None
 
         self.background_views = BackgroundViews(self.all_fanta_titles, self.title_lists)
+        self.update_background_views(ViewStates.PRE_INIT)
+
+    def on_tree_build_finished(self, _instance):
+        logging.debug(f"'on_finished_building_event' received: dismiss the popup.")
+        self.popup.dismiss()
         self.update_background_views(ViewStates.INITIAL)
 
     def on_action_bar_collapse(self):

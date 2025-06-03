@@ -25,7 +25,7 @@ FantaComicBookInfoDict = OrderedDict[str, FantaComicBookInfo]
 
 
 # TODO: Use a list here - not a dict
-def get_all_fanta_comic_book_info() -> FantaComicBookInfoDict:
+def __get_all_fanta_comic_book_info() -> FantaComicBookInfoDict:
     current_number_in_series = SERIES_INFO_START_NUMBERS.copy()
 
     all_fanta_info: FantaComicBookInfoDict = collections.OrderedDict()
@@ -549,7 +549,8 @@ ALL_LISTS = "All"
 def get_filtered_title_lists(
     filters: Dict[str, Callable[[FantaComicBookInfo], bool]]
 ) -> Dict[str, List[FantaComicBookInfo]]:
-    titles = get_all_fanta_comic_book_info()
+    titles = ALL_FANTA_COMIC_BOOK_INFO
+
     filtered_dict = defaultdict(list)
     for title in titles:
         fanta_info = titles[title]
@@ -562,3 +563,6 @@ def get_filtered_title_lists(
         filtered_dict[ALL_LISTS].append(fanta_info)
 
     return filtered_dict
+
+
+ALL_FANTA_COMIC_BOOK_INFO = __get_all_fanta_comic_book_info()

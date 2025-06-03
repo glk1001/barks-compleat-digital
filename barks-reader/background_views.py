@@ -27,6 +27,7 @@ from reader_types import Color, get_formatted_color
 
 
 class ViewStates(Enum):
+    PRE_INIT = auto()
     INITIAL = auto()
     ON_INTRO_NODE = auto()
     ON_THE_STORIES_NODE = auto()
@@ -67,7 +68,7 @@ class BackgroundViews:
         self.all_fanta_titles = all_fanta_titles
         self.title_lists = title_lists
 
-        self.__top_view_image_opacity = 1.0
+        self.__top_view_image_opacity = 0.0
         self.__top_view_image_title = None
         self.__top_view_image_file = ""
         self.__top_view_image_color: Color = (0, 0, 0, 0)
@@ -90,7 +91,7 @@ class BackgroundViews:
         self.__current_category = ""
         self.__current_tag = None
 
-        self.__view_state = ViewStates.INITIAL
+        self.__view_state = ViewStates.PRE_INIT
 
     def __get_fanta_info(self, title: Titles) -> Union[None, FantaComicBookInfo]:
         # TODO: Very roundabout way to get fanta info
@@ -175,6 +176,14 @@ class BackgroundViews:
         self.__update_views()
 
     def __update_views(self):
+        if self.__view_state == ViewStates.PRE_INIT:
+            self.__top_view_image_opacity = 0.5
+            self.__set_top_view_image()
+            self.__bottom_view_fun_image_opacity = 0.5
+            self.__set_bottom_view_fun_image()
+            self.__bottom_view_title_opacity = 0.0
+            return
+
         if self.__view_state == ViewStates.ON_INTRO_NODE:
             self.__set_top_view_image()
             self.__bottom_view_fun_image_opacity = 0.0
@@ -199,7 +208,7 @@ class BackgroundViews:
     def __set_top_view_image(self) -> None:
         # noinspection PyUnreachableCode
         match self.__view_state:
-            case ViewStates.INITIAL:
+            case ViewStates.PRE_INIT | ViewStates.INITIAL:
                 self.__set_initial_top_view_image()
             case ViewStates.ON_INTRO_NODE:
                 self.__set_top_view_image_for_intro()

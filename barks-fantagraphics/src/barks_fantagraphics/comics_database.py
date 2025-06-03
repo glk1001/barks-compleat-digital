@@ -47,7 +47,7 @@ from .fanta_comics_info import (
     FANTAGRAPHICS_FIXES_SCRAPS_DIRNAME,
     FANTAGRAPHICS_PANEL_SEGMENTS_DIRNAME,
     FANTAGRAPHICS_RESTORED_OCR_DIRNAME,
-    get_all_fanta_comic_book_info,
+    ALL_FANTA_COMIC_BOOK_INFO,
     get_fanta_volume_str,
 )
 
@@ -60,7 +60,7 @@ class ComicsDatabase:
     def __init__(self, database_dir: str):
         self._database_dir = _get_comics_database_dir(database_dir)
         self._story_titles_dir = _get_story_titles_dir(self._database_dir)
-        self._all_comic_book_info = get_all_fanta_comic_book_info()
+        self._all_comic_book_info = ALL_FANTA_COMIC_BOOK_INFO
         self._ini_files = [f for f in os.listdir(self._story_titles_dir) if f.endswith(".ini")]
         self._story_titles = set([Path(f).stem for f in self._ini_files])
         self._issue_titles = self._get_all_issue_titles()
