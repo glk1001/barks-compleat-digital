@@ -1,11 +1,13 @@
 import logging
-from typing import Union, Dict, List
+import os
+from typing import Union, Dict, List, Callable
 
 from kivy.clock import Clock
 from kivy.metrics import dp, sp
 from kivy.properties import StringProperty, ColorProperty, NumericProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.screenmanager import Screen
 from kivy.uix.spinner import Spinner
 from kivy.uix.treeview import TreeViewNode
 
@@ -32,9 +34,6 @@ from barks_fantagraphics.fanta_comics_info import (
 )
 from barks_fantagraphics.title_search import BarksTitleSearch
 from file_paths import (
-    get_mcomix_python_bin_path,
-    get_mcomix_path,
-    get_mcomix_barks_reader_config_path,
     get_the_comic_zips_dir,
     get_comic_inset_file,
     get_edited_version,
@@ -42,7 +41,6 @@ from file_paths import (
     get_barks_reader_up_arrow_file,
 )
 from filtered_title_lists import FilteredTitleLists
-from mcomix_reader import ComicReader
 from random_title_images import (
     FileTypes,
     ALL_BUT_ORIGINAL_ART,
@@ -75,7 +73,7 @@ from reader_ui_classes import (
 )
 
 
-class MainScreen(BoxLayout):
+class MainScreen(BoxLayout, Screen):
     MAIN_TITLE_BACKGROUND_COLOR = (1, 1, 1, 0.05)
     MAIN_TITLE_COLOR = (1, 1, 0, 1)
     MAIN_TITLE_FONT_NAME = "Carl Barks Script"
@@ -111,10 +109,12 @@ class MainScreen(BoxLayout):
         self,
         reader_tree_events: ReaderTreeBuilderEventDispatcher,
         filtered_title_lists: FilteredTitleLists,
+        switch_to_comic_reader: Callable,
         **kwargs,
     ):
         super().__init__(**kwargs)
 
+        self.switch_to_comic_reader = switch_to_comic_reader
         self.filtered_title_lists: FilteredTitleLists = filtered_title_lists
         self.title_lists: Dict[str, List[FantaComicBookInfo]] = (
             filtered_title_lists.get_title_lists()
@@ -127,20 +127,15 @@ class MainScreen(BoxLayout):
         self.fanta_info: Union[FantaComicBookInfo, None] = None
         self.year_range_nodes = None
 
-        self.popup = LoadingDataPopup()
-        self.popup.splash_image_path = get_random_image_file(
+        self.loading_data_popup = LoadingDataPopup()
+        self.loading_data_popup.splash_image_path = get_random_image_file(
             self.title_lists[ALL_LISTS], {FileTypes.SPLASH}
         )
         #        self.popup.splash_image_path = get_random_app_splash_image()
         self.reader_tree_events = reader_tree_events
         self.reader_tree_events.bind(on_finished_building_event=self.on_tree_build_finished)
 
-        self.comic_reader = ComicReader(
-            get_mcomix_python_bin_path(),
-            get_mcomix_path(),
-            get_mcomix_barks_reader_config_path(),
-            get_the_comic_zips_dir(),
-        )
+        self.comic_reader = None
 
         self.top_view_image_title = None
         self.bottom_view_fun_image_title = None
@@ -150,7 +145,7 @@ class MainScreen(BoxLayout):
 
     def on_tree_build_finished(self, _instance):
         logging.debug(f"'on_finished_building_event' received: dismiss the popup.")
-        self.popup.dismiss()
+        self.loading_data_popup.dismiss()
         self.update_background_views(ViewStates.INITIAL)
 
     def on_action_bar_collapse(self):
@@ -522,14 +517,10 @@ class MainScreen(BoxLayout):
             logging.debug(f'Image "{self.title_page_image_source}" pressed. But no title selected.')
             return
 
-        if self.comic_reader.reader_is_running:
-            logging.debug(
-                f'Image "{self.title_page_image_source}" pressed. But already reading comic.'
-            )
-            return
+        title_str = self.fanta_info.comic_book_info.get_title_str()
 
         comic_file_stem = get_dest_comic_zip_file_stem(
-            self.fanta_info.comic_book_info.get_title_str(),
+            title_str,
             self.fanta_info.fanta_chronological_number,
             self.fanta_info.get_short_issue_title(),
         )
@@ -538,6 +529,8 @@ class MainScreen(BoxLayout):
             f'Image "{self.title_page_image_source}" pressed. Want to run "{comic_file_stem}".'
         )
 
-        self.comic_reader.show_comic(comic_file_stem)
+        self.switch_to_comic_reader()
+        comic_path = os.path.join(get_the_comic_zips_dir(), comic_file_stem + ".cbz")
+        self.comic_reader.read_comic(title_str, comic_path)
 
         logging.debug(f"Comic reader is running.")

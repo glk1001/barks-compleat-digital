@@ -73,7 +73,7 @@ class ReaderTreeBuilder:
     ):
         self.__main_screen = main_screen
         self.year_range_nodes: Dict[Tuple[int, int], TreeViewNode] = {}
-        self.events = ReaderTreeBuilderEventDispatcher()
+        self.events = self.__main_screen.reader_tree_events
 
         self.all_series_pressed_funcs = {
             SERIES_CS: self.__main_screen.cs_pressed,
