@@ -87,6 +87,13 @@ class ComicReader(BoxLayout):
 
     def close(self, fullscreen_button: ActionButton):
         self.exit_fullscreen(fullscreen_button)
+
+        self.images.clear()
+        self.images = []
+        self.image_names = []
+        self.first_page_index = -1
+        self.last_page_index = -1
+
         self.close_reader_func()
 
     def set_action_bar(self, action_bar: ActionBar):
