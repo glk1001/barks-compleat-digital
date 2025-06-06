@@ -41,7 +41,7 @@
         Label:
             font_size: sp(50)
             color: (1,1,0,1)
-            text: "Please wait\n\nLoading all the titles..."
+            text: "Please wait.\n\nLoading all the titles..."
             multiline: True
             halign: "center"
 
@@ -84,7 +84,6 @@
                 on_release: app.on_action_bar_quit()
 
             ActionSeparator:
-                #background_color: 0.1, 0.1, 0.1, 1
 
             ActionButton:
                 text: 'Collapse'
@@ -96,7 +95,6 @@
             ActionButton:
                 text: 'Change Pics'
                 draggable: False
-                #background_normal: ""
                 background_normal: root.ACTION_BAR_BACKGROUND_PATH
                 background_color: 0.6, 1.0, 0.2, 1
                 on_release: root.on_action_bar_change_view_images()

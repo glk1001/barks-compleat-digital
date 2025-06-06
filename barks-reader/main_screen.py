@@ -89,8 +89,8 @@ class MainScreen(BoxLayout, Screen):
     title_info_text = StringProperty()
     extra_title_info_text = StringProperty()
     title_page_image_source = StringProperty()
-    APP_ICON_FILE = StringProperty(get_barks_reader_app_icon_file())
-    UP_ARROW_FILE = StringProperty(get_barks_reader_up_arrow_file())
+    APP_ICON_FILE = get_barks_reader_app_icon_file()
+    UP_ARROW_FILE = get_barks_reader_up_arrow_file()
     UP_ARROW_WIDTH = dp(20)
     ACTION_BAR_SIZE_Y = reader_consts_and_types.ACTION_BAR_SIZE_Y
     ACTION_BAR_BACKGROUND_PATH = get_barks_reader_action_bar_background_file()

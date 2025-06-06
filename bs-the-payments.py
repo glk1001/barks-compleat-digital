@@ -1,3 +1,4 @@
+import os.path
 import re
 from collections import OrderedDict
 from dataclasses import dataclass
@@ -153,6 +154,7 @@ KYLING_TITLE_MAP = {
     "Riches, Riches Everywhere!": Titles.RICHES_RICHES_EVERYWHERE,
     "The Lightning Plant": Titles.TRAPPED_LIGHTNING,
     "The Foam Wall": Titles.INVENTOR_OF_ANYTHING,
+    "A Square Inch of Land": Titles.FAULTY_FORTUNE,
     "The Cat Translator": Titles.CAT_BOX_THE,
     "Money on the Move": Titles.MIGRATING_MILLIONS,
     "The Bath Battle": Titles.THREE_UN_DUCKS,
@@ -223,7 +225,7 @@ KYLING_TITLE_MAP = {
     "Isle of the Golden Geese": Titles.ISLE_OF_GOLDEN_GEESE,
 }
 
-html_file_base = "/home/greg/Downloads/thepayments"
+html_file_base = "/home/greg/Books/Carl Barks/Misc/Pay Slips/html-source"
 
 ISSUE_PREFIXES_TO_SKIP = {"NF", "OG"}
 
@@ -314,10 +316,12 @@ def split_multi_titles(rows: List[List[str]]) -> List[List[str]]:
     for r in rows:
         num_new_lines = r[0].count("\n")
         if num_new_lines < 1:
+            print("NO need to split: ", r)
             new_rows.append(r)
         else:
-            print("Need to split: ", r[0])
+            print("Need to split: ", r)
             split = split_row(r, num_new_lines + 1)
+            print("After split: ", split)
             new_rows.extend(split)
 
     return new_rows
@@ -360,8 +364,8 @@ class PaymentInfo:
 
 titles_with_prelim_payment_info = []
 
-for year in range(1942, 1970):
-    html_file = f"{html_file_base}{year}.html"
+for year in range(1956, 1957):
+    html_file = os.path.join(html_file_base, f"thepayments{year}.html")
     print(f'\nProcessing file "{html_file}"...')
 
     with open(html_file, "r", encoding="ISO-8859-1") as f:
@@ -373,28 +377,32 @@ for year in range(1942, 1970):
 
     year_data = []
     for row in table.find_all("tr"):
-        # print(row)
+        print("Next row: ", row)
         cols = row.find_all(["td"])
         cols = [col.text.strip() for col in cols if col is not None]
-        if cols:
+        if not cols:
+            print("No cols: skipping row: {row}.")
+        else:
             if cols[0].startswith("CODE"):
                 continue
             cols.append(year)
-            # print(cols)
+            print("Appended: ", cols)
             year_data.append(cols)
 
     titles_with_prelim_payment_info.extend(split_multi_titles(year_data))
 
 for cols in titles_with_prelim_payment_info:
-    print(cols)
+    print("Prelim: ", cols)
 
 title_dict = get_title_dict()
 titles_with_payment_info = []
 for cols in titles_with_prelim_payment_info[1:]:
     if cols[0][:2] in ISSUE_PREFIXES_TO_SKIP:
+        print("Skipping: ", cols)
         continue
     prelim_payment_info = get_prelim_payment_info(cols)
     if prelim_payment_info.num_pages <= 1:
+        print("Not enough pages - skipping: ", cols)
         continue
 
     if prelim_payment_info.title in KYLING_TITLE_MAP:
@@ -403,6 +411,7 @@ for cols in titles_with_prelim_payment_info[1:]:
         title = title_dict.get(prelim_payment_info.title, -1)
 
     if title == -1:
+        print(f'Title "{prelim_payment_info.title}" not found.')
         continue
 
     titles_with_payment_info.append(

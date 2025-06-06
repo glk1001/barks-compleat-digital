@@ -13,7 +13,14 @@ from kivy.clock import Clock
 from kivy.core.image import Image as CoreImage
 from kivy.core.window import Window
 from kivy.properties import NumericProperty, StringProperty
-from kivy.uix.actionbar import ActionBar, ActionView, ActionPrevious, ActionButton, ActionSeparator
+from kivy.uix.actionbar import (
+    ActionBar,
+    ActionView,
+    ActionPrevious,
+    ActionButton,
+    ActionSeparator,
+    ActionOverflow,
+)
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image
 from kivy.uix.screenmanager import Screen
@@ -23,6 +30,7 @@ from file_paths import (
     get_barks_reader_action_bar_background_file,
     get_barks_reader_close_icon_file,
     get_barks_reader_fullscreen_icon_file,
+    get_barks_reader_app_icon_file,
 )
 from reader_consts_and_types import ACTION_BAR_SIZE_Y
 
@@ -320,7 +328,7 @@ class ComicReader(BoxLayout):
             self.hide_action_bar()
 
         logging.debug(
-            f"On toggle action bar exit:" f" self.action_bar.height = {self.action_bar.height}"
+            f"On toggle action bar exit: self.action_bar.height = {self.action_bar.height}"
         )
 
 
@@ -340,33 +348,34 @@ def get_barks_comic_reader(close_reader_func: Callable, screen_name: str):
         background_image=get_barks_reader_action_bar_background_file(),
         background_color=(0.6, 0.7, 0.2, 1),
     )
-    action_view = ActionView(
-        background_color=(1, 1, 1, 1),
+    action_view = ActionView(use_separator=False)
+    action_previous = ActionPrevious(
+        title="",
+        with_previous=False,
+        app_icon=get_barks_reader_app_icon_file(),
     )
-    action_view.add_widget(
-        ActionPrevious(title="", color=(1, 1, 0, 1), background_normal="", with_previous=False)
-    )
+    action_view.add_widget(action_previous)
+
+    action_view.add_widget(ActionOverflow())
 
     action_view.add_widget(ActionSeparator())
 
     fullscreen_button = ActionButton(
-        color=(1, 1, 0, 1),
-        background_normal=get_barks_reader_action_bar_background_file(),
-        background_color=(0.6, 1.0, 0.2, 1),
         icon=get_barks_reader_fullscreen_icon_file(),
         text="Fullscreen",
+        draggable=False,
+        background_normal=get_barks_reader_action_bar_background_file(),
+        background_color=(0.6, 1.0, 0.2, 1),
     )
-    fullscreen_button.bind(
-        on_press=lambda button: comic_reader_widget.toggle_fullscreen(button)
-    )  # Bind to root widget method
+    fullscreen_button.bind(on_press=lambda button: comic_reader_widget.toggle_fullscreen(button))
     action_view.add_widget(fullscreen_button)
 
     close_button = ActionButton(
-        color=(1, 1, 0, 1),
-        background_normal=get_barks_reader_action_bar_background_file(),
-        background_color=(0.6, 1.0, 0.2, 1),
         icon=get_barks_reader_close_icon_file(),
         text="Close",
+        draggable=False,
+        background_normal=get_barks_reader_action_bar_background_file(),
+        background_color=(0.6, 1.0, 0.2, 1),
     )
     close_button.bind(on_press=lambda x: comic_reader_widget.close(fullscreen_button))
     action_view.add_widget(close_button)
