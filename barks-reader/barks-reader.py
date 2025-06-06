@@ -2,6 +2,7 @@ import logging
 import sys
 from pathlib import Path
 
+from kivy import Config
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
@@ -112,6 +113,9 @@ if __name__ == "__main__":
 
     setup_logging(log_level=logging.DEBUG)
     #    setup_logging(cmd_args.get_log_level())
+
+    Config.set("kivy", "exit_on_escape", "0")
+    Config.write()
 
     logging.debug("Loading kv files...")
     Builder.load_file(KV_FILE)
