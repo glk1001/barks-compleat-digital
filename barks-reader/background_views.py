@@ -22,8 +22,8 @@ from barks_fantagraphics.fanta_comics_info import (
 )
 from file_paths import get_comic_inset_file
 from filtered_title_lists import FilteredTitleLists
+from reader_consts_and_types import Color, get_formatted_color
 from random_title_images import get_random_image, get_random_color, get_random_search_image
-from reader_types import Color, get_formatted_color
 
 
 class ViewStates(Enum):

@@ -26,6 +26,15 @@ BARKS_READER_ICON_FILES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Reader Icons
 BARKS_READER_APP_SPLASH_IMAGES_DIR = os.path.join(BARKS_READER_FILES_DIR, "Reader Splashes")
 BARKS_READER_APP_ICON_PATH = os.path.join(BARKS_READER_ICON_FILES_DIR, "Barks Reader Icon 1.png")
 BARKS_READER_UP_ARROW_PATH = os.path.join(BARKS_READER_FILES_DIR, "up-arrow.png")
+BARKS_READER_FULLSCREEN_ICON_PATH = os.path.join(BARKS_READER_FILES_DIR, "icon-fullscreen.png")
+BARKS_READER_CLOSE_ICON_PATH = os.path.join(BARKS_READER_FILES_DIR, "icon-close.png")
+BARKS_READER_ACTION_BAR_BACKGROUND_PATH = os.path.join(
+    BARKS_READER_FILES_DIR, "action-bar-background.png"
+)
+BARKS_READER_ACTION_BAR_GROUP_BACKGROUND_PATH = os.path.join(
+    BARKS_READER_FILES_DIR, "action-group-background.png"
+)
+BARKS_READER_TRANSPARENT_BLANK_PATH = os.path.join(BARKS_READER_FILES_DIR, "transparent-blank.png")
 
 EMERGENCY_INSET_FILE = Titles.BICEPS_BLUES
 EMERGENCY_INSET_FILE_PATH = os.path.join(
@@ -125,6 +134,26 @@ def get_barks_reader_app_icon_file() -> str:
 
 def get_barks_reader_up_arrow_file() -> str:
     return BARKS_READER_UP_ARROW_PATH
+
+
+def get_barks_reader_fullscreen_icon_file() -> str:
+    return BARKS_READER_FULLSCREEN_ICON_PATH
+
+
+def get_barks_reader_close_icon_file() -> str:
+    return BARKS_READER_CLOSE_ICON_PATH
+
+
+def get_barks_reader_action_bar_background_file() -> str:
+    return BARKS_READER_ACTION_BAR_BACKGROUND_PATH
+
+
+def get_barks_reader_action_bar_group_background_file() -> str:
+    return BARKS_READER_ACTION_BAR_GROUP_BACKGROUND_PATH
+
+
+def get_barks_reader_transparent_blank_file() -> str:
+    return BARKS_READER_TRANSPARENT_BLANK_PATH
 
 
 def get_comic_inset_file(title: Titles, use_edited: bool = False) -> str:

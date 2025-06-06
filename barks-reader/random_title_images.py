@@ -17,7 +17,7 @@ from file_paths import (
     get_comic_search_files,
     get_app_splash_images_dir,
 )
-from reader_types import Color
+from reader_consts_and_types import Color
 
 
 def get_random_color() -> Color:

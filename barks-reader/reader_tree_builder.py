@@ -42,7 +42,7 @@ from reader_formatter import (
     get_markup_text_with_num_titles,
     get_markup_text_with_extra,
 )
-from reader_types import (
+from reader_consts_and_types import (
     INTRO_NODE_TEXT,
     THE_STORIES_NODE_TEXT,
     CHRONOLOGICAL_NODE_TEXT,
