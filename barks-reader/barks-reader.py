@@ -8,6 +8,7 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager
+from screeninfo import get_monitors
 
 from barks_comic_reader import get_barks_comic_reader
 from barks_fantagraphics.comics_cmd_args import CmdArgs
@@ -25,8 +26,8 @@ COMIC_READER = "comic_reader"
 KV_FILE = Path(__file__).stem + ".kv"
 
 # TODO: how to nicely handle main window
-DEFAULT_ASPECT_RATIO = 1.5
-DEFAULT_WINDOW_HEIGHT = 1000
+DEFAULT_ASPECT_RATIO = 3200.0 / 2120.0
+DEFAULT_WINDOW_HEIGHT = round(0.96 * get_monitors()[0].height)
 DEFAULT_WINDOW_WIDTH = int(round(DEFAULT_WINDOW_HEIGHT / DEFAULT_ASPECT_RATIO))
 DEFAULT_LEFT_POS = 400
 DEFAULT_TOP_POS = 50

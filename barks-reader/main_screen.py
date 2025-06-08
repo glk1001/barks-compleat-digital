@@ -11,7 +11,6 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.spinner import Spinner
 from kivy.uix.treeview import TreeViewNode
 
-import reader_consts_and_types
 from background_views import BackgroundViews, ViewStates
 from barks_fantagraphics.barks_payments import BARKS_PAYMENTS
 from barks_fantagraphics.barks_tags import (
@@ -60,6 +59,7 @@ from reader_consts_and_types import (
     INTRO_NODE_TEXT,
     APPENDIX_NODE_TEXT,
     INDEX_NODE_TEXT,
+    ACTION_BAR_SIZE_Y,
 )
 from reader_formatter import ReaderFormatter, get_clean_text_without_extra, LONG_TITLE_SPLITS
 from reader_ui_classes import (
@@ -92,7 +92,7 @@ class MainScreen(BoxLayout, Screen):
     APP_ICON_FILE = get_barks_reader_app_icon_file()
     UP_ARROW_FILE = get_barks_reader_up_arrow_file()
     UP_ARROW_WIDTH = dp(20)
-    ACTION_BAR_HEIGHT = reader_consts_and_types.ACTION_BAR_SIZE_Y
+    ACTION_BAR_HEIGHT = ACTION_BAR_SIZE_Y
     ACTION_BAR_BACKGROUND_PATH = get_barks_reader_action_bar_background_file()
     ACTION_BAR_GROUP_BACKGROUND_PATH = get_barks_reader_action_bar_group_background_file()
     ACTION_BAR_TRANSPARENT_BLANK_PATH = get_barks_reader_transparent_blank_file()

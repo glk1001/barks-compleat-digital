@@ -23,7 +23,8 @@
                 width: dp(30)
                 id: close_button
                 icon: root.ACTION_BAR_CLOSE_ICON
-                #text: "Close"
+                text: "Close"
+                important: True
                 draggable: False
                 background_normal: root.ACTION_BAR_BACKGROUND_PATH
                 background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
@@ -31,8 +32,9 @@
 
             ActionButton:
                 id: fullscreen_button
-                #text: "Fullscreen"
+                text: "Fullscreen"
                 icon: root.ACTION_BAR_FULLSCREEN_ICON
+                important: True
                 draggable: False
                 background_normal: root.ACTION_BAR_BACKGROUND_PATH
                 background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
@@ -68,6 +70,15 @@
                 on_press: root.comic_reader_widget.next_page(self)
 
             ActionButton:
+                canvas.before:
+                    Color:
+                        rgba: root.ACTION_BUTTON_BACKGROUND_COLOR
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+#                        size: root.ids.next_page_button.size
+                        source: root.ACTION_BAR_BACKGROUND_PATH
+
                 id: goto_last_page_button
                 icon: root.ACTION_BAR_GOTO_END_ICON
                 text: "Goto End"

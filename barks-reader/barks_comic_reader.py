@@ -31,6 +31,7 @@ from file_paths import (
     get_barks_reader_goto_start_icon_file,
     get_barks_reader_goto_end_icon_file,
     get_barks_reader_fullscreen_exit_icon_file,
+    get_barks_reader_action_bar_group_background_file,
 )
 from reader_consts_and_types import ACTION_BAR_SIZE_Y
 
@@ -72,6 +73,8 @@ class ComicReader(BoxLayout):
 
         self.x_mid = -1
         self.y_top_margin = -1
+        self.fullscreen_left_margin = -1
+        self.fullscreen_right_margin = -1
 
         Window.bind(on_resize=self.on_window_resize)
 
@@ -85,6 +88,13 @@ class ComicReader(BoxLayout):
             f" self.width = {self.width}, self.height = {self.height}."
         )
         logging.debug(f"Resize event: x_mid = {self.x_mid}, y_top_margin = {self.y_top_margin}.")
+
+        self.fullscreen_left_margin = round(self.MAX_WINDOW_WIDTH / 4.0)
+        self.fullscreen_right_margin = self.MAX_WINDOW_WIDTH - self.fullscreen_left_margin
+        logging.debug(
+            f"Resize event: fullscreen_left_margin = {self.fullscreen_left_margin},"
+            f" fullscreen_right_margin = {self.fullscreen_right_margin}."
+        )
 
     def close(self, fullscreen_button: ActionButton):
         self.exit_fullscreen(fullscreen_button)
@@ -111,20 +121,38 @@ class ComicReader(BoxLayout):
         x_rel = round(touch.x - self.x)
         y_rel = round(touch.y - self.y)
 
-        if y_rel > self.y_top_margin:
+        if self.is_in_top_margin(x_rel, y_rel):
             logging.debug(f"Top margin pressed: x_rel,y_rel = {x_rel},{y_rel}.")
             if Window.fullscreen:
                 self.toggle_action_bar()
-        elif x_rel < self.x_mid:
+        elif self.is_in_left_margin(x_rel, y_rel):
             logging.debug(f"Left margin pressed: x_rel,y_rel = {x_rel},{y_rel}.")
             self.prev_page(None)
-        elif x_rel >= self.x_mid:
+        elif self.is_in_right_margin(x_rel, y_rel):
             logging.debug(f"Right margin pressed: x_rel,y_rel = {x_rel},{y_rel}.")
             self.next_page(None)
         else:
-            logging.error("Middle touch - should not happen.")
+            logging.debug(
+                f"Dead zone: x_rel,y_rel = {x_rel},{y_rel},"
+                f" Windows.fullscreen = {Window.fullscreen}."
+            )
 
         return super().on_touch_down(touch)
+
+    def is_in_top_margin(self, x: int, y: int) -> bool:
+        if y <= self.y_top_margin:
+            return False
+
+        if not Window.fullscreen:
+            return True
+
+        return self.fullscreen_left_margin < x <= self.fullscreen_right_margin
+
+    def is_in_left_margin(self, x: int, y: int) -> bool:
+        return (x < self.x_mid) and (y <= self.y_top_margin)
+
+    def is_in_right_margin(self, x: int, y: int) -> bool:
+        return (x >= self.x_mid) and (y <= self.y_top_margin)
 
     def read_comic(self, title_str: str, comic_path: str):
         self.action_bar.action_view.action_previous.title = title_str
@@ -367,6 +395,7 @@ class ComicReaderScreen(BoxLayout, Screen):
     APP_ICON_FILE = get_barks_reader_app_icon_file()
     ACTION_BAR_HEIGHT = ACTION_BAR_SIZE_Y
     ACTION_BAR_BACKGROUND_PATH = get_barks_reader_action_bar_background_file()
+    ACTION_BAR_GROUP_BACKGROUND_PATH = get_barks_reader_action_bar_group_background_file()
     ACTION_BAR_BACKGROUND_COLOR = (0.6, 0.7, 0.2, 1)
     ACTION_BUTTON_BACKGROUND_COLOR = (0.6, 1.0, 0.2, 1)
     ACTION_BAR_CLOSE_ICON = get_barks_reader_close_icon_file()
