@@ -92,10 +92,12 @@ class MainScreen(BoxLayout, Screen):
     APP_ICON_FILE = get_barks_reader_app_icon_file()
     UP_ARROW_FILE = get_barks_reader_up_arrow_file()
     UP_ARROW_WIDTH = dp(20)
-    ACTION_BAR_SIZE_Y = reader_consts_and_types.ACTION_BAR_SIZE_Y
+    ACTION_BAR_HEIGHT = reader_consts_and_types.ACTION_BAR_SIZE_Y
     ACTION_BAR_BACKGROUND_PATH = get_barks_reader_action_bar_background_file()
     ACTION_BAR_GROUP_BACKGROUND_PATH = get_barks_reader_action_bar_group_background_file()
     ACTION_BAR_TRANSPARENT_BLANK_PATH = get_barks_reader_transparent_blank_file()
+    ACTION_BAR_BACKGROUND_COLOR = (0.6, 0.7, 0.2, 1)
+    ACTION_BUTTON_BACKGROUND_COLOR = (0.6, 1.0, 0.2, 1)
 
     DEBUG_BACKGROUND_OPACITY = 0
 

@@ -62,9 +62,9 @@
         id: action_bar
         x: 0
         y: 0
-        size:root.width, root.ACTION_BAR_SIZE_Y
+        size: root.width, root.ACTION_BAR_HEIGHT
         background_image: root.ACTION_BAR_BACKGROUND_PATH
-        background_color: 0.6, 0.7, 0.2, 1
+        background_color: root.ACTION_BAR_BACKGROUND_COLOR
 
         ActionView:
             use_separator: False
@@ -80,7 +80,7 @@
                 text: 'Quit'
                 draggable: False
                 background_normal: root.ACTION_BAR_BACKGROUND_PATH
-                background_color: 0.6, 1.0, 0.2, 1
+                background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
                 on_release: app.on_action_bar_quit()
 
             ActionSeparator:
@@ -89,20 +89,20 @@
                 text: 'Collapse'
                 draggable: False
                 background_normal: root.ACTION_BAR_BACKGROUND_PATH
-                background_color: 0.6, 1.0, 0.2, 1
+                background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
                 on_release: root.on_action_bar_collapse()
 
             ActionButton:
                 text: 'Change Pics'
                 draggable: False
                 background_normal: root.ACTION_BAR_BACKGROUND_PATH
-                background_color: 0.6, 1.0, 0.2, 1
+                background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
                 on_release: root.on_action_bar_change_view_images()
 
             ActionGroup:
                 canvas.before:
                     Color:
-                        rgba: 0.6, 1.0, 0.2, 1
+                        rgba: root.ACTION_BUTTON_BACKGROUND_COLOR
                     Rectangle:
                         pos: self.pos
                         size: self.size
@@ -111,9 +111,8 @@
                 text: "Goto"
                 #width: self.texture_size[0] + dp(2)
                 draggable: False
-                #background_normal: ""
                 background_normal: root.ACTION_BAR_TRANSPARENT_BLANK_PATH
-                background_color: 0.6, 1.0, 0.2, 1
+                background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
                 mode: "spinner"
                 mipmap: True
 

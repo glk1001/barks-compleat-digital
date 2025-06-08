@@ -1,0 +1,77 @@
+<ComicReaderScreen>:
+    orientation: "vertical"
+
+    ActionBar:
+        id: comic_action_bar
+        height: root.ACTION_BAR_HEIGHT
+        background_image: root.ACTION_BAR_BACKGROUND_PATH
+        background_color: root.ACTION_BAR_BACKGROUND_COLOR
+
+        ActionView:
+            use_separator: False
+
+            ActionPrevious:
+                id: action_title
+                title: "test title" # Will be set dynamically
+                with_previous: False
+                app_icon: root.APP_ICON_FILE
+
+            ActionOverflow:
+
+            ActionButton:
+                size_hint_x: None
+                width: dp(30)
+                id: close_button
+                icon: root.ACTION_BAR_CLOSE_ICON
+                #text: "Close"
+                draggable: False
+                background_normal: root.ACTION_BAR_BACKGROUND_PATH
+                background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
+                on_press: root.comic_reader_widget.close(root.ids.fullscreen_button)
+
+            ActionButton:
+                id: fullscreen_button
+                #text: "Fullscreen"
+                icon: root.ACTION_BAR_FULLSCREEN_ICON
+                draggable: False
+                background_normal: root.ACTION_BAR_BACKGROUND_PATH
+                background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
+                on_press: root.comic_reader_widget.toggle_fullscreen(self)
+
+            ActionSeparator:
+
+            ActionButton:
+                id: goto_start_page_button
+                icon: root.ACTION_BAR_GOTO_START_ICON
+                text: "Goto Start"
+                draggable: False
+                background_normal: root.ACTION_BAR_BACKGROUND_PATH
+                background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
+                on_press: root.comic_reader_widget.goto_start_page(self)
+
+            ActionButton:
+                id: prev_page_button
+                icon: root.ACTION_BAR_PREV_ICON
+                text: "Previous"
+                draggable: False
+                background_normal: root.ACTION_BAR_BACKGROUND_PATH
+                background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
+                on_press: root.comic_reader_widget.prev_page(self)
+
+            ActionButton:
+                id: next_page_button
+                icon: root.ACTION_BAR_NEXT_ICON
+                text: "Next"
+                draggable: False
+                background_normal: root.ACTION_BAR_BACKGROUND_PATH
+                background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
+                on_press: root.comic_reader_widget.next_page(self)
+
+            ActionButton:
+                id: goto_last_page_button
+                icon: root.ACTION_BAR_GOTO_END_ICON
+                text: "Goto End"
+                draggable: False
+                background_normal: root.ACTION_BAR_BACKGROUND_PATH
+                background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
+                on_press: root.comic_reader_widget.goto_last_page(self)

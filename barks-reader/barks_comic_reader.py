@@ -6,31 +6,31 @@ import threading
 import zipfile
 from pathlib import Path
 from threading import Thread
-from typing import Callable
+from typing import Callable, IO
 
 from PIL import Image as PilImage, ImageOps
 from kivy.clock import Clock
 from kivy.core.image import Image as CoreImage
 from kivy.core.window import Window
+from kivy.lang import Builder
 from kivy.properties import NumericProperty, StringProperty
-from kivy.uix.actionbar import (
-    ActionBar,
-    ActionView,
-    ActionPrevious,
-    ActionButton,
-    ActionSeparator,
-    ActionOverflow,
-)
+from kivy.uix.actionbar import ActionBar, ActionButton
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.image import Image
 from kivy.uix.screenmanager import Screen
 from screeninfo import get_monitors
 
+from barks_fantagraphics.comics_consts import PNG_FILE_EXT, JPG_FILE_EXT
 from file_paths import (
     get_barks_reader_action_bar_background_file,
     get_barks_reader_close_icon_file,
     get_barks_reader_fullscreen_icon_file,
     get_barks_reader_app_icon_file,
+    get_barks_reader_next_icon_file,
+    get_barks_reader_previous_icon_file,
+    get_barks_reader_goto_start_icon_file,
+    get_barks_reader_goto_end_icon_file,
+    get_barks_reader_fullscreen_exit_icon_file,
 )
 from reader_consts_and_types import ACTION_BAR_SIZE_Y
 
@@ -47,6 +47,7 @@ class ComicReader(BoxLayout):
     def __init__(self, close_reader_func: Callable, **kwargs):
         super().__init__(**kwargs)
 
+        self.root = None
         self.action_bar = None
         self.close_reader_func = close_reader_func
 
@@ -222,17 +223,22 @@ class ComicReader(BoxLayout):
         self.current_page_index = 0
         logging.debug(f"First image loaded: current page index = {self.current_page_index}.")
 
-    def get_image_data(self, file: zipfile.ZipExtFile, ext: str) -> io.BytesIO:
-        assert ext in [".png", ".jpg"]
-        image_format = "jpeg" if ext == "jpeg" else "png"
+    @staticmethod
+    def get_image_format(ext: str) -> str:
+        return "jpeg" if ext == JPG_FILE_EXT else PNG_FILE_EXT
+
+    def get_image_data(self, file: IO[bytes], ext: str) -> io.BytesIO:
+        assert ext in [PNG_FILE_EXT, JPG_FILE_EXT]
+
         img_data = PilImage.open(io.BytesIO(file.read()))
         img_data = ImageOps.contain(
             img_data,
             (self.MAX_WINDOW_HEIGHT, self.MAX_WINDOW_WIDTH),
             PilImage.Resampling.LANCZOS,
         )
+
         data = io.BytesIO()
-        img_data.save(data, format=image_format)
+        img_data.save(data, format=self.get_image_format(ext))
 
         return data
 
@@ -265,6 +271,22 @@ class ComicReader(BoxLayout):
         except Exception as e:
             logging.error(f"Error displaying image with index {self.current_page_index}: {e}")
             # Optionally display a placeholder image or error message
+
+    def goto_start_page(self, _instance):
+        """Goes to the first page."""
+        if self.current_page_index == self.first_page_index:
+            logging.info(f"Already on the first page: current index = {self.current_page_index}.")
+        else:
+            logging.info(f"Goto start page requested: requested index = {self.first_page_index}.")
+            self.current_page_index = self.first_page_index
+
+    def goto_last_page(self, _instance):
+        """Goes to the last page."""
+        if self.current_page_index == self.last_page_index:
+            logging.info(f"Already on the last page: current index = {self.current_page_index}.")
+        else:
+            logging.info(f"Last page requested: requested index = {self.last_page_index}.")
+            self.current_page_index = self.last_page_index
 
     def next_page(self, _instance):
         """Goes to the next page."""
@@ -299,10 +321,12 @@ class ComicReader(BoxLayout):
             Window.fullscreen = False
             self.show_action_bar()
             button.text = "Fullscreen"
+            button.icon = self.root.ACTION_BAR_FULLSCREEN_ICON
             logging.info("Exiting fullscreen.")
         else:
             self.hide_action_bar()
             button.text = "Windowed"
+            button.icon = self.root.ACTION_BAR_FULLSCREEN_EXIT_ICON
             Window.fullscreen = "auto"  # Use 'auto' for best platform behavior
             logging.info("Entering fullscreen.")
 
@@ -340,58 +364,36 @@ class ComicReader(BoxLayout):
 
 
 class ComicReaderScreen(BoxLayout, Screen):
-    pass
+    APP_ICON_FILE = get_barks_reader_app_icon_file()
+    ACTION_BAR_HEIGHT = ACTION_BAR_SIZE_Y
+    ACTION_BAR_BACKGROUND_PATH = get_barks_reader_action_bar_background_file()
+    ACTION_BAR_BACKGROUND_COLOR = (0.6, 0.7, 0.2, 1)
+    ACTION_BUTTON_BACKGROUND_COLOR = (0.6, 1.0, 0.2, 1)
+    ACTION_BAR_CLOSE_ICON = get_barks_reader_close_icon_file()
+    ACTION_BAR_FULLSCREEN_ICON = get_barks_reader_fullscreen_icon_file()
+    ACTION_BAR_FULLSCREEN_EXIT_ICON = get_barks_reader_fullscreen_exit_icon_file()
+    ACTION_BAR_NEXT_ICON = get_barks_reader_next_icon_file()
+    ACTION_BAR_PREV_ICON = get_barks_reader_previous_icon_file()
+    ACTION_BAR_GOTO_START_ICON = get_barks_reader_goto_start_icon_file()
+    ACTION_BAR_GOTO_END_ICON = get_barks_reader_goto_end_icon_file()
+
+    def __init__(self, comic_reader_widget: ComicReader, **kwargs):
+        super().__init__(**kwargs)
+        self.comic_reader_widget = comic_reader_widget
+
+
+KV_FILE = Path(__file__).stem + ".kv"
 
 
 def get_barks_comic_reader(close_reader_func: Callable, screen_name: str):
-    # Create the main layout with ActionBar at the top
-    root = ComicReaderScreen(name=screen_name, orientation="vertical")
+    Builder.load_file(KV_FILE)
 
     comic_reader_widget = ComicReader(close_reader_func)
 
-    # Create the ActionBar
-    action_bar = ActionBar(
-        height=ACTION_BAR_SIZE_Y,
-        background_image=get_barks_reader_action_bar_background_file(),
-        background_color=(0.6, 0.7, 0.2, 1),
-    )
-    action_view = ActionView(use_separator=False)
-    action_previous = ActionPrevious(
-        title="",
-        with_previous=False,
-        app_icon=get_barks_reader_app_icon_file(),
-    )
-    action_view.add_widget(action_previous)
+    root = ComicReaderScreen(comic_reader_widget, name=screen_name)
 
-    action_view.add_widget(ActionOverflow())
-
-    action_view.add_widget(ActionSeparator())
-
-    fullscreen_button = ActionButton(
-        icon=get_barks_reader_fullscreen_icon_file(),
-        text="Fullscreen",
-        draggable=False,
-        background_normal=get_barks_reader_action_bar_background_file(),
-        background_color=(0.6, 1.0, 0.2, 1),
-    )
-    fullscreen_button.bind(on_press=lambda button: comic_reader_widget.toggle_fullscreen(button))
-    action_view.add_widget(fullscreen_button)
-
-    close_button = ActionButton(
-        icon=get_barks_reader_close_icon_file(),
-        text="Close",
-        draggable=False,
-        background_normal=get_barks_reader_action_bar_background_file(),
-        background_color=(0.6, 1.0, 0.2, 1),
-    )
-    close_button.bind(on_press=lambda x: comic_reader_widget.close(fullscreen_button))
-    action_view.add_widget(close_button)
-
-    action_bar.add_widget(action_view)
-
-    root.add_widget(action_bar)
-
-    comic_reader_widget.set_action_bar(action_bar)
+    comic_reader_widget.root = root
+    comic_reader_widget.set_action_bar(root.ids.comic_action_bar)
     root.add_widget(comic_reader_widget)
 
     return root
