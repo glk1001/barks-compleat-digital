@@ -33,6 +33,7 @@ BARKS_READER_FULLSCREEN_EXIT_ICON_PATH = os.path.join(
 )
 BARKS_READER_NEXT_ICON_PATH = os.path.join(BARKS_READER_FILES_DIR, "icon-next.png")
 BARKS_READER_PREV_ICON_PATH = os.path.join(BARKS_READER_FILES_DIR, "icon-previous.png")
+BARKS_READER_GOTO_ICON_PATH = os.path.join(BARKS_READER_FILES_DIR, "icon-goto.png")
 BARKS_READER_GOTO_START_ICON_PATH = os.path.join(BARKS_READER_FILES_DIR, "icon-goto-start.png")
 BARKS_READER_GOTO_END_ICON_PATH = os.path.join(BARKS_READER_FILES_DIR, "icon-goto-end.png")
 BARKS_READER_ACTION_BAR_BACKGROUND_PATH = os.path.join(
@@ -77,6 +78,7 @@ def check_dirs_and_files() -> None:
         BARKS_READER_FULLSCREEN_EXIT_ICON_PATH,
         BARKS_READER_NEXT_ICON_PATH,
         BARKS_READER_PREV_ICON_PATH,
+        BARKS_READER_GOTO_ICON_PATH,
         BARKS_READER_GOTO_START_ICON_PATH,
         BARKS_READER_GOTO_END_ICON_PATH,
         BARKS_READER_ACTION_BAR_BACKGROUND_PATH,
@@ -171,6 +173,10 @@ def get_barks_reader_next_icon_file() -> str:
 
 def get_barks_reader_previous_icon_file() -> str:
     return BARKS_READER_PREV_ICON_PATH
+
+
+def get_barks_reader_goto_icon_file() -> str:
+    return BARKS_READER_GOTO_ICON_PATH
 
 
 def get_barks_reader_goto_start_icon_file() -> str:
