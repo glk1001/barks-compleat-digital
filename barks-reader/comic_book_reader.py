@@ -58,8 +58,9 @@ class GotoPageDropDown(DropDown):
     def on_key_down(self, instance, key, scancode, codepoint, modifiers):
         if key == 27 and self.get_parent_window():
             self.key_down_func()
+            return True
 
-        return True
+        return False
 
 
 class ComicBookReader(BoxLayout):

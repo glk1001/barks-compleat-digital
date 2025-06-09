@@ -33,8 +33,8 @@
 
     TextInput:
         id: title_search_box
-        text: root.text
-        on_text: root.text = self.text
+        text: root.text  # Allow the root widget to deal with text
+        on_text: root.text = self.text  # Allow 'text' bind on root widget
         font_size: sp(16)
         multiline: False
         foreground_color: root.TEXT_COLOR
