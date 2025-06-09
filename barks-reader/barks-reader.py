@@ -48,6 +48,7 @@ class BarksReaderApp(App):
         filtered_title_lists = FilteredTitleLists()
         reader_tree_events = ReaderTreeBuilderEventDispatcher()
         self.main_screen = MainScreen(
+            self.comics_database,
             reader_tree_events,
             filtered_title_lists,
             self.switch_to_comic_book_reader,
