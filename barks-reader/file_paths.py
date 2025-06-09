@@ -266,6 +266,7 @@ def get_files(parent_image_dir: str, title: str, use_edited: bool) -> List[str]:
             edited_image_file = os.path.join(edited_image_dir, Path(file).stem + PNG_FILE_EXT)
             if os.path.isfile(edited_image_file):
                 image_files.append(edited_image_file)
+                continue
 
         image_file = os.path.join(image_dir, file)
         if os.path.isfile(image_file):
