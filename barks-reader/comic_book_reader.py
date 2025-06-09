@@ -41,12 +41,28 @@ from file_paths import (
 from reader_consts_and_types import ACTION_BAR_SIZE_Y
 
 
+def get_popup_title_height() -> int:
+    # See https://stackoverflow.com/questions/53148148/kivy-popup-dynamic-height
+    popup_title_height = 0
+    popup_title_height += dp(33)  # for popup label
+    popup_title_height += dp(4)  # for popup line widget
+    popup_title_height += dp(24)  # for popup padding
+    popup_title_height += dp(2)  # for spacing between main popup widgets
+
+    return popup_title_height
+
+
 class GotoPagePopup(Popup):
     BUTTON_HEIGHT = dp(25)
     X_POS_FRAC_OF_WIDTH = 0.97
     Y_POS_FRAC_OF_HEIGHT = 0.97
     POPUP_FRAC_OF_HEIGHT = 0.975
+    POPUP_TITLE_HEIGHT = get_popup_title_height()
     popup_height = NumericProperty(0)
+
+    BUTTON_BODY_COLOR = (0, 1, 1, 1)
+    BUTTON_NONBODY_COLOR = (0, 0.5, 0.5, 1)
+    BUTTON_CURRENT_PAGE_COLOR = (1, 1, 0, 1)
 
     def close(self):
         self.close_func()
@@ -81,7 +97,6 @@ class ComicBookReader(BoxLayout):
 
         self.goto_page_popup = GotoPagePopup()
         self.goto_page_popup.ids.dropdown.key_down_func = self.on_dropdown_escape
-        self.goto_page_popup_title_height = self.get_goto_page_popup_title_height()
         self.goto_page_dropdown = self.goto_page_popup.ids.dropdown
         self.goto_page_dropdown.bind(on_select=self.on_page_selected)
 
@@ -382,36 +397,33 @@ class ComicBookReader(BoxLayout):
 
         self.goto_page_popup.height = min(
             round(self.goto_page_popup.POPUP_FRAC_OF_HEIGHT * self.height),
-            self.goto_page_popup_title_height
-            + (0 + self.goto_page_popup.BUTTON_HEIGHT)
+            self.goto_page_popup.POPUP_TITLE_HEIGHT
+            + self.goto_page_popup.BUTTON_HEIGHT
             * (self.last_page_index - self.first_page_index + 1),
         )
 
-        for page, page_info in self.page_to_index_map.items():
+        selected_button = None
+        for page, (page_index, page_type) in self.page_to_index_map.items():
             page_num_button = Button(
                 text=str(page),
                 size_hint_y=None,
                 height=self.goto_page_popup.BUTTON_HEIGHT,
-                bold=page_info[1] == PageType.BODY,
+                bold=page_type == PageType.BODY,
                 background_color=(
-                    (0, 1, 1, 1) if page_info[1] == PageType.BODY else (0, 0.5, 0.5, 1)
+                    self.goto_page_popup.BUTTON_BODY_COLOR
+                    if page_type == PageType.BODY
+                    else self.goto_page_popup.BUTTON_NONBODY_COLOR
                 ),
             )
             page_num_button.bind(on_press=lambda btn: self.goto_page_dropdown.select(btn.text))
             self.goto_page_dropdown.add_widget(page_num_button)
 
+            if page_index == self.current_page_index:
+                selected_button = page_num_button
+                selected_button.background_color = self.goto_page_popup.BUTTON_CURRENT_PAGE_COLOR
+
+        self.goto_page_dropdown.scroll_to(selected_button)
         self.goto_page_popup.open()
-
-    @staticmethod
-    def get_goto_page_popup_title_height() -> int:
-        # See https://stackoverflow.com/questions/53148148/kivy-popup-dynamic-height
-        popup_title_height = 0
-        popup_title_height += dp(33)  # for popup label
-        popup_title_height += dp(4)  # for popup line widget
-        popup_title_height += dp(24)  # for popup padding
-        popup_title_height += dp(2)  # for spacing between main popup widgets
-
-        return popup_title_height
 
     def set_goto_page_popup_pos(self, _dt=0):
         self.goto_page_popup.x = round(self.goto_page_popup.X_POS_FRAC_OF_WIDTH * self.width)
