@@ -1,13 +1,25 @@
 import logging
 import sys
 from pathlib import Path
+from random import randrange
 
 from kivy import Config
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.lang import Builder
-from kivy.uix.screenmanager import ScreenManager
+from kivy.uix.screenmanager import (
+    ScreenManager,
+    RiseInTransition,
+    FallOutTransition,
+    FadeTransition,
+    WipeTransition,
+    SlideTransition,
+    NoTransition,
+    SwapTransition,
+    CardTransition,
+    TransitionBase,
+)
 from screeninfo import get_monitors
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs
@@ -31,6 +43,15 @@ DEFAULT_WINDOW_HEIGHT = round(0.96 * get_monitors()[0].height)
 DEFAULT_WINDOW_WIDTH = int(round(DEFAULT_WINDOW_HEIGHT / DEFAULT_ASPECT_RATIO))
 DEFAULT_LEFT_POS = 400
 DEFAULT_TOP_POS = 50
+
+SCREEN_TRANSITIONS = [
+    NoTransition(duration=0),
+    FadeTransition(),
+    FallOutTransition(),
+    RiseInTransition(),
+    SwapTransition(),
+    WipeTransition(),
+]
 
 
 # def get_str_pixel_width(text: str, **kwargs) -> int:
@@ -59,6 +80,15 @@ class BarksReaderApp(App):
         Window.left = DEFAULT_LEFT_POS
         Window.top = DEFAULT_TOP_POS
 
+        self.main_screen_transitions = SCREEN_TRANSITIONS + [
+            SlideTransition(direction="left"),
+            CardTransition(direction="left", mode="push"),
+        ]
+        self.comic_book_reader_screen_transitions = SCREEN_TRANSITIONS + [
+            SlideTransition(direction="right"),
+            CardTransition(direction="right", mode="pop"),
+        ]
+
     def build(self):
         logging.debug("Building app...")
 
@@ -83,10 +113,20 @@ class BarksReaderApp(App):
         App.get_running_app().stop()
         Window.close()
 
+    def get_next_main_screen_transition(self) -> TransitionBase:
+        transition_index = randrange(0, len(self.main_screen_transitions))
+        return self.main_screen_transitions[transition_index]
+
+    def get_next_reader_screen_transition(self) -> TransitionBase:
+        transition_index = randrange(0, len(self.comic_book_reader_screen_transitions))
+        return self.comic_book_reader_screen_transitions[transition_index]
+
     def switch_to_comic_book_reader(self):
+        self.screen_manager.transition = self.get_next_reader_screen_transition()
         self.screen_manager.current = COMIC_BOOK_READER
 
     def close_comic_book_reader(self):
+        self.screen_manager.transition = self.get_next_main_screen_transition()
         self.screen_manager.current = MAIN_READER_SCREEN
 
     def set_custom_title_bar(self):
