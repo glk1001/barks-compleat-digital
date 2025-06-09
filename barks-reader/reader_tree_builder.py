@@ -2,6 +2,7 @@ import logging
 from typing import List, Callable, Tuple, Dict, Union
 
 from kivy.clock import Clock
+from kivy.uix.button import Button
 from kivy.uix.treeview import TreeViewNode
 from kivy.utils import escape_markup
 
@@ -37,11 +38,6 @@ from barks_fantagraphics.fanta_comics_info import (
 )
 from filtered_title_lists import FilteredTitleLists
 from main_screen import MainScreen
-from reader_formatter import (
-    get_bold_markup_text,
-    get_markup_text_with_num_titles,
-    get_markup_text_with_extra,
-)
 from reader_consts_and_types import (
     INTRO_NODE_TEXT,
     THE_STORIES_NODE_TEXT,
@@ -52,9 +48,13 @@ from reader_consts_and_types import (
     APPENDIX_NODE_TEXT,
     INDEX_NODE_TEXT,
 )
+from reader_formatter import (
+    get_bold_markup_text,
+    get_markup_text_with_num_titles,
+    get_markup_text_with_extra,
+)
 from reader_ui_classes import (
     ReaderTreeView,
-    ReaderTreeBuilderEventDispatcher,
     MainTreeViewNode,
     StoryGroupTreeViewNode,
     YearRangeTreeViewNode,
@@ -64,6 +64,8 @@ from reader_ui_classes import (
     TagSearchBoxTreeViewNode,
     TitleTreeViewNode,
 )
+
+BUTTON_ON_PRESS_CALLABLE = Callable[[Button], None]
 
 
 class ReaderTreeBuilder:
@@ -75,7 +77,7 @@ class ReaderTreeBuilder:
         self.year_range_nodes: Dict[Tuple[int, int], TreeViewNode] = {}
         self.events = self.__main_screen.reader_tree_events
 
-        self.all_series_pressed_funcs = {
+        self.all_series_pressed_funcs: Dict[str, BUTTON_ON_PRESS_CALLABLE] = {
             SERIES_CS: self.__main_screen.cs_pressed,
             SERIES_DDA: self.__main_screen.dd_pressed,
             SERIES_USA: self.__main_screen.us_pressed,
@@ -303,7 +305,11 @@ class ReaderTreeBuilder:
         return num
 
     def __add_series_node(
-        self, tree: ReaderTreeView, series: str, on_pressed: Callable, parent_node: TreeViewNode
+        self,
+        tree: ReaderTreeView,
+        series: str,
+        on_pressed: BUTTON_ON_PRESS_CALLABLE,
+        parent_node: TreeViewNode,
     ) -> None:
         if series == SERIES_CS:
             self.__add_cs_node(tree, on_pressed, parent_node)
@@ -320,7 +326,7 @@ class ReaderTreeBuilder:
             tree.add_node(new_node, parent=parent_node)
 
     def __add_cs_node(
-        self, tree: ReaderTreeView, on_pressed: Callable, parent_node: TreeViewNode
+        self, tree: ReaderTreeView, on_pressed: BUTTON_ON_PRESS_CALLABLE, parent_node: TreeViewNode
     ) -> None:
         title_list = self.__main_screen.title_lists[SERIES_CS]
 
@@ -361,7 +367,7 @@ class ReaderTreeBuilder:
         return f"WDCS {first_issue}-{last_issue}"
 
     def __add_us_node(
-        self, tree: ReaderTreeView, on_pressed: Callable, parent_node: TreeViewNode
+        self, tree: ReaderTreeView, on_pressed: BUTTON_ON_PRESS_CALLABLE, parent_node: TreeViewNode
     ) -> None:
         title_list = self.__main_screen.title_lists[SERIES_USA]
 
@@ -464,7 +470,7 @@ class ReaderTreeBuilder:
     def __create_and_add_simple_node(
         tree: ReaderTreeView,
         text: str,
-        on_press_handler: Callable,
+        on_press_handler: BUTTON_ON_PRESS_CALLABLE,
         is_bold: bool = False,
         node_class: type = MainTreeViewNode,
         parent_node: TreeViewNode = None,
@@ -508,7 +514,7 @@ class ReaderTreeBuilder:
         self,
         tree: ReaderTreeView,
         year_range: Tuple[int, int],
-        on_press_handler: Callable,
+        on_press_handler: BUTTON_ON_PRESS_CALLABLE,
         get_title_key_func: Callable[[str], str],
         get_year_range_extra_text_func: Callable[[List[FantaComicBookInfo]], str],
         node_class: type,

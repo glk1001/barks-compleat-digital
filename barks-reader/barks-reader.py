@@ -10,18 +10,18 @@ from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager
 from screeninfo import get_monitors
 
-from barks_comic_reader import get_barks_comic_reader
 from barks_fantagraphics.comics_cmd_args import CmdArgs
 from barks_fantagraphics.comics_database import ComicsDatabase
 from barks_fantagraphics.comics_utils import setup_logging
+from comic_book_reader import get_barks_comic_reader
 from filtered_title_lists import FilteredTitleLists
 from main_screen import MainScreen
 from reader_tree_builder import ReaderTreeBuilder
 from reader_ui_classes import ReaderTreeBuilderEventDispatcher
 
 APP_TITLE = "The Compleat Barks Reader"
-MAIN_SCREEN = "main_screen"
-COMIC_READER = "comic_reader"
+MAIN_READER_SCREEN = "main_screen"
+COMIC_BOOK_READER = "comic_book_reader"
 
 KV_FILE = Path(__file__).stem + ".kv"
 
@@ -48,7 +48,10 @@ class BarksReaderApp(App):
         filtered_title_lists = FilteredTitleLists()
         reader_tree_events = ReaderTreeBuilderEventDispatcher()
         self.main_screen = MainScreen(
-            reader_tree_events, filtered_title_lists, self.switch_to_comic_reader, name=MAIN_SCREEN
+            reader_tree_events,
+            filtered_title_lists,
+            self.switch_to_comic_book_reader,
+            name=MAIN_READER_SCREEN,
         )
 
         Window.size = (DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
@@ -65,9 +68,9 @@ class BarksReaderApp(App):
 
         root = self.screen_manager
         root.add_widget(self.main_screen)
-        root.current = MAIN_SCREEN
+        root.current = MAIN_READER_SCREEN
 
-        comic_reader = get_barks_comic_reader(self.close_comic_reader, COMIC_READER)
+        comic_reader = get_barks_comic_reader(COMIC_BOOK_READER, self.close_comic_book_reader)
         root.add_widget(comic_reader)
 
         self.main_screen.comic_reader = comic_reader.children[0]
@@ -79,11 +82,11 @@ class BarksReaderApp(App):
         App.get_running_app().stop()
         Window.close()
 
-    def switch_to_comic_reader(self):
-        self.screen_manager.current = COMIC_READER
+    def switch_to_comic_book_reader(self):
+        self.screen_manager.current = COMIC_BOOK_READER
 
-    def close_comic_reader(self):
-        self.screen_manager.current = MAIN_SCREEN
+    def close_comic_book_reader(self):
+        self.screen_manager.current = MAIN_READER_SCREEN
 
     def set_custom_title_bar(self):
         Window.custom_titlebar = True

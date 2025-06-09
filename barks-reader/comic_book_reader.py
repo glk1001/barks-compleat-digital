@@ -61,7 +61,7 @@ class GotoPageDropDown(DropDown):
         return True
 
 
-class ComicReader(BoxLayout):
+class ComicBookReader(BoxLayout):
     """Main layout for the comic reader."""
 
     current_page_index = NumericProperty(0)
@@ -70,7 +70,7 @@ class ComicReader(BoxLayout):
     MAX_WINDOW_WIDTH = get_monitors()[0].width
     MAX_WINDOW_HEIGHT = get_monitors()[0].height
 
-    def __init__(self, close_reader_func: Callable, **kwargs):
+    def __init__(self, close_reader_func: Callable[[], None], **kwargs):
         super().__init__(**kwargs)
 
         self.root = None
@@ -471,7 +471,7 @@ class ComicReader(BoxLayout):
         )
 
 
-class ComicReaderScreen(BoxLayout, Screen):
+class ComicBookReaderScreen(BoxLayout, Screen):
     APP_ICON_FILE = get_barks_reader_app_icon_file()
     ACTION_BAR_HEIGHT = ACTION_BAR_SIZE_Y
     ACTION_BAR_BACKGROUND_PATH = get_barks_reader_action_bar_background_file()
@@ -487,23 +487,23 @@ class ComicReaderScreen(BoxLayout, Screen):
     ACTION_BAR_GOTO_START_ICON = get_barks_reader_goto_start_icon_file()
     ACTION_BAR_GOTO_END_ICON = get_barks_reader_goto_end_icon_file()
 
-    def __init__(self, comic_reader_widget: ComicReader, **kwargs):
+    def __init__(self, comic_book_reader_widget: ComicBookReader, **kwargs):
         super().__init__(**kwargs)
-        self.comic_reader_widget = comic_reader_widget
+        self.comic_reader_widget = comic_book_reader_widget
 
 
 KV_FILE = Path(__file__).stem + ".kv"
 
 
-def get_barks_comic_reader(close_reader_func: Callable, screen_name: str):
+def get_barks_comic_reader(screen_name: str, close_reader_func: Callable[[], None]):
     Builder.load_file(KV_FILE)
 
-    comic_reader_widget = ComicReader(close_reader_func)
+    comic_book_reader_widget = ComicBookReader(close_reader_func)
 
-    root = ComicReaderScreen(comic_reader_widget, name=screen_name)
+    root = ComicBookReaderScreen(comic_book_reader_widget, name=screen_name)
 
-    comic_reader_widget.root = root
-    comic_reader_widget.set_action_bar(root.ids.comic_action_bar)
-    root.add_widget(comic_reader_widget)
+    comic_book_reader_widget.root = root
+    comic_book_reader_widget.set_action_bar(root.ids.comic_action_bar)
+    root.add_widget(comic_book_reader_widget)
 
     return root

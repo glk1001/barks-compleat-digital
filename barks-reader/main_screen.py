@@ -119,7 +119,7 @@ class MainScreen(BoxLayout, Screen):
         self,
         reader_tree_events: ReaderTreeBuilderEventDispatcher,
         filtered_title_lists: FilteredTitleLists,
-        switch_to_comic_reader: Callable,
+        switch_to_comic_reader: Callable[[], None],
         **kwargs,
     ):
         super().__init__(**kwargs)
