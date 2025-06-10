@@ -126,6 +126,8 @@ class BarksReaderApp(App):
         self.screen_manager.current = COMIC_BOOK_READER
 
     def close_comic_book_reader(self):
+        self.main_screen.comic_closed()
+
         self.screen_manager.transition = self.get_next_main_screen_transition()
         self.screen_manager.current = MAIN_READER_SCREEN
 

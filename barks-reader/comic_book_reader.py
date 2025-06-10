@@ -3,7 +3,9 @@
 import io
 import logging
 import os.path
+import sys
 import threading
+import traceback
 import zipfile
 from collections import OrderedDict
 from dataclasses import dataclass
@@ -73,6 +75,7 @@ class ComicBookReader(BoxLayout):
         self.close_reader_func = close_reader_func
         self.goto_page_widget = goto_page_widget
         self.current_comic_path = ""
+        self.closed = False
 
         self.orientation = "vertical"
 
@@ -118,13 +121,8 @@ class ComicBookReader(BoxLayout):
             f" fullscreen_right_margin = {self.fullscreen_right_margin}."
         )
 
-    def close(self, fullscreen_button: ActionButton):
-        self.exit_fullscreen(fullscreen_button)
-
-        self.images.clear()
-        self.last_page_index = -1
-
-        self.close_reader_func()
+    def get_last_read_page(self) -> str:
+        return self.index_to_page_map[self.current_page_index]
 
     def set_action_bar(self, action_bar: ActionBar):
         self.action_bar = action_bar
@@ -187,6 +185,7 @@ class ComicBookReader(BoxLayout):
 
         assert page_to_first_goto in page_map
 
+        self.closed = False
         self.action_bar.action_view.action_previous.title = title_str
         self.current_comic_path = comic_path
         self.page_to_first_goto = page_to_first_goto
@@ -194,6 +193,16 @@ class ComicBookReader(BoxLayout):
         self.index_to_page_map = {self.page_map[page].page_index: page for page in self.page_map}
 
         self.load_current_comic_path()
+
+    def close_comic_book_reader(self, fullscreen_button: ActionButton):
+        self.closed = True
+
+        self.exit_fullscreen(fullscreen_button)
+
+        self.close_reader_func()
+
+        self.images.clear()
+        self.last_page_index = -1
 
     def load_current_comic_path(self):
         self.all_loaded = False
@@ -250,6 +259,7 @@ class ComicBookReader(BoxLayout):
         self.current_page_index = -1  # Reset page index
 
         try:
+            num_loaded = 0
             with zipfile.ZipFile(self.current_comic_path, "r") as archive:
                 first_loaded = False
 
@@ -260,11 +270,14 @@ class ComicBookReader(BoxLayout):
                     image_filename = os.path.join("images", page_info.image_filename)
                     with archive.open(image_filename) as file:
                         ext = Path(image_filename).suffix
+                        if self.closed:
+                            return
                         self.images[page_index] = self.get_image_data(file, ext)
+                        num_loaded += 1
 
                     self.image_loaded_events[page_index].set()
 
-                    if not first_loaded:
+                    if not first_loaded and not self.closed:
                         first_loaded = True
                         logging.info(
                             f"Loaded first image,"
@@ -272,9 +285,12 @@ class ComicBookReader(BoxLayout):
                         )
                         Clock.schedule_once(self.first_image_loaded, 0)
 
+            if self.closed:
+                return
+
             assert all(ev.is_set for ev in self.image_loaded_events)
             self.all_loaded = True
-            logging.info(f"Loaded {len(self.images)} images from {self.current_comic_path}.")
+            logging.info(f"Loaded {num_loaded} images from {self.current_comic_path}.")
 
             # Add .cbr support if rarfile is installed
             # elif comic_path.lower().endswith(('.cbr', '.rar')):
@@ -298,8 +314,18 @@ class ComicBookReader(BoxLayout):
         # except rarfile.BadRarFile:
         #      Logger.error(f"Bad rar file: {comic_path}")
         #      # Optionally show an error message to the user
+        except IndexError:
+            if self.closed:
+                logging.warning(
+                    f'Index error reading comic: probably because closed = "{self.closed}".'
+                )
+            else:
+                logging.error(f'Unexpected index error reading comic: closed = "{self.closed}".')
         except Exception as e:
-            logging.error(f'Error loading comic "{self.current_comic_path}": {e}')
+            _, _, tb = sys.exc_info()
+            tb_info = traceback.extract_tb(tb)
+            filename, line, func, text = tb_info[-1]
+            logging.error(f'Error loading comic: "{filename}:{line}" for statement "{text}".')
             # Optionally show a generic error message
 
     def first_image_loaded(self, _dt):

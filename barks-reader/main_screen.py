@@ -1,11 +1,13 @@
 import logging
 import os
 from collections import OrderedDict
+from dataclasses import dataclass
 from typing import Union, Dict, List, Callable
 
 from kivy.clock import Clock
 from kivy.metrics import dp, sp
 from kivy.properties import StringProperty, ColorProperty, NumericProperty
+from kivy.storage.jsonstore import JsonStore
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.screenmanager import Screen
@@ -20,6 +22,7 @@ from barks_fantagraphics.barks_tags import (
     is_tag_enum,
 )
 from barks_fantagraphics.barks_titles import ComicBookInfo, Titles, get_title_dict, BARKS_TITLES
+from barks_fantagraphics.comics_consts import PageType
 from barks_fantagraphics.comics_database import ComicsDatabase
 from barks_fantagraphics.comics_utils import get_dest_comic_zip_file_stem
 from barks_fantagraphics.fanta_comics_info import (
@@ -40,7 +43,7 @@ from barks_fantagraphics.pages import (
     ROMAN_NUMERALS,
 )
 from barks_fantagraphics.title_search import BarksTitleSearch
-from comic_book_reader import PageInfo
+from comic_book_reader import PageInfo, ComicBookReader
 from file_paths import (
     get_the_comic_zips_dir,
     get_comic_inset_file,
@@ -50,6 +53,7 @@ from file_paths import (
     get_barks_reader_action_bar_background_file,
     get_barks_reader_action_bar_group_background_file,
     get_barks_reader_transparent_blank_file,
+    get_barks_reader_user_data_file,
 )
 from filtered_title_lists import FilteredTitleLists
 from random_title_images import (
@@ -83,6 +87,13 @@ from reader_ui_classes import (
     TitleSearchBoxTreeViewNode,
     TagSearchBoxTreeViewNode,
 )
+
+
+@dataclass
+class ComicBookPageInfo:
+    page_map: OrderedDict[str, PageInfo]
+    last_body_page: str
+    last_page: str
 
 
 class MainScreen(BoxLayout, Screen):
@@ -143,6 +154,8 @@ class MainScreen(BoxLayout, Screen):
         self.title_search = BarksTitleSearch()
         self.all_fanta_titles = ALL_FANTA_COMIC_BOOK_INFO
 
+        self.store = JsonStore(get_barks_reader_user_data_file())
+
         self.formatter = ReaderFormatter()
         self.fanta_info: Union[FantaComicBookInfo, None] = None
         self.year_range_nodes = None
@@ -155,7 +168,7 @@ class MainScreen(BoxLayout, Screen):
         self.reader_tree_events = reader_tree_events
         self.reader_tree_events.bind(on_finished_building_event=self.on_tree_build_finished)
 
-        self.comic_book_reader = None
+        self.comic_book_reader: Union[ComicBookReader, None] = None
 
         self.top_view_image_title = None
         self.bottom_view_fun_image_title = None
@@ -550,20 +563,51 @@ class MainScreen(BoxLayout, Screen):
         )
 
         self.switch_to_comic_book_reader()
+
         comic_path = os.path.join(get_the_comic_zips_dir(), comic_file_stem + ".cbz")
-        page_index_to_first_goto = "i"
-        page_map = self.get_page_map(title_str)
-        self.comic_book_reader.read_comic(title_str, comic_path, page_index_to_first_goto, page_map)
+        comic_page_info = self.get_comic_page_info(title_str)
+        page_to_first_goto = self.get_page_to_first_goto(comic_page_info, title_str)
+
+        self.comic_book_reader.read_comic(
+            title_str, comic_path, page_to_first_goto, comic_page_info.page_map
+        )
 
         logging.debug(f"Comic book reader is running.")
 
-    def get_page_map(self, title_str: str) -> OrderedDict[str, PageInfo]:
+    def get_page_to_first_goto(self, comic_page_info: ComicBookPageInfo, title_str: str) -> str:
+        if not self.store.exists(title_str):
+            return "i"
+
+        last_read_page = self.store.get(title_str)["last_read_page"]
+        last_read_page_info = comic_page_info.page_map[last_read_page]
+
+        if (last_read_page_info.page_type in FRONT_MATTER_PAGES) or (
+            (last_read_page_info.page_type == PageType.BODY)
+            and (last_read_page != comic_page_info.last_body_page)
+        ):
+            page_to_first_goto = last_read_page
+        else:
+            page_to_first_goto = "i"
+
+        logging.debug(f'"{title_str}": There was a usable last read page "{page_to_first_goto}".')
+
+        return page_to_first_goto
+
+    def comic_closed(self):
+        title_str = self.fanta_info.comic_book_info.get_title_str()
+        last_read_page = self.comic_book_reader.get_last_read_page()
+        self.store.put(title_str, last_read_page=last_read_page)
+        logging.debug(f'"{title_str}": Saved last read page "{last_read_page}".')
+
+    def get_comic_page_info(self, title_str: str) -> ComicBookPageInfo:
         comic = self.comics_database.get_comic_book(title_str)
         pages = get_srce_and_dest_pages_in_order(comic)
         dest_pages = pages.dest_pages
 
+        last_body_page = ""
+        last_page = ""
+        page_map = OrderedDict()
         body_start_page_num = -1
-        page_to_index_map = OrderedDict()
         orig_page_num = 0
         for page in dest_pages:
             orig_page_num += 1
@@ -575,8 +619,11 @@ class MainScreen(BoxLayout, Screen):
                 orig_page_num - 1, page.page_type, os.path.basename(page.page_filename)
             )
             if body_start_page_num == -1:
-                page_to_index_map[ROMAN_NUMERALS[orig_page_num]] = page_info
+                page_map[ROMAN_NUMERALS[orig_page_num]] = page_info
             else:
-                page_to_index_map[str(orig_page_num - body_start_page_num + 1)] = page_info
+                last_page_str = str(orig_page_num - body_start_page_num + 1)
+                page_map[last_page_str] = page_info
+                if page.page_type == PageType.BODY:
+                    last_body_page = last_page_str
 
-        return page_to_index_map
+        return ComicBookPageInfo(page_map, last_body_page, last_page)

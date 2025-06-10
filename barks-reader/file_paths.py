@@ -43,6 +43,7 @@ BARKS_READER_ACTION_BAR_GROUP_BACKGROUND_PATH = os.path.join(
     BARKS_READER_FILES_DIR, "action-group-background.png"
 )
 BARKS_READER_TRANSPARENT_BLANK_PATH = os.path.join(BARKS_READER_FILES_DIR, "transparent-blank.png")
+BARKS_READER_USER_DATA_PATH = os.path.join(BARKS_READER_FILES_DIR, "barks-reader.json")
 
 EMERGENCY_INSET_FILE = Titles.BICEPS_BLUES
 EMERGENCY_INSET_FILE_PATH = os.path.join(
@@ -113,6 +114,10 @@ def get_the_comic_files_dir() -> str:
 
 def get_comic_inset_files_dir() -> str:
     return BARKS_READER_INSET_FILES_DIR
+
+
+def get_barks_reader_user_data_file() -> str:
+    return BARKS_READER_USER_DATA_PATH
 
 
 def get_comic_cover_files_dir() -> str:
