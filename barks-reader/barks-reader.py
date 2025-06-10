@@ -104,7 +104,7 @@ class BarksReaderApp(App):
         comic_reader = get_barks_comic_reader(COMIC_BOOK_READER, self.close_comic_book_reader)
         root.add_widget(comic_reader)
 
-        self.main_screen.comic_reader = comic_reader.children[0]
+        self.main_screen.comic_book_reader = comic_reader.children[0]
 
         return root
 

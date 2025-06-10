@@ -1,6 +1,7 @@
 import logging
 import os
-from typing import Union, Dict, List, Callable, Tuple
+from collections import OrderedDict
+from typing import Union, Dict, List, Callable
 
 from kivy.clock import Clock
 from kivy.metrics import dp, sp
@@ -19,7 +20,6 @@ from barks_fantagraphics.barks_tags import (
     is_tag_enum,
 )
 from barks_fantagraphics.barks_titles import ComicBookInfo, Titles, get_title_dict, BARKS_TITLES
-from barks_fantagraphics.comics_consts import PageType
 from barks_fantagraphics.comics_database import ComicsDatabase
 from barks_fantagraphics.comics_utils import get_dest_comic_zip_file_stem
 from barks_fantagraphics.fanta_comics_info import (
@@ -40,6 +40,7 @@ from barks_fantagraphics.pages import (
     ROMAN_NUMERALS,
 )
 from barks_fantagraphics.title_search import BarksTitleSearch
+from comic_book_reader import PageInfo
 from file_paths import (
     get_the_comic_zips_dir,
     get_comic_inset_file,
@@ -133,7 +134,7 @@ class MainScreen(BoxLayout, Screen):
         super().__init__(**kwargs)
 
         self.comics_database = comics_database
-        self.switch_to_comic_reader = switch_to_comic_reader
+        self.switch_to_comic_book_reader = switch_to_comic_reader
         self.filtered_title_lists: FilteredTitleLists = filtered_title_lists
         self.title_lists: Dict[str, List[FantaComicBookInfo]] = (
             filtered_title_lists.get_title_lists()
@@ -154,7 +155,7 @@ class MainScreen(BoxLayout, Screen):
         self.reader_tree_events = reader_tree_events
         self.reader_tree_events.bind(on_finished_building_event=self.on_tree_build_finished)
 
-        self.comic_reader = None
+        self.comic_book_reader = None
 
         self.top_view_image_title = None
         self.bottom_view_fun_image_title = None
@@ -548,20 +549,21 @@ class MainScreen(BoxLayout, Screen):
             f'Image "{self.title_page_image_source}" pressed. Want to run "{comic_file_stem}".'
         )
 
-        self.switch_to_comic_reader()
+        self.switch_to_comic_book_reader()
         comic_path = os.path.join(get_the_comic_zips_dir(), comic_file_stem + ".cbz")
-        page_to_index_map = self.get_page_to_index_map(title_str)
-        self.comic_reader.read_comic(title_str, comic_path, page_to_index_map)
+        page_index_to_first_goto = "i"
+        page_map = self.get_page_map(title_str)
+        self.comic_book_reader.read_comic(title_str, comic_path, page_index_to_first_goto, page_map)
 
-        logging.debug(f"Comic reader is running.")
+        logging.debug(f"Comic book reader is running.")
 
-    def get_page_to_index_map(self, title_str: str) -> Dict[str, Tuple[int, PageType]]:
+    def get_page_map(self, title_str: str) -> OrderedDict[str, PageInfo]:
         comic = self.comics_database.get_comic_book(title_str)
         pages = get_srce_and_dest_pages_in_order(comic)
         dest_pages = pages.dest_pages
 
         body_start_page_num = -1
-        page_to_index_map = {}
+        page_to_index_map = OrderedDict()
         orig_page_num = 0
         for page in dest_pages:
             orig_page_num += 1
@@ -569,7 +571,9 @@ class MainScreen(BoxLayout, Screen):
             if page.page_type not in FRONT_MATTER_PAGES and body_start_page_num == -1:
                 body_start_page_num = orig_page_num
 
-            page_info = (orig_page_num - 1, page.page_type)
+            page_info = PageInfo(
+                orig_page_num - 1, page.page_type, os.path.basename(page.page_filename)
+            )
             if body_start_page_num == -1:
                 page_to_index_map[ROMAN_NUMERALS[orig_page_num]] = page_info
             else:

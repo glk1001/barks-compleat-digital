@@ -2,11 +2,14 @@
 # import rarfile
 import io
 import logging
+import os.path
 import threading
 import zipfile
+from collections import OrderedDict
+from dataclasses import dataclass
 from pathlib import Path
 from threading import Thread
-from typing import Callable, IO, Dict, Tuple
+from typing import Callable, IO, List, Dict, Union
 
 from PIL import Image as PilImage, ImageOps
 from kivy.clock import Clock
@@ -14,7 +17,7 @@ from kivy.core.image import Image as CoreImage
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.metrics import dp
-from kivy.properties import NumericProperty, StringProperty
+from kivy.properties import NumericProperty
 from kivy.uix.actionbar import ActionBar, ActionButton
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -47,11 +50,17 @@ GOTO_PAGE_BUTTON_NONBODY_COLOR = (0, 0.5, 0.5, 1)
 GOTO_PAGE_BUTTON_CURRENT_PAGE_COLOR = (1, 1, 0, 1)
 
 
+@dataclass
+class PageInfo:
+    page_index: int
+    page_type: PageType
+    image_filename: str
+
+
 class ComicBookReader(BoxLayout):
     """Main layout for the comic reader."""
 
     current_page_index = NumericProperty(0)
-    current_comic_path = StringProperty("")
 
     MAX_WINDOW_WIDTH = get_monitors()[0].width
     MAX_WINDOW_HEIGHT = get_monitors()[0].height
@@ -63,6 +72,7 @@ class ComicBookReader(BoxLayout):
         self.action_bar = None
         self.close_reader_func = close_reader_func
         self.goto_page_widget = goto_page_widget
+        self.current_comic_path = ""
 
         self.orientation = "vertical"
 
@@ -71,13 +81,14 @@ class ComicBookReader(BoxLayout):
         self.comic_image.mipmap = False
         self.add_widget(self.comic_image)
 
-        self.images = []
-        self.image_names = []
-        self.image_loaded_events = []
-        self.first_page_index = -1
+        self.images: List[Union[None, io.BytesIO]] = []
+        self.image_load_order: List[str] = []
+        self.image_loaded_events: List[threading.Event] = []
+        self.page_to_first_goto = ""
         self.last_page_index = -1
         self.all_loaded = False
-        self.page_to_index_map = None
+        self.page_map: OrderedDict[str, PageInfo] = OrderedDict()
+        self.index_to_page_map: Dict[int, str] = {}
 
         # Bind property changes to update the display
         self.bind(current_page_index=self.show_page)
@@ -111,9 +122,6 @@ class ComicBookReader(BoxLayout):
         self.exit_fullscreen(fullscreen_button)
 
         self.images.clear()
-        self.images = []
-        self.image_names = []
-        self.first_page_index = -1
         self.last_page_index = -1
 
         self.close_reader_func()
@@ -166,74 +174,107 @@ class ComicBookReader(BoxLayout):
         return (x >= self.x_mid) and (y <= self.y_top_margin)
 
     def read_comic(
-        self, title_str: str, comic_path: str, page_to_index_map: Dict[str, Tuple[int, PageType]]
+        self,
+        title_str: str,
+        comic_path: str,
+        page_to_first_goto: str,
+        page_map: OrderedDict[str, PageInfo],
     ):
+        if not comic_path.endswith((".cbz", ".zip")):
+            raise Exception("Expected '.cbz' or '.zip' file.")
+        if not os.path.isfile(comic_path):
+            raise Exception(f'Could not find comic file "{comic_path}".')
+
+        assert page_to_first_goto in page_map
+
         self.action_bar.action_view.action_previous.title = title_str
         self.current_comic_path = comic_path
-        self.page_to_index_map = page_to_index_map
+        self.page_to_first_goto = page_to_first_goto
+        self.page_map = page_map
+        self.index_to_page_map = {self.page_map[page].page_index: page for page in self.page_map}
+
         self.load_current_comic_path()
 
     def load_current_comic_path(self):
         self.all_loaded = False
 
-        self.load_image_names()
+        self.init_first_and_last_page_index()
         self.init_load_events()
+        self.init_image_load_order()
 
-        t = Thread(target=self.load_comic, args=[self.current_comic_path])
+        t = Thread(target=self.load_comic, args=[])
         t.daemon = True
         t.start()
 
+    def init_first_and_last_page_index(self):
+        first_page_index = next(iter(self.page_map.values())).page_index
+
+        assert first_page_index == 0
+        self.last_page_index = next(reversed(self.page_map.values())).page_index
+        assert (self.last_page_index + 1) == len(self.page_map)
+
+    def init_image_load_order(self):
+        self.image_load_order.clear()
+        page_index_to_first_goto = self.page_map[self.page_to_first_goto].page_index
+
+        if page_index_to_first_goto == 0:
+            for page in self.page_map:
+                self.image_load_order.append(page)
+            return
+
+        self.image_load_order.append(self.page_to_first_goto)
+        prev_page = self.index_to_page_map[page_index_to_first_goto - 1]
+        self.image_load_order.append(prev_page)
+
+        for page_index in range(page_index_to_first_goto + 1, self.last_page_index + 1):
+            page = self.index_to_page_map[page_index]
+            self.image_load_order.append(page)
+
+        for page_index in range(page_index_to_first_goto - 2, -1, -1):
+            page = self.index_to_page_map[page_index]
+            self.image_load_order.append(page)
+
     def init_load_events(self):
-        self.image_loaded_events = []
-        for _name in self.image_names:
+        self.image_loaded_events.clear()
+        for _page in self.page_map:
             self.image_loaded_events.append(threading.Event())
 
-    def load_image_names(self):
-        if not self.current_comic_path.lower().endswith((".cbz", ".zip")):
-            raise Exception("Expected '.cbz' or '.zip' file.")
-
-        try:
-            with zipfile.ZipFile(self.current_comic_path, "r") as archive:
-                # Get image file names, sorted alphabetically
-                self.image_names = sorted(
-                    [f for f in archive.namelist() if f.lower().endswith((".png", ".jpg"))]
-                )
-
-            self.first_page_index = 0
-            self.last_page_index = len(self.image_names) - 1
-
-        except FileNotFoundError:
-            logging.error(f'Comic file not found: "{self.current_comic_path}".')
-            # Optionally show an error message to the user
-        except zipfile.BadZipFile:
-            logging.error(f'Bad zip file: "{self.current_comic_path}".')
-            # Optionally show an error message to the user
-        # except rarfile.BadRarFile:
-        #      Logger.error(f"Bad rar file: {self.current_comic_path}")
-        #      # Optionally show an error message to the user
-        except Exception as e:
-            logging.error(f'Error loading comic "{self.current_comic_path}": {e}')
-            # Optionally show a generic error message
-
-    def load_comic(self, comic_path):
+    def load_comic(self):
         """Loads images from the comic archive."""
-        self.images = []  # Clear previous images
+        assert not self.all_loaded
+        assert len(self.image_load_order) == len(self.page_map)
+        assert len(self.image_loaded_events) == len(self.page_map)
+        assert 0 <= self.last_page_index < len(self.page_map)
+
+        self.images = [None for _i in range(0, len(self.page_map))]
         self.current_page_index = -1  # Reset page index
 
         try:
-            with zipfile.ZipFile(comic_path, "r") as archive:
+            with zipfile.ZipFile(self.current_comic_path, "r") as archive:
                 first_loaded = False
-                for i, name in enumerate(self.image_names):
-                    with archive.open(name) as file:
-                        ext = Path(name).suffix
-                        self.images.append(self.get_image_data(file, ext))
-                    self.image_loaded_events[i].set()
+
+                for i in range(0, len(self.image_load_order)):
+                    page_info = self.page_map[self.image_load_order[i]]
+
+                    page_index = page_info.page_index
+                    image_filename = os.path.join("images", page_info.image_filename)
+                    with archive.open(image_filename) as file:
+                        ext = Path(image_filename).suffix
+                        self.images[page_index] = self.get_image_data(file, ext)
+
+                    self.image_loaded_events[page_index].set()
+
                     if not first_loaded:
                         first_loaded = True
+                        logging.info(
+                            f"Loaded first image,"
+                            f' index = {page_index}, image_filename = "{image_filename}".'
+                        )
                         Clock.schedule_once(self.first_image_loaded, 0)
 
+            assert all(ev.is_set for ev in self.image_loaded_events)
             self.all_loaded = True
-            logging.info(f"Loaded {len(self.images)} images from {comic_path}.")
+            logging.info(f"Loaded {len(self.images)} images from {self.current_comic_path}.")
 
             # Add .cbr support if rarfile is installed
             # elif comic_path.lower().endswith(('.cbr', '.rar')):
@@ -242,27 +283,27 @@ class ComicBookReader(BoxLayout):
             #             f for f in archive.namelist()
             #             if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp'))
             #         ])
-            #         for name in image_names:
-            #             with archive.open(name) as file:
+            #         for image_filename in image_names:
+            #             with archive.open(image_filename) as file:
             #                 img_data = io.BytesIO(file.read())
             #                 self.images.append(img_data)
             #     Logger.info(f"Loaded {len(self.images)} images from {comic_path}")
 
         except FileNotFoundError:
-            logging.error(f'Comic file not found: "{comic_path}".')
+            logging.error(f'Comic file not found: "{self.current_comic_path}".')
             # Optionally show an error message to the user
         except zipfile.BadZipFile:
-            logging.error(f'Bad zip file: "{comic_path}".')
+            logging.error(f'Bad zip file: "{self.current_comic_path}".')
             # Optionally show an error message to the user
         # except rarfile.BadRarFile:
         #      Logger.error(f"Bad rar file: {comic_path}")
         #      # Optionally show an error message to the user
         except Exception as e:
-            logging.error(f'Error loading comic "{comic_path}": {e}')
+            logging.error(f'Error loading comic "{self.current_comic_path}": {e}')
             # Optionally show a generic error message
 
     def first_image_loaded(self, _dt):
-        self.current_page_index = 0
+        self.current_page_index = self.page_map[self.page_to_first_goto].page_index
         logging.debug(f"First image loaded: current page index = {self.current_page_index}.")
 
     @staticmethod
@@ -291,13 +332,13 @@ class ComicBookReader(BoxLayout):
 
         logging.debug(
             f"Display image {self.current_page_index}:"
-            f' "{self.image_names[self.current_page_index]}".'
+            f' "{self.page_map[self.index_to_page_map[self.current_page_index]].image_filename}".'
         )
 
         self.wait_for_image_to_load()
 
         assert self.images
-        assert self.first_page_index <= self.current_page_index <= self.last_page_index
+        assert 0 <= self.current_page_index <= self.last_page_index
 
         try:
             # Kivy Image widget can load from BytesIO
@@ -316,11 +357,11 @@ class ComicBookReader(BoxLayout):
 
     def goto_start_page(self, _instance):
         """Goes to the first page."""
-        if self.current_page_index == self.first_page_index:
+        if self.current_page_index == 0:
             logging.info(f"Already on the first page: current index = {self.current_page_index}.")
         else:
-            logging.info(f"Goto start page requested: requested index = {self.first_page_index}.")
-            self.current_page_index = self.first_page_index
+            logging.info(f"Goto start page requested: requested index = 0.")
+            self.current_page_index = 0
 
     def goto_last_page(self, _instance):
         """Goes to the last page."""
@@ -340,8 +381,8 @@ class ComicBookReader(BoxLayout):
 
     def prev_page(self, _instance):
         """Goes to the previous page."""
-        if self.current_page_index == self.first_page_index:
-            logging.info(f"Already on the first page: current index = {self.current_page_index}.")
+        if self.current_page_index == 0:
+            logging.info(f"Already on the first page: current index = 0.")
         else:
             logging.info(f"Prev page requested: requested index = {self.current_page_index - 1}")
             self.current_page_index -= 1
@@ -360,22 +401,22 @@ class ComicBookReader(BoxLayout):
         )
 
         selected_button = None
-        for page, (page_index, page_type) in self.page_to_index_map.items():
+        for page, page_info in self.page_map.items():
             page_num_button = Button(
                 text=str(page),
                 size_hint_y=None,
                 height=GOTO_PAGE_BUTTON_HEIGHT,
-                bold=page_type == PageType.BODY,
+                bold=page_info.page_type == PageType.BODY,
                 background_color=(
                     GOTO_PAGE_BUTTON_BODY_COLOR
-                    if page_type == PageType.BODY
+                    if page_info.page_type == PageType.BODY
                     else GOTO_PAGE_BUTTON_NONBODY_COLOR
                 ),
             )
             page_num_button.bind(on_press=lambda btn: dropdown.select(btn.text))
             dropdown.add_widget(page_num_button)
 
-            if page_index == self.current_page_index:
+            if page_info.page_index == self.current_page_index:
                 selected_button = page_num_button
                 selected_button.background_color = GOTO_PAGE_BUTTON_CURRENT_PAGE_COLOR
 
@@ -383,7 +424,7 @@ class ComicBookReader(BoxLayout):
         dropdown.scroll_to(selected_button)
 
     def on_page_selected(self, _instance, page: str):
-        self.current_page_index = self.page_to_index_map[page][0]
+        self.current_page_index = self.page_map[page].page_index
 
     def wait_for_image_to_load(self):
         if self.all_loaded:
