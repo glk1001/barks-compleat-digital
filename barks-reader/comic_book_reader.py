@@ -20,8 +20,8 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
 from kivy.uix.image import Image
-from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
+from kivy.uix.widget import Widget
 from screeninfo import get_monitors
 
 from barks_fantagraphics.comics_consts import PNG_FILE_EXT, JPG_FILE_EXT, PageType
@@ -40,43 +40,11 @@ from file_paths import (
 )
 from reader_consts_and_types import ACTION_BAR_SIZE_Y
 
-
-def get_popup_title_height() -> int:
-    # See https://stackoverflow.com/questions/53148148/kivy-popup-dynamic-height
-    popup_title_height = 0
-    popup_title_height += dp(33)  # for popup label
-    popup_title_height += dp(4)  # for popup line widget
-    popup_title_height += dp(24)  # for popup padding
-    popup_title_height += dp(2)  # for spacing between main popup widgets
-
-    return popup_title_height
-
-
-class GotoPagePopup(Popup):
-    BUTTON_HEIGHT = dp(25)
-    X_POS_FRAC_OF_WIDTH = 0.97
-    Y_POS_FRAC_OF_HEIGHT = 0.97
-    POPUP_FRAC_OF_HEIGHT = 0.975
-    POPUP_TITLE_HEIGHT = get_popup_title_height()
-    popup_height = NumericProperty(0)
-
-    BUTTON_BODY_COLOR = (0, 1, 1, 1)
-    BUTTON_NONBODY_COLOR = (0, 0.5, 0.5, 1)
-    BUTTON_CURRENT_PAGE_COLOR = (1, 1, 0, 1)
-
-    def close(self):
-        self.close_func()
-
-
-class GotoPageDropDown(DropDown):
-    key_down_func = Callable[[], None]
-
-    def on_key_down(self, instance, key, scancode, codepoint, modifiers):
-        if key == 27 and self.get_parent_window():
-            self.key_down_func()
-            return True
-
-        return False
+GOTO_PAGE_DROPDOWN_FRAC_OF_HEIGHT = 0.97
+GOTO_PAGE_BUTTON_HEIGHT = dp(25)
+GOTO_PAGE_BUTTON_BODY_COLOR = (0, 1, 1, 1)
+GOTO_PAGE_BUTTON_NONBODY_COLOR = (0, 0.5, 0.5, 1)
+GOTO_PAGE_BUTTON_CURRENT_PAGE_COLOR = (1, 1, 0, 1)
 
 
 class ComicBookReader(BoxLayout):
@@ -88,17 +56,13 @@ class ComicBookReader(BoxLayout):
     MAX_WINDOW_WIDTH = get_monitors()[0].width
     MAX_WINDOW_HEIGHT = get_monitors()[0].height
 
-    def __init__(self, close_reader_func: Callable[[], None], **kwargs):
+    def __init__(self, close_reader_func: Callable[[], None], goto_page_widget: Widget, **kwargs):
         super().__init__(**kwargs)
 
         self.root = None
         self.action_bar = None
         self.close_reader_func = close_reader_func
-
-        self.goto_page_popup = GotoPagePopup()
-        self.goto_page_popup.ids.dropdown.key_down_func = self.on_dropdown_escape
-        self.goto_page_dropdown = self.goto_page_popup.ids.dropdown
-        self.goto_page_dropdown.bind(on_select=self.on_page_selected)
+        self.goto_page_widget = goto_page_widget
 
         self.orientation = "vertical"
 
@@ -142,8 +106,6 @@ class ComicBookReader(BoxLayout):
             f"Resize event: fullscreen_left_margin = {self.fullscreen_left_margin},"
             f" fullscreen_right_margin = {self.fullscreen_right_margin}."
         )
-
-        self.set_goto_page_popup_pos()
 
     def close(self, fullscreen_button: ActionButton):
         self.exit_fullscreen(fullscreen_button)
@@ -389,17 +351,12 @@ class ComicBookReader(BoxLayout):
     def goto_page(self, _instance):
         """Goes to user requested page."""
 
-        # BUG:? Have to set popup position here otherwise the popup starts moving to
-        # center after second use.
-        Clock.schedule_once(self.set_goto_page_popup_pos, 0)
-
-        self.goto_page_dropdown.clear_widgets()
-
-        self.goto_page_popup.height = min(
-            round(self.goto_page_popup.POPUP_FRAC_OF_HEIGHT * self.height),
-            self.goto_page_popup.POPUP_TITLE_HEIGHT
-            + self.goto_page_popup.BUTTON_HEIGHT
-            * (self.last_page_index - self.first_page_index + 1),
+        max_dropdown_height = round(GOTO_PAGE_DROPDOWN_FRAC_OF_HEIGHT * self.height)
+        dropdown = DropDown(
+            auto_dismiss=True,
+            dismiss_on_select=True,
+            on_select=self.on_page_selected,
+            max_height=max_dropdown_height,
         )
 
         selected_button = None
@@ -407,33 +364,25 @@ class ComicBookReader(BoxLayout):
             page_num_button = Button(
                 text=str(page),
                 size_hint_y=None,
-                height=self.goto_page_popup.BUTTON_HEIGHT,
+                height=GOTO_PAGE_BUTTON_HEIGHT,
                 bold=page_type == PageType.BODY,
                 background_color=(
-                    self.goto_page_popup.BUTTON_BODY_COLOR
+                    GOTO_PAGE_BUTTON_BODY_COLOR
                     if page_type == PageType.BODY
-                    else self.goto_page_popup.BUTTON_NONBODY_COLOR
+                    else GOTO_PAGE_BUTTON_NONBODY_COLOR
                 ),
             )
-            page_num_button.bind(on_press=lambda btn: self.goto_page_dropdown.select(btn.text))
-            self.goto_page_dropdown.add_widget(page_num_button)
+            page_num_button.bind(on_press=lambda btn: dropdown.select(btn.text))
+            dropdown.add_widget(page_num_button)
 
             if page_index == self.current_page_index:
                 selected_button = page_num_button
-                selected_button.background_color = self.goto_page_popup.BUTTON_CURRENT_PAGE_COLOR
+                selected_button.background_color = GOTO_PAGE_BUTTON_CURRENT_PAGE_COLOR
 
-        self.goto_page_dropdown.scroll_to(selected_button)
-        self.goto_page_popup.open()
-
-    def set_goto_page_popup_pos(self, _dt=0):
-        self.goto_page_popup.x = round(self.goto_page_popup.X_POS_FRAC_OF_WIDTH * self.width)
-        self.goto_page_popup.y = round(self.goto_page_popup.Y_POS_FRAC_OF_HEIGHT * self.height)
-
-    def on_dropdown_escape(self):
-        self.goto_page_popup.dismiss()
+        dropdown.open(self.goto_page_widget)
+        dropdown.scroll_to(selected_button)
 
     def on_page_selected(self, _instance, page: str):
-        self.goto_page_popup.dismiss()
         self.current_page_index = self.page_to_index_map[page][0]
 
     def wait_for_image_to_load(self):
@@ -511,9 +460,13 @@ class ComicBookReaderScreen(BoxLayout, Screen):
     ACTION_BAR_GOTO_START_ICON = get_barks_reader_goto_start_icon_file()
     ACTION_BAR_GOTO_END_ICON = get_barks_reader_goto_end_icon_file()
 
-    def __init__(self, comic_book_reader_widget: ComicBookReader, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.comic_reader_widget = comic_book_reader_widget
+        self.comic_book_reader_widget = None
+
+    def add_reader_widget(self, comic_book_reader_widget: ComicBookReader):
+        self.comic_book_reader_widget = comic_book_reader_widget
+        self.add_widget(self.comic_book_reader_widget)
 
 
 KV_FILE = Path(__file__).stem + ".kv"
@@ -522,12 +475,13 @@ KV_FILE = Path(__file__).stem + ".kv"
 def get_barks_comic_reader(screen_name: str, close_reader_func: Callable[[], None]):
     Builder.load_file(KV_FILE)
 
-    comic_book_reader_widget = ComicBookReader(close_reader_func)
+    root = ComicBookReaderScreen(name=screen_name)
 
-    root = ComicBookReaderScreen(comic_book_reader_widget, name=screen_name)
+    comic_book_reader_widget = ComicBookReader(close_reader_func, root.ids.goto_page_button)
 
     comic_book_reader_widget.root = root
     comic_book_reader_widget.set_action_bar(root.ids.comic_action_bar)
-    root.add_widget(comic_book_reader_widget)
+
+    root.add_reader_widget(comic_book_reader_widget)
 
     return root

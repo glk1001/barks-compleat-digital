@@ -1,20 +1,3 @@
-<GotoPagePopup>:
-    title: "Page"
-    title_align: "center"
-    title_color: (1,1,1,1)
-    background_color: (0.6, 1.0, 0.2, 1)
-    size_hint: None, None
-    width: dp(75)
-    pos_hint: {'right': root.X_POS_FRAC_OF_WIDTH, 'top': root.Y_POS_FRAC_OF_HEIGHT}
-    separator_height: dp(0)
-    auto_dismiss: True  # Dismiss the popup if the user touches outside of it
-
-    GotoPageDropDown:
-        id: dropdown
-        size_hint: 1, 1
-        auto_dismiss: False
-        dismiss_on_select: False
-
 <ComicBookReaderScreen>:
     orientation: "vertical"
 
@@ -44,7 +27,7 @@
                 draggable: False
                 background_normal: root.ACTION_BAR_BACKGROUND_PATH
                 background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
-                on_press: root.comic_reader_widget.close(root.ids.fullscreen_button)
+                on_press: root.comic_book_reader_widget.close(root.ids.fullscreen_button)
 
             ActionButton:
                 id: fullscreen_button
@@ -55,7 +38,7 @@
                 draggable: False
                 background_normal: root.ACTION_BAR_BACKGROUND_PATH
                 background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
-                on_press: root.comic_reader_widget.toggle_fullscreen(self)
+                on_press: root.comic_book_reader_widget.toggle_fullscreen(self)
 
             ActionSeparator:
 
@@ -67,7 +50,7 @@
                 draggable: False
                 background_normal: root.ACTION_BAR_BACKGROUND_PATH
                 background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
-                on_press: root.comic_reader_widget.goto_start_page(self)
+                on_press: root.comic_book_reader_widget.goto_start_page(self)
 
             ActionButton:
                 id: goto_last_page_button
@@ -77,7 +60,7 @@
                 draggable: False
                 background_normal: root.ACTION_BAR_BACKGROUND_PATH
                 background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
-                on_press: root.comic_reader_widget.goto_last_page(self)
+                on_press: root.comic_book_reader_widget.goto_last_page(self)
 
             ActionButton:
                 id: goto_page_button
@@ -87,4 +70,4 @@
                 draggable: False
                 background_normal: root.ACTION_BAR_BACKGROUND_PATH
                 background_color: root.ACTION_BUTTON_BACKGROUND_COLOR
-                on_press: root.comic_reader_widget.goto_page(self)
+                on_press: root.comic_book_reader_widget.goto_page(self)
