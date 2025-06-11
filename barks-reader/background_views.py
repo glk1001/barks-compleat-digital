@@ -23,7 +23,8 @@ from file_paths import get_comic_inset_file
 from filtered_title_lists import FilteredTitleLists
 from random_title_images import get_random_image, get_random_search_image
 from reader_colors import RandomColorTint
-from reader_consts_and_types import Color, get_formatted_color
+from reader_consts_and_types import Color
+from reader_utils import get_formatted_color
 
 
 class ViewStates(Enum):
@@ -68,7 +69,10 @@ class BackgroundViews:
         self.all_fanta_titles = all_fanta_titles
         self.title_lists = title_lists
 
-        self.__random_color_tint = RandomColorTint()
+        self.__top_view_image_random_color_tint = RandomColorTint(30, 50)
+        self.__bottom_view_fun_image_random_color_tint = RandomColorTint(80, 50)
+        self.__bottom_view_title_image_random_color_tint = RandomColorTint(30, 70)
+        self.__bottom_view_title_image_random_color_tint.set_full_color_alpha_range(100, 150)
 
         self.__top_view_image_opacity = 0.0
         self.__top_view_image_title = None
@@ -219,6 +223,8 @@ class BackgroundViews:
                 | ViewStates.ON_CHRONO_BY_YEAR_NODE
                 | ViewStates.ON_SERIES_NODE
                 | ViewStates.ON_CATEGORIES_NODE
+                # TODO: Save parent node as the state to use??
+                | ViewStates.ON_TITLE_NODE
             ):
                 self.__set_top_view_image_for_stories()
             case ViewStates.ON_CS_NODE:
@@ -245,8 +251,6 @@ class BackgroundViews:
                 self.__set_top_view_image_for_category()
             case ViewStates.ON_TAG_NODE:
                 self.__set_top_view_image_for_tag()
-            case ViewStates.ON_TITLE_NODE:
-                pass
             case (
                 ViewStates.ON_SEARCH_NODE
                 | ViewStates.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET
@@ -388,7 +392,7 @@ class BackgroundViews:
         self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
 
     def __set_top_view_image_color(self):
-        self.__top_view_image_color = self.__random_color_tint.get_random_color()
+        self.__top_view_image_color = self.__top_view_image_random_color_tint.get_random_color()
 
     def __set_bottom_view_fun_image(self) -> None:
         if self.__view_state in [
@@ -406,9 +410,6 @@ class BackgroundViews:
         self.__set_bottom_view_fun_image_color()
         self.__schedule_bottom_view_fun_image_event()
 
-        # self.__bottom_view_fun_image_file = "/home/greg/Books/Carl Barks/The Comics/Reader Files/Insets/Pool Sharks.jpg"
-        # self.__bottom_view_fun_image_title = Titles.POOL_SHARKS
-
         logging.debug(
             f"Bottom view fun image:"
             f" State: {self.__view_state},"
@@ -420,14 +421,18 @@ class BackgroundViews:
     # TODO: Rationalize image color setters - make more responsive to individual images
     #       have fun images weighted to larger opacity and full color
     def __set_bottom_view_fun_image_color(self):
-        self.__bottom_view_fun_image_color = self.__random_color_tint.get_random_color()
+        self.__bottom_view_fun_image_color = (
+            self.__bottom_view_fun_image_random_color_tint.get_random_color()
+        )
 
     def set_bottom_view_title_image_file(self, image_file: str) -> None:
         self.__bottom_view_title_image_file = image_file
         self.__log_bottom_view_title_state()
 
     def __set_bottom_view_title_image_color(self):
-        self.__bottom_view_title_image_color = self.__random_color_tint.get_random_color()
+        self.__bottom_view_title_image_color = (
+            self.__bottom_view_title_image_random_color_tint.get_random_color()
+        )
 
         self.__log_bottom_view_title_state()
 
