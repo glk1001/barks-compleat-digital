@@ -17,16 +17,6 @@ from file_paths import (
     get_comic_search_files,
     get_app_splash_images_dir,
 )
-from reader_consts_and_types import Color
-
-
-def get_random_color() -> Color:
-    return (
-        randrange(100, 255) / 255.0,
-        randrange(100, 255) / 255.0,
-        randrange(100, 255) / 255.0,
-        randrange(220, 250) / 255.0,
-    )
 
 
 class FileTypes(Enum):

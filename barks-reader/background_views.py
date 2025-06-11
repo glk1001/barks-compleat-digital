@@ -1,13 +1,12 @@
 import logging
-import os
 from enum import Enum, auto
-from random import randrange
 from typing import Dict, List, Union
 
 from kivy.clock import Clock
 
 from barks_fantagraphics.barks_tags import Tags, BARKS_TAGGED_TITLES
 from barks_fantagraphics.barks_titles import Titles, BARKS_TITLES
+from barks_fantagraphics.comics_utils import get_abbrev_path
 from barks_fantagraphics.fanta_comics_info import (
     FantaComicBookInfo,
     FantaComicBookInfoDict,
@@ -22,8 +21,9 @@ from barks_fantagraphics.fanta_comics_info import (
 )
 from file_paths import get_comic_inset_file
 from filtered_title_lists import FilteredTitleLists
+from random_title_images import get_random_image, get_random_search_image
+from reader_colors import RandomColorTint
 from reader_consts_and_types import Color, get_formatted_color
-from random_title_images import get_random_image, get_random_color, get_random_search_image
 
 
 class ViewStates(Enum):
@@ -67,6 +67,8 @@ class BackgroundViews:
     ):
         self.all_fanta_titles = all_fanta_titles
         self.title_lists = title_lists
+
+        self.__random_color_tint = RandomColorTint()
 
         self.__top_view_image_opacity = 0.0
         self.__top_view_image_title = None
@@ -266,7 +268,7 @@ class BackgroundViews:
         logging.debug(
             f"Top view image:"
             f" State: {self.__view_state},"
-            f" Image: '{os.path.basename(self.__top_view_image_file)}',"
+            f" Image: '{get_abbrev_path(self.__top_view_image_file)}',"
             f" Color: {get_formatted_color(self.__top_view_image_color)},"
             f" Opacity: {self.__top_view_image_opacity}."
         )
@@ -386,7 +388,7 @@ class BackgroundViews:
         self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
 
     def __set_top_view_image_color(self):
-        self.__top_view_image_color = get_random_color()
+        self.__top_view_image_color = self.__random_color_tint.get_random_color()
 
     def __set_bottom_view_fun_image(self) -> None:
         if self.__view_state in [
@@ -404,46 +406,28 @@ class BackgroundViews:
         self.__set_bottom_view_fun_image_color()
         self.__schedule_bottom_view_fun_image_event()
 
+        # self.__bottom_view_fun_image_file = "/home/greg/Books/Carl Barks/The Comics/Reader Files/Insets/Pool Sharks.jpg"
+        # self.__bottom_view_fun_image_title = Titles.POOL_SHARKS
+
         logging.debug(
             f"Bottom view fun image:"
             f" State: {self.__view_state},"
-            f" Image: '{os.path.basename(self.__bottom_view_fun_image_file)}',"
+            f" Image: '{get_abbrev_path(self.__bottom_view_fun_image_file)}',"
             f" Color: {get_formatted_color(self.__bottom_view_fun_image_color)},"
             f" Opacity: {self.__bottom_view_fun_image_opacity}."
         )
 
-    # TODO: Rationalize image color setters
+    # TODO: Rationalize image color setters - make more responsive to individual images
+    #       have fun images weighted to larger opacity and full color
     def __set_bottom_view_fun_image_color(self):
-        if randrange(0, 100) < 20:
-            rand_color = [1, 1, 1, 1]
-        else:
-            alpha = randrange(130, 230) / 255.0
-
-            rand_index = randrange(0, 3)
-            rgb_val = 0.5 if rand_index == 2 else 0.1
-            rand_color_val = randrange(230, 255) / 255.0
-            rand_color = [rgb_val, rgb_val, rgb_val, alpha]
-            rand_color[rand_index] = rand_color_val
-
-        self.__bottom_view_fun_image_color = tuple(rand_color)
+        self.__bottom_view_fun_image_color = self.__random_color_tint.get_random_color()
 
     def set_bottom_view_title_image_file(self, image_file: str) -> None:
         self.__bottom_view_title_image_file = image_file
         self.__log_bottom_view_title_state()
 
     def __set_bottom_view_title_image_color(self):
-        if randrange(0, 100) < 20:
-            rand_color = [1, 1, 1, 0.5]
-        else:
-            alpha = randrange(130, 200) / 255.0
-
-            rand_index = randrange(0, 3)
-            rgb_val = 0.5 if rand_index == 2 else 0.1
-            rand_color_val = randrange(230, 255) / 255.0
-            rand_color = [rgb_val, rgb_val, rgb_val, alpha]
-            rand_color[rand_index] = rand_color_val
-
-        self.__bottom_view_title_image_color = tuple(rand_color)
+        self.__bottom_view_title_image_color = self.__random_color_tint.get_random_color()
 
         self.__log_bottom_view_title_state()
 
@@ -451,7 +435,7 @@ class BackgroundViews:
         logging.debug(
             f"Bottom view title image:"
             f" State: {self.__view_state},"
-            f" Image: '{os.path.basename(self.__bottom_view_title_image_file)}',"
+            f" Image: '{self.__bottom_view_title_image_file}',"
             f" Color: {get_formatted_color(self.__bottom_view_title_image_color)},"
             f" Opacity: {self.__bottom_view_title_opacity}."
         )
