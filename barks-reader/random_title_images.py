@@ -1,7 +1,8 @@
 import os.path
+from dataclasses import dataclass
 from enum import Enum, auto
 from random import randrange
-from typing import List, Tuple, Callable, Union, Set
+from typing import List, Callable, Union, Set, Tuple
 
 from barks_fantagraphics.barks_titles import Titles, BARKS_TITLES
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
@@ -17,6 +18,7 @@ from file_paths import (
     get_comic_search_files,
     get_app_splash_images_dir,
 )
+from reader_utils import prob_rand_less_equal
 
 
 class FileTypes(Enum):
@@ -40,12 +42,26 @@ APP_SPLASH_IMAGES = [
 ALL_TYPES = {t for t in FileTypes}
 ALL_BUT_ORIGINAL_ART = {t for t in FileTypes if t != FileTypes.ORIGINAL_ART}
 
+FIT_MODE_CONTAIN = "contain"
+FIT_MODE_COVER = "cover"
 
-def get_random_search_image() -> Tuple[str, Titles]:
+
+@dataclass
+class ImageInfo:
+    filename: str = ""
+    from_title: Titles = Titles.GOOD_NEIGHBORS
+    fit_mode: str = FIT_MODE_COVER
+
+
+def get_random_search_image() -> ImageInfo:
     title_index = randrange(0, len(SEARCH_TITLES))
     title = SEARCH_TITLES[title_index]
 
-    return __get_random_comic_file(BARKS_TITLES[title], get_comic_search_files, False), title
+    return ImageInfo(
+        __get_random_comic_file(BARKS_TITLES[title], get_comic_search_files, False),
+        title,
+        FIT_MODE_COVER,
+    )
 
 
 def get_random_app_splash_image() -> str:
@@ -53,42 +69,58 @@ def get_random_app_splash_image() -> str:
     return os.path.join(get_app_splash_images_dir(), APP_SPLASH_IMAGES[index])
 
 
-def get_random_image(
-    title_list: List[FantaComicBookInfo],
-    file_types: Union[Set[FileTypes], None] = None,
-    use_edited: bool = False,
-) -> Tuple[str, Titles]:
-    title_index = randrange(0, len(title_list))
-
-    comic_book_info = title_list[title_index].comic_book_info
-    title = comic_book_info.title
-
-    title_image_file = __get_random_title_image_file(
-        comic_book_info.get_title_str(), file_types, use_edited
-    )
-    if title_image_file:
-        return title_image_file, title
-
-    return get_comic_inset_file(title), title
-
-
 def get_random_image_file(
     title_list: List[FantaComicBookInfo], file_types: Union[Set[FileTypes], None] = None
 ) -> str:
-    return get_random_image(title_list, file_types)[0]
+    return get_random_image(title_list, file_types=file_types).filename
 
 
-def get_random_title_image(title: str, file_types: Set[FileTypes], use_edited: bool = False) -> str:
-    title_image_file = __get_random_title_image_file(title, file_types, use_edited)
-    if title_image_file:
-        return title_image_file
+def get_random_image_for_title(
+    title: str, file_types: Set[FileTypes], use_edited: bool = False
+) -> str:
+    title_image = __get_random_image_for_title(title, file_types, use_edited)
+    if title_image:
+        return title_image[0]
 
     return get_comic_inset_file(EMERGENCY_INSET_FILE)
 
 
-def __get_random_title_image_file(
+def get_random_image(
+    title_list: List[FantaComicBookInfo],
+    use_random_fit_mode=False,
+    file_types: Union[Set[FileTypes], None] = None,
+    use_edited: bool = False,
+) -> ImageInfo:
+    title_index = randrange(0, len(title_list))
+
+    comic_book_info = title_list[title_index].comic_book_info
+    title = comic_book_info.title
+    fit_mode = FIT_MODE_COVER if not use_random_fit_mode else __get_random_fit_mode()
+
+    title_image = __get_random_image_for_title(
+        comic_book_info.get_title_str(), file_types, use_edited
+    )
+
+    if title_image:
+        image_file = title_image[0]
+        file_type = title_image[1]
+        if file_type == FileTypes.COVER:
+            fit_mode = FIT_MODE_CONTAIN
+        return ImageInfo(image_file, title, fit_mode)
+
+    return ImageInfo(get_comic_inset_file(title), title, fit_mode)
+
+
+def __get_random_fit_mode() -> str:
+    if prob_rand_less_equal(50):
+        return FIT_MODE_COVER
+
+    return FIT_MODE_CONTAIN
+
+
+def __get_random_image_for_title(
     title_str: str, file_types: Union[Set[FileTypes], None], use_edited: bool
-) -> str:
+) -> Union[Tuple[str, FileTypes], None]:
     if file_types is None:
         file_types: Set[FileTypes] = ALL_TYPES
 
@@ -106,15 +138,15 @@ def __get_random_title_image_file(
 
         for file_type in percent:
             if rand_percent <= percent[file_type]:
-                title_file = __get_comic_file(title_str, file_type, use_edited)
-                if title_file:
-                    return title_file
+                image_file = __get_comic_file(title_str, file_type, use_edited)
+                if image_file:
+                    return image_file, file_type
                 percent[file_type] = -1
 
         if max(percent.values()) < 0:
             break
 
-    return ""
+    return None
 
 
 def __get_comic_file(title_str: str, file_type: FileTypes, use_edited: bool) -> str:

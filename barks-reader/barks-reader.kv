@@ -149,7 +149,7 @@
                     source: root.top_view_image_source
                     width: root.view_width
                     height: root.view_height
-                    fit_mode: "cover"
+                    fit_mode: root.top_view_image_fit_mode
                     mipmap: True
 
                 BoxLayout:
@@ -212,7 +212,7 @@
                         y: self.parent.y
                         width: root.view_width
                         height: root.view_height
-                        fit_mode: "cover"
+                        fit_mode: root.bottom_view_title_image_fit_mode
                         mipmap: True
 
                     BoxLayout:
@@ -423,7 +423,7 @@
                     source: root.bottom_view_fun_image_source
                     width: root.view_width
                     height: root.view_height
-                    fit_mode: "contain"
+                    fit_mode: root.bottom_view_fun_image_fit_mode
                     mipmap: True
 
                     Button:

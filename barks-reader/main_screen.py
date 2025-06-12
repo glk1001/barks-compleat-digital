@@ -58,9 +58,12 @@ from file_paths import (
 from filtered_title_lists import FilteredTitleLists
 from random_title_images import (
     FileTypes,
-    ALL_BUT_ORIGINAL_ART,
-    get_random_title_image,
+    ImageInfo,
+    get_random_image_for_title,
     get_random_image_file,
+    FIT_MODE_COVER,
+    FIT_MODE_CONTAIN,
+    ALL_BUT_ORIGINAL_ART,
 )
 from reader_consts_and_types import (
     THE_STORIES_NODE_TEXT,
@@ -124,14 +127,17 @@ class MainScreen(BoxLayout, Screen):
     intro_text_opacity = NumericProperty(0.0)
 
     top_view_image_source = StringProperty()
+    top_view_image_fit_mode = StringProperty(FIT_MODE_COVER)
     top_view_image_color = ColorProperty()
     top_view_image_opacity = NumericProperty(0.0)
 
     bottom_view_title_opacity = NumericProperty(0.0)
     bottom_view_title_image_source = StringProperty()
+    bottom_view_title_image_fit_mode = StringProperty(FIT_MODE_COVER)
     bottom_view_title_image_color = ColorProperty()
     bottom_view_fun_image_opacity = NumericProperty(0.0)
     bottom_view_fun_image_source = StringProperty()
+    bottom_view_fun_image_fit_mode = StringProperty(FIT_MODE_CONTAIN)
     bottom_view_fun_image_color = ColorProperty()
 
     def __init__(
@@ -170,8 +176,9 @@ class MainScreen(BoxLayout, Screen):
 
         self.comic_book_reader: Union[ComicBookReader, None] = None
 
-        self.top_view_image_title = None
-        self.bottom_view_fun_image_title = None
+        self.top_view_image_info: ImageInfo = ImageInfo()
+        self.bottom_view_fun_image_info: ImageInfo = ImageInfo()
+        self.bottom_view_title_image_info: ImageInfo = ImageInfo()
 
         self.background_views = BackgroundViews(self.all_fanta_titles, self.title_lists)
         self.update_background_views(ViewStates.PRE_INIT)
@@ -234,25 +241,25 @@ class MainScreen(BoxLayout, Screen):
     def on_goto_top_view_title(self) -> None:
         print("Pressed goto top view title.")
 
-        self.goto_chrono_title(self.top_view_image_title, self.top_view_image_source)
+        self.goto_chrono_title(self.top_view_image_info)
 
     def on_goto_fun_view_title(self, _button: Button) -> None:
         print("Pressed goto bottom view title.")
 
-        self.goto_chrono_title(self.bottom_view_fun_image_title, self.bottom_view_fun_image_source)
+        self.goto_chrono_title(self.bottom_view_fun_image_info)
 
-    def goto_chrono_title(self, title: Titles, image_source: str) -> None:
-        title_fanta_info = self.get_fanta_info(title)
+    def goto_chrono_title(self, image_info: ImageInfo) -> None:
+        title_fanta_info = self.get_fanta_info(image_info.from_title)
 
         year_nodes = self.year_range_nodes[
             self.filtered_title_lists.get_year_range_from_info(title_fanta_info)
         ]
         self.open_all_parent_nodes(year_nodes)
 
-        title_node = self.find_title_node(year_nodes, title)
+        title_node = self.find_title_node(year_nodes, image_info.from_title)
         self.goto_node(title_node, scroll_to=True)
 
-        self.title_row_selected(title_fanta_info, image_source)
+        self.title_row_selected(title_fanta_info, image_info.filename)
 
     def goto_node(self, node: TreeViewNode, scroll_to=False) -> None:
         def show_node(n):
@@ -496,21 +503,24 @@ class MainScreen(BoxLayout, Screen):
 
         self.intro_text_opacity = 0.0
 
-        self.top_view_image_title = self.background_views.get_top_view_image_title()
+        self.top_view_image_info = self.background_views.get_top_view_image_info()
         self.top_view_image_opacity = self.background_views.get_top_view_image_opacity()
-        self.top_view_image_source = self.background_views.get_top_view_image_file()
+        self.top_view_image_source = self.top_view_image_info.filename
+        self.top_view_image_fit_mode = self.top_view_image_info.fit_mode
         self.top_view_image_color = self.background_views.get_top_view_image_color()
 
         self.bottom_view_fun_image_opacity = (
             self.background_views.get_bottom_view_fun_image_opacity()
         )
-        self.bottom_view_fun_image_title = self.background_views.get_bottom_view_fun_image_title()
-        self.bottom_view_fun_image_source = self.background_views.get_bottom_view_fun_image_file()
+        self.bottom_view_fun_image_info = self.background_views.get_bottom_view_fun_image_info()
+        self.bottom_view_fun_image_source = self.bottom_view_fun_image_info.filename
+        self.bottom_view_fun_image_fit_mode = self.bottom_view_fun_image_info.fit_mode
         self.bottom_view_fun_image_color = self.background_views.get_bottom_view_fun_image_color()
+
         self.bottom_view_title_opacity = self.background_views.get_bottom_view_title_opacity()
-        self.bottom_view_title_image_source = (
-            self.background_views.get_bottom_view_title_image_file()
-        )
+        self.bottom_view_title_image_info = self.background_views.get_bottom_view_title_image_info()
+        self.bottom_view_title_image_source = self.bottom_view_title_image_info.filename
+        self.bottom_view_title_image_fit_mode = self.bottom_view_title_image_info.fit_mode
         self.bottom_view_title_image_color = (
             self.background_views.get_bottom_view_title_image_color()
         )
@@ -521,7 +531,7 @@ class MainScreen(BoxLayout, Screen):
         if title_image_file:
             title_image_file = get_edited_version(title_image_file)
         else:
-            title_image_file = get_random_title_image(
+            title_image_file = get_random_image_for_title(
                 self.fanta_info.comic_book_info.get_title_str(),
                 ALL_BUT_ORIGINAL_ART,
                 use_edited=True,

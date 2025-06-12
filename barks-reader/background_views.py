@@ -21,7 +21,7 @@ from barks_fantagraphics.fanta_comics_info import (
 )
 from file_paths import get_comic_inset_file
 from filtered_title_lists import FilteredTitleLists
-from random_title_images import get_random_image, get_random_search_image
+from random_title_images import get_random_image, get_random_search_image, ImageInfo, FIT_MODE_COVER
 from reader_colors import RandomColorTint
 from reader_consts_and_types import Color
 from reader_utils import get_formatted_color
@@ -73,22 +73,21 @@ class BackgroundViews:
         self.__bottom_view_fun_image_random_color_tint = RandomColorTint(80, 50)
         self.__bottom_view_title_image_random_color_tint = RandomColorTint(30, 70)
         self.__bottom_view_title_image_random_color_tint.set_full_color_alpha_range(100, 150)
+        self.__bottom_view_title_image_random_color_tint.set_alpha_range(150, 200)
 
         self.__top_view_image_opacity = 0.0
-        self.__top_view_image_title = None
-        self.__top_view_image_file = ""
+        self.__top_view_image_info: ImageInfo = ImageInfo()
         self.__top_view_image_color: Color = (0, 0, 0, 0)
         self.__top_view_change_event = None
 
         self.__bottom_view_title_opacity = 0.0
 
         self.__bottom_view_fun_image_opacity = 0.0
-        self.__bottom_view_fun_image_title = None
-        self.__bottom_view_fun_image_file = ""
+        self.__bottom_view_fun_image_info: ImageInfo = ImageInfo()
         self.__bottom_view_fun_image_color: Color = (0, 0, 0, 0)
         self.__bottom_view_change_fun_image_event = None
 
-        self.__bottom_view_title_image_file = ""
+        self.__bottom_view_title_image_info: ImageInfo = ImageInfo()
         self.__bottom_view_title_image_color: Color = (0, 0, 0, 0)
 
         self.__current_year_range = ""
@@ -120,11 +119,8 @@ class BackgroundViews:
     def get_top_view_image_color(self) -> Color:
         return self.__top_view_image_color
 
-    def get_top_view_image_title(self) -> Titles:
-        return self.__top_view_image_title
-
-    def get_top_view_image_file(self) -> str:
-        return self.__top_view_image_file
+    def get_top_view_image_info(self) -> ImageInfo:
+        return self.__top_view_image_info
 
     def get_bottom_view_title_opacity(self) -> float:
         return self.__bottom_view_title_opacity
@@ -135,17 +131,14 @@ class BackgroundViews:
     def get_bottom_view_fun_image_color(self) -> Color:
         return self.__bottom_view_fun_image_color
 
-    def get_bottom_view_fun_image_title(self) -> Titles:
-        return self.__bottom_view_fun_image_title
-
-    def get_bottom_view_fun_image_file(self) -> str:
-        return self.__bottom_view_fun_image_file
+    def get_bottom_view_fun_image_info(self) -> ImageInfo:
+        return self.__bottom_view_fun_image_info
 
     def get_bottom_view_title_image_color(self) -> Color:
         return self.__bottom_view_title_image_color
 
-    def get_bottom_view_title_image_file(self) -> str:
-        return self.__bottom_view_title_image_file
+    def get_bottom_view_title_image_info(self) -> ImageInfo:
+        return self.__bottom_view_title_image_info
 
     def get_current_category(self) -> str:
         return self.__current_category
@@ -272,124 +265,119 @@ class BackgroundViews:
         logging.debug(
             f"Top view image:"
             f" State: {self.__view_state},"
-            f" Image: '{get_abbrev_path(self.__top_view_image_file)}',"
+            f" Image: '{get_abbrev_path(self.__top_view_image_info.filename)}',"
+            f" FitMode: '{self.__top_view_image_info.fit_mode}',"
             f" Color: {get_formatted_color(self.__top_view_image_color)},"
             f" Opacity: {self.__top_view_image_opacity}."
         )
 
     def __set_initial_top_view_image(self):
-        self.__top_view_image_title = Titles.COLD_BARGAIN_A
-        self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+        title = Titles.COLD_BARGAIN_A
+        self.__top_view_image_info = ImageInfo(get_comic_inset_file(title), title, FIT_MODE_COVER)
 
     def __set_top_view_image_for_intro(self):
-        self.__top_view_image_title = Titles.ADVENTURE_DOWN_UNDER
-        self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+        title = Titles.ADVENTURE_DOWN_UNDER
+        self.__top_view_image_info = ImageInfo(get_comic_inset_file(title), title, FIT_MODE_COVER)
 
     def __set_top_view_image_for_stories(self):
-        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-            self.title_lists[ALL_LISTS], use_edited=True
-        )
+        self.__top_view_image_info = get_random_image(self.title_lists[ALL_LISTS], use_edited=True)
 
     def __set_top_view_image_for_cs(self):
-        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-            self.title_lists[SERIES_CS], use_edited=True
-        )
+        self.__top_view_image_info = get_random_image(self.title_lists[SERIES_CS], use_edited=True)
 
     def __set_top_view_image_for_dd(self):
-        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-            self.title_lists[SERIES_DDA], use_edited=True
-        )
+        self.__top_view_image_info = get_random_image(self.title_lists[SERIES_DDA], use_edited=True)
 
     def __set_top_view_image_for_us(self):
-        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-            self.title_lists[SERIES_USA], use_edited=True
-        )
+        self.__top_view_image_info = get_random_image(self.title_lists[SERIES_USA], use_edited=True)
 
     def __set_top_view_image_for_dds(self):
-        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-            self.title_lists[SERIES_DDS], use_edited=True
-        )
+        self.__top_view_image_info = get_random_image(self.title_lists[SERIES_DDS], use_edited=True)
 
     def __set_top_view_image_for_uss(self):
-        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-            self.title_lists[SERIES_USS], use_edited=True
-        )
+        self.__top_view_image_info = get_random_image(self.title_lists[SERIES_USS], use_edited=True)
 
     def __set_top_view_image_for_gg(self):
-        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-            self.title_lists[SERIES_GG], use_edited=True
-        )
+        self.__top_view_image_info = get_random_image(self.title_lists[SERIES_GG], use_edited=True)
 
     def __set_top_view_image_for_misc(self):
-        self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+        self.__top_view_image_info = get_random_image(
             self.title_lists[SERIES_MISC], use_edited=True
         )
 
     def __set_top_view_image_for_category(self):
         logging.debug(f"Current category: '{self.__current_category}'.")
         if not self.__current_category:
-            self.__top_view_image_title = Titles.GOOD_NEIGHBORS
-            self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+            title = Titles.GOOD_NEIGHBORS
+            self.__top_view_image_info = ImageInfo(
+                get_comic_inset_file(title), title, FIT_MODE_COVER
+            )
         else:
-            self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+            self.__top_view_image_info = get_random_image(
                 self.title_lists[self.__current_category], use_edited=True
             )
 
     def __set_top_view_image_for_tag(self):
         logging.debug(f"Current tag: '{self.__current_tag}'.")
         if not self.__current_tag:
-            self.__top_view_image_title = Titles.GOOD_NEIGHBORS
-            self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+            title = Titles.GOOD_NEIGHBORS
+            self.__top_view_image_info = ImageInfo(
+                get_comic_inset_file(title), title, FIT_MODE_COVER
+            )
         else:
             fanta_title_list = self.__get_fanta_title_list(BARKS_TAGGED_TITLES[self.__current_tag])
-            self.__top_view_image_file, self.__top_view_image_title = get_random_image(
-                fanta_title_list, use_edited=True
-            )
+            self.__top_view_image_info = get_random_image(fanta_title_list, use_edited=True)
 
     def __set_top_view_image_for_year_range(self):
         logging.debug(f"Year range: '{self.__current_year_range}'.")
         if not self.__current_year_range:
-            self.__top_view_image_title = Titles.GOOD_NEIGHBORS
-            self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+            title = Titles.GOOD_NEIGHBORS
+            self.__top_view_image_info = ImageInfo(
+                get_comic_inset_file(title), title, FIT_MODE_COVER
+            )
         else:
-            self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+            self.__top_view_image_info = get_random_image(
                 self.title_lists[self.__current_year_range], use_edited=True
             )
 
     def __set_top_view_image_for_cs_year_range(self):
         logging.debug(f"CS Year range: '{self.__current_cs_year_range}'.")
         if not self.__current_cs_year_range:
-            self.__top_view_image_title = Titles.GOOD_NEIGHBORS
-            self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+            title = Titles.GOOD_NEIGHBORS
+            self.__top_view_image_info = ImageInfo(
+                get_comic_inset_file(title), title, FIT_MODE_COVER
+            )
         else:
             cs_range = FilteredTitleLists.get_cs_range_str_from_str(self.__current_cs_year_range)
             logging.debug(f"CS Year range key: '{cs_range}'.")
-            self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+            self.__top_view_image_info = get_random_image(
                 self.title_lists[cs_range], use_edited=True
             )
 
     def __set_top_view_image_for_us_year_range(self):
         logging.debug(f"US Year range: '{self.__current_us_year_range}'.")
         if not self.__current_us_year_range:
-            self.__top_view_image_title = Titles.BACK_TO_THE_KLONDIKE
-            self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+            title = Titles.BACK_TO_THE_KLONDIKE
+            self.__top_view_image_info = ImageInfo(
+                get_comic_inset_file(title), title, FIT_MODE_COVER
+            )
         else:
             us_range = FilteredTitleLists.get_us_range_str_from_str(self.__current_us_year_range)
             logging.debug(f"US Year range key: '{us_range}'.")
-            self.__top_view_image_file, self.__top_view_image_title = get_random_image(
+            self.__top_view_image_info = get_random_image(
                 self.title_lists[us_range], use_edited=True
             )
 
     def __set_top_view_image_for_search(self):
-        self.__top_view_image_file, self.__top_view_image_title = get_random_search_image()
+        self.__top_view_image_info = get_random_search_image()
 
     def __set_top_view_image_for_appendix(self):
-        self.__top_view_image_title = Titles.FABULOUS_PHILOSOPHERS_STONE_THE
-        self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+        title = Titles.FABULOUS_PHILOSOPHERS_STONE_THE
+        self.__top_view_image_info = ImageInfo(get_comic_inset_file(title), title, FIT_MODE_COVER)
 
     def __set_top_view_image_for_index(self):
-        self.__top_view_image_title = Titles.TRUANT_OFFICER_DONALD
-        self.__top_view_image_file = get_comic_inset_file(self.__top_view_image_title)
+        title = Titles.TRUANT_OFFICER_DONALD
+        self.__top_view_image_info = ImageInfo(get_comic_inset_file(title), title, FIT_MODE_COVER)
 
     def __set_top_view_image_color(self):
         self.__top_view_image_color = self.__top_view_image_random_color_tint.get_random_color()
@@ -404,8 +392,8 @@ class BackgroundViews:
         ]:
             return
 
-        self.__bottom_view_fun_image_file, self.__bottom_view_fun_image_title = get_random_image(
-            self.title_lists[ALL_LISTS]
+        self.__bottom_view_fun_image_info = get_random_image(
+            self.title_lists[ALL_LISTS], use_random_fit_mode=True
         )
         self.__set_bottom_view_fun_image_color()
         self.__schedule_bottom_view_fun_image_event()
@@ -413,7 +401,8 @@ class BackgroundViews:
         logging.debug(
             f"Bottom view fun image:"
             f" State: {self.__view_state},"
-            f" Image: '{get_abbrev_path(self.__bottom_view_fun_image_file)}',"
+            f" Image: '{get_abbrev_path(self.__bottom_view_fun_image_info.filename)}',"
+            f" FitMode: '{self.__bottom_view_fun_image_info.fit_mode}',"
             f" Color: {get_formatted_color(self.__bottom_view_fun_image_color)},"
             f" Opacity: {self.__bottom_view_fun_image_opacity}."
         )
@@ -426,7 +415,7 @@ class BackgroundViews:
         )
 
     def set_bottom_view_title_image_file(self, image_file: str) -> None:
-        self.__bottom_view_title_image_file = image_file
+        self.__bottom_view_title_image_info.filename = image_file
         self.__log_bottom_view_title_state()
 
     def __set_bottom_view_title_image_color(self):
@@ -440,7 +429,8 @@ class BackgroundViews:
         logging.debug(
             f"Bottom view title image:"
             f" State: {self.__view_state},"
-            f" Image: '{self.__bottom_view_title_image_file}',"
+            f" Image: '{self.__bottom_view_title_image_info.filename}',"
+            f" FitMode: '{self.__bottom_view_title_image_info.fit_mode}',"
             f" Color: {get_formatted_color(self.__bottom_view_title_image_color)},"
             f" Opacity: {self.__bottom_view_title_opacity}."
         )
