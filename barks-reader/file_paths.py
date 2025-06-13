@@ -267,11 +267,15 @@ def get_files(parent_image_dir: str, title: str, use_edited: bool) -> List[str]:
 
     image_files = []
     for file in os.listdir(image_dir):
-        if use_edited:
-            edited_image_file = os.path.join(edited_image_dir, Path(file).stem + PNG_FILE_EXT)
-            if os.path.isfile(edited_image_file):
-                image_files.append(edited_image_file)
-                continue
+        added_edited_image_file = False
+        edited_image_file = os.path.join(edited_image_dir, Path(file).stem + PNG_FILE_EXT)
+        if os.path.isfile(edited_image_file):
+            image_files.append(edited_image_file)
+            added_edited_image_file = True
+
+        if use_edited and added_edited_image_file:
+            # Don't want any unedited images.
+            continue
 
         image_file = os.path.join(image_dir, file)
         if os.path.isfile(image_file):

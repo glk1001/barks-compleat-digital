@@ -1,3 +1,4 @@
+import logging
 import os.path
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -141,6 +142,7 @@ def __get_random_image_for_title(
                 image_file = __get_comic_file(title_str, file_type, use_edited)
                 if image_file:
                     return image_file, file_type
+                logging.debug(f'"{title_str}": No images of type {file_type.name}.')
                 percent[file_type] = -1
 
         if max(percent.values()) < 0:
