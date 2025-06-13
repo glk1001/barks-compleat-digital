@@ -534,7 +534,7 @@ class MainScreen(BoxLayout, Screen):
             title_image_file = get_random_image_for_title(
                 self.fanta_info.comic_book_info.get_title_str(),
                 ALL_BUT_ORIGINAL_ART,
-                use_edited=True,
+                use_edited_only=True,
             )
         self.background_views.set_bottom_view_title_image_file(title_image_file)
 
@@ -544,7 +544,7 @@ class MainScreen(BoxLayout, Screen):
         self.title_info_text = self.formatter.get_title_info(self.fanta_info, payment_info)
         self.extra_title_info_text = self.formatter.get_extra_title_info(self.fanta_info)
         self.title_page_image_source = get_comic_inset_file(
-            self.fanta_info.comic_book_info.title, use_edited=True
+            self.fanta_info.comic_book_info.title, use_edited_only=True
         )
 
     def get_main_title_str(self):

@@ -77,9 +77,9 @@ def get_random_image_file(
 
 
 def get_random_image_for_title(
-    title: str, file_types: Set[FileTypes], use_edited: bool = False
+    title: str, file_types: Set[FileTypes], use_edited_only: bool = False
 ) -> str:
-    title_image = __get_random_image_for_title(title, file_types, use_edited)
+    title_image = __get_random_image_for_title(title, file_types, use_edited_only)
     if title_image:
         return title_image[0]
 
@@ -90,7 +90,7 @@ def get_random_image(
     title_list: List[FantaComicBookInfo],
     use_random_fit_mode=False,
     file_types: Union[Set[FileTypes], None] = None,
-    use_edited: bool = False,
+    use_edited_only: bool = False,
 ) -> ImageInfo:
     title_index = randrange(0, len(title_list))
 
@@ -99,7 +99,7 @@ def get_random_image(
     fit_mode = FIT_MODE_COVER if not use_random_fit_mode else __get_random_fit_mode()
 
     title_image = __get_random_image_for_title(
-        comic_book_info.get_title_str(), file_types, use_edited
+        comic_book_info.get_title_str(), file_types, use_edited_only
     )
 
     if title_image:
@@ -120,7 +120,7 @@ def __get_random_fit_mode() -> str:
 
 
 def __get_random_image_for_title(
-    title_str: str, file_types: Union[Set[FileTypes], None], use_edited: bool
+    title_str: str, file_types: Union[Set[FileTypes], None], use_edited_only: bool
 ) -> Union[Tuple[str, FileTypes], None]:
     if file_types is None:
         file_types: Set[FileTypes] = ALL_TYPES
@@ -139,7 +139,7 @@ def __get_random_image_for_title(
 
         for file_type in percent:
             if rand_percent <= percent[file_type]:
-                image_file = __get_comic_file(title_str, file_type, use_edited)
+                image_file = __get_comic_file(title_str, file_type, use_edited_only)
                 if image_file:
                     return image_file, file_type
                 logging.debug(f'"{title_str}": No images of type {file_type.name}.')
@@ -151,27 +151,27 @@ def __get_random_image_for_title(
     return None
 
 
-def __get_comic_file(title_str: str, file_type: FileTypes, use_edited: bool) -> str:
+def __get_comic_file(title_str: str, file_type: FileTypes, use_edited_only: bool) -> str:
     if file_type == FileTypes.COVER:
-        return get_comic_cover_file(title_str, use_edited)
+        return get_comic_cover_file(title_str, use_edited_only)
     if file_type == FileTypes.SILHOUETTE:
-        return __get_random_comic_file(title_str, get_comic_silhouette_files, use_edited)
+        return __get_random_comic_file(title_str, get_comic_silhouette_files, use_edited_only)
     if file_type == FileTypes.SPLASH:
-        return __get_random_comic_file(title_str, get_comic_splash_files, use_edited)
+        return __get_random_comic_file(title_str, get_comic_splash_files, use_edited_only)
     if file_type == FileTypes.CENSORSHIP:
-        return __get_random_comic_file(title_str, get_comic_censorship_files, use_edited)
+        return __get_random_comic_file(title_str, get_comic_censorship_files, use_edited_only)
     if file_type == FileTypes.FAVOURITE:
-        return __get_random_comic_file(title_str, get_comic_favourite_files, use_edited)
+        return __get_random_comic_file(title_str, get_comic_favourite_files, use_edited_only)
     if file_type == FileTypes.ORIGINAL_ART:
-        return __get_random_comic_file(title_str, get_comic_original_art_files, use_edited)
+        return __get_random_comic_file(title_str, get_comic_original_art_files, use_edited_only)
 
     return ""
 
 
 def __get_random_comic_file(
-    title_str: str, get_file_func: Callable[[str, bool], List[str]], use_edited: bool
+    title_str: str, get_file_func: Callable[[str, bool], List[str]], use_edited_only: bool
 ) -> str:
-    title_files = get_file_func(title_str, use_edited)
+    title_files = get_file_func(title_str, use_edited_only)
     if title_files:
         index = randrange(0, len(title_files))
         return title_files[index]
