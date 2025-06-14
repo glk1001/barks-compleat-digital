@@ -3,7 +3,7 @@ from typing import List, Union
 
 from kivy.event import EventDispatcher
 from kivy.metrics import dp
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, NumericProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -42,7 +42,7 @@ class ReaderTreeBuilderEventDispatcher(EventDispatcher):
 
 
 class LoadingDataPopup(Popup):
-    # progress_bar_value = NumericProperty(0)
+    progress_bar_value = NumericProperty(0)
     splash_image_path = StringProperty()
     pass
 

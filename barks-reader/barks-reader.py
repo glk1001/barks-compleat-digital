@@ -145,7 +145,7 @@ class BarksReaderApp(App):
         logging.debug("Building the tree view...")
         tree_builder = ReaderTreeBuilder(self.main_screen)
         tree_builder.build_main_screen_tree()
-        self.main_screen.year_range_nodes = tree_builder.year_range_nodes
+        self.main_screen.year_range_nodes = tree_builder.chrono_year_range_nodes
         logging.debug("Finished building.")
 
 
