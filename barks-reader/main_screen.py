@@ -60,8 +60,7 @@ from filtered_title_lists import FilteredTitleLists
 from random_title_images import (
     FileTypes,
     ImageInfo,
-    get_random_image_for_title,
-    get_random_image_file,
+    RandomTitleImages,
     FIT_MODE_COVER,
     FIT_MODE_CONTAIN,
     ALL_BUT_ORIGINAL_ART,
@@ -160,6 +159,7 @@ class MainScreen(BoxLayout, Screen):
         self.title_dict: Dict[str, Titles] = get_title_dict()
         self.title_search = BarksTitleSearch()
         self.all_fanta_titles = ALL_FANTA_COMIC_BOOK_INFO
+        self.random_title_images = RandomTitleImages()
 
         self.store = JsonStore(get_barks_reader_user_data_file())
 
@@ -180,7 +180,9 @@ class MainScreen(BoxLayout, Screen):
         self.bottom_view_fun_image_info: ImageInfo = ImageInfo()
         self.bottom_view_title_image_info: ImageInfo = ImageInfo()
 
-        self.background_views = BackgroundViews(self.all_fanta_titles, self.title_lists)
+        self.background_views = BackgroundViews(
+            self.all_fanta_titles, self.title_lists, self.random_title_images
+        )
         self.update_background_views(ViewStates.PRE_INIT)
 
     def on_loading_data_popup_open(self) -> None:
@@ -189,7 +191,7 @@ class MainScreen(BoxLayout, Screen):
         )
 
     def set_new_loading_data_popup_image(self) -> None:
-        self.loading_data_popup.splash_image_path = get_random_image_file(
+        self.loading_data_popup.splash_image_path = self.random_title_images.get_random_image_file(
             self.title_lists[ALL_LISTS], {FileTypes.SPLASH}
         )
         logging.debug(f'Loading popup image: "{self.loading_data_popup.splash_image_path}".')
@@ -220,7 +222,6 @@ class MainScreen(BoxLayout, Screen):
                 self.close_open_nodes(node)
 
     def on_action_bar_change_view_images(self):
-        print(f"Action bar change pics pressed.")
         self.change_background_views()
 
     def on_action_bar_goto(self, button: Button):
@@ -538,7 +539,7 @@ class MainScreen(BoxLayout, Screen):
         if title_image_file:
             title_image_file = get_edited_version(title_image_file)
         else:
-            title_image_file = get_random_image_for_title(
+            title_image_file = self.random_title_images.get_random_image_for_title(
                 self.fanta_info.comic_book_info.get_title_str(),
                 ALL_BUT_ORIGINAL_ART,
                 use_edited_only=True,
