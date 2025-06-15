@@ -345,7 +345,7 @@ class MainScreen(BoxLayout, Screen):
             elif node_text in BARKS_TAG_CATEGORIES_DICT:
                 self.update_background_views(ViewStates.ON_CATEGORY_NODE, category=node_text)
             elif is_tag_enum(node_text):
-                self.goto_node(node.nodes[0], True)
+                logging.debug(f'Tag node expanded: "{node_text}".')
                 self.update_background_views(ViewStates.ON_TAG_NODE, tag=Tags(node_text))
 
     def on_intro_pressed(self, _button: Button):
