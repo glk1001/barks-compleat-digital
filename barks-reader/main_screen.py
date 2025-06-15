@@ -4,6 +4,7 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Union, Dict, List, Callable
 
+from kivy._clock import ClockEvent
 from kivy.clock import Clock
 from kivy.metrics import dp, sp
 from kivy.properties import StringProperty, ColorProperty, NumericProperty
@@ -167,10 +168,9 @@ class MainScreen(BoxLayout, Screen):
         self.year_range_nodes = None
 
         self.loading_data_popup = LoadingDataPopup()
-        self.loading_data_popup.splash_image_path = get_random_image_file(
-            self.title_lists[ALL_LISTS], {FileTypes.SPLASH}
-        )
-        #        self.popup.splash_image_path = get_random_app_splash_image()
+        self.loading_data_popup.on_open = self.on_loading_data_popup_open
+        self.loading_data_popup_image_event: Union[ClockEvent, None] = None
+
         self.reader_tree_events = reader_tree_events
         self.reader_tree_events.bind(on_finished_building_event=self.on_tree_build_finished)
 
@@ -183,13 +183,26 @@ class MainScreen(BoxLayout, Screen):
         self.background_views = BackgroundViews(self.all_fanta_titles, self.title_lists)
         self.update_background_views(ViewStates.PRE_INIT)
 
+    def on_loading_data_popup_open(self) -> None:
+        self.loading_data_popup_image_event = Clock.schedule_interval(
+            lambda dt: self.set_new_loading_data_popup_image(), 0.5
+        )
+
+    def set_new_loading_data_popup_image(self) -> None:
+        self.loading_data_popup.splash_image_path = get_random_image_file(
+            self.title_lists[ALL_LISTS], {FileTypes.SPLASH}
+        )
+        logging.debug(f'Loading popup image: "{self.loading_data_popup.splash_image_path}".')
+        #        self.popup.splash_image_path = get_random_app_splash_image()
+
     def on_tree_build_finished(self, _instance):
         logging.debug(f"'on_finished_building_event' received: dismiss the popup.")
+        if self.loading_data_popup_image_event:
+            self.loading_data_popup_image_event.cancel()
         self.loading_data_popup.dismiss()
         self.update_background_views(ViewStates.INITIAL)
 
     def on_action_bar_collapse(self):
-        print(f"Action bar collapse pressed.")
         something_was_open = False
         for node in self.ids.reader_tree_view.iterate_open_nodes():
             if node.is_open:
@@ -211,10 +224,8 @@ class MainScreen(BoxLayout, Screen):
         self.change_background_views()
 
     def on_action_bar_goto(self, button: Button):
-        print(f"Action bar goto pressed: '{button.text}'")
         node = self.find_node(self.ids.reader_tree_view.root, button.text)
         if node:
-            print(f"Found node '{node.text}'.")
             self.close_open_nodes(self.ids.reader_tree_view.root)
             self.open_all_parent_nodes(node)
             self.goto_node(node)
@@ -236,16 +247,12 @@ class MainScreen(BoxLayout, Screen):
         return None
 
     def on_action_bar_pressed(self, button: Button):
-        print(f"Action bar pressed: '{button.text}'")
+        pass
 
     def on_goto_top_view_title(self) -> None:
-        print("Pressed goto top view title.")
-
         self.goto_chrono_title(self.top_view_image_info)
 
     def on_goto_fun_view_title(self, _button: Button) -> None:
-        print("Pressed goto bottom view title.")
-
         self.goto_chrono_title(self.bottom_view_fun_image_info)
 
     def goto_chrono_title(self, image_info: ImageInfo) -> None:

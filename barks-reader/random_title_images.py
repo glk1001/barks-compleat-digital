@@ -134,7 +134,7 @@ def __get_random_image_for_title(
         n += 1
 
     for num_attempts in range(10):
-        rand_percent = randrange(0, 100)
+        rand_percent = randrange(1, 101)
         # print(f"Attempt {num_attempts}: rand percent = {rand_percent}.")
 
         for file_type in percent:
