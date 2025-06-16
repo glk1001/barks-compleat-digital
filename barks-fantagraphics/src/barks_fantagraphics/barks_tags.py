@@ -7,8 +7,12 @@ from .barks_titles import Titles
 class Tags(Enum):
     ALGERIA = "Algeria"
     ANDES = "Andes"
+    ANTARCTICA = "Antarctica"
     ARABIAN_PENINSULA = "Arabian Peninsula"
+    ARCTIC_OCEAN = "Arctic Ocean"
+    ATLANTIS = "Atlantis"
     AUSTRALIA = "Australia"
+    BARNACLE_BAY = "Barnacle Bay"
     CENTRAL_AFRICA = "Central Africa"
     CHINA = "China"
     CONGO = "Congo"
@@ -45,15 +49,22 @@ class Tags(Enum):
     TANGANYIKA = "Tanganyika"
 
     AIRPLANE = "airplane"
+    CIGARETTES = "cigarettes"
     FIRE = "fire"
     SQUARE_EGGS = "square eggs"
 
+    AZURE_BLUE = "Azure Blue"
     ARGUS_MCFIENDY = "Argus McFiendy"
     BEAGLE_BOYS = "The Beagle Boys"
     BENZENE_BANZOONY = "Benzene Banzoony"
     BOMBIE_THE_ZOMBIE = "Bombie the Zombie"
     CARVER_BEAKOFF = "Doctor Carver Beakoff"
+    CHISEL_MC_SUE = "Chisel McSue"
+    CORNELIUS_MC_COBB = "Cornelius McCobb"
+    EL_DORADO = "El Dorado"
+    FERMIES = "Fermies"
     FLINTHEART_GLOMGOLD = "Flintheart Glomgold"
+    FOOLA_ZOOLA = "Foola Zoola"
     GENERAL_SNOZZIE = "General Snozzie"
     GLADSTONE_GANDER = "Gladstone Gander"
     GYRO_GEARLOOSE = "Gyro Gearloose"
@@ -61,13 +72,18 @@ class Tags(Enum):
     MAGICA_DE_SPELL = "Magica de Spell"
     NEIGHBOR_JONES = "Neighbor Jones"
     SCROOGE_NOT_IN_US = "Uncle Scrooge not in US"
+    TERRIES = "Terries"
 
 
 BARKS_TAG_EXTRA_ALIASES = {
     "arabia": Tags.ARABIAN_PENINSULA,
+    "arctic": Tags.ARCTIC_OCEAN,
+    "barnacle": Tags.BARNACLE_BAY,
     "niagara": Tags.NIAGARA_FALLS,
+    "south pole": Tags.ANTARCTICA,
     "argus": Tags.ARGUS_MCFIENDY,
     "mcfiendy": Tags.ARGUS_MCFIENDY,
+    "azure": Tags.AZURE_BLUE,
     "the beagle boys": Tags.BEAGLE_BOYS,
     "beagles": Tags.BEAGLE_BOYS,
     "benzene": Tags.BENZENE_BANZOONY,
@@ -77,6 +93,14 @@ BARKS_TAG_EXTRA_ALIASES = {
     "carver beakoff": Tags.CARVER_BEAKOFF,
     "beakoff": Tags.CARVER_BEAKOFF,
     "carver": Tags.CARVER_BEAKOFF,
+    "chisel": Tags.CHISEL_MC_SUE,
+    "mcsue": Tags.CHISEL_MC_SUE,
+    "cornelius": Tags.CORNELIUS_MC_COBB,
+    "mccobb": Tags.CORNELIUS_MC_COBB,
+    "el": Tags.EL_DORADO,
+    "dorado": Tags.EL_DORADO,
+    "foola": Tags.FOOLA_ZOOLA,
+    "zoola": Tags.FOOLA_ZOOLA,
     "demon": Tags.OLD_DEMON_TOOTH,
     "mount demon tooth": Tags.OLD_DEMON_TOOTH,
     "old demon tooth": Tags.OLD_DEMON_TOOTH,
@@ -120,16 +144,23 @@ BARKS_TAG_CATEGORIES_DICT = {cat.value: cat for cat in TagCategories}
 BARKS_TAG_CATEGORIES = {
     TagCategories.THINGS: [
         Tags.AIRPLANE,
+        Tags.CIGARETTES,
         Tags.FIRE,
         Tags.SQUARE_EGGS,
     ],
     TagCategories.CHARACTERS: [
         Tags.ARGUS_MCFIENDY,
+        Tags.AZURE_BLUE,
         Tags.BEAGLE_BOYS,
         Tags.BENZENE_BANZOONY,
         Tags.BOMBIE_THE_ZOMBIE,
         Tags.CARVER_BEAKOFF,
+        Tags.CHISEL_MC_SUE,
+        Tags.CORNELIUS_MC_COBB,
+        Tags.EL_DORADO,
+        Tags.FERMIES,
         Tags.FLINTHEART_GLOMGOLD,
+        Tags.FOOLA_ZOOLA,
         Tags.GENERAL_SNOZZIE,
         Tags.GLADSTONE_GANDER,
         Tags.GYRO_GEARLOOSE,
@@ -137,15 +168,20 @@ BARKS_TAG_CATEGORIES = {
         Tags.MAGICA_DE_SPELL,
         Tags.NEIGHBOR_JONES,
         Tags.SCROOGE_NOT_IN_US,
+        Tags.TERRIES,
     ],
     TagCategories.PLACES: [
         TagGroups.AFRICA,
         Tags.ALGERIA,
         Tags.ANDES,
+        Tags.ANTARCTICA,
         Tags.ARABIAN_PENINSULA,
+        Tags.ARCTIC_OCEAN,
+        Tags.ATLANTIS,
         TagGroups.ASIA,
         # Tags.AUSTRALIA,
         TagGroups.AUSTRALIA,
+        Tags.BARNACLE_BAY,
         Tags.CENTRAL_AFRICA,
         Tags.CHINA,
         Tags.CONGO,
@@ -228,6 +264,10 @@ BARKS_TAG_GROUPS = {
     ],
     TagGroups.NORTH_AMERICA: [],
     TagGroups.OTHER: [
+        Tags.ANTARCTICA,
+        Tags.ARCTIC_OCEAN,
+        Tags.ATLANTIS,
+        Tags.BARNACLE_BAY,
         Tags.DUCKBURG,
         Tags.OLD_DEMON_TOOTH,
     ],
@@ -241,6 +281,7 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
     # Real places
     Tags.ALGERIA: [Titles.ROCKET_RACE_AROUND_THE_WORLD],
     Tags.ANDES: [Titles.LOST_IN_THE_ANDES],
+    Tags.ANTARCTICA: [Titles.COLD_BARGAIN_A],
     Tags.ARABIAN_PENINSULA: [
         Titles.MINES_OF_KING_SOLOMON_THE,
         Titles.MONEY_CHAMP_THE,
@@ -248,6 +289,8 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
         Titles.CAVE_OF_ALI_BABA,
         Titles.MCDUCK_OF_ARABIA,
     ],
+    Tags.ARCTIC_OCEAN: [Titles.LUCK_OF_THE_NORTH],
+    Tags.ATLANTIS: [Titles.SECRET_OF_ATLANTIS_THE],
     Tags.AUSTRALIA: [
         Titles.ADVENTURE_DOWN_UNDER,
         Titles.RICHES_RICHES_EVERYWHERE,
@@ -341,6 +384,7 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
     Tags.SYRIA: [Titles.FABULOUS_PHILOSOPHERS_STONE_THE],
     Tags.TANGANYIKA: [Titles.UNSAFE_SAFE_THE],
     # Not so real
+    Tags.BARNACLE_BAY: [Titles.NO_SUCH_VARMINT],
     Tags.DUCKBURG: [
         Titles.HIGH_WIRE_DAREDEVILS,
         Titles.CHRISTMAS_IN_DUCKBURG,
@@ -382,10 +426,23 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
         Titles.SMOKE_WRITER_IN_THE_SKY,
         Titles.QUEEN_OF_THE_WILD_DOG_PACK_THE,
     ],
-    Tags.FIRE: [Titles.FIREBUG_THE, Titles.FIREMAN_DONALD],
+    Tags.CIGARETTES: [
+        Titles.LIMBER_W_GUEST_RANCH_THE,
+        Titles.DONALD_DUCK_AND_THE_MUMMYS_RING,
+        Titles.MAD_CHEMIST_THE,
+        Titles.SWIMMING_SWINDLERS,
+        Titles.GOING_BUGGY,
+        Titles.JAM_ROBBERS,
+        Titles.SHERIFF_OF_BULLET_VALLEY,
+        Titles.DANGEROUS_DISGUISE,
+        Titles.VACATION_TIME,
+        Titles.BILLIONS_TO_SNEEZE_AT,
+    ],
+    Tags.FIRE: [Titles.FIREBUG_THE, Titles.FIREMAN_DONALD, Titles.LOVELORN_FIREMAN_THE],
     Tags.SQUARE_EGGS: [Titles.LOST_IN_THE_ANDES],
     # Characters
     Tags.ARGUS_MCFIENDY: [Titles.DARKEST_AFRICA],
+    Tags.AZURE_BLUE: [Titles.GOLDEN_HELMET_THE],
     Tags.BEAGLE_BOYS: [
         Titles.TERROR_OF_THE_BEAGLE_BOYS,
         Titles.BIG_BIN_ON_KILLMOTOR_HILL_THE,
@@ -421,11 +478,16 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
     Tags.BENZENE_BANZOONY: [Titles.FIREBUG_THE],
     Tags.BOMBIE_THE_ZOMBIE: [Titles.VOODOO_HOODOO],
     Tags.CARVER_BEAKOFF: [Titles.FIREBUG_THE],
+    Tags.CHISEL_MC_SUE: [Titles.HORSERADISH_STORY_THE],
+    Tags.CORNELIUS_MC_COBB: [Titles.VOODOO_HOODOO],
+    Tags.EL_DORADO: [Titles.GILDED_MAN_THE],
+    Tags.FERMIES: [Titles.LAND_BENEATH_THE_GROUND],
     Tags.FLINTHEART_GLOMGOLD: [
         Titles.SECOND_RICHEST_DUCK_THE,
         Titles.MONEY_CHAMP_THE,
         Titles.SO_FAR_AND_NO_SAFARI,
     ],
+    Tags.FOOLA_ZOOLA: [Titles.VOODOO_HOODOO],
     Tags.GENERAL_SNOZZIE: [
         Titles.PHANTOM_OF_NOTRE_DUCK_THE,
         Titles.DODGING_MISS_DAISY,
@@ -655,11 +717,48 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
         Titles.DOUBLE_MASQUERADE,
         Titles.DELIVERY_DILEMMA,
     ],
+    Tags.TERRIES: [Titles.LAND_BENEATH_THE_GROUND],
 }
 
 BARKS_TAGGED_PAGES: Dict[Tuple[Tags, Titles], List[str]] = {
     (Tags.NEIGHBOR_JONES, Titles.GOOD_DEEDS): ["1"],
     (Tags.CARVER_BEAKOFF, Titles.FIREBUG_THE): ["13"],
+    (Tags.EL_DORADO, Titles.GILDED_MAN_THE): [
+        "8",
+        "11",
+        "12",
+        "14",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+    ],
+    (Tags.FOOLA_ZOOLA, Titles.VOODOO_HOODOO): ["6", "17", "19", "20", "21", "22", "23", "24", "25", "26", "29", "30", "31"],
+    (Tags.CORNELIUS_MC_COBB, Titles.VOODOO_HOODOO): ["20", "21", "22", "23"],
+    (Tags.CIGARETTES, Titles.MAD_CHEMIST_THE): ["10"],
+    (Tags.CIGARETTES, Titles.SWIMMING_SWINDLERS): ["1", "2", "7"],
+    (Tags.CIGARETTES, Titles.GOING_BUGGY): ["3"],
+    (Tags.CIGARETTES, Titles.JAM_ROBBERS): ["7"],
+    (Tags.CIGARETTES, Titles.SHERIFF_OF_BULLET_VALLEY): [
+        "4",
+        "5",
+        "6",
+        "8",
+        "13",
+        "14",
+        "17",
+        "20",
+        "25",
+        "26",
+        "27",
+    ],
+    (Tags.CIGARETTES, Titles.DANGEROUS_DISGUISE): ["3"],
+    (Tags.CIGARETTES, Titles.VACATION_TIME): ["8", "9", "12", "13", "29", "30"],
+    (Tags.CIGARETTES, Titles.BILLIONS_TO_SNEEZE_AT): ["8"],
+    (Tags.BARNACLE_BAY, Titles.NO_SUCH_VARMINT): ["11"],
 }
 
 
