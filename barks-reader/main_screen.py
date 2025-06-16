@@ -230,7 +230,6 @@ class MainScreen(BoxLayout, Screen):
             self.close_open_nodes(self.ids.reader_tree_view.root)
             self.open_all_parent_nodes(node)
             self.goto_node(node)
-            # TODO: Need on_press to be called
 
     @staticmethod
     def find_node(start_node: TreeViewNode, node_text: str):
@@ -273,9 +272,12 @@ class MainScreen(BoxLayout, Screen):
         def show_node(n):
             self.ids.reader_tree_view.select_node(n)
             if scroll_to:
-                self.ids.scroll_view.scroll_to(n)
+                self.scroll_to_node(n)
 
         Clock.schedule_once(lambda dt, item=node: show_node(item))
+
+    def scroll_to_node(self, node: TreeViewNode) -> None:
+        Clock.schedule_once(lambda dt: self.ids.scroll_view.scroll_to(node, padding=50), 0)
 
     def get_fanta_info(self, title: Titles) -> FantaComicBookInfo:
         # TODO: Very roundabout way to get fanta info
@@ -302,14 +304,20 @@ class MainScreen(BoxLayout, Screen):
         self.update_background_views(ViewStates.ON_TITLE_NODE)
 
     def open_all_parent_nodes(self, node: TreeViewNode) -> None:
+        # Get all the parent nodes first, then open from top parent down to last child.
+        parent_nodes = []
         parent_node = node
         while parent_node and isinstance(parent_node, TreeViewNode):
-            if not parent_node.is_open:
-                self.ids.reader_tree_view.toggle_node(parent_node)
+            parent_nodes.append(parent_node)
             parent_node = parent_node.parent_node
 
+        for parent_node in reversed(parent_nodes):
+            if not parent_node.is_open:
+                self.ids.reader_tree_view.toggle_node(parent_node)
+
     def on_node_expanded(self, _tree: ReaderTreeView, node: ButtonTreeViewNode):
-        logging.debug(f'Node expanded: "{node.text}"')
+        logging.debug(f'Node expanded: "{node.text}" ({type(node)}).')
+
         if type(node) == YearRangeTreeViewNode:
             self.update_background_views(ViewStates.ON_YEAR_RANGE_NODE, year_range=node.text)
         elif type(node) == CsYearRangeTreeViewNode:
@@ -355,6 +363,8 @@ class MainScreen(BoxLayout, Screen):
             elif is_tag_enum(node_text):
                 logging.debug(f'Tag node expanded: "{node_text}".')
                 self.update_background_views(ViewStates.ON_TAG_NODE, tag=Tags(node_text))
+
+        self.scroll_to_node(node.nodes[0])
 
     def on_intro_pressed(self, _button: Button):
         self.update_background_views(ViewStates.ON_INTRO_NODE)
