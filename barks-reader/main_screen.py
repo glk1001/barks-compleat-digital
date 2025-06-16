@@ -381,7 +381,18 @@ class MainScreen(BoxLayout, Screen):
         logging.debug(f"Title search box pressed: {instance}.")
 
         if not instance.get_current_title():
+            logging.debug("Have not got title search box text yet.")
             self.update_background_views(ViewStates.ON_TITLE_SEARCH_BOX_NODE_NO_TITLE_YET)
+        elif self.background_views.get_view_state() != ViewStates.ON_TITLE_SEARCH_BOX_NODE:
+            logging.debug(
+                f"Forcing title search box change:"
+                f" view state = {self.background_views.get_view_state()},"
+                f' title search box text = "{instance.get_current_title()}",'
+                f' title spinner text = "{instance.ids.title_spinner.text}"'
+            )
+            self.on_title_search_box_title_changed(
+                instance.ids.title_spinner, instance.ids.title_spinner.text
+            )
 
     def on_title_search_box_title_changed(self, _spinner: Spinner, title_str: str):
         logging.debug(f'Title search box title changed: "{title_str}".')
@@ -397,7 +408,18 @@ class MainScreen(BoxLayout, Screen):
         logging.debug(f"Tag search box pressed: {instance}.")
 
         if not instance.get_current_tag():
+            logging.debug("Have not got tag search box text yet.")
             self.update_background_views(ViewStates.ON_TAG_SEARCH_BOX_NODE_NO_TITLE_YET)
+        elif self.background_views.get_view_state() != ViewStates.ON_TAG_SEARCH_BOX_NODE:
+            logging.debug(
+                f"Forcing tag search box change:"
+                f" view state = {self.background_views.get_view_state()},"
+                f' tag search box text = "{instance.get_current_tag()}",'
+                f' tag title spinner text = "{instance.ids.tag_title_spinner.text}"'
+            )
+            self.on_tag_search_box_title_changed(
+                instance.ids.tag_title_spinner, instance.ids.tag_title_spinner.text
+            )
 
     def on_tag_search_box_text_changed(self, instance: TagSearchBoxTreeViewNode, text: str):
         logging.debug(f'Tag search box text changed: text: "{text}".')
