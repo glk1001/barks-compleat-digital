@@ -28,7 +28,7 @@ BARKS_EXTRA_INFO = {
     # " been Walt Kelly's partner in a story unit at Disneys. I understand he got fed up with gag"
     # ' writing and bought a nursery (plants and trees) and lived happily ever after."'
     " (The artist's name was Merrill de Maris).",
-    Titles.MIGHTY_TRAPPER_THE: "First appearance of [b][i]Daisy.[/i][/b].",
+    Titles.MIGHTY_TRAPPER_THE: "First appearance of [b][i]Daisy.[/i][/b]",
     Titles.GOOD_DEEDS: "First appearance of [b][i]Neighbor Jones.[/i][/b]"
     " (Mr. Jones in this story.)",
     Titles.GOOD_NEIGHBORS: "The first real appearance of [b][i]Neighbor Jones[/i][/b]"

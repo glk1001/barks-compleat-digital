@@ -254,9 +254,9 @@ class TestBarksTags(unittest.TestCase):
         self.assertNotIn("non_existent_group_alias", BARKS_TAG_GROUPS_ALIASES)
 
     def test_barks_tag_categories_dict(self):
-        self.assertEqual(BARKS_TAG_CATEGORIES_DICT["CHARACTERS"], TagCategories.CHARACTERS)
-        self.assertEqual(BARKS_TAG_CATEGORIES_DICT["PLACES"], TagCategories.PLACES)
-        self.assertEqual(BARKS_TAG_CATEGORIES_DICT["THINGS"], TagCategories.THINGS)
+        self.assertEqual(BARKS_TAG_CATEGORIES_DICT["Characters"], TagCategories.CHARACTERS)
+        self.assertEqual(BARKS_TAG_CATEGORIES_DICT["Places"], TagCategories.PLACES)
+        self.assertEqual(BARKS_TAG_CATEGORIES_DICT["Things"], TagCategories.THINGS)
         with self.assertRaises(KeyError):
             _ = BARKS_TAG_CATEGORIES_DICT["NON_EXISTENT"]
 
