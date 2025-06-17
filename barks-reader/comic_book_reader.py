@@ -1,20 +1,9 @@
-# You might need 'pip install rarfile' and the 'unrar' executable for .cbr support
-# import rarfile
-import io
 import logging
-import os.path
-import sys
-import threading
-import traceback
-import zipfile
 from collections import OrderedDict
-from dataclasses import dataclass
 from pathlib import Path
 from threading import Thread
-from typing import Callable, IO, List, Dict, Union
+from typing import Callable, List, Dict
 
-from PIL import Image as PilImage, ImageOps
-from kivy.clock import Clock
 from kivy.core.image import Image as CoreImage
 from kivy.core.window import Window
 from kivy.lang import Builder
@@ -29,7 +18,9 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.widget import Widget
 from screeninfo import get_monitors
 
-from barks_fantagraphics.comics_consts import PNG_FILE_EXT, JPG_FILE_EXT, PageType
+from barks_fantagraphics.comics_consts import PageType
+from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
+from comic_book_loader import PageInfo, ComicBookLoader
 from file_paths import (
     get_barks_reader_action_bar_background_file,
     get_barks_reader_close_icon_file,
@@ -51,12 +42,8 @@ GOTO_PAGE_BUTTON_BODY_COLOR = (0, 1, 1, 1)
 GOTO_PAGE_BUTTON_NONBODY_COLOR = (0, 0.5, 0.5, 1)
 GOTO_PAGE_BUTTON_CURRENT_PAGE_COLOR = (1, 1, 0, 1)
 
-
-@dataclass
-class PageInfo:
-    page_index: int
-    page_type: PageType
-    image_filename: str
+APP_ACTION_BAR_FULLSCREEN_ICON = get_barks_reader_fullscreen_icon_file()
+APP_ACTION_BAR_FULLSCREEN_EXIT_ICON = get_barks_reader_fullscreen_exit_icon_file()
 
 
 class ComicBookReader(BoxLayout):
@@ -70,12 +57,12 @@ class ComicBookReader(BoxLayout):
     def __init__(self, close_reader_func: Callable[[], None], goto_page_widget: Widget, **kwargs):
         super().__init__(**kwargs)
 
-        self.root = None
         self.action_bar = None
         self.close_reader_func = close_reader_func
         self.goto_page_widget = goto_page_widget
+        self.__action_bar_fullscreen_icon = APP_ACTION_BAR_FULLSCREEN_ICON
+        self.__action_bar_fullscreen_exit_icon = APP_ACTION_BAR_FULLSCREEN_EXIT_ICON
         self.current_comic_path = ""
-        self.closed = False
 
         self.orientation = "vertical"
 
@@ -84,9 +71,14 @@ class ComicBookReader(BoxLayout):
         self.comic_image.mipmap = False
         self.add_widget(self.comic_image)
 
-        self.images: List[Union[None, io.BytesIO]] = []
+        self.comic_book_loader = ComicBookLoader(
+            self.first_image_loaded,
+            self.all_images_loaded,
+            self.MAX_WINDOW_WIDTH,
+            self.MAX_WINDOW_HEIGHT,
+        )
+
         self.image_load_order: List[str] = []
-        self.image_loaded_events: List[threading.Event] = []
         self.page_to_first_goto = ""
         self.last_page_index = -1
         self.all_loaded = False
@@ -173,47 +165,42 @@ class ComicBookReader(BoxLayout):
 
     def read_comic(
         self,
-        title_str: str,
-        comic_path: str,
+        fanta_info: FantaComicBookInfo,
         page_to_first_goto: str,
         page_map: OrderedDict[str, PageInfo],
     ):
-        if not comic_path.endswith((".cbz", ".zip")):
-            raise Exception("Expected '.cbz' or '.zip' file.")
-        if not os.path.isfile(comic_path):
-            raise Exception(f'Could not find comic file "{comic_path}".')
-
         assert page_to_first_goto in page_map
 
-        self.closed = False
-        self.action_bar.action_view.action_previous.title = title_str
-        self.current_comic_path = comic_path
+        self.all_loaded = False
+        self.current_page_index = -1  # Reset page index
+
+        self.action_bar.action_view.action_previous.title = (
+            fanta_info.comic_book_info.get_title_str()
+        )
         self.page_to_first_goto = page_to_first_goto
         self.page_map = page_map
         self.index_to_page_map = {self.page_map[page].page_index: page for page in self.page_map}
 
-        self.load_current_comic_path()
-
-    def close_comic_book_reader(self, fullscreen_button: ActionButton):
-        self.closed = True
-
-        self.exit_fullscreen(fullscreen_button)
-
-        self.close_reader_func()
-
-        self.images.clear()
-        self.last_page_index = -1
-
-    def load_current_comic_path(self):
-        self.all_loaded = False
-
         self.init_first_and_last_page_index()
-        self.init_load_events()
         self.init_image_load_order()
 
-        t = Thread(target=self.load_comic, args=[])
+        self.comic_book_loader.set_comic(fanta_info, self.image_load_order, self.page_map)
+
+        self.load_current_comic()
+
+    def load_current_comic(self):
+        t = Thread(target=self.comic_book_loader.load_comic, args=[])
         t.daemon = True
         t.start()
+
+    def close_comic_book_reader(self, fullscreen_button: ActionButton):
+        self.comic_book_loader.stop_now()
+
+        self.exit_fullscreen(fullscreen_button)
+        self.comic_book_loader.close_comic()
+        self.close_reader_func()
+
+        self.last_page_index = -1
 
     def init_first_and_last_page_index(self):
         first_page_index = next(iter(self.page_map.values())).page_index
@@ -243,117 +230,18 @@ class ComicBookReader(BoxLayout):
             page = self.index_to_page_map[page_index]
             self.image_load_order.append(page)
 
-    def init_load_events(self):
-        self.image_loaded_events.clear()
-        for _page in self.page_map:
-            self.image_loaded_events.append(threading.Event())
-
-    def load_comic(self):
-        """Loads images from the comic archive."""
-        assert not self.all_loaded
-        assert len(self.image_load_order) == len(self.page_map)
-        assert len(self.image_loaded_events) == len(self.page_map)
-        assert 0 <= self.last_page_index < len(self.page_map)
-
-        self.images = [None for _i in range(0, len(self.page_map))]
-        self.current_page_index = -1  # Reset page index
-
-        try:
-            num_loaded = 0
-            with zipfile.ZipFile(self.current_comic_path, "r") as archive:
-                first_loaded = False
-
-                for i in range(0, len(self.image_load_order)):
-                    page_info = self.page_map[self.image_load_order[i]]
-
-                    page_index = page_info.page_index
-                    image_filename = os.path.join("images", page_info.image_filename)
-                    with archive.open(image_filename) as file:
-                        ext = Path(image_filename).suffix
-                        if self.closed:
-                            return
-                        self.images[page_index] = self.get_image_data(file, ext)
-                        num_loaded += 1
-
-                    self.image_loaded_events[page_index].set()
-
-                    if not first_loaded and not self.closed:
-                        first_loaded = True
-                        logging.info(
-                            f"Loaded first image,"
-                            f' index = {page_index}, image_filename = "{image_filename}".'
-                        )
-                        Clock.schedule_once(self.first_image_loaded, 0)
-
-            if self.closed:
-                return
-
-            assert all(ev.is_set for ev in self.image_loaded_events)
-            self.all_loaded = True
-            logging.info(f"Loaded {num_loaded} images from {self.current_comic_path}.")
-
-            # Add .cbr support if rarfile is installed
-            # elif comic_path.lower().endswith(('.cbr', '.rar')):
-            #     with rarfile.RarFile(comic_path, 'r') as archive:
-            #         image_names = sorted([
-            #             f for f in archive.namelist()
-            #             if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp'))
-            #         ])
-            #         for image_filename in image_names:
-            #             with archive.open(image_filename) as file:
-            #                 img_data = io.BytesIO(file.read())
-            #                 self.images.append(img_data)
-            #     Logger.info(f"Loaded {len(self.images)} images from {comic_path}")
-
-        except FileNotFoundError:
-            logging.error(f'Comic file not found: "{self.current_comic_path}".')
-            # Optionally show an error message to the user
-        except zipfile.BadZipFile:
-            logging.error(f'Bad zip file: "{self.current_comic_path}".')
-            # Optionally show an error message to the user
-        # except rarfile.BadRarFile:
-        #      Logger.error(f"Bad rar file: {comic_path}")
-        #      # Optionally show an error message to the user
-        except IndexError:
-            if self.closed:
-                logging.warning(
-                    f'Index error reading comic: probably because closed = "{self.closed}".'
-                )
-            else:
-                logging.error(f'Unexpected index error reading comic: closed = "{self.closed}".')
-        except Exception as e:
-            _, _, tb = sys.exc_info()
-            tb_info = traceback.extract_tb(tb)
-            filename, line, func, text = tb_info[-1]
-            logging.error(f'Error loading comic: "{filename}:{line}" for statement "{text}".')
-            # Optionally show a generic error message
-
-    def first_image_loaded(self, _dt):
+    def first_image_loaded(self):
         self.current_page_index = self.page_map[self.page_to_first_goto].page_index
         logging.debug(f"First image loaded: current page index = {self.current_page_index}.")
 
-    @staticmethod
-    def get_image_format(ext: str) -> str:
-        return "jpeg" if ext == JPG_FILE_EXT else PNG_FILE_EXT
-
-    def get_image_data(self, file: IO[bytes], ext: str) -> io.BytesIO:
-        assert ext in [PNG_FILE_EXT, JPG_FILE_EXT]
-
-        img_data = PilImage.open(io.BytesIO(file.read()))
-        img_data = ImageOps.contain(
-            img_data,
-            (self.MAX_WINDOW_HEIGHT, self.MAX_WINDOW_WIDTH),
-            PilImage.Resampling.LANCZOS,
-        )
-
-        data = io.BytesIO()
-        img_data.save(data, format=self.get_image_format(ext))
-
-        return data
+    def all_images_loaded(self):
+        self.all_loaded = True
+        logging.debug(f"All images loaded: current page index = {self.current_page_index}.")
 
     def show_page(self, _instance, _value):
         """Displays the image for the current_page_index."""
         if self.current_page_index == -1:
+            logging.debug(f"Show page not ready: current_page_index = {self.current_page_index}.")
             return
 
         logging.debug(
@@ -363,7 +251,6 @@ class ComicBookReader(BoxLayout):
 
         self.wait_for_image_to_load()
 
-        assert self.images
         assert 0 <= self.current_page_index <= self.last_page_index
 
         try:
@@ -372,11 +259,10 @@ class ComicBookReader(BoxLayout):
             self.comic_image.source = ""  # Clear previous source
             self.comic_image.reload()  # Ensure reload if source was same BytesIO object
 
-            # Reset stream position before loading
-            self.images[self.current_page_index].seek(0)
-            self.comic_image.texture = CoreImage(
-                self.images[self.current_page_index], ext="jpeg"
-            ).texture
+            image_stream, image_ext = self.comic_book_loader.get_image_ready_for_reading(
+                self.current_page_index
+            )
+            self.comic_image.texture = CoreImage(image_stream, ext=image_ext).texture
         except Exception as e:
             logging.error(f"Error displaying image with index {self.current_page_index}: {e}")
             # Optionally display a placeholder image or error message
@@ -457,7 +343,7 @@ class ComicBookReader(BoxLayout):
             return
 
         logging.info(f"Waiting for image with index {self.current_page_index} to finish loading.")
-        while not self.image_loaded_events[self.current_page_index].wait(timeout=1):
+        while not self.comic_book_loader.get_load_event(self.current_page_index).wait(timeout=1):
             logging.info(
                 f"Still waiting for image with index {self.current_page_index} to finish loading."
             )
@@ -469,12 +355,12 @@ class ComicBookReader(BoxLayout):
             Window.fullscreen = False
             self.show_action_bar()
             button.text = "Fullscreen"
-            button.icon = self.root.ACTION_BAR_FULLSCREEN_ICON
+            button.icon = self.__action_bar_fullscreen_icon
             logging.info("Exiting fullscreen.")
         else:
             self.hide_action_bar()
             button.text = "Windowed"
-            button.icon = self.root.ACTION_BAR_FULLSCREEN_EXIT_ICON
+            button.icon = self.__action_bar_fullscreen_exit_icon
             Window.fullscreen = "auto"  # Use 'auto' for best platform behavior
             logging.info("Entering fullscreen.")
 
@@ -519,8 +405,8 @@ class ComicBookReaderScreen(BoxLayout, Screen):
     ACTION_BAR_BACKGROUND_COLOR = (0.6, 0.7, 0.2, 1)
     ACTION_BUTTON_BACKGROUND_COLOR = (0.6, 1.0, 0.2, 1)
     ACTION_BAR_CLOSE_ICON = get_barks_reader_close_icon_file()
-    ACTION_BAR_FULLSCREEN_ICON = get_barks_reader_fullscreen_icon_file()
-    ACTION_BAR_FULLSCREEN_EXIT_ICON = get_barks_reader_fullscreen_exit_icon_file()
+    ACTION_BAR_FULLSCREEN_ICON = APP_ACTION_BAR_FULLSCREEN_ICON
+    ACTION_BAR_FULLSCREEN_EXIT_ICON = APP_ACTION_BAR_FULLSCREEN_EXIT_ICON
     ACTION_BAR_NEXT_ICON = get_barks_reader_next_icon_file()
     ACTION_BAR_PREV_ICON = get_barks_reader_previous_icon_file()
     ACTION_BAR_GOTO_ICON = get_barks_reader_goto_icon_file()
@@ -545,8 +431,6 @@ def get_barks_comic_reader(screen_name: str, close_reader_func: Callable[[], Non
     root = ComicBookReaderScreen(name=screen_name)
 
     comic_book_reader_widget = ComicBookReader(close_reader_func, root.ids.goto_page_button)
-
-    comic_book_reader_widget.root = root
     comic_book_reader_widget.set_action_bar(root.ids.comic_action_bar)
 
     root.add_reader_widget(comic_book_reader_widget)

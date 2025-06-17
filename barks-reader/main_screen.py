@@ -25,7 +25,6 @@ from barks_fantagraphics.barks_tags import (
 from barks_fantagraphics.barks_titles import ComicBookInfo, Titles, get_title_dict, BARKS_TITLES
 from barks_fantagraphics.comics_consts import PageType
 from barks_fantagraphics.comics_database import ComicsDatabase
-from barks_fantagraphics.comics_utils import get_dest_comic_zip_file_stem
 from barks_fantagraphics.fanta_comics_info import (
     FantaComicBookInfo,
     ALL_FANTA_COMIC_BOOK_INFO,
@@ -46,7 +45,6 @@ from barks_fantagraphics.pages import (
 from barks_fantagraphics.title_search import BarksTitleSearch
 from comic_book_reader import PageInfo, ComicBookReader
 from file_paths import (
-    get_the_comic_zips_dir,
     get_comic_inset_file,
     get_edited_version,
     get_barks_reader_app_icon_file,
@@ -599,28 +597,18 @@ class MainScreen(BoxLayout, Screen):
             return
 
         title_str = self.fanta_info.comic_book_info.get_title_str()
-
-        comic_file_stem = get_dest_comic_zip_file_stem(
-            title_str,
-            self.fanta_info.fanta_chronological_number,
-            self.fanta_info.get_short_issue_title(),
-        )
-
         logging.debug(
-            f'Image "{self.title_page_image_source}" pressed. Want to run "{comic_file_stem}".'
+            f'Image "{self.title_page_image_source}" pressed. Want to load "{title_str}".'
         )
 
         self.switch_to_comic_book_reader()
 
-        comic_path = os.path.join(get_the_comic_zips_dir(), comic_file_stem + ".cbz")
         comic_page_info = self.get_comic_page_info(title_str)
         page_to_first_goto = self.get_page_to_first_goto(comic_page_info, title_str)
 
         self.comic_book_reader.read_comic(
-            title_str, comic_path, page_to_first_goto, comic_page_info.page_map
+            self.fanta_info, page_to_first_goto, comic_page_info.page_map
         )
-
-        logging.debug(f"Comic book reader is running.")
 
     def get_page_to_first_goto(self, comic_page_info: ComicBookPageInfo, title_str: str) -> str:
         if not self.store.exists(title_str):
