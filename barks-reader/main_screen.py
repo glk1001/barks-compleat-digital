@@ -58,7 +58,6 @@ from file_paths import (
 )
 from filtered_title_lists import FilteredTitleLists
 from random_title_images import (
-    FileTypes,
     ImageInfo,
     RandomTitleImages,
     FIT_MODE_COVER,
@@ -191,11 +190,10 @@ class MainScreen(BoxLayout, Screen):
         )
 
     def set_new_loading_data_popup_image(self) -> None:
-        self.loading_data_popup.splash_image_path = self.random_title_images.get_random_image_file(
-            self.title_lists[ALL_LISTS], {FileTypes.SPLASH}
+        self.loading_data_popup.splash_image_path = (
+            self.random_title_images.get_loading_screen_random_image(self.title_lists[ALL_LISTS])
         )
         logging.debug(f'Loading popup image: "{self.loading_data_popup.splash_image_path}".')
-        #        self.popup.splash_image_path = get_random_app_splash_image()
 
     def on_tree_build_finished(self, _instance):
         logging.debug(f"'on_finished_building_event' received: dismiss the popup.")

@@ -1,5 +1,4 @@
 import logging
-import os.path
 from collections import deque, defaultdict
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -18,7 +17,6 @@ from file_paths import (
     get_comic_favourite_files,
     get_comic_original_art_files,
     get_comic_search_files,
-    get_app_splash_images_dir,
 )
 from reader_utils import prob_rand_less_equal
 
@@ -89,10 +87,11 @@ class RandomTitleImages:
             FIT_MODE_COVER,
         )
 
-    @staticmethod
-    def get_random_app_splash_image() -> str:
-        index = randrange(0, len(APP_SPLASH_IMAGES))
-        return os.path.join(get_app_splash_images_dir(), APP_SPLASH_IMAGES[index])
+    def get_loading_screen_random_image(self, title_list: List[FantaComicBookInfo]) -> str:
+        return self.get_random_image_file(
+            title_list,
+            {FileTypes.CENSORSHIP, FileTypes.FAVOURITE, FileTypes.SILHOUETTE, FileTypes.SPLASH},
+        )
 
     def get_random_image_file(
         self, title_list: List[FantaComicBookInfo], file_types: Union[Set[FileTypes], None] = None
