@@ -22,3 +22,5 @@ python barks-restore/batch-upscayl.py --volume 9 | tee /mnt/2tb_drive/workdir/9-
 python barks-restore/batch-restore-pipeline.py --work-dir /mnt/2tb_drive/workdir/barks-restore/restore --volume 9 | tee /mnt/2tb_drive/workdir/9-restore.log
 python batch-panel-bounds.py --work-dir /mnt/2tb_drive/workdir/barks-restore/panel-bounds --volume 5
 
+bash compare-build-dirs.sh "/media/greg/2tb_drive_backup/Books/Carl Barks/Regression-Tests/Small/aaa-Chronological-dirs" "/home/greg/Books/Carl Barks/The Comics/aaa-Chronological-dirs"
+bash compare-build-dirs.sh "/media/greg/2tb_drive_backup/Books/Carl Barks/Regression-Tests/Big/aaa-Chronological-dirs" "/home/greg/Books/Carl Barks/The Comics/aaa-Chronological-dirs"
