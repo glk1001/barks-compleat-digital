@@ -53,6 +53,9 @@ class Tags(Enum):
     FIRE = "fire"
     SQUARE_EGGS = "square eggs"
 
+    HYPNOSIS = "hypnosis"
+    MAGIC = "magic"
+
     AZURE_BLUE = "Azure Blue"
     ARGUS_MCFIENDY = "Argus McFiendy"
     BEAGLE_BOYS = "The Beagle Boys"
@@ -61,6 +64,7 @@ class Tags(Enum):
     CARVER_BEAKOFF = "Doctor Carver Beakoff"
     CHISEL_MC_SUE = "Chisel McSue"
     CORNELIUS_MC_COBB = "Cornelius McCobb"
+    DAISY = "Daisy Duck"
     EL_DORADO = "El Dorado"
     FERMIES = "Fermies"
     FLINTHEART_GLOMGOLD = "Flintheart Glomgold"
@@ -97,6 +101,7 @@ BARKS_TAG_EXTRA_ALIASES = {
     "mcsue": Tags.CHISEL_MC_SUE,
     "cornelius": Tags.CORNELIUS_MC_COBB,
     "mccobb": Tags.CORNELIUS_MC_COBB,
+    "daisy": Tags.DAISY,
     "el": Tags.EL_DORADO,
     "dorado": Tags.EL_DORADO,
     "foola": Tags.FOOLA_ZOOLA,
@@ -123,6 +128,7 @@ BARKS_TAG_ALIASES = {str(t.value).lower(): t for t in Tags} | BARKS_TAG_EXTRA_AL
 class TagCategories(Enum):
     CHARACTERS = "Characters"
     PLACES = "Places"
+    THEMES = "Themes"
     THINGS = "Things"
 
 
@@ -134,6 +140,7 @@ class TagGroups(Enum):
     NORTH_AMERICA = "North America"
     OTHER = "Other"
     SOUTH_AMERICA = "South America"
+    DRUGS = "drugs"
 
 
 BARKS_TAG_GROUPS_ALIASES = {str(t.value).lower(): t for t in TagGroups}
@@ -148,6 +155,7 @@ BARKS_TAG_CATEGORIES = {
         Tags.FIRE,
         Tags.SQUARE_EGGS,
     ],
+    TagCategories.THEMES: [Tags.HYPNOSIS, Tags.MAGIC, TagGroups.DRUGS],
     TagCategories.CHARACTERS: [
         Tags.ARGUS_MCFIENDY,
         Tags.AZURE_BLUE,
@@ -157,6 +165,7 @@ BARKS_TAG_CATEGORIES = {
         Tags.CARVER_BEAKOFF,
         Tags.CHISEL_MC_SUE,
         Tags.CORNELIUS_MC_COBB,
+        Tags.DAISY,
         Tags.EL_DORADO,
         Tags.FERMIES,
         Tags.FLINTHEART_GLOMGOLD,
@@ -274,6 +283,9 @@ BARKS_TAG_GROUPS = {
     TagGroups.SOUTH_AMERICA: [
         Tags.ANDES,
         Tags.PLAIN_AWFUL,
+    ],
+    TagGroups.DRUGS: [
+        Tags.CIGARETTES,
     ],
 }
 
@@ -400,7 +412,21 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
         Titles.BLACK_WEDNESDAY,
         Titles.DUCKBURG_PET_PARADE_THE,
     ],
-    Tags.OLD_DEMON_TOOTH: [Titles.MONEY_STAIRS_THE],
+    Tags.OLD_DEMON_TOOTH: [Titles.GOLDEN_CHRISTMAS_TREE_THE, Titles.MONEY_STAIRS_THE],
+    # Themes
+    Tags.HYPNOSIS: [
+        Titles.DAYS_AT_THE_LAZY_K,
+        Titles.ADVENTURE_DOWN_UNDER,
+        Titles.GOING_APE,
+        Titles.YOU_CANT_GUESS,
+        Titles.HYPNO_GUN_THE,
+        Titles.BACK_TO_LONG_AGO,
+        Titles.LOST_PEG_LEG_MINE_THE,
+        Titles.RAVEN_MAD,
+        Titles.THRIFTY_SPENDTHRIFT_THE,
+        Titles.SWAMP_OF_NO_RETURN_THE,
+    ],
+    Tags.MAGIC: [Titles.MAGICAL_MISERY],
     # Things
     Tags.AIRPLANE: [
         Titles.TRUANT_NEPHEWS_THE,
@@ -480,6 +506,67 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
     Tags.CARVER_BEAKOFF: [Titles.FIREBUG_THE],
     Tags.CHISEL_MC_SUE: [Titles.HORSERADISH_STORY_THE],
     Tags.CORNELIUS_MC_COBB: [Titles.VOODOO_HOODOO],
+    Tags.DAISY: [
+        Titles.MIGHTY_TRAPPER_THE,
+        Titles.EYES_IN_THE_DARK,
+        Titles.DONALD_TAMES_HIS_TEMPER,
+        Titles.BICEPS_BLUES,
+        Titles.GOLD_FINDER_THE,
+        Titles.CANTANKEROUS_CAT_THE,
+        Titles.PICNIC_TRICKS,
+        Titles.MAGICAL_MISERY,
+        Titles.WALTZ_KING_THE,
+        Titles.WINTERTIME_WAGER,
+        Titles.WATCHING_THE_WATCHMAN,
+        Titles.GOING_APE,
+        Titles.ROCKET_RACE_TO_THE_MOON,
+        Titles.GLADSTONE_RETURNS,
+        Titles.PEARLS_OF_WISDOM,
+        Titles.DONALD_DUCKS_WORST_NIGHTMARE,
+        Titles.DONALDS_LOVE_LETTERS,
+        Titles.LAND_OF_THE_TOTEM_POLES,
+        Titles.WILD_ABOUT_FLOWERS,
+        Titles.BIG_TOP_BEDLAM,
+        Titles.YOU_CANT_GUESS,
+        Titles.KNIGHTLY_RIVALS,
+        Titles.CHRISTMAS_FOR_SHACKTOWN_A,
+        Titles.ATTIC_ANTICS,
+        Titles.GLADSTONES_USUAL_VERY_GOOD_YEAR,
+        Titles.ROCKET_WING_SAVES_THE_DAY,
+        Titles.HOBBLIN_GOBLINS,
+        Titles.OMELET,
+        Titles.CHARITABLE_CHORE_A,
+        Titles.FLIP_DECISION,
+        Titles.MY_LUCKY_VALENTINE,
+        Titles.EASTER_ELECTION_THE,
+        Titles.MASTER_RAINMAKER_THE,
+        Titles.RAFFLE_REVERSAL,
+        Titles.FIX_UP_MIX_UP,
+        Titles.DAFFY_TAFFY_PULL_THE,
+        Titles.KNIGHT_IN_SHINING_ARMOR,
+        Titles.LOSING_FACE,
+        Titles.DAY_DUCKBURG_GOT_DYED_THE,
+        Titles.RED_APPLE_SAP,
+        Titles.DODGING_MISS_DAISY,
+        Titles.WATER_SKI_RACE,
+        Titles.TRACKING_SANDY,
+        Titles.BEACHCOMBERS_PICNIC_THE,
+        Titles.DRAMATIC_DONALD,
+        Titles.ROCKET_ROASTED_CHRISTMAS_TURKEY,
+        Titles.LOVELORN_FIREMAN_THE,
+        Titles.KNIGHTS_OF_THE_FLYING_SLEDS,
+        Titles.WEATHER_WATCHERS_THE,
+        Titles.VILLAGE_BLACKSMITH_THE,
+        Titles.TURKEY_TROUBLE,
+        Titles.BOXED_IN,
+        Titles.MR_PRIVATE_EYE,
+        Titles.JINXED_JALOPY_RACE_THE,
+        Titles.HAVE_GUN_WILL_DANCE,
+        Titles.OLYMPIAN_TORCH_BEARER_THE,
+        Titles.HERO_OF_THE_DIKE,
+        Titles.BEAUTY_BUSINESS_THE,
+        Titles.NOT_SO_ANCIENT_MARINER_THE,
+    ],
     Tags.EL_DORADO: [Titles.GILDED_MAN_THE],
     Tags.FERMIES: [Titles.LAND_BENEATH_THE_GROUND],
     Tags.FLINTHEART_GLOMGOLD: [
@@ -723,6 +810,7 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
 BARKS_TAGGED_PAGES: Dict[Tuple[Tags, Titles], List[str]] = {
     (Tags.NEIGHBOR_JONES, Titles.GOOD_DEEDS): ["1"],
     (Tags.CARVER_BEAKOFF, Titles.FIREBUG_THE): ["13"],
+    (Tags.DAISY, Titles.EYES_IN_THE_DARK): ["7"],
     (Tags.EL_DORADO, Titles.GILDED_MAN_THE): [
         "8",
         "11",
@@ -736,7 +824,21 @@ BARKS_TAGGED_PAGES: Dict[Tuple[Tags, Titles], List[str]] = {
         "22",
         "23",
     ],
-    (Tags.FOOLA_ZOOLA, Titles.VOODOO_HOODOO): ["6", "17", "19", "20", "21", "22", "23", "24", "25", "26", "29", "30", "31"],
+    (Tags.FOOLA_ZOOLA, Titles.VOODOO_HOODOO): [
+        "6",
+        "17",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "26",
+        "29",
+        "30",
+        "31",
+    ],
     (Tags.CORNELIUS_MC_COBB, Titles.VOODOO_HOODOO): ["20", "21", "22", "23"],
     (Tags.CIGARETTES, Titles.MAD_CHEMIST_THE): ["10"],
     (Tags.CIGARETTES, Titles.SWIMMING_SWINDLERS): ["1", "2", "7"],
