@@ -11,8 +11,6 @@ easyocr
 google-generativeai
 image==1.5.33
 intspan==1.6.1
-Kivy==2.3.1
-Kivy-Garden==0.1.5
 llvmlite==0.43.0
 lxml==5.3.0
 more-itertools==10.5.0
