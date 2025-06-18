@@ -106,7 +106,7 @@ class ReaderTreeBuilder:
         self.__nodes_loaded.add(load_type)
         if len(self.__nodes_loaded) == len(LongRunningNodeLoadingTypes):
             Clock.schedule_once(
-                lambda dt: self.__main_screen.reader_tree_events.finished_building(), 1
+                lambda dt: self.__main_screen.reader_tree_events.finished_building(), 0
             )
 
     def build_main_screen_tree(self):

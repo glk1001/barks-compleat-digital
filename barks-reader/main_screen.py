@@ -183,6 +183,7 @@ class MainScreen(BoxLayout, Screen):
         self.update_background_views(ViewStates.PRE_INIT)
 
     def on_loading_data_popup_open(self) -> None:
+        self.set_new_loading_data_popup_image()
         self.loading_data_popup_image_event = Clock.schedule_interval(
             lambda dt: self.set_new_loading_data_popup_image(), 0.5
         )
@@ -191,13 +192,17 @@ class MainScreen(BoxLayout, Screen):
         self.loading_data_popup.splash_image_path = (
             self.random_title_images.get_loading_screen_random_image(self.title_lists[ALL_LISTS])
         )
-        logging.debug(f'Loading popup image: "{self.loading_data_popup.splash_image_path}".')
+        logging.debug(f'New loading popup image: "{self.loading_data_popup.splash_image_path}".')
 
     def on_tree_build_finished(self, _instance):
         logging.debug(f"'on_finished_building_event' received: dismiss the popup.")
         if self.loading_data_popup_image_event:
             self.loading_data_popup_image_event.cancel()
-        self.loading_data_popup.dismiss()
+
+        # Linger on the last image...
+        self.loading_data_popup.title = "All titles loaded!"
+        Clock.schedule_once(lambda dt: self.loading_data_popup.dismiss(), 2)
+
         self.update_background_views(ViewStates.INITIAL)
 
     def on_action_bar_collapse(self):
