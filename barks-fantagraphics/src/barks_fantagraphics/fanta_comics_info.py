@@ -175,6 +175,39 @@ FANTA_SOURCE_COMICS = {
     f"{get_fanta_volume_str(28)}": FantaBook(VOLUME_28, FAN, 28, 2023, 209),
 }
 
+FANTA_VOLUME_OVERRIDES_ROOT = "/mnt/2tb_drive/Books/Carl Barks/Fantagraphics Volumes Overrides"
+
+FANTA_OVERRIDE_DIRECTORIES = {
+    1: "01 - Donald Duck - Pirate Gold",
+    2: "02 - Donald Duck - Frozen Gold",
+    3: "03 - Donald Duck - Mystery of the Swamp",
+    4: "04 - Donald Duck - Maharajah Donald",
+    5: "05 - Donald Duck - Christmas on Bear Mountain",
+    6: "06 - Donald Duck - The Old Castle's Secret",
+    7: "07 - Donald Duck - Lost in the Andes",
+    8: "08 - Donald Duck - Trail of the Unicorn",
+    9: "09 - Donald Duck - The Pixilated Parrot",
+    10: "10 - Donald Duck - Terror of the Beagle Boys",
+    11: "11 - Donald Duck - A Christmas for Shacktown",
+    12: "12 - Uncle Scrooge - Only a Poor Old Man",
+    13: "13 - Donald Duck - Trick or Treat",
+    14: "14 - Uncle Scrooge - The Seven Cities of Gold",
+    15: "15 - Donald Duck - The Ghost Sheriff of Last Gasp",
+    16: "16 - Uncle Scrooge - The Lost Crown of Genghis Khan",
+    17: "17 - Donald Duck - The Secret of Hondorica",
+    18: "18 - Donald Duck - The Lost Peg Leg Mine",
+    19: "19 - Donald Duck - The Black Pearls of Tabu Yama",
+    20: "20 - Uncle Scrooge - The Mines of King Solomon",
+    21: "21 - Donald Duck - Christmas in Duckburg",
+    22: "22 - Uncle Scrooge - The Twenty-Four Carat Moon",
+    23: "23 - Donald Duck - Under the Polar Ice",
+    24: "24 - Uncle Scrooge - Island in the Sky",
+    25: "25 - Donald Duck - Balloonatics",
+    26: "26 - Uncle Scrooge - The Golden Nugget Boat",
+    27: "27 - Donald Duck - 'Duck Luck'",
+    28: "28 - Uncle Scrooge - 'Cave of Ali Baba'",
+}
+
 FIRST_VOLUME_NUMBER = 2
 LAST_VOLUME_NUMBER = len(FANTA_SOURCE_COMICS)
 

@@ -34,6 +34,7 @@ from .comics_utils import (
 from .fanta_comics_info import (
     FantaComicBookInfo,
     FantaBook,
+    get_fanta_volume_str,
     FANTA_SOURCE_COMICS,
     FIRST_VOLUME_NUMBER,
     LAST_VOLUME_NUMBER,
@@ -48,7 +49,8 @@ from .fanta_comics_info import (
     FANTAGRAPHICS_PANEL_SEGMENTS_DIRNAME,
     FANTAGRAPHICS_RESTORED_OCR_DIRNAME,
     ALL_FANTA_COMIC_BOOK_INFO,
-    get_fanta_volume_str,
+    FANTA_VOLUME_OVERRIDES_ROOT,
+    FANTA_OVERRIDE_DIRECTORIES,
 )
 
 
@@ -337,6 +339,10 @@ class ComicsDatabase:
             self._make_vol_dirs(os.path.join(scraps_image_dir, "standard"))
             self._make_vol_dirs(os.path.join(scraps_image_dir, "upscayled"))
             self._make_vol_dirs(os.path.join(scraps_image_dir, "restored"))
+
+            self._make_vol_dirs(
+                os.path.join(FANTA_VOLUME_OVERRIDES_ROOT, FANTA_OVERRIDE_DIRECTORIES[volume])
+            )
 
         # Symlinks - just make sure these exist.
         self._check_symlink_exists(self.get_fantagraphics_upscayled_root_dir())

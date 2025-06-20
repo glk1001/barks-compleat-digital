@@ -25,10 +25,15 @@ from barks_fantagraphics.comics_consts import (
     get_font_path,
     INTRO_TEXT_FONT_FILE,
     PAGE_NUM_FONT_FILE,
+    JPG_FILE_EXT,
 )
 from barks_fantagraphics.comics_image_io import METADATA_PROPERTY_GROUP
 from barks_fantagraphics.comics_utils import get_clean_path, get_relpath, get_abbrev_path
-from barks_fantagraphics.fanta_comics_info import CENSORED_TITLES
+from barks_fantagraphics.fanta_comics_info import (
+    CENSORED_TITLES,
+    FANTA_VOLUME_OVERRIDES_ROOT,
+    FANTA_OVERRIDE_DIRECTORIES,
+)
 from barks_fantagraphics.pages import (
     CleanPage,
     SrceAndDestPages,
@@ -82,8 +87,6 @@ PAGE_NUM_COLOR = (10, 10, 10)
 SPLASH_BORDER_COLOR = (0, 0, 0)
 SPLASH_BORDER_WIDTH = 10
 SPLASH_MARGIN = DEST_TARGET_X_MARGIN
-
-FANTA_VOLUME_OVERRIDES_ROOT = "/mnt/2tb_drive/Books/Carl Barks/Fantagraphics Volumes Overrides"
 
 _process_page_error = False
 
@@ -253,6 +256,19 @@ class ComicBookBuilder:
             quality=DEST_JPG_QUALITY,
             comment="\n".join(self._get_dest_jpg_comments(srce_page, dest_page)),
         )
+
+        if dest_page.page_type == PageType.TITLE:
+            title_file = os.path.join(
+                FANTA_VOLUME_OVERRIDES_ROOT,
+                FANTA_OVERRIDE_DIRECTORIES[self.__comic.get_fanta_volume()],
+                get_safe_title(self.__comic.get_ini_title()) + JPG_FILE_EXT,
+            )
+            dest_page_image.save(
+                title_file,
+                optimize=True,
+                compress_level=DEST_JPG_COMPRESS_LEVEL,
+                quality=DEST_JPG_QUALITY,
+            )
 
     @staticmethod
     def _get_dest_jpg_comments(srce_page: CleanPage, dest_page: CleanPage) -> List[str]:
