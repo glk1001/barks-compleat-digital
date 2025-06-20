@@ -3,7 +3,7 @@ import os
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Union
 
-from .comic_book import OriginalPage, ComicBook, get_page_str
+from .comic_book import OriginalPage, ComicBook, get_page_str, ModifiedType
 from .comics_consts import PageType, RESTORABLE_PAGE_TYPES
 from .comics_utils import get_timestamp
 from .panel_bounding_boxes import BoundingBox
@@ -69,12 +69,12 @@ class CleanPage:
         page_filename: str,
         page_type: PageType,
         page_num: int = -1,
-        page_is_modified: bool = False,
+        page_mod_type: ModifiedType = ModifiedType.ORIGINAL,
     ):
         self.page_filename = page_filename
         self.page_type = page_type
         self.page_num: int = page_num
-        self.page_is_modified = page_is_modified
+        self.page_mod_type = page_mod_type
         self.panels_bbox: BoundingBox = BoundingBox()
 
 
@@ -182,27 +182,25 @@ def get_required_pages_in_order(page_images_in_book: List[OriginalPage]) -> List
     return req_pages
 
 
-def get_checked_srce_file(comic: ComicBook, page: CleanPage) -> Tuple[str, bool]:
+def get_checked_srce_file(comic: ComicBook, page: CleanPage) -> Tuple[str, ModifiedType]:
     if page.page_filename == TITLE_EMPTY_FILENAME:
         srce_file = TITLE_EMPTY_IMAGE_FILEPATH
-        is_modified_file = False
+        mod_type = ModifiedType.ORIGINAL
     elif page.page_filename == EMPTY_FILENAME:
         srce_file = EMPTY_IMAGE_FILEPATH
-        is_modified_file = False
+        mod_type = ModifiedType.ORIGINAL
     else:
-        srce_file, is_modified_file = comic.get_final_srce_story_file(
-            page.page_filename, page.page_type
-        )
-        if not is_modified_file:
-            _, is_modified_file = comic.get_final_srce_upscayled_story_file(
+        srce_file, mod_type = comic.get_final_srce_story_file(page.page_filename, page.page_type)
+        if mod_type == ModifiedType.ORIGINAL:
+            _, mod_type = comic.get_final_srce_upscayled_story_file(
                 page.page_filename, page.page_type
             )
-        if not is_modified_file:
-            _, is_modified_file = comic.get_final_srce_original_story_file(
+        if mod_type == ModifiedType.ORIGINAL:
+            _, mod_type = comic.get_final_srce_original_story_file(
                 page.page_filename, page.page_type
             )
 
-    return srce_file, is_modified_file
+    return srce_file, mod_type
 
 
 def get_srce_dest_map(
@@ -237,7 +235,7 @@ class SrceDependency:
     file: str
     timestamp: float
     independent: bool
-    modded: bool = False
+    mod_type: ModifiedType = ModifiedType.ORIGINAL
 
 
 def get_restored_srce_dependencies(comic: ComicBook, srce_page: CleanPage) -> List[SrceDependency]:
@@ -301,7 +299,7 @@ def get_restored_srce_dependencies(comic: ComicBook, srce_page: CleanPage) -> Li
 
     underlying_files.append(
         SrceDependency(
-            srce_restored_file, srce_restored_timestamp, independent=False, modded=restored_modded
+            srce_restored_file, srce_restored_timestamp, independent=False, mod_type=restored_modded
         )
     )
 
@@ -327,7 +325,7 @@ def get_restored_srce_dependencies(comic: ComicBook, srce_page: CleanPage) -> Li
                     srce_upscayl_file,
                     srce_upscayl_timestamp,
                     independent=False,
-                    modded=upscayl_modded,
+                    mod_type=upscayl_modded,
                 )
             )
             underlying_files.append(
@@ -335,7 +333,7 @@ def get_restored_srce_dependencies(comic: ComicBook, srce_page: CleanPage) -> Li
                     srce_original_file,
                     srce_original_timestamp,
                     independent=False,
-                    modded=original_modded,
+                    mod_type=original_modded,
                 )
             )
 

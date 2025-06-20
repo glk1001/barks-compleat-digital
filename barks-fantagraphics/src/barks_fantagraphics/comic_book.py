@@ -81,6 +81,12 @@ class FixesType(Enum):
     UPSCAYLED = auto()
 
 
+class ModifiedType(Enum):
+    ORIGINAL = auto()
+    MODIFIED = auto()
+    ADDED = auto()
+
+
 @dataclass
 class ComicBook:
     ini_file: str
@@ -198,19 +204,19 @@ class ComicBook:
 
     def get_final_srce_original_story_files(
         self, page_types: List[PageType]
-    ) -> List[Tuple[str, bool]]:
+    ) -> List[Tuple[str, ModifiedType]]:
         return self.__get_story_files_with_mods(page_types, self.get_final_srce_original_story_file)
 
     def get_final_srce_upscayled_story_files(
         self, page_types: List[PageType]
-    ) -> List[Tuple[str, bool]]:
+    ) -> List[Tuple[str, ModifiedType]]:
         return self.__get_story_files_with_mods(
             page_types, self.get_final_srce_upscayled_story_file
         )
 
     def get_final_srce_story_files(
         self, page_types: Union[None, List[PageType]]
-    ) -> List[Tuple[str, bool]]:
+    ) -> List[Tuple[str, ModifiedType]]:
         return self.__get_story_files_with_mods(page_types, self.get_final_srce_story_file)
 
     def __get_story_files(
@@ -228,8 +234,8 @@ class ComicBook:
     def __get_story_files_with_mods(
         self,
         page_types: List[PageType],
-        get_story_file: Callable[[str, PageType], Tuple[str, bool]],
-    ) -> List[Tuple[str, bool]]:
+        get_story_file: Callable[[str, PageType], Tuple[str, ModifiedType]],
+    ) -> List[Tuple[str, ModifiedType]]:
         all_files = []
         for page in self.page_images_in_order:
             if page.page_type in page_types:
@@ -287,7 +293,7 @@ class ComicBook:
 
     def get_final_srce_original_story_file(
         self, page_num: str, page_type: PageType
-    ) -> Tuple[str, bool]:
+    ) -> Tuple[str, ModifiedType]:
         srce_file = self.__get_srce_original_story_file(page_num)
         srce_fixes_file = self.get_srce_original_fixes_story_file(page_num)
 
@@ -297,7 +303,7 @@ class ComicBook:
 
     def get_final_srce_upscayled_story_file(
         self, page_num: str, page_type: PageType
-    ) -> Tuple[str, bool]:
+    ) -> Tuple[str, ModifiedType]:
         srce_file = self.__get_srce_original_story_file(page_num)
         srce_upscayled_fixes_file = os.path.join(
             self.get_srce_upscayled_fixes_image_dir(), page_num + JPG_FILE_EXT
@@ -309,11 +315,11 @@ class ComicBook:
         srce_upscayled_fixes_file = self.get_srce_upscayled_fixes_story_file(page_num)
         srce_upscayled_file = self.get_srce_upscayled_story_file(page_num)
 
-        final_file, is_modified = self.__get_final_story_file(
+        final_file, mod_type = self.__get_final_story_file(
             FixesType.UPSCAYLED, page_num, page_type, srce_file, srce_upscayled_fixes_file
         )
 
-        if not is_modified:
+        if mod_type == ModifiedType.ORIGINAL:
             final_file = srce_upscayled_file
         elif os.path.isfile(srce_upscayled_file):
             raise Exception(
@@ -321,13 +327,15 @@ class ComicBook:
                 f' "{srce_upscayled_file}" and "{srce_upscayled_fixes_file}".'
             )
 
-        return final_file, is_modified
+        return final_file, mod_type
 
-    def get_final_srce_story_file(self, page_num: str, page_type: PageType) -> Tuple[str, bool]:
+    def get_final_srce_story_file(
+        self, page_num: str, page_type: PageType
+    ) -> Tuple[str, ModifiedType]:
         if page_type == PageType.TITLE:
-            return "TITLE PAGE", False
+            return "TITLE PAGE", ModifiedType.ORIGINAL
         if page_type == PageType.BLANK_PAGE:
-            return "EMPTY PAGE", False
+            return "EMPTY PAGE", ModifiedType.ORIGINAL
 
         if self.get_ini_title() != SILENT_NIGHT and page_type in RESTORABLE_PAGE_TYPES:
             srce_restored_file = os.path.join(
@@ -338,16 +346,16 @@ class ComicBook:
 
             srce_restored_file = self.__get_srce_restored_story_file(page_num)
             if os.path.isfile(srce_restored_file):
-                return srce_restored_file, False
+                return srce_restored_file, ModifiedType.ORIGINAL
 
             raise Exception(
                 f'Could not find restored source file "{srce_restored_file}"'
                 f' of type "{page_type.name}"'
             )
 
-        srce_file, is_modified = self.get_final_srce_original_story_file(page_num, page_type)
+        srce_file, mod_type = self.get_final_srce_original_story_file(page_num, page_type)
         if os.path.isfile(srce_file):
-            return srce_file, is_modified
+            return srce_file, mod_type
 
         raise Exception(f'Could not find source file "{srce_file}" of type "{page_type.name}"')
 
@@ -358,9 +366,9 @@ class ComicBook:
         page_type: PageType,
         primary_file: str,
         fixes_file: str,
-    ) -> Tuple[str, bool]:
+    ) -> Tuple[str, ModifiedType]:
         if not os.path.isfile(fixes_file):
-            return primary_file, False
+            return primary_file, ModifiedType.ORIGINAL
 
         # Fixes file exists - use it unless a special case.
         if os.path.isfile(primary_file):
@@ -381,12 +389,14 @@ class ComicBook:
                         f"EDITED {file_type.name} fixes page '{page_num}',"
                         f" must be in \"{', '.join(STORY_PAGE_TYPES_STR_LIST)}\""
                     )
+            mod_type = ModifiedType.MODIFIED
         elif self._is_added_fixes_special_case(page_num, page_type):
             # Fixes file is a special case ADDED file.
             logging.info(
                 f"NOTE: Special case - using ADDED {file_type.name} fixes file"
                 f' for {page_type.name} page: "{get_abbrev_path(fixes_file)}".'
             )
+            mod_type = ModifiedType.ADDED
         else:
             # Fixes file is an ADDED file - must not be a COVER or BODY page.
             logging.info(
@@ -398,10 +408,9 @@ class ComicBook:
                     f"ADDED {file_type.name} page '{page_num}',"
                     f" must NOT be in \"{', '.join(STORY_PAGE_TYPES_STR_LIST)}\""
                 )
+            mod_type = ModifiedType.ADDED
 
-        is_modified_file = page_type in STORY_PAGE_TYPES
-
-        return fixes_file, is_modified_file
+        return fixes_file, mod_type
 
     @staticmethod
     def is_fixes_special_case(volume: int, page_num: str) -> bool:

@@ -2,7 +2,7 @@ from barks_fantagraphics.barks_titles import Titles
 
 BARKS_EXTRA_INFO = {
     Titles.VICTORY_GARDEN_THE: " This was Barks's first comic-book work after leaving the Disney"
-    " studio."  
+    " studio."
     " \n\nFrom Michael Barrier:"
     " There is in the Disney Archives an undated note to Barks from the"
     ' Disney studio, signed "Dorothy" (probably Dorothy Strebe, who worked in the Disney'
@@ -42,7 +42,7 @@ BARKS_EXTRA_INFO = {
     " (Last panel of last page.)",
     Titles.TURKEY_RAFFLE: 'On page 4, a can of "Barks Dog Soup" is shown in Donald\'s kitchen'
     '-cupboard. In a letter to Michael Barrier, Barks wrote: "As for the can of dog food with'
-    ' Barks on it..., I probably put the name on it myself just to see if the editors would white'
+    " Barks on it..., I probably put the name on it myself just to see if the editors would white"
     ' it out."',
     Titles.CHRISTMAS_ON_BEAR_MOUNTAIN: "First appearance of [b][i]Uncle Scrooge.[/i][/b]",
     Titles.LOST_IN_THE_ANDES: 'In a 1962 interview, Barks agreed that [i]"my best story,'

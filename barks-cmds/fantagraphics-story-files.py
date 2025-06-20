@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from typing import List
 
+from barks_fantagraphics.comic_book import ModifiedType
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames, ExtraArg
 from barks_fantagraphics.comics_utils import (
     get_abbrev_path,
@@ -81,7 +82,7 @@ for title in titles:
         sources = [get_filepath_with_date(dest_page.page_filename, prev_timestamp, " ")]
         is_modded = False
         for dependency in get_restored_srce_dependencies(comic_book, srce_page):
-            if dependency.modded:
+            if dependency.mod_type != ModifiedType.ORIGINAL:
                 is_modded = True
             out_of_date_str = (
                 "*"

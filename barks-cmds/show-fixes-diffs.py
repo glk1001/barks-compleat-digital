@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 from skimage.metrics import structural_similarity
 
+from barks_fantagraphics.comic_book import ModifiedType
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_utils import setup_logging
@@ -86,7 +87,7 @@ def show_diffs_for_title(ttl: str, out_dir: str) -> None:
 
 
 def show_diffs_for_files(
-    ttl: str, out_dir: str, srce_files: List[str], fixes_files: List[Tuple[str, bool]]
+    ttl: str, out_dir: str, srce_files: List[str], fixes_files: List[Tuple[str, ModifiedType]]
 ) -> None:
     diff_threshold = 0.9
 
