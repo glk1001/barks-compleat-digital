@@ -15,7 +15,7 @@ from barks_fantagraphics.comics_utils import (
     get_titles_sorted_by_submission_date,
     setup_logging,
 )
-from build_comics import build_comic_book
+from build_comics import ComicBookBuilder
 from comics_integrity import check_comics_integrity
 from timing import Timing
 
@@ -41,7 +41,8 @@ def process_comic_book(comic: ComicBook) -> int:
     process_timing = Timing(datetime.now())
 
     try:
-        srce_and_dest_pages, max_dest_timestamp = build_comic_book(comic)
+        comic_book_builder = ComicBookBuilder(comic)
+        srce_and_dest_pages, max_dest_timestamp = comic_book_builder.build()
 
         process_timing.end_time = datetime.now()
         logging.info(
