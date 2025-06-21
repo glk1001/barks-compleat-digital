@@ -122,17 +122,27 @@ class ComicsDatabase:
     def get_configured_titles_in_fantagraphics_volumes(
         self, volume_nums: List[int]
     ) -> List[Tuple[str, FantaComicBookInfo]]:
-        config = ConfigParser(interpolation=ExtendedInterpolation())
         story_titles = []
-        for volume_num in volume_nums:
-            fanta_key = f"FANTA_{volume_num:02}"
-            for file in self._ini_files:
-                ini_file = os.path.join(self._story_titles_dir, file)
-                config.read(ini_file)
-                if config["info"]["source_comic"] == fanta_key:
-                    story_title = Path(ini_file).stem
-                    comic_info = self._all_comic_book_info[story_title]
-                    story_titles.append((story_title, comic_info))
+
+        for volume in volume_nums:
+            story_titles.extend(self.get_configured_titles_in_fantagraphics_volume(volume))
+
+        return sorted(story_titles)
+
+    def get_configured_titles_in_fantagraphics_volume(
+        self, volume: int
+    ) -> List[Tuple[str, FantaComicBookInfo]]:
+        config = ConfigParser(interpolation=ExtendedInterpolation())
+
+        story_titles = []
+        fanta_key = f"FANTA_{volume:02}"
+        for file in self._ini_files:
+            ini_file = os.path.join(self._story_titles_dir, file)
+            config.read(ini_file)
+            if config["info"]["source_comic"] == fanta_key:
+                story_title = Path(ini_file).stem
+                comic_info = self._all_comic_book_info[story_title]
+                story_titles.append((story_title, comic_info))
 
         return sorted(story_titles)
 

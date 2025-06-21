@@ -11,6 +11,14 @@ from .comics_consts import BARKS_ROOT_DIR, MONTH_AS_SHORT_STR, MONTH_AS_LONG_STR
 from .fanta_comics_info import FantaComicBookInfo
 
 
+def delete_all_files_in_directory(directory_path: str):
+    logging.debug(f'Deleting all files in directory "{get_relpath(directory_path)}".')
+
+    for file in Path(directory_path).iterdir():
+        if file.is_file():
+            file.unlink()
+
+
 def get_dest_comic_dirname(title: str, chrono_num: int) -> str:
     return f"{chrono_num:03d} {title}"
 

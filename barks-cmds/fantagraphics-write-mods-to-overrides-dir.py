@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from enum import Enum, auto
 from pathlib import Path
 from typing import Union, List, Tuple
 
@@ -8,8 +9,8 @@ from PIL import Image, ImageOps
 
 from barks_fantagraphics.comic_book import ComicBook, get_page_str, ModifiedType
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
-from barks_fantagraphics.comics_consts import JPG_FILE_EXT
-from barks_fantagraphics.comics_utils import setup_logging
+from barks_fantagraphics.comics_consts import JPG_FILE_EXT, PageType
+from barks_fantagraphics.comics_utils import setup_logging, delete_all_files_in_directory
 from barks_fantagraphics.fanta_comics_info import (
     FANTA_VOLUME_OVERRIDES_ROOT,
     FANTA_OVERRIDE_DIRECTORIES,
@@ -24,8 +25,13 @@ SRCE_STANDARD_HEIGHT = 3000
 DEST_JPG_QUALITY = 92
 DEST_JPG_COMPRESS_LEVEL = 9
 
+class FileType(Enum):
+    ORIGINAL = auto()
+    UPSCAYLED = auto()
+    TITLE = auto()
 
-def get_srce_mod_files(comic: ComicBook) -> Union[None, List[Tuple[str, bool]]]:
+
+def get_srce_mod_files(comic: ComicBook) -> Union[None, List[Tuple[str, FileType]]]:
     srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
 
     modified_srce_files = [
@@ -34,16 +40,26 @@ def get_srce_mod_files(comic: ComicBook) -> Union[None, List[Tuple[str, bool]]]:
         if srce.page_mod_type != ModifiedType.ORIGINAL
     ]
 
+    modified_srce_files.append(get_title_file(srce_and_dest_pages.dest_pages))
+
     return modified_srce_files
 
 
-def get_mod_file(comic: ComicBook, srce: CleanPage) -> Tuple[str, bool]:
+def get_title_file(dest_pages: List[CleanPage]) -> Tuple[str, FileType]:
+    for page in dest_pages:
+        if page.page_type == PageType.TITLE:
+            return page.page_filename, FileType.TITLE
+
+    assert False
+
+
+def get_mod_file(comic: ComicBook, srce: CleanPage) -> Tuple[str, FileType]:
     page_num = get_page_str(srce.page_num)
 
     if os.path.isfile(comic.get_srce_original_fixes_story_file(page_num)):
-        return comic.get_srce_original_fixes_story_file(page_num), False
+        return comic.get_srce_original_fixes_story_file(page_num), FileType.ORIGINAL
     if os.path.isfile(comic.get_srce_upscayled_fixes_story_file(page_num)):
-        return comic.get_srce_upscayled_fixes_story_file(page_num), True
+        return comic.get_srce_upscayled_fixes_story_file(page_num), FileType.UPSCAYLED
 
     raise Exception(f'Expected to find a fixes file for "{srce.page_filename}".')
 
@@ -84,7 +100,7 @@ def copy_file(srce_file: str, dest_file: str) -> None:
 # noinspection PyTypeChecker
 cmd_args = CmdArgs(
     "Write Fantagraphics edited files to overrides directory",
-    CmdArgNames.TITLE | CmdArgNames.VOLUME,
+    CmdArgNames.VOLUME,
 )
 args_ok, error_msg = cmd_args.args_are_valid()
 if not args_ok:
@@ -95,29 +111,39 @@ setup_logging(cmd_args.get_log_level())
 
 comics_database = cmd_args.get_comics_database()
 
-titles = cmd_args.get_titles()
+volumes = [int(v) for v in cmd_args.get_volumes()]
 
-mod_dict = dict()
-max_title_len = 0
-for title in titles:
-    comic_book = comics_database.get_comic_book(title)
-
-    srce_mod_files = get_srce_mod_files(comic_book)
-    if not srce_mod_files:
-        continue
-
+for volume in volumes:
     override_dir = os.path.join(
-        FANTA_VOLUME_OVERRIDES_ROOT, FANTA_OVERRIDE_DIRECTORIES[comic_book.get_fanta_volume()]
+            FANTA_VOLUME_OVERRIDES_ROOT, FANTA_OVERRIDE_DIRECTORIES[volume]
     )
+    print(f'Deleting all files in override dir "{override_dir}".')
+    delete_all_files_in_directory(override_dir)
 
-    for srce_mod_file in srce_mod_files:
-        mod_file = srce_mod_file[0]
-        is_upscayled = srce_mod_file[1]
+    titles = [t[0] for t in comics_database.get_configured_titles_in_fantagraphics_volume(volume)]
 
-        mod_basename = Path(mod_file).stem + JPG_FILE_EXT
-        override_file = os.path.join(override_dir, mod_basename)
+    print()
+    for title in titles:
+        comic_book = comics_database.get_comic_book(title)
 
-        if is_upscayled:
-            downscale(mod_file, override_file)
-        else:
-            copy_file(mod_file, override_file)
+        srce_mod_files = get_srce_mod_files(comic_book)
+        if not srce_mod_files:
+            continue
+
+        for srce_mod_file in srce_mod_files:
+            mod_file = srce_mod_file[0]
+            file_type = srce_mod_file[1]
+
+            mod_basename = Path(mod_file).stem + JPG_FILE_EXT
+            override_file = os.path.join(override_dir, mod_basename)
+
+            if file_type == FileType.UPSCAYLED:
+                downscale(mod_file, override_file)
+            elif file_type == FileType.ORIGINAL:
+                copy_file(mod_file, override_file)
+            else:
+                assert file_type == FileType.TITLE
+                override_file = os.path.join(override_dir, title + JPG_FILE_EXT)
+                copy_file(mod_file, override_file)
+
+            print()
