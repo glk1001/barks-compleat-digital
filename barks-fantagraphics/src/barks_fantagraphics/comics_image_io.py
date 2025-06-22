@@ -3,7 +3,7 @@ from typing import Dict
 
 import cv2 as cv
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 from PIL.PngImagePlugin import PngInfo
 
 Image.MAX_IMAGE_PIXELS = None
@@ -22,6 +22,23 @@ def open_pil_image_for_reading(file: str) -> Image:
         return Image.open(file, "r")
     finally:
         logging.getLogger().setLevel(current_log_level)
+
+
+def downscale_jpg(width: int, height: int, srce_file: str, dest_file: str) -> None:
+    image = open_pil_image_for_reading(srce_file).convert("RGB")
+
+    image_resized = ImageOps.contain(
+        image,
+        (width, height),
+        Image.Resampling.LANCZOS,
+    )
+
+    image_resized.save(
+        dest_file,
+        optimize=True,
+        compress_level=SAVE_JPG_COMPRESS_LEVEL,
+        quality=SAVE_JPG_QUALITY,
+    )
 
 
 def get_bw_image_from_alpha(rgba_file: str) -> cv.typing.MatLike:

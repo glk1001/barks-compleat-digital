@@ -107,6 +107,11 @@ class ComicBookBuilder:
             ):
                 executor.submit(self._process_page, srce_page, dest_page)
 
+        # for srce_page, dest_page in zip(
+        #     srce_and_dest_pages.srce_pages, srce_and_dest_pages.dest_pages
+        # ):
+        #     self._process_page(srce_page, dest_page)
+
         if _process_page_error:
             raise Exception("There were errors while processing pages.")
 

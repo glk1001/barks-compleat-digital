@@ -15,6 +15,7 @@ from barks_fantagraphics.pages import (
     SrceAndDestPages,
     get_srce_dest_map,
     get_page_num_str,
+    get_page_mod_type,
     ROMAN_NUMERALS,
 )
 from barks_fantagraphics.pages import FRONT_MATTER_PAGES, PAINTING_PAGES
@@ -57,13 +58,15 @@ def write_summary_file(
     year_symlink_timestamp = get_timestamp_str(comic.get_dest_year_comic_zip_symlink())
 
     has_modified_cover = any(
-        (srce.page_mod_type != ModifiedType.ORIGINAL) and (srce.page_type == PageType.COVER)
+        (get_page_mod_type(comic, srce) != ModifiedType.ORIGINAL)
+        and (srce.page_type == PageType.COVER)
         for srce in pages.srce_pages
     )
     modified_body_pages = [
         get_page_num_str(dest)
-        for dest in pages.dest_pages
-        if (dest.page_mod_type != ModifiedType.ORIGINAL) and (dest.page_type == PageType.BODY)
+        for srce, dest in zip(pages.srce_pages, pages.dest_pages)
+        if (get_page_mod_type(comic, srce) != ModifiedType.ORIGINAL)
+        and (dest.page_type == PageType.BODY)
     ]
 
     ini_file = get_clean_path(comic.ini_file)
@@ -140,7 +143,9 @@ def write_summary_file(
 
         f.write("Page List Summary:\n")
         for srce_page, dest_page in zip(pages.srce_pages, pages.dest_pages):
-            srce_is_modded = " ***M" if srce_page.page_mod_type != ModifiedType.ORIGINAL else ""
+            srce_is_modded = (
+                " ***M" if get_page_mod_type(comic, srce_page) != ModifiedType.ORIGINAL else ""
+            )
             srce_filename = f'"{os.path.basename(srce_page.page_filename)}" {srce_is_modded}'
             dest_filename = f'"{os.path.basename(dest_page.page_filename)}"'
             dest_page_type = f'"{dest_page.page_type.name}"'

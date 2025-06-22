@@ -1,7 +1,8 @@
 import inspect
 import os
 from dataclasses import dataclass
-from typing import List, Tuple, Dict, Union
+from pathlib import Path
+from typing import List, Dict, Union
 
 from .comic_book import OriginalPage, ComicBook, get_page_str, ModifiedType
 from .comics_consts import PageType, RESTORABLE_PAGE_TYPES
@@ -69,12 +70,10 @@ class CleanPage:
         page_filename: str,
         page_type: PageType,
         page_num: int = -1,
-        page_mod_type: ModifiedType = ModifiedType.ORIGINAL,
     ):
         self.page_filename = page_filename
         self.page_type = page_type
         self.page_num: int = page_num
-        self.page_mod_type = page_mod_type
         self.panels_bbox: BoundingBox = BoundingBox()
 
 
@@ -144,19 +143,16 @@ def get_srce_and_dest_pages_in_order(comic: ComicBook) -> SrceAndDestPages:
             file_page_num += 1
             page_num += 1
 
-        srce_file, is_modified_srce_file = get_checked_srce_file(comic, page)
+        srce_file = get_checked_srce_file(comic, page)
         file_num_str = f"{file_section_num}-{file_page_num:02d}"
         dest_file = os.path.join(comic.get_dest_image_dir(), file_num_str + DEST_FILE_EXT)
 
-        srce_page_list.append(
-            CleanPage(srce_file, page.page_type, page.page_num, is_modified_srce_file)
-        )
+        srce_page_list.append(CleanPage(srce_file, page.page_type, page.page_num))
         dest_page_list.append(
             CleanPage(
                 dest_file,
                 page.page_type,
                 page_num,
-                is_modified_srce_file,
             )
         )
 
@@ -182,25 +178,29 @@ def get_required_pages_in_order(page_images_in_book: List[OriginalPage]) -> List
     return req_pages
 
 
-def get_checked_srce_file(comic: ComicBook, page: CleanPage) -> Tuple[str, ModifiedType]:
+def get_checked_srce_file(comic: ComicBook, page: CleanPage) -> str:
     if page.page_filename == TITLE_EMPTY_FILENAME:
-        srce_file = TITLE_EMPTY_IMAGE_FILEPATH
+        return TITLE_EMPTY_IMAGE_FILEPATH
+    elif page.page_filename == EMPTY_FILENAME:
+        return EMPTY_IMAGE_FILEPATH
+
+    return comic.get_final_srce_story_file(page.page_filename, page.page_type)[0]
+
+
+def get_page_mod_type(comic: ComicBook, page: CleanPage) -> ModifiedType:
+    if page.page_filename == TITLE_EMPTY_FILENAME:
         mod_type = ModifiedType.ORIGINAL
     elif page.page_filename == EMPTY_FILENAME:
-        srce_file = EMPTY_IMAGE_FILEPATH
         mod_type = ModifiedType.ORIGINAL
     else:
-        srce_file, mod_type = comic.get_final_srce_story_file(page.page_filename, page.page_type)
+        page_num_str = Path(page.page_filename).stem
+        _, mod_type = comic.get_final_srce_story_file(page_num_str, page.page_type)
         if mod_type == ModifiedType.ORIGINAL:
-            _, mod_type = comic.get_final_srce_upscayled_story_file(
-                page.page_filename, page.page_type
-            )
+            _, mod_type = comic.get_final_srce_upscayled_story_file(page_num_str, page.page_type)
         if mod_type == ModifiedType.ORIGINAL:
-            _, mod_type = comic.get_final_srce_original_story_file(
-                page.page_filename, page.page_type
-            )
+            _, mod_type = comic.get_final_srce_original_story_file(page_num_str, page.page_type)
 
-    return srce_file, mod_type
+    return mod_type
 
 
 def get_srce_dest_map(

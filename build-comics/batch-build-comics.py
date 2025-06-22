@@ -58,6 +58,7 @@ def process_comic_book(comic: ComicBook) -> int:
         logging.error(err_msg)
         return 1
     except Exception as e:
+        # raise Exception
         logging.error(e)
         return 1
 

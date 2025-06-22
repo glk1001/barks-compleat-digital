@@ -5,39 +5,56 @@ from typing import Union, Tuple
 
 from barks_fantagraphics.comic_book import ComicBook, get_page_str, ModifiedType
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
+from barks_fantagraphics.comics_consts import PageType
 from barks_fantagraphics.comics_utils import (
     setup_logging,
 )
 from barks_fantagraphics.fanta_comics_info import get_fanta_volume_str
 from barks_fantagraphics.pages import (
-    get_page_num_str,
     get_srce_and_dest_pages_in_order,
     CleanPage,
+    get_page_mod_type,
+    FRONT_MATTER_PAGES,
+    ROMAN_NUMERALS,
 )
 
 
 def get_srce_dest_mods_map(comic: ComicBook) -> Union[None, Tuple[str, str]]:
     srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
 
+    modified_srce_pages = [
+        f"{get_page_str(srce.page_num):>4} ({get_mod_type(comic, srce)})"
+        for srce in srce_and_dest_pages.srce_pages
+        if get_page_mod_type(comic, srce) != ModifiedType.ORIGINAL
+    ]
+    fanta_vol = get_fanta_volume_str(comic.fanta_book.volume)
+    mod_srce_pages_str = f"{fanta_vol} - {','.join(modified_srce_pages)}"
+
     modified_dest_pages = [
         f"{get_page_num_str(dest):>4}    "
-        for dest in srce_and_dest_pages.dest_pages
-        if dest.page_mod_type != ModifiedType.ORIGINAL
+        for srce, dest in zip(srce_and_dest_pages.srce_pages, srce_and_dest_pages.dest_pages)
+        if get_page_mod_type(comic, srce) != ModifiedType.ORIGINAL
     ]
     if not modified_dest_pages:
         return None
 
     mod_dest_pages_str = ",".join(modified_dest_pages)
 
-    modified_srce_pages = [
-        f"{srce.page_num:>4} ({get_mod_type(comic, srce)})"
-        for srce in srce_and_dest_pages.srce_pages
-        if srce.page_mod_type != ModifiedType.ORIGINAL
-    ]
-    fanta_vol = get_fanta_volume_str(comic.fanta_book.volume)
-    mod_srce_pages_str = f"{fanta_vol} - {','.join(modified_srce_pages)}"
-
     return mod_dest_pages_str, mod_srce_pages_str
+
+
+def get_page_num_str(page: CleanPage) -> str:
+    page_number = page.page_num
+
+    if page.page_type not in FRONT_MATTER_PAGES:
+        return str(page_number)
+
+    if page.page_type == PageType.FRONT:
+        assert page_number == 0
+        return " Fr"
+
+    assert page_number in ROMAN_NUMERALS
+    return ROMAN_NUMERALS[page_number]
 
 
 def get_mod_type(comic: ComicBook, srce: CleanPage) -> str:

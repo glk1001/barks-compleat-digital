@@ -11,10 +11,20 @@ from skimage.metrics import structural_similarity
 from barks_fantagraphics.comic_book import ModifiedType
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
+from barks_fantagraphics.comics_image_io import downscale_jpg
 from barks_fantagraphics.comics_utils import setup_logging
+
+# TODO: Put these somewhere else
+SRCE_STANDARD_WIDTH = 2175
+SRCE_STANDARD_HEIGHT = 3000
 
 
 def get_image_diffs(diff_thresh: float, image1_file: str, image2_file: str):
+    if not os.path.isfile(image1_file):
+        raise FileNotFoundError(f'Could not find image1 file "{image1_file}".')
+    if not os.path.isfile(image2_file):
+        raise FileNotFoundError(f'Could not find image2 file "{image2_file}".')
+
     image1 = cv2.imread(image1_file)
     image2 = cv2.imread(image2_file)
 
@@ -72,8 +82,12 @@ def show_diffs_for_title(ttl: str, out_dir: str) -> None:
 
     srce_upscayl_files = comic.get_srce_upscayled_story_files(RESTORABLE_PAGE_TYPES)
     fixes_upscayl_files = comic.get_final_srce_upscayled_story_files(RESTORABLE_PAGE_TYPES)
-    show_diffs_for_files(
-        ttl + "-upscayl", os.path.join(out_dir, "upscayl"), srce_upscayl_files, fixes_upscayl_files
+    show_diffs_for_upscayled_files(
+        ttl + "-upscayl",
+        os.path.join(out_dir, "upscayl"),
+        srce_files,
+        srce_upscayl_files,
+        fixes_upscayl_files,
     )
 
     srce_restored_files = comic.get_srce_restored_story_files(RESTORABLE_PAGE_TYPES)
@@ -86,39 +100,76 @@ def show_diffs_for_title(ttl: str, out_dir: str) -> None:
     )
 
 
-def show_diffs_for_files(
-    ttl: str, out_dir: str, srce_files: List[str], fixes_files: List[Tuple[str, ModifiedType]]
+def show_diffs_for_upscayled_files(
+    ttl: str,
+    out_dir: str,
+    srce_files: List[str],
+    upscayled_srce_files: List[str],
+    upscayled_fixes_files: List[Tuple[str, ModifiedType]],
 ) -> None:
-    diff_threshold = 0.9
-
     made_out_dir = False
-    for srce_file, fixes_file in zip(srce_files, fixes_files):
-        modified = fixes_file[1]
-        if not modified:
-            continue
+    diff_threshold = 0.5
 
-        ssim, num_diffs, image1_with_diffs, image2_with_diffs = get_image_diffs(
-            diff_threshold, srce_file, fixes_file[0]
-        )
-
-        page = Path(srce_file).stem
-
-        print(f'"{ttl}-{page}": image similarity = {ssim:.6f}, num diffs = {num_diffs}.')
-
-        if num_diffs == 0:
+    for srce_file, upscayled_srce_file, upscayled_fixes_file in zip(
+        srce_files, upscayled_srce_files, upscayled_fixes_files
+    ):
+        page_mod_type = upscayled_fixes_file[1]
+        if page_mod_type != ModifiedType.MODIFIED:
             continue
 
         if not made_out_dir:
             os.makedirs(out_dir, exist_ok=True)
             made_out_dir = True
 
-        diff1_file = os.path.join(out_dir, page + "-1-srce.png")
-        diff2_file = os.path.join(out_dir, page + "-2-fixes.png")
-        cv2.imwrite(diff1_file, image1_with_diffs)
-        cv2.imwrite(diff2_file, image2_with_diffs)
-        # cv2.imwrite(os.path.join(out_dir, "diffs.png"), diffs)
-        # cv2.imwrite(os.path.join(out_dir, "mask.png"), mask)
-        # cv2.imwrite(os.path.join(out_dir, "image2-with-filled-diffs.png"), image2_filled)
+        assert not os.path.isfile(upscayled_srce_file)
+
+        smaller_fixes_file = "/tmp/smaller-fixes-image.jpg"
+        downscale_jpg(
+            SRCE_STANDARD_WIDTH, SRCE_STANDARD_HEIGHT, upscayled_fixes_file[0], smaller_fixes_file
+        )
+
+        show_diffs_for_file(diff_threshold, ttl, out_dir, srce_file, smaller_fixes_file)
+
+
+def show_diffs_for_files(
+    ttl: str, out_dir: str, srce_files: List[str], fixes_files: List[Tuple[str, ModifiedType]]
+) -> None:
+    made_out_dir = False
+    diff_threshold = 0.9
+
+    for srce_file, fixes_file in zip(srce_files, fixes_files):
+        page_mod_type = fixes_file[1]
+        if page_mod_type != ModifiedType.MODIFIED:
+            continue
+
+        if not made_out_dir:
+            os.makedirs(out_dir, exist_ok=True)
+            made_out_dir = True
+
+        show_diffs_for_file(diff_threshold, ttl, out_dir, srce_file, fixes_file[0])
+
+
+def show_diffs_for_file(
+    diff_threshold: float, ttl: str, out_dir: str, srce_file: str, fixes_file: str
+) -> None:
+    ssim, num_diffs, image1_with_diffs, image2_with_diffs = get_image_diffs(
+        diff_threshold, srce_file, fixes_file
+    )
+
+    page = Path(srce_file).stem
+
+    print(f'"{ttl}-{page}": image similarity = {ssim:.6f}, num diffs = {num_diffs}.')
+
+    if num_diffs == 0:
+        return
+
+    diff1_file = os.path.join(out_dir, page + "-1-srce.png")
+    diff2_file = os.path.join(out_dir, page + "-2-fixes.png")
+    cv2.imwrite(diff1_file, image1_with_diffs)
+    cv2.imwrite(diff2_file, image2_with_diffs)
+    # cv2.imwrite(os.path.join(out_dir, "diffs.png"), diffs)
+    # cv2.imwrite(os.path.join(out_dir, "mask.png"), mask)
+    # cv2.imwrite(os.path.join(out_dir, "image2-with-filled-diffs.png"), image2_filled)
 
 
 if __name__ == "__main__":
