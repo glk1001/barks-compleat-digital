@@ -37,7 +37,7 @@ class FileType(Enum):
 
 
 def get_srce_mod_files(comic: ComicBook) -> Union[None, List[Tuple[str, FileType]]]:
-    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
+    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic, get_full_paths=True)
 
     modified_srce_files = [
         get_mod_file(comic, srce)

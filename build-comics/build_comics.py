@@ -118,7 +118,7 @@ class ComicBookBuilder:
     def _get_srce_and_dest_pages(
         self,
     ) -> Tuple[SrceAndDestPages, ComicDimensions, RequiredDimensions]:
-        srce_and_dest_pages = get_srce_and_dest_pages_in_order(self.__comic)
+        srce_and_dest_pages = get_srce_and_dest_pages_in_order(self.__comic, get_full_paths=True)
 
         srce_panels_segment_info_files = [
             self.__comic.get_srce_panel_segments_file(get_page_str(srce_page.page_num))

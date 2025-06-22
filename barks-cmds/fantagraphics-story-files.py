@@ -63,7 +63,7 @@ titles = cmd_args.get_titles()
 for title in titles:
     comic_book = comics_database.get_comic_book(title)
 
-    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic_book)
+    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic_book, get_full_paths=True)
 
     srce_pages = srce_and_dest_pages.srce_pages
     dest_pages = srce_and_dest_pages.dest_pages

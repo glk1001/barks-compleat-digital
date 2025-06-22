@@ -51,6 +51,8 @@ class TestBarksTags(unittest.TestCase):
         elif Tags.FIRE not in invalid_data_content:
             invalid_data_content[Tags.FIRE] = []
 
+        # Test that bad enum is caught.
+        # noinspection PyTypeChecker
         invalid_data_content[Tags.FIRE].append("NOT_A_TITLE_ENUM_MEMBER")
 
         with patch.dict(barks_tags.BARKS_TAGGED_TITLES, invalid_data_content, clear=True):
@@ -124,6 +126,8 @@ class TestBarksTags(unittest.TestCase):
             pass  # Let's assume it exists as per current data.
 
         invalid_data_content = deepcopy(barks_tags.BARKS_TAGGED_PAGES)
+        # Test invalid int page is caught.
+        # noinspection PyTypeChecker
         invalid_data_content[key_to_test] = [123]  # Page as int, not str
 
         with patch.dict(barks_tags.BARKS_TAGGED_PAGES, invalid_data_content, clear=True):
@@ -185,6 +189,8 @@ class TestBarksTags(unittest.TestCase):
         class MockNonExistentTag(Enum):
             NON_EXISTENT = "Non Existent Tag"
 
+        # Test invalid Tag enum is caught.
+        # noinspection PyTypeChecker
         self.assertEqual(get_tagged_titles(MockNonExistentTag.NON_EXISTENT), [])
 
     def test_barks_tag_categories_titles_computation(self):

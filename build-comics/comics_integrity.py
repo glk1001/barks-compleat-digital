@@ -627,7 +627,7 @@ def check_srce_and_dest_files(comic: ComicBook, errors: OutOfDateErrors) -> None
         return
 
     try:
-        srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
+        srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic, get_full_paths=True)
     except Exception as e:
         errors.exception_errors.append(str(e))
         return

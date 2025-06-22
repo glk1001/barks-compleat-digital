@@ -131,7 +131,8 @@ class BarksTitleSearch:
 
         return sorted(title_list)
 
-    def __get_titles_with_one_char_tag_search(self, prefix: str) -> List[Tags]:
+    @staticmethod
+    def __get_titles_with_one_char_tag_search(prefix: str) -> List[Tags]:
         assert len(prefix) == 1
 
         tag_list = []

@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List, Dict, Union
 
 from .comic_book import OriginalPage, ComicBook, get_page_str, ModifiedType
-from .comics_consts import PageType, RESTORABLE_PAGE_TYPES
+from .comics_consts import PageType, RESTORABLE_PAGE_TYPES, JPG_FILE_EXT
 from .comics_utils import get_timestamp
 from .panel_bounding_boxes import BoundingBox
 
@@ -104,7 +104,7 @@ def get_page_number_str(page: CleanPage, page_number: int) -> str:
     return ROMAN_NUMERALS[page_number]
 
 
-def get_srce_and_dest_pages_in_order(comic: ComicBook) -> SrceAndDestPages:
+def get_srce_and_dest_pages_in_order(comic: ComicBook, get_full_paths: bool) -> SrceAndDestPages:
     required_pages = get_required_pages_in_order(comic.page_images_in_order)
 
     srce_page_list = []
@@ -143,9 +143,13 @@ def get_srce_and_dest_pages_in_order(comic: ComicBook) -> SrceAndDestPages:
             file_page_num += 1
             page_num += 1
 
-        srce_file = get_checked_srce_file(comic, page)
         file_num_str = f"{file_section_num}-{file_page_num:02d}"
-        dest_file = os.path.join(comic.get_dest_image_dir(), file_num_str + DEST_FILE_EXT)
+        if get_full_paths:
+            srce_file = get_full_srce_filepath(comic, page)
+            dest_file = os.path.join(comic.get_dest_image_dir(), file_num_str + DEST_FILE_EXT)
+        else:
+            srce_file = get_relative_srce_filepath(page)
+            dest_file = file_num_str + DEST_FILE_EXT
 
         srce_page_list.append(CleanPage(srce_file, page.page_type, page.page_num))
         dest_page_list.append(
@@ -178,13 +182,24 @@ def get_required_pages_in_order(page_images_in_book: List[OriginalPage]) -> List
     return req_pages
 
 
-def get_checked_srce_file(comic: ComicBook, page: CleanPage) -> str:
+def get_full_srce_filepath(comic: ComicBook, page: CleanPage) -> str:
     if page.page_filename == TITLE_EMPTY_FILENAME:
         return TITLE_EMPTY_IMAGE_FILEPATH
     elif page.page_filename == EMPTY_FILENAME:
         return EMPTY_IMAGE_FILEPATH
 
     return comic.get_final_srce_story_file(page.page_filename, page.page_type)[0]
+
+
+def get_relative_srce_filepath(page: CleanPage) -> str:
+    if page.page_filename == TITLE_EMPTY_FILENAME:
+        rel_srce_file = os.path.basename(TITLE_EMPTY_IMAGE_FILEPATH)
+    elif page.page_filename == EMPTY_FILENAME:
+        rel_srce_file = os.path.basename(EMPTY_IMAGE_FILEPATH)
+    else:
+        rel_srce_file = page.page_filename + JPG_FILE_EXT
+
+    return rel_srce_file
 
 
 def get_page_mod_type(comic: ComicBook, page: CleanPage) -> ModifiedType:

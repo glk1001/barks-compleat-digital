@@ -13,7 +13,7 @@ from barks_fantagraphics.panel_segmentation import BIG_NUM, get_kumiko_panel_bou
 
 
 def get_story_splashes(comic: ComicBook) -> List[str]:
-    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
+    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic, get_full_paths=True)
 
     splashes = []
     for srce_page, dest_page in zip(srce_and_dest_pages.srce_pages, srce_and_dest_pages.dest_pages):

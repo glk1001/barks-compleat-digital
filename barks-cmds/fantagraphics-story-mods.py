@@ -20,7 +20,7 @@ from barks_fantagraphics.pages import (
 
 
 def get_srce_dest_mods_map(comic: ComicBook) -> Union[None, Tuple[str, str]]:
-    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
+    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic, get_full_paths=True)
 
     modified_srce_pages = [
         f"{get_page_str(srce.page_num):>4} ({get_mod_type(comic, srce)})"

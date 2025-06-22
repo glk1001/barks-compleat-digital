@@ -25,7 +25,7 @@ class Dimensions:
 
 
 def get_story_dimensions(comic: ComicBook) -> Dimensions:
-    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic)
+    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic, get_full_paths=True)
 
     front_width = -1
     front_height = -1
