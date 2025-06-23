@@ -35,12 +35,12 @@ from barks_fantagraphics.comics_utils import (
     get_abbrev_path,
     delete_all_files_in_directory,
 )
+from barks_fantagraphics.page_classes import CleanPage, SrceAndDestPages
 from barks_fantagraphics.pages import (
     get_max_timestamp,
     get_page_num_str,
     get_sorted_srce_and_dest_pages_with_dimensions,
 )
-from barks_fantagraphics.page_classes import CleanPage, SrceAndDestPages
 from build_comic_images import ComicBookImageBuilder
 from consts import (
     MIN_HD_SRCE_HEIGHT,

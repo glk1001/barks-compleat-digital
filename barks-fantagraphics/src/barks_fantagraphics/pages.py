@@ -69,9 +69,10 @@ def get_sorted_srce_and_dest_pages(
     comic: ComicBook,
     get_full_paths: bool,
     get_srce_panel_segments_file: Callable[[str], str] = None,
+    check_srce_page_timestamps: bool = True,
 ) -> SrceAndDestPages:
     return get_sorted_srce_and_dest_pages_with_dimensions(
-        comic, get_full_paths, get_srce_panel_segments_file
+        comic, get_full_paths, get_srce_panel_segments_file, check_srce_page_timestamps
     )[0]
 
 
@@ -79,6 +80,7 @@ def get_sorted_srce_and_dest_pages_with_dimensions(
     comic: ComicBook,
     get_full_paths: bool,
     get_srce_panel_segments_file: Callable[[str], str] = None,
+    check_srce_page_timestamps: bool = True,
 ) -> Tuple[SrceAndDestPages, ComicDimensions, RequiredDimensions]:
     if get_srce_panel_segments_file is None:
         get_srce_panel_segments_file = comic.get_srce_panel_segments_file
@@ -89,7 +91,9 @@ def get_sorted_srce_and_dest_pages_with_dimensions(
         get_srce_panel_segments_file(get_page_str(srce_page.page_num))
         for srce_page in srce_and_dest_pages.srce_pages
     ]
-    set_srce_panel_bounding_boxes(srce_panels_segment_info_files, srce_and_dest_pages.srce_pages)
+    set_srce_panel_bounding_boxes(
+        srce_and_dest_pages.srce_pages, srce_panels_segment_info_files, check_srce_page_timestamps
+    )
 
     srce_dim, required_dim = get_required_panels_bbox_width_height(
         srce_and_dest_pages.srce_pages, DEST_TARGET_HEIGHT, PAGE_NUM_HEIGHT

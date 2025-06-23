@@ -246,10 +246,11 @@ class ComicBookImageBuilder:
     def _get_centred_dest_page_image(dest_page: CleanPage, dest_panels_image: Image) -> Image:
         dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
 
-        dest_panels_image = dest_panels_image.resize(
-            size=(dest_page.panels_bbox.get_width(), dest_page.panels_bbox.get_height()),
-            resample=Image.Resampling.BICUBIC,
-        )
+        if dest_page.page_type not in PAGES_WITHOUT_PANELS:
+            dest_panels_image = dest_panels_image.resize(
+                size=(dest_page.panels_bbox.get_width(), dest_page.panels_bbox.get_height()),
+                resample=Image.Resampling.BICUBIC,
+            )
 
         dest_panels_pos = (dest_page.panels_bbox.x_min, dest_page.panels_bbox.y_min)
         dest_page_image.paste(dest_panels_image, dest_panels_pos)

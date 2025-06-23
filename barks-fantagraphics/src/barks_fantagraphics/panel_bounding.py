@@ -10,7 +10,6 @@ from .comics_consts import (
     PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN,
     PAGES_WITHOUT_PANELS,
 )
-from .comics_image_io import open_pil_image_for_reading
 from .comics_utils import dest_file_is_older_than_srce
 from .page_classes import CleanPage, SrceAndDestPages
 from .panel_bounding_boxes import BoundingBox, get_panels_bounding_box_from_file
@@ -121,43 +120,29 @@ def _get_min_max_panels_bbox_width_height(
 
 
 def set_srce_panel_bounding_boxes(
-    srce_panels_segment_info_files: List[str],
     srce_pages: List[CleanPage],
+    srce_panels_segment_info_files: List[str],
+    check_srce_page_timestamps: bool,
 ):
     logging.debug("Setting srce panel bounding boxes.")
 
     for srce_page, srce_panels_segment_info_file in zip(srce_pages, srce_panels_segment_info_files):
         if srce_page.page_type in PAGES_WITHOUT_PANELS:
-            srce_page.panels_bbox = _get_full_image_bounding_box(srce_page.page_filename)
-        else:
-            srce_page.panels_bbox = _get_panels_bounding_box(
-                srce_panels_segment_info_file, srce_page
+            continue
+        if not os.path.isfile(srce_panels_segment_info_file):
+            raise Exception(
+                f'Could not find panels segments info file "{srce_panels_segment_info_file}".'
             )
+        if check_srce_page_timestamps and dest_file_is_older_than_srce(
+            srce_page.page_filename, srce_panels_segment_info_file
+        ):
+            raise Exception(
+                f'Panels segments info file "{srce_panels_segment_info_file}"'
+                f' is older than srce image file "{srce_page.page_filename}".'
+            )
+        srce_page.panels_bbox = get_panels_bounding_box_from_file(srce_panels_segment_info_file)
 
     logging.debug("")
-
-
-def _get_full_image_bounding_box(image_file: str) -> BoundingBox:
-    image = open_pil_image_for_reading(image_file)
-    return BoundingBox(0, 0, image.width - 1, image.height - 1)
-
-
-def _get_panels_bounding_box(
-    srce_panels_segment_info_file: str, srce_page: CleanPage
-) -> BoundingBox:
-    assert srce_page.page_type not in PAGES_WITHOUT_PANELS
-
-    if not os.path.isfile(srce_panels_segment_info_file):
-        raise Exception(
-            f'Could not find panels segments info file "{srce_panels_segment_info_file}".'
-        )
-    if dest_file_is_older_than_srce(srce_page.page_filename, srce_panels_segment_info_file):
-        raise Exception(
-            f'Panels segments info file "{srce_panels_segment_info_file}"'
-            f' is older than srce image file "{srce_page.page_filename}".'
-        )
-
-    return get_panels_bounding_box_from_file(srce_panels_segment_info_file)
 
 
 def set_dest_panel_bounding_boxes(
@@ -176,6 +161,9 @@ def _get_dest_panels_bounding_box(
 ) -> BoundingBox:
     if srce_page.page_type in PAGES_WITHOUT_PANELS:
         return BoundingBox(0, 0, DEST_TARGET_WIDTH - 1, DEST_TARGET_HEIGHT - 1)
+
+    assert srce_dim.min_panels_bbox_width != -1
+    assert required_dim.panels_bbox_width != -1
 
     required_panels_width = int(DEST_TARGET_WIDTH - (2 * DEST_TARGET_X_MARGIN))
     srce_panels_bbox_width = srce_page.panels_bbox.get_width()
