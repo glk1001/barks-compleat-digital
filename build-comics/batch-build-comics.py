@@ -42,19 +42,18 @@ def process_comic_book(comic: ComicBook) -> int:
 
     try:
         comic_book_builder = ComicBookBuilder(comic)
-        srce_and_dest_pages, max_dest_timestamp = comic_book_builder.build()
+
+        comic_book_builder.build()
 
         process_timing.end_time = datetime.now()
-        logging.info(
-            f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds"
-        )
+        mark_process_end(process_timing)
 
         write_summary_file(
             comic,
             comic_book_builder.get_srce_dim(),
             comic_book_builder.get_required_dim(),
-            srce_and_dest_pages,
-            max_dest_timestamp,
+            comic_book_builder.get_srce_and_dest_pages(),
+            comic_book_builder.get_max_dest_page_timestamp(),
             process_timing,
         )
     except AssertionError:
@@ -70,6 +69,12 @@ def process_comic_book(comic: ComicBook) -> int:
         return 1
 
     return 0
+
+
+def mark_process_end(process_timing: Timing):
+    logging.info(
+            f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds"
+    )
 
 
 LOG_LEVEL_ARG = "--log-level"

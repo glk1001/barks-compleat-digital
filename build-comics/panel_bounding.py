@@ -18,6 +18,8 @@ from image_io import open_image_for_reading
 
 def get_required_panels_bbox_width_height(
     srce_pages: List[CleanPage],
+    required_page_height: int,
+    required_page_number_height: int,
 ) -> Tuple[ComicDimensions, RequiredDimensions]:
     (
         min_panels_bbox_width,
@@ -36,6 +38,10 @@ def get_required_panels_bbox_width_height(
     required_panels_bbox_height = get_scaled_panels_bbox_height(
         required_panels_bbox_width, av_panels_bbox_width, av_panels_bbox_height
     )
+    page_num_y_centre = int(
+        round(0.5 * (0.5 * (required_page_height - required_panels_bbox_height)))
+    )
+    required_page_num_y_bottom = int(page_num_y_centre - (required_page_number_height / 2))
 
     return (
         ComicDimensions(
@@ -46,7 +52,9 @@ def get_required_panels_bbox_width_height(
             av_panels_bbox_width,
             av_panels_bbox_height,
         ),
-        RequiredDimensions(required_panels_bbox_width, required_panels_bbox_height),
+        RequiredDimensions(
+            required_panels_bbox_width, required_panels_bbox_height, required_page_num_y_bottom
+        ),
     )
 
 

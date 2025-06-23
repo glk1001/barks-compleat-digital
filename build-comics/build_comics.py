@@ -5,7 +5,7 @@ import shutil
 import sys
 import traceback
 from datetime import datetime
-from typing import Tuple, List
+from typing import Tuple, List, Union
 
 from PIL import Image
 
@@ -63,9 +63,13 @@ _process_page_error = False
 class ComicBookBuilder:
     def __init__(self, comic: ComicBook):
         self.__comic = comic
-        self.__srce_dim = ComicDimensions()
-        self.__required_dim = RequiredDimensions()
         self.__image_builder = ComicBookImageBuilder(comic)
+
+        self.__srce_dim: Union[ComicDimensions, None] = None
+        self.__required_dim: Union[RequiredDimensions, None] = None
+
+        self.__srce_and_dest_pages: Union[SrceAndDestPages, None] = None
+        self.__max_dest_page_timestamp = None
 
     def get_srce_dim(self) -> ComicDimensions:
         return self.__srce_dim
@@ -73,36 +77,34 @@ class ComicBookBuilder:
     def get_required_dim(self) -> RequiredDimensions:
         return self.__required_dim
 
-    def build(self) -> Tuple[SrceAndDestPages, float]:
-        srce_and_dest_pages = self._create_comic_book()
-        max_dest_timestamp = get_max_timestamp(srce_and_dest_pages.dest_pages)
+    def get_srce_and_dest_pages(self) -> SrceAndDestPages:
+        return self.__srce_and_dest_pages
 
-        self.log_comic_book_params()
+    def get_max_dest_page_timestamp(self) -> float:
+        return self.__max_dest_page_timestamp
 
-        zip_comic_book(self.__comic)
-        create_symlinks_to_comic_zip(self.__comic)
+    def build(self) -> None:
+        self._init_pages()
 
-        return srce_and_dest_pages, max_dest_timestamp
+        self._create_comic_book()
 
-    def _create_comic_book(self) -> SrceAndDestPages:
-        self._create_dest_dirs()
+        self._log_comic_book_params()
 
-        srce_and_dest_pages = self._create_and_save_comic_pages()
+        self._zip_and_symlink_comic_book()
 
-        return srce_and_dest_pages
-
-    def _create_and_save_comic_pages(self) -> SrceAndDestPages:
-        srce_and_dest_pages, self.__srce_dim, self.__required_dim = self._get_srce_and_dest_pages()
-
+    def _init_pages(self):
+        self.__srce_and_dest_pages, self.__srce_dim, self.__required_dim = (
+            self._get_srce_and_dest_pages()
+        )
         self.__image_builder.set_required_dim(self.__required_dim)
+        self.__max_dest_page_timestamp = get_max_timestamp(self.__srce_and_dest_pages.dest_pages)
 
-        self._process_pages(srce_and_dest_pages)
+    def _create_comic_book(self) -> None:
+        self._create_dest_dirs()
+        self._process_pages()
+        self._process_additional_files()
 
-        self._process_additional_files(srce_and_dest_pages)
-
-        return srce_and_dest_pages
-
-    def _process_pages(self, srce_and_dest_pages: SrceAndDestPages):
+    def _process_pages(self):
         delete_all_files_in_directory(self.__comic.get_dest_dir())
         delete_all_files_in_directory(self.__comic.get_dest_image_dir())
 
@@ -111,7 +113,7 @@ class ComicBookBuilder:
 
         with concurrent.futures.ProcessPoolExecutor() as executor:
             for srce_page, dest_page in zip(
-                srce_and_dest_pages.srce_pages, srce_and_dest_pages.dest_pages
+                self.__srce_and_dest_pages.srce_pages, self.__srce_and_dest_pages.dest_pages
             ):
                 executor.submit(self._process_page, srce_page, dest_page)
 
@@ -146,7 +148,9 @@ class ComicBookBuilder:
     def _get_required_dimensions(
         srce_pages: List[CleanPage],
     ) -> Tuple[ComicDimensions, RequiredDimensions]:
-        srce_dim, required_dim = get_required_panels_bbox_width_height(srce_pages)
+        srce_dim, required_dim = get_required_panels_bbox_width_height(
+            srce_pages, DEST_TARGET_HEIGHT, PAGE_NUM_HEIGHT
+        )
 
         assert srce_dim.max_panels_bbox_width >= srce_dim.min_panels_bbox_width > 0
         assert srce_dim.max_panels_bbox_height >= srce_dim.min_panels_bbox_height > 0
@@ -156,16 +160,11 @@ class ComicBookBuilder:
             round((DEST_TARGET_WIDTH - (2 * DEST_TARGET_X_MARGIN)))
         )
 
-        page_num_y_centre = int(
-            round(0.5 * (0.5 * (DEST_TARGET_HEIGHT - required_dim.panels_bbox_height)))
-        )
-        required_dim.page_num_y_bottom = int(page_num_y_centre - (PAGE_NUM_HEIGHT / 2))
-
-        logging.debug(f"Srce average panels bbox width to {srce_dim.av_panels_bbox_width}.")
-        logging.debug(f"Srce average panels bbox height to {srce_dim.av_panels_bbox_height}.")
-        logging.debug(f"Required panels bbox width to {required_dim.panels_bbox_width}.")
-        logging.debug(f"Required panels bbox height to {required_dim.panels_bbox_height}.")
-        logging.debug(f"Page num y bottom to {required_dim.page_num_y_bottom}.")
+        logging.debug(f"Srce average panels bbox width: {srce_dim.av_panels_bbox_width}.")
+        logging.debug(f"Srce average panels bbox height: {srce_dim.av_panels_bbox_height}.")
+        logging.debug(f"Required panels bbox width: {required_dim.panels_bbox_width}.")
+        logging.debug(f"Required panels bbox height: {required_dim.panels_bbox_height}.")
+        logging.debug(f"Required page num y bottom: {required_dim.page_num_y_bottom}.")
         logging.debug("")
 
         return srce_dim, required_dim
@@ -245,14 +244,21 @@ class ComicBookBuilder:
 
         return comments
 
-    def _process_additional_files(self, pages: SrceAndDestPages) -> None:
+    def _process_additional_files(self) -> None:
         shutil.copy2(self.__comic.ini_file, self.__comic.get_dest_dir())
 
         write_readme_file(self.__comic)
-        write_metadata_file(self.__comic, pages.dest_pages)
-        write_json_metadata(self.__comic, self.__srce_dim, self.__required_dim, pages.dest_pages)
-        write_srce_dest_map(self.__comic, self.__srce_dim, self.__required_dim, pages)
-        write_dest_panels_bboxes(self.__comic, pages.dest_pages)
+        write_metadata_file(self.__comic, self.__srce_and_dest_pages.dest_pages)
+        write_json_metadata(
+            self.__comic,
+            self.__srce_dim,
+            self.__required_dim,
+            self.__srce_and_dest_pages.dest_pages,
+        )
+        write_srce_dest_map(
+            self.__comic, self.__srce_dim, self.__required_dim, self.__srce_and_dest_pages
+        )
+        write_dest_panels_bboxes(self.__comic, self.__srce_and_dest_pages.dest_pages)
 
     def _create_dest_dirs(self) -> None:
         if not os.path.isdir(self.__comic.get_dest_image_dir()):
@@ -261,8 +267,12 @@ class ComicBookBuilder:
         if not os.path.isdir(self.__comic.get_dest_image_dir()):
             raise Exception(f'Could not make directory "{self.__comic.get_dest_image_dir()}".')
 
+    def _zip_and_symlink_comic_book(self):
+        zip_comic_book(self.__comic)
+        create_symlinks_to_comic_zip(self.__comic)
+
     # noinspection LongLine
-    def log_comic_book_params(self) -> None:
+    def _log_comic_book_params(self) -> None:
         logging.info("")
 
         calc_panels_bbox_height = int(
