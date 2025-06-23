@@ -2,7 +2,7 @@ import inspect
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Tuple, Callable
 
 from .comic_book import (
     ComicBook,
@@ -12,27 +12,29 @@ from .comic_book import (
     RequiredDimensions,
     get_page_str,
 )
-from .comics_consts import PageType, RESTORABLE_PAGE_TYPES, JPG_FILE_EXT
+from .comics_consts import (
+    PageType,
+    ROMAN_NUMERALS,
+    JPG_FILE_EXT,
+    DEST_TARGET_HEIGHT,
+    PAGE_NUM_HEIGHT,
+    RESTORABLE_PAGE_TYPES,
+    FRONT_MATTER_PAGES,
+    BACK_MATTER_PAGES,
+)
 from .comics_utils import get_timestamp
-from .panel_bounding_boxes import BoundingBox
+from .page_classes import CleanPage, SrceAndDestPages
+from .panel_bounding import (
+    set_srce_panel_bounding_boxes,
+    set_dest_panel_bounding_boxes,
+    get_required_panels_bbox_width_height,
+)
 
 THIS_SCRIPT_DIR = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 TITLE_EMPTY_FILENAME = "title_empty"
 EMPTY_FILENAME = "empty"
 DEST_FILE_EXT = ".jpg"
-ROMAN_NUMERALS = {
-    1: "i",
-    2: "ii",
-    3: "iii",
-    4: "iv",
-    5: "v",
-    6: "vi",
-    7: "vii",
-    8: "viii",
-    9: "ix",
-    10: "x",
-}
 
 EMPTY_IMAGE_FILEPATH = os.path.join(THIS_SCRIPT_DIR, "empty_page.png")
 TITLE_EMPTY_IMAGE_FILEPATH = EMPTY_IMAGE_FILEPATH
@@ -40,54 +42,6 @@ EMPTY_IMAGE_FILES = {
     EMPTY_IMAGE_FILEPATH,
     TITLE_EMPTY_IMAGE_FILEPATH,
 }
-
-FRONT_PAGES = [
-    PageType.FRONT,
-    PageType.TITLE,
-    PageType.COVER,
-    PageType.SPLASH,
-    PageType.PAINTING,
-    PageType.PAINTING_NO_BORDER,
-]
-FRONT_MATTER_PAGES = FRONT_PAGES + [PageType.FRONT_MATTER]
-BACK_MATTER_PAGES = [
-    PageType.BACK_MATTER,
-    PageType.BACK_NO_PANELS,
-    PageType.BACK_NO_PANELS_DOUBLE,
-    PageType.BACK_PAINTING,
-    PageType.BACK_PAINTING_NO_BORDER,
-    PageType.BLANK_PAGE,
-]
-BACK_MATTER_SINGLE_PAGES = [p for p in BACK_MATTER_PAGES if p != PageType.BLANK_PAGE]
-BACK_NO_PANELS_PAGES = [PageType.BACK_NO_PANELS, PageType.BACK_NO_PANELS_DOUBLE]
-PAINTING_PAGES = [
-    PageType.PAINTING,
-    PageType.PAINTING_NO_BORDER,
-    PageType.BACK_PAINTING,
-    PageType.BACK_PAINTING_NO_BORDER,
-]
-PAGES_WITHOUT_PANELS = set(
-    FRONT_PAGES + PAINTING_PAGES + BACK_NO_PANELS_PAGES + [PageType.BLANK_PAGE]
-)
-
-
-class CleanPage:
-    def __init__(
-        self,
-        page_filename: str,
-        page_type: PageType,
-        page_num: int = -1,
-    ):
-        self.page_filename = page_filename
-        self.page_type = page_type
-        self.page_num: int = page_num
-        self.panels_bbox: BoundingBox = BoundingBox()
-
-
-@dataclass
-class SrceAndDestPages:
-    srce_pages: List[CleanPage]
-    dest_pages: List[CleanPage]
 
 
 def get_max_timestamp(pages: List[CleanPage]) -> float:
@@ -111,7 +65,42 @@ def get_page_number_str(page: CleanPage, page_number: int) -> str:
     return ROMAN_NUMERALS[page_number]
 
 
-def get_srce_and_dest_pages_in_order(comic: ComicBook, get_full_paths: bool) -> SrceAndDestPages:
+def get_sorted_srce_and_dest_pages(
+    comic: ComicBook,
+    get_full_paths: bool,
+    get_srce_panel_segments_file: Callable[[str], str] = None,
+) -> SrceAndDestPages:
+    return get_sorted_srce_and_dest_pages_with_dimensions(
+        comic, get_full_paths, get_srce_panel_segments_file
+    )[0]
+
+
+def get_sorted_srce_and_dest_pages_with_dimensions(
+    comic: ComicBook,
+    get_full_paths: bool,
+    get_srce_panel_segments_file: Callable[[str], str] = None,
+) -> Tuple[SrceAndDestPages, ComicDimensions, RequiredDimensions]:
+    if get_srce_panel_segments_file is None:
+        get_srce_panel_segments_file = comic.get_srce_panel_segments_file
+
+    srce_and_dest_pages = _get_srce_and_dest_pages_in_order(comic, get_full_paths)
+
+    srce_panels_segment_info_files = [
+        get_srce_panel_segments_file(get_page_str(srce_page.page_num))
+        for srce_page in srce_and_dest_pages.srce_pages
+    ]
+    set_srce_panel_bounding_boxes(srce_panels_segment_info_files, srce_and_dest_pages.srce_pages)
+
+    srce_dim, required_dim = get_required_panels_bbox_width_height(
+        srce_and_dest_pages.srce_pages, DEST_TARGET_HEIGHT, PAGE_NUM_HEIGHT
+    )
+
+    set_dest_panel_bounding_boxes(srce_dim, required_dim, srce_and_dest_pages)
+
+    return srce_and_dest_pages, srce_dim, required_dim
+
+
+def _get_srce_and_dest_pages_in_order(comic: ComicBook, get_full_paths: bool) -> SrceAndDestPages:
     required_pages = get_required_pages_in_order(comic.page_images_in_order)
 
     srce_page_list = []

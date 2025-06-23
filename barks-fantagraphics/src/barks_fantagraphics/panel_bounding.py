@@ -2,18 +2,18 @@ import logging
 import os
 from typing import List, Tuple
 
-from barks_fantagraphics.comic_book import ComicDimensions, RequiredDimensions
-from barks_fantagraphics.comics_utils import dest_file_is_older_than_srce
-from barks_fantagraphics.pages import CleanPage, SrceAndDestPages
-from barks_fantagraphics.pages import PAGES_WITHOUT_PANELS
-from barks_fantagraphics.panel_bounding_boxes import BoundingBox, get_panels_bounding_box_from_file
-from consts import (
-    PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN,
+from .comic_book import ComicDimensions, RequiredDimensions
+from .comics_consts import (
     DEST_TARGET_WIDTH,
     DEST_TARGET_HEIGHT,
     DEST_TARGET_X_MARGIN,
+    PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN,
+    PAGES_WITHOUT_PANELS,
 )
-from image_io import open_image_for_reading
+from .comics_image_io import open_pil_image_for_reading
+from .comics_utils import dest_file_is_older_than_srce
+from .page_classes import CleanPage, SrceAndDestPages
+from .panel_bounding_boxes import BoundingBox, get_panels_bounding_box_from_file
 
 
 def get_required_panels_bbox_width_height(
@@ -138,7 +138,7 @@ def set_srce_panel_bounding_boxes(
 
 
 def _get_full_image_bounding_box(image_file: str) -> BoundingBox:
-    image = open_image_for_reading(image_file)
+    image = open_pil_image_for_reading(image_file)
     return BoundingBox(0, 0, image.width - 1, image.height - 1)
 
 

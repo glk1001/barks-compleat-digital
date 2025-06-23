@@ -21,7 +21,8 @@ from barks_fantagraphics.fanta_comics_info import (
     FANTA_VOLUME_OVERRIDES_ROOT,
     FANTA_OVERRIDE_DIRECTORIES,
 )
-from barks_fantagraphics.pages import CleanPage, get_srce_and_dest_pages_in_order, get_page_mod_type
+from barks_fantagraphics.pages import get_sorted_srce_and_dest_pages, get_page_mod_type
+from barks_fantagraphics.page_classes import CleanPage
 
 Image.MAX_IMAGE_PIXELS = None
 
@@ -37,7 +38,7 @@ class FileType(Enum):
 
 
 def get_srce_mod_files(comic: ComicBook) -> Union[None, List[Tuple[str, FileType]]]:
-    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic, get_full_paths=True)
+    srce_and_dest_pages = get_sorted_srce_and_dest_pages(comic, get_full_paths=True)
 
     modified_srce_files = [
         get_mod_file(comic, srce)

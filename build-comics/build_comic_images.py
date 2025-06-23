@@ -8,30 +8,33 @@ from barks_fantagraphics.comic_book import ComicBook, RequiredDimensions
 from barks_fantagraphics.comic_issues import ISSUE_NAME, Issues
 from barks_fantagraphics.comics_consts import (
     PageType,
-    PAGE_NUM_FONT_FILE,
-    get_font_path,
-    INTRO_TEXT_FONT_FILE,
     BARKS,
-)
-from barks_fantagraphics.comics_utils import get_relpath
-from barks_fantagraphics.fanta_comics_info import CENSORED_TITLES
-from barks_fantagraphics.pages import (
-    CleanPage,
-    PAGES_WITHOUT_PANELS,
-    BACK_NO_PANELS_PAGES,
-    PAINTING_PAGES,
-    EMPTY_IMAGE_FILEPATH,
-    get_page_num_str,
-)
-from consts import (
+    get_font_path,
+    PAGE_NUM_FONT_FILE,
+    INTRO_TEXT_FONT_FILE,
     DEST_TARGET_WIDTH,
     DEST_TARGET_HEIGHT,
     DEST_TARGET_X_MARGIN,
     DEST_TARGET_ASPECT_RATIO,
-    FOOTNOTE_CHAR,
+    PAGE_NUM_X_OFFSET_FROM_CENTRE,
+    PAGE_NUM_X_BLANK_PIXEL_OFFSET,
+    PAGE_NUM_HEIGHT,
+    PAGE_NUM_FONT_SIZE,
+    PAGE_NUM_COLOR,
+    BACK_NO_PANELS_PAGES,
+    PAINTING_PAGES,
+    PAGES_WITHOUT_PANELS,
 )
+from barks_fantagraphics.comics_utils import get_relpath
+from barks_fantagraphics.fanta_comics_info import CENSORED_TITLES
+from barks_fantagraphics.pages import (
+    EMPTY_IMAGE_FILEPATH,
+    get_page_num_str,
+)
+from barks_fantagraphics.page_classes import CleanPage
+from barks_fantagraphics.panel_bounding import get_scaled_panels_bbox_height
+from consts import FOOTNOTE_CHAR
 from image_io import open_image_for_reading
-from panel_bounding import get_scaled_panels_bbox_height
 
 INTRO_TOP = 350
 INTRO_BOTTOM_MARGIN = INTRO_TOP
@@ -50,12 +53,6 @@ INTRO_PUB_TEXT_SPACING = 20
 SPLASH_BORDER_COLOR = (0, 0, 0)
 SPLASH_BORDER_WIDTH = 10
 SPLASH_MARGIN = DEST_TARGET_X_MARGIN
-
-PAGE_NUM_X_OFFSET_FROM_CENTRE = 150
-PAGE_NUM_X_BLANK_PIXEL_OFFSET = 250
-PAGE_NUM_HEIGHT = 40
-PAGE_NUM_FONT_SIZE = 30
-PAGE_NUM_COLOR = (10, 10, 10)
 
 
 class ComicBookImageBuilder:

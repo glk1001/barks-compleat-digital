@@ -73,7 +73,7 @@ def process_comic_book(comic: ComicBook) -> int:
 
 def mark_process_end(process_timing: Timing):
     logging.info(
-            f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds"
+        f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds"
     )
 
 

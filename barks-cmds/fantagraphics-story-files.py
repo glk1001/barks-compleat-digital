@@ -13,7 +13,7 @@ from barks_fantagraphics.comics_utils import (
     get_timestamp_as_str,
 )
 from barks_fantagraphics.pages import (
-    get_srce_and_dest_pages_in_order,
+    get_sorted_srce_and_dest_pages,
     get_restored_srce_dependencies,
 )
 
@@ -63,7 +63,7 @@ titles = cmd_args.get_titles()
 for title in titles:
     comic_book = comics_database.get_comic_book(title)
 
-    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic_book, get_full_paths=True)
+    srce_and_dest_pages = get_sorted_srce_and_dest_pages(comic_book, get_full_paths=True)
 
     srce_pages = srce_and_dest_pages.srce_pages
     dest_pages = srce_and_dest_pages.dest_pages

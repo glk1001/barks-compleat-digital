@@ -27,10 +27,10 @@ from barks_fantagraphics.fanta_comics_info import (
     LAST_VOLUME_NUMBER,
 )
 from barks_fantagraphics.pages import (
-    SrceAndDestPages,
-    get_srce_and_dest_pages_in_order,
+    get_sorted_srce_and_dest_pages,
     get_restored_srce_dependencies,
 )
+from barks_fantagraphics.page_classes import SrceAndDestPages
 from consts import DEST_NON_IMAGE_FILES
 from utils import (
     DATE_SEP,
@@ -627,7 +627,7 @@ def check_srce_and_dest_files(comic: ComicBook, errors: OutOfDateErrors) -> None
         return
 
     try:
-        srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic, get_full_paths=True)
+        srce_and_dest_pages = get_sorted_srce_and_dest_pages(comic, get_full_paths=True)
     except Exception as e:
         errors.exception_errors.append(str(e))
         return

@@ -3,6 +3,18 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import Dict
 
+# TODO: Should this dest stuff be here?
+DEST_TARGET_WIDTH = 2120
+DEST_TARGET_HEIGHT = 3200
+DEST_TARGET_X_MARGIN = 100
+DEST_TARGET_ASPECT_RATIO = float(DEST_TARGET_HEIGHT) / float(DEST_TARGET_WIDTH)
+PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN = 100
+
+PAGE_NUM_X_OFFSET_FROM_CENTRE = 150
+PAGE_NUM_X_BLANK_PIXEL_OFFSET = 250
+PAGE_NUM_HEIGHT = 40
+PAGE_NUM_FONT_SIZE = 30
+PAGE_NUM_COLOR = (10, 10, 10)
 
 JPG_FILE_EXT = ".jpg"
 PNG_FILE_EXT = ".png"
@@ -53,6 +65,19 @@ MONTH_AS_LONG_STR: Dict[int, str] = {
     DEC: "December",
 }
 
+ROMAN_NUMERALS = {
+    1: "i",
+    2: "ii",
+    3: "iii",
+    4: "iv",
+    5: "v",
+    6: "vi",
+    7: "vii",
+    8: "viii",
+    9: "ix",
+    10: "x",
+}
+
 BARKS = "Carl Barks"
 BARKS_ROOT_DIR = os.path.join(str(Path.home()), "Books", BARKS)
 THE_COMICS_SUBDIR = "The Comics"
@@ -68,6 +93,11 @@ IMAGES_SUBDIR = "images"
 BOUNDED_SUBDIR = "bounded"
 
 INSET_FILE_EXT = ".png"
+
+FONT_DIR = os.path.join(str(Path.home()), "Prj", "fonts")
+INTRO_TITLE_DEFAULT_FONT_FILE = os.path.join(FONT_DIR, "Carl Barks Script.ttf")
+INTRO_TEXT_FONT_FILE = "Verdana Italic.ttf"
+PAGE_NUM_FONT_FILE = "verdana.ttf"
 
 
 class PageType(Enum):
@@ -101,10 +131,34 @@ STORY_PAGE_TYPES = [
 ]
 STORY_PAGE_TYPES_STR_LIST = [e.name for e in STORY_PAGE_TYPES]
 
-FONT_DIR = os.path.join(str(Path.home()), "Prj", "fonts")
-INTRO_TITLE_DEFAULT_FONT_FILE = os.path.join(FONT_DIR, "Carl Barks Script.ttf")
-INTRO_TEXT_FONT_FILE = "Verdana Italic.ttf"
-PAGE_NUM_FONT_FILE = "verdana.ttf"
+FRONT_PAGES = [
+    PageType.FRONT,
+    PageType.TITLE,
+    PageType.COVER,
+    PageType.SPLASH,
+    PageType.PAINTING,
+    PageType.PAINTING_NO_BORDER,
+]
+FRONT_MATTER_PAGES = FRONT_PAGES + [PageType.FRONT_MATTER]
+BACK_MATTER_PAGES = [
+    PageType.BACK_MATTER,
+    PageType.BACK_NO_PANELS,
+    PageType.BACK_NO_PANELS_DOUBLE,
+    PageType.BACK_PAINTING,
+    PageType.BACK_PAINTING_NO_BORDER,
+    PageType.BLANK_PAGE,
+]
+BACK_MATTER_SINGLE_PAGES = [p for p in BACK_MATTER_PAGES if p != PageType.BLANK_PAGE]
+BACK_NO_PANELS_PAGES = [PageType.BACK_NO_PANELS, PageType.BACK_NO_PANELS_DOUBLE]
+PAINTING_PAGES = [
+    PageType.PAINTING,
+    PageType.PAINTING_NO_BORDER,
+    PageType.BACK_PAINTING,
+    PageType.BACK_PAINTING_NO_BORDER,
+]
+PAGES_WITHOUT_PANELS = set(
+    FRONT_PAGES + PAINTING_PAGES + BACK_NO_PANELS_PAGES + [PageType.BLANK_PAGE]
+)
 
 
 def get_font_path(font_filename: str) -> str:

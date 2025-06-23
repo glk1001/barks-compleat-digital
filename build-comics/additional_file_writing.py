@@ -13,17 +13,21 @@ from barks_fantagraphics.comic_book import (
 from barks_fantagraphics.comics_consts import (
     PageType,
     get_font_path,
+    DEST_TARGET_WIDTH,
+    DEST_TARGET_HEIGHT,
+    DEST_TARGET_X_MARGIN,
+    DEST_TARGET_ASPECT_RATIO,
+    ROMAN_NUMERALS,
+    FRONT_MATTER_PAGES,
+    PAINTING_PAGES,
 )
 from barks_fantagraphics.comics_utils import get_clean_path, get_timestamp_str, get_timestamp_as_str
 from barks_fantagraphics.pages import (
-    CleanPage,
-    SrceAndDestPages,
     get_srce_dest_map,
     get_page_num_str,
     get_page_mod_type,
-    ROMAN_NUMERALS,
 )
-from barks_fantagraphics.pages import FRONT_MATTER_PAGES, PAINTING_PAGES
+from barks_fantagraphics.page_classes import CleanPage, SrceAndDestPages
 from consts import (
     DEST_JPG_QUALITY,
     DEST_JPG_COMPRESS_LEVEL,
@@ -36,10 +40,6 @@ from consts import (
     DOUBLE_PAGES_SECTION,
     PAGE_NUMBERS_SECTION,
     DOUBLE_PAGES,
-    DEST_TARGET_WIDTH,
-    DEST_TARGET_HEIGHT,
-    DEST_TARGET_X_MARGIN,
-    DEST_TARGET_ASPECT_RATIO,
 )
 from timing import Timing
 

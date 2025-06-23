@@ -12,8 +12,8 @@ from barks_fantagraphics.comics_utils import (
     setup_logging,
 )
 from barks_fantagraphics.pages import (
-    get_srce_and_dest_pages_in_order,
     PageType,
+    get_sorted_srce_and_dest_pages,
 )
 
 
@@ -25,7 +25,7 @@ class Dimensions:
 
 
 def get_story_dimensions(comic: ComicBook) -> Dimensions:
-    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic, get_full_paths=True)
+    srce_and_dest_pages = get_sorted_srce_and_dest_pages(comic, get_full_paths=True)
 
     front_width = -1
     front_height = -1

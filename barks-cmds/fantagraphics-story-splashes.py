@@ -8,12 +8,12 @@ from barks_fantagraphics.comic_book import ComicBook, get_page_str
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_utils import setup_logging
 from barks_fantagraphics.fanta_comics_info import get_fanta_volume_str
-from barks_fantagraphics.pages import PageType, get_srce_and_dest_pages_in_order
+from barks_fantagraphics.pages import PageType, get_sorted_srce_and_dest_pages
 from barks_fantagraphics.panel_segmentation import BIG_NUM, get_kumiko_panel_bound
 
 
 def get_story_splashes(comic: ComicBook) -> List[str]:
-    srce_and_dest_pages = get_srce_and_dest_pages_in_order(comic, get_full_paths=True)
+    srce_and_dest_pages = get_sorted_srce_and_dest_pages(comic, get_full_paths=True)
 
     splashes = []
     for srce_page, dest_page in zip(srce_and_dest_pages.srce_pages, srce_and_dest_pages.dest_pages):

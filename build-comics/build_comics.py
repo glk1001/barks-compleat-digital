@@ -5,7 +5,7 @@ import shutil
 import sys
 import traceback
 from datetime import datetime
-from typing import Tuple, List, Union
+from typing import List, Union, Tuple
 
 from PIL import Image
 
@@ -19,12 +19,15 @@ from additional_file_writing import (
 from barks_fantagraphics.barks_titles import get_safe_title
 from barks_fantagraphics.comic_book import (
     ComicBook,
-    get_page_str,
     ComicDimensions,
     RequiredDimensions,
 )
 from barks_fantagraphics.comics_consts import (
     PageType,
+    DEST_TARGET_WIDTH,
+    DEST_TARGET_HEIGHT,
+    DEST_TARGET_X_MARGIN,
+    DEST_TARGET_ASPECT_RATIO,
 )
 from barks_fantagraphics.comics_image_io import METADATA_PROPERTY_GROUP
 from barks_fantagraphics.comics_utils import (
@@ -33,28 +36,18 @@ from barks_fantagraphics.comics_utils import (
     delete_all_files_in_directory,
 )
 from barks_fantagraphics.pages import (
-    CleanPage,
-    SrceAndDestPages,
     get_max_timestamp,
     get_page_num_str,
-    get_srce_and_dest_pages_in_order,
+    get_sorted_srce_and_dest_pages_with_dimensions,
 )
-from build_comic_images import ComicBookImageBuilder, PAGE_NUM_HEIGHT
+from barks_fantagraphics.page_classes import CleanPage, SrceAndDestPages
+from build_comic_images import ComicBookImageBuilder
 from consts import (
-    DEST_TARGET_WIDTH,
-    DEST_TARGET_X_MARGIN,
-    DEST_TARGET_HEIGHT,
     MIN_HD_SRCE_HEIGHT,
     DEST_JPG_COMPRESS_LEVEL,
     DEST_JPG_QUALITY,
-    DEST_TARGET_ASPECT_RATIO,
 )
 from image_io import open_image_for_reading
-from panel_bounding import (
-    set_srce_panel_bounding_boxes,
-    set_dest_panel_bounding_boxes,
-    get_required_panels_bbox_width_height,
-)
 from zipping import zip_comic_book, create_symlinks_to_comic_zip
 
 _process_page_error = False
@@ -94,10 +87,35 @@ class ComicBookBuilder:
 
     def _init_pages(self):
         self.__srce_and_dest_pages, self.__srce_dim, self.__required_dim = (
-            self._get_srce_and_dest_pages()
+            self._get_srce_and_dest_pages_and_dimensions(self.__comic)
         )
         self.__image_builder.set_required_dim(self.__required_dim)
         self.__max_dest_page_timestamp = get_max_timestamp(self.__srce_and_dest_pages.dest_pages)
+
+    @staticmethod
+    def _get_srce_and_dest_pages_and_dimensions(
+        comic: ComicBook,
+    ) -> Tuple[SrceAndDestPages, ComicDimensions, RequiredDimensions]:
+        srce_and_dest_pages, srce_dim, required_dim = (
+            get_sorted_srce_and_dest_pages_with_dimensions(comic, get_full_paths=True)
+        )
+
+        assert srce_dim.max_panels_bbox_width >= srce_dim.min_panels_bbox_width > 0
+        assert srce_dim.max_panels_bbox_height >= srce_dim.min_panels_bbox_height > 0
+        assert srce_dim.max_panels_bbox_width >= srce_dim.av_panels_bbox_width > 0
+        assert srce_dim.max_panels_bbox_height >= srce_dim.av_panels_bbox_height > 0
+        assert required_dim.panels_bbox_width == int(
+            round((DEST_TARGET_WIDTH - (2 * DEST_TARGET_X_MARGIN)))
+        )
+
+        logging.debug(f"Srce average panels bbox width: {srce_dim.av_panels_bbox_width}.")
+        logging.debug(f"Srce average panels bbox height: {srce_dim.av_panels_bbox_height}.")
+        logging.debug(f"Required panels bbox width: {required_dim.panels_bbox_width}.")
+        logging.debug(f"Required panels bbox height: {required_dim.panels_bbox_height}.")
+        logging.debug(f"Required page num y bottom: {required_dim.page_num_y_bottom}.")
+        logging.debug("")
+
+        return srce_and_dest_pages, srce_dim, required_dim
 
     def _create_comic_book(self) -> None:
         self._create_dest_dirs()
@@ -124,50 +142,6 @@ class ComicBookBuilder:
 
         if _process_page_error:
             raise Exception("There were errors while processing pages.")
-
-    def _get_srce_and_dest_pages(
-        self,
-    ) -> Tuple[SrceAndDestPages, ComicDimensions, RequiredDimensions]:
-        srce_and_dest_pages = get_srce_and_dest_pages_in_order(self.__comic, get_full_paths=True)
-
-        srce_panels_segment_info_files = [
-            self.__comic.get_srce_panel_segments_file(get_page_str(srce_page.page_num))
-            for srce_page in srce_and_dest_pages.srce_pages
-        ]
-        set_srce_panel_bounding_boxes(
-            srce_panels_segment_info_files, srce_and_dest_pages.srce_pages
-        )
-
-        srce_dim, required_dim = self._get_required_dimensions(srce_and_dest_pages.srce_pages)
-
-        set_dest_panel_bounding_boxes(srce_dim, required_dim, srce_and_dest_pages)
-
-        return srce_and_dest_pages, srce_dim, required_dim
-
-    @staticmethod
-    def _get_required_dimensions(
-        srce_pages: List[CleanPage],
-    ) -> Tuple[ComicDimensions, RequiredDimensions]:
-        srce_dim, required_dim = get_required_panels_bbox_width_height(
-            srce_pages, DEST_TARGET_HEIGHT, PAGE_NUM_HEIGHT
-        )
-
-        assert srce_dim.max_panels_bbox_width >= srce_dim.min_panels_bbox_width > 0
-        assert srce_dim.max_panels_bbox_height >= srce_dim.min_panels_bbox_height > 0
-        assert srce_dim.max_panels_bbox_width >= srce_dim.av_panels_bbox_width > 0
-        assert srce_dim.max_panels_bbox_height >= srce_dim.av_panels_bbox_height > 0
-        assert required_dim.panels_bbox_width == int(
-            round((DEST_TARGET_WIDTH - (2 * DEST_TARGET_X_MARGIN)))
-        )
-
-        logging.debug(f"Srce average panels bbox width: {srce_dim.av_panels_bbox_width}.")
-        logging.debug(f"Srce average panels bbox height: {srce_dim.av_panels_bbox_height}.")
-        logging.debug(f"Required panels bbox width: {required_dim.panels_bbox_width}.")
-        logging.debug(f"Required panels bbox height: {required_dim.panels_bbox_height}.")
-        logging.debug(f"Required page num y bottom: {required_dim.page_num_y_bottom}.")
-        logging.debug("")
-
-        return srce_dim, required_dim
 
     def _process_page(
         self,
