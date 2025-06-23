@@ -63,11 +63,21 @@ _process_page_error = False
 class ComicBookBuilder:
     def __init__(self, comic: ComicBook):
         self.__comic = comic
+        self.__srce_dim = ComicDimensions()
+        self.__required_dim = RequiredDimensions()
         self.__image_builder = ComicBookImageBuilder(comic)
+
+    def get_srce_dim(self) -> ComicDimensions:
+        return self.__srce_dim
+
+    def get_required_dim(self) -> RequiredDimensions:
+        return self.__required_dim
 
     def build(self) -> Tuple[SrceAndDestPages, float]:
         srce_and_dest_pages = self._create_comic_book()
         max_dest_timestamp = get_max_timestamp(srce_and_dest_pages.dest_pages)
+
+        self.log_comic_book_params()
 
         zip_comic_book(self.__comic)
         create_symlinks_to_comic_zip(self.__comic)
@@ -75,8 +85,6 @@ class ComicBookBuilder:
         return srce_and_dest_pages, max_dest_timestamp
 
     def _create_comic_book(self) -> SrceAndDestPages:
-        self.log_comic_book_params()
-
         self._create_dest_dirs()
 
         srce_and_dest_pages = self._create_and_save_comic_pages()
@@ -84,9 +92,9 @@ class ComicBookBuilder:
         return srce_and_dest_pages
 
     def _create_and_save_comic_pages(self) -> SrceAndDestPages:
-        srce_and_dest_pages, srce_dim, required_dim = self._get_srce_and_dest_pages()
-        self.__comic.srce_dim = srce_dim
-        self.__comic.required_dim = required_dim
+        srce_and_dest_pages, self.__srce_dim, self.__required_dim = self._get_srce_and_dest_pages()
+
+        self.__image_builder.set_required_dim(self.__required_dim)
 
         self._process_pages(srce_and_dest_pages)
 
@@ -138,30 +146,18 @@ class ComicBookBuilder:
     def _get_required_dimensions(
         srce_pages: List[CleanPage],
     ) -> Tuple[ComicDimensions, RequiredDimensions]:
-        srce_dim = ComicDimensions()
-        (
-            required_panels_bbox_width,
-            required_panels_bbox_height,
-            srce_dim.min_panels_bbox_width,
-            srce_dim.max_panels_bbox_width,
-            srce_dim.min_panels_bbox_height,
-            srce_dim.max_panels_bbox_height,
-            srce_dim.av_panels_bbox_width,
-            srce_dim.av_panels_bbox_height,
-        ) = get_required_panels_bbox_width_height(srce_pages)
+        srce_dim, required_dim = get_required_panels_bbox_width_height(srce_pages)
 
-        assert required_panels_bbox_width == int(
-            round((DEST_TARGET_WIDTH - (2 * DEST_TARGET_X_MARGIN)))
-        )
         assert srce_dim.max_panels_bbox_width >= srce_dim.min_panels_bbox_width > 0
         assert srce_dim.max_panels_bbox_height >= srce_dim.min_panels_bbox_height > 0
         assert srce_dim.max_panels_bbox_width >= srce_dim.av_panels_bbox_width > 0
         assert srce_dim.max_panels_bbox_height >= srce_dim.av_panels_bbox_height > 0
-
-        required_dim = RequiredDimensions(required_panels_bbox_width, required_panels_bbox_height)
+        assert required_dim.panels_bbox_width == int(
+            round((DEST_TARGET_WIDTH - (2 * DEST_TARGET_X_MARGIN)))
+        )
 
         page_num_y_centre = int(
-            round(0.5 * (0.5 * (DEST_TARGET_HEIGHT - required_panels_bbox_height)))
+            round(0.5 * (0.5 * (DEST_TARGET_HEIGHT - required_dim.panels_bbox_height)))
         )
         required_dim.page_num_y_bottom = int(page_num_y_centre - (PAGE_NUM_HEIGHT / 2))
 
@@ -254,8 +250,8 @@ class ComicBookBuilder:
 
         write_readme_file(self.__comic)
         write_metadata_file(self.__comic, pages.dest_pages)
-        write_json_metadata(self.__comic, pages.dest_pages)
-        write_srce_dest_map(self.__comic, pages)
+        write_json_metadata(self.__comic, self.__srce_dim, self.__required_dim, pages.dest_pages)
+        write_srce_dest_map(self.__comic, self.__srce_dim, self.__required_dim, pages)
         write_dest_panels_bboxes(self.__comic, pages.dest_pages)
 
     def _create_dest_dirs(self) -> None:
@@ -271,11 +267,8 @@ class ComicBookBuilder:
 
         calc_panels_bbox_height = int(
             round(
-                (
-                    self.__comic.srce_dim.av_panels_bbox_height
-                    * self.__comic.required_dim.panels_bbox_width
-                )
-                / self.__comic.srce_dim.av_panels_bbox_width
+                (self.__srce_dim.av_panels_bbox_height * self.__required_dim.panels_bbox_width)
+                / self.__srce_dim.av_panels_bbox_width
             )
         )
 
@@ -291,16 +284,16 @@ class ComicBookBuilder:
         logging.info(f"Dest aspect ratio:    {DEST_TARGET_ASPECT_RATIO :.2f}.")
         logging.info(f"Dest jpeg quality:    {DEST_JPG_QUALITY}.")
         logging.info(f"Dest compress level:  {DEST_JPG_COMPRESS_LEVEL}.")
-        logging.info(f"Srce min bbox wid:    {self.__comic.srce_dim.min_panels_bbox_width}.")
-        logging.info(f"Srce max bbox wid:    {self.__comic.srce_dim.max_panels_bbox_width}.")
-        logging.info(f"Srce min bbox hgt:    {self.__comic.srce_dim.min_panels_bbox_height}.")
-        logging.info(f"Srce max bbox hgt:    {self.__comic.srce_dim.max_panels_bbox_height}.")
-        logging.info(f"Srce av bbox wid:     {self.__comic.srce_dim.av_panels_bbox_width}.")
-        logging.info(f"Srce av bbox hgt:     {self.__comic.srce_dim.av_panels_bbox_height}.")
-        logging.info(f"Req panels bbox wid:  {self.__comic.required_dim.panels_bbox_width}.")
-        logging.info(f"Req panels bbox hgt:  {self.__comic.required_dim.panels_bbox_height}.")
+        logging.info(f"Srce min bbox wid:    {self.__srce_dim.min_panels_bbox_width}.")
+        logging.info(f"Srce max bbox wid:    {self.__srce_dim.max_panels_bbox_width}.")
+        logging.info(f"Srce min bbox hgt:    {self.__srce_dim.min_panels_bbox_height}.")
+        logging.info(f"Srce max bbox hgt:    {self.__srce_dim.max_panels_bbox_height}.")
+        logging.info(f"Srce av bbox wid:     {self.__srce_dim.av_panels_bbox_width}.")
+        logging.info(f"Srce av bbox hgt:     {self.__srce_dim.av_panels_bbox_height}.")
+        logging.info(f"Req panels bbox wid:  {self.__required_dim.panels_bbox_width}.")
+        logging.info(f"Req panels bbox hgt:  {self.__required_dim.panels_bbox_height}.")
         logging.info(f"Calc panels bbox ht:  {calc_panels_bbox_height}.")
-        logging.info(f"Page num y bottom:    {self.__comic.required_dim.page_num_y_bottom}.")
+        logging.info(f"Page num y bottom:    {self.__required_dim.page_num_y_bottom}.")
         logging.info(f'Ini file:             "{get_clean_path(self.__comic.ini_file)}".')
         logging.info(f'Srce dir:             "{get_abbrev_path(self.__comic.dirs.srce_dir)}".')
         logging.info(f'Srce upscayled dir:   "{get_abbrev_path(self.__comic.dirs.srce_upscayled_dir)}".')

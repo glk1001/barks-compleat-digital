@@ -4,7 +4,7 @@ from typing import Tuple, List
 
 from PIL import Image, ImageDraw, ImageFont
 
-from barks_fantagraphics.comic_book import ComicBook
+from barks_fantagraphics.comic_book import ComicBook, RequiredDimensions
 from barks_fantagraphics.comic_issues import ISSUE_NAME, Issues
 from barks_fantagraphics.comics_consts import (
     PageType,
@@ -61,6 +61,10 @@ PAGE_NUM_COLOR = (10, 10, 10)
 class ComicBookImageBuilder:
     def __init__(self, comic: ComicBook):
         self.__comic = comic
+        self.__required_dim: RequiredDimensions = RequiredDimensions()
+
+    def set_required_dim(self, required_dim: RequiredDimensions) -> None:
+        self.__required_dim = required_dim
 
     @staticmethod
     def _log_page_info(prefix: str, image: Image, page: CleanPage):
@@ -262,7 +266,7 @@ class ComicBookImageBuilder:
         page_num_x_start = dest_page_centre - PAGE_NUM_X_OFFSET_FROM_CENTRE
         page_num_x_end = dest_page_centre + PAGE_NUM_X_OFFSET_FROM_CENTRE
         page_num_y_start = (
-            dest_page_image.height - self.__comic.required_dim.page_num_y_bottom
+            dest_page_image.height - self.__required_dim.page_num_y_bottom
         ) - PAGE_NUM_HEIGHT
         page_num_y_end = page_num_y_start + PAGE_NUM_HEIGHT
 

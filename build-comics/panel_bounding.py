@@ -18,15 +18,15 @@ from image_io import open_image_for_reading
 
 def get_required_panels_bbox_width_height(
     srce_pages: List[CleanPage],
-) -> Tuple[int, int, int, int, int, int, int, int]:
+) -> Tuple[ComicDimensions, RequiredDimensions]:
     (
         min_panels_bbox_width,
         max_panels_bbox_width,
         min_panels_bbox_height,
         max_panels_bbox_height,
-    ) = get_min_max_panels_bbox_width_height(srce_pages)
+    ) = _get_min_max_panels_bbox_width_height(srce_pages)
 
-    av_panels_bbox_width, av_panels_bbox_height = get_average_panels_bbox_width_height(
+    av_panels_bbox_width, av_panels_bbox_height = _get_average_panels_bbox_width_height(
         max_panels_bbox_height, srce_pages
     )
     assert av_panels_bbox_width > 0
@@ -38,14 +38,15 @@ def get_required_panels_bbox_width_height(
     )
 
     return (
-        required_panels_bbox_width,
-        required_panels_bbox_height,
-        min_panels_bbox_width,
-        max_panels_bbox_width,
-        min_panels_bbox_height,
-        max_panels_bbox_height,
-        av_panels_bbox_width,
-        av_panels_bbox_height,
+        ComicDimensions(
+            min_panels_bbox_width,
+            max_panels_bbox_width,
+            min_panels_bbox_height,
+            max_panels_bbox_height,
+            av_panels_bbox_width,
+            av_panels_bbox_height,
+        ),
+        RequiredDimensions(required_panels_bbox_width, required_panels_bbox_height),
     )
 
 
@@ -55,7 +56,7 @@ def get_scaled_panels_bbox_height(
     return int(round((panels_bbox_height * scaled_panels_bbox_width) / panels_bbox_width))
 
 
-def get_average_panels_bbox_width_height(
+def _get_average_panels_bbox_width_height(
     max_panels_bbox_height: int, srce_pages: List[CleanPage]
 ) -> Tuple[int, int]:
     sum_panels_bbox_width = 0
@@ -81,7 +82,7 @@ def get_average_panels_bbox_width_height(
     )
 
 
-def get_min_max_panels_bbox_width_height(
+def _get_min_max_panels_bbox_width_height(
     srce_pages: List[CleanPage],
 ) -> Tuple[int, int, int, int]:
     big_num = 10000
@@ -119,21 +120,21 @@ def set_srce_panel_bounding_boxes(
 
     for srce_page, srce_panels_segment_info_file in zip(srce_pages, srce_panels_segment_info_files):
         if srce_page.page_type in PAGES_WITHOUT_PANELS:
-            srce_page.panels_bbox = get_full_image_bounding_box(srce_page.page_filename)
+            srce_page.panels_bbox = _get_full_image_bounding_box(srce_page.page_filename)
         else:
-            srce_page.panels_bbox = get_panels_bounding_box(
+            srce_page.panels_bbox = _get_panels_bounding_box(
                 srce_panels_segment_info_file, srce_page
             )
 
     logging.debug("")
 
 
-def get_full_image_bounding_box(image_file: str) -> BoundingBox:
+def _get_full_image_bounding_box(image_file: str) -> BoundingBox:
     image = open_image_for_reading(image_file)
     return BoundingBox(0, 0, image.width - 1, image.height - 1)
 
 
-def get_panels_bounding_box(
+def _get_panels_bounding_box(
     srce_panels_segment_info_file: str, srce_page: CleanPage
 ) -> BoundingBox:
     assert srce_page.page_type not in PAGES_WITHOUT_PANELS
@@ -157,12 +158,12 @@ def set_dest_panel_bounding_boxes(
     logging.debug("Setting dest panel bounding boxes.")
 
     for srce_page, dest_page in zip(pages.srce_pages, pages.dest_pages):
-        dest_page.panels_bbox = get_dest_panels_bounding_box(srce_dim, required_dim, srce_page)
+        dest_page.panels_bbox = _get_dest_panels_bounding_box(srce_dim, required_dim, srce_page)
 
     logging.debug("")
 
 
-def get_dest_panels_bounding_box(
+def _get_dest_panels_bounding_box(
     srce_dim: ComicDimensions, required_dim: RequiredDimensions, srce_page: CleanPage
 ) -> BoundingBox:
     if srce_page.page_type in PAGES_WITHOUT_PANELS:

@@ -4,7 +4,12 @@ from datetime import datetime
 from typing import List, Dict
 
 from barks_fantagraphics.barks_titles import get_safe_title
-from barks_fantagraphics.comic_book import ComicBook, ModifiedType
+from barks_fantagraphics.comic_book import (
+    ComicBook,
+    ModifiedType,
+    ComicDimensions,
+    RequiredDimensions,
+)
 from barks_fantagraphics.comics_consts import (
     PageType,
     get_font_path,
@@ -41,6 +46,8 @@ from timing import Timing
 
 def write_summary_file(
     comic: ComicBook,
+    srce_dim: ComicDimensions,
+    required_dim: RequiredDimensions,
     pages: SrceAndDestPages,
     max_dest_timestamp: float,
     timing: Timing,
@@ -49,8 +56,8 @@ def write_summary_file(
 
     calc_panels_bbox_height = int(
         round(
-            (comic.srce_dim.av_panels_bbox_height * comic.required_dim.panels_bbox_width)
-            / comic.srce_dim.av_panels_bbox_width
+            (srce_dim.av_panels_bbox_height * required_dim.panels_bbox_width)
+            / srce_dim.av_panels_bbox_width
         )
     )
 
@@ -124,16 +131,16 @@ def write_summary_file(
         f.write(f"DEST_TARGET_ASPECT_RATIO = {DEST_TARGET_ASPECT_RATIO:.2f}\n")
         f.write(f"DEST_JPG_QUALITY         = {DEST_JPG_QUALITY}\n")
         f.write(f"DEST_JPG_COMPRESS_LEVEL  = {DEST_JPG_COMPRESS_LEVEL}\n")
-        f.write(f"srce min panels bbox wid = {comic.srce_dim.min_panels_bbox_width}\n")
-        f.write(f"srce max panels bbox wid = {comic.srce_dim.max_panels_bbox_width}\n")
-        f.write(f"srce av panels bbox wid  = {comic.srce_dim.av_panels_bbox_width}\n")
-        f.write(f"srce min panels bbox hgt = {comic.srce_dim.min_panels_bbox_height}\n")
-        f.write(f"srce max panels bbox_hgt = {comic.srce_dim.max_panels_bbox_height}\n")
-        f.write(f"srce av panels bbox hgt  = {comic.srce_dim.av_panels_bbox_height}\n")
-        f.write(f"req panels bbox width    = {comic.required_dim.panels_bbox_width}\n")
-        f.write(f"req panels bbox height   = {comic.required_dim.panels_bbox_height}\n")
+        f.write(f"srce min panels bbox wid = {srce_dim.min_panels_bbox_width}\n")
+        f.write(f"srce max panels bbox wid = {srce_dim.max_panels_bbox_width}\n")
+        f.write(f"srce av panels bbox wid  = {srce_dim.av_panels_bbox_width}\n")
+        f.write(f"srce min panels bbox hgt = {srce_dim.min_panels_bbox_height}\n")
+        f.write(f"srce max panels bbox_hgt = {srce_dim.max_panels_bbox_height}\n")
+        f.write(f"srce av panels bbox hgt  = {srce_dim.av_panels_bbox_height}\n")
+        f.write(f"req panels bbox width    = {required_dim.panels_bbox_width}\n")
+        f.write(f"req panels bbox height   = {required_dim.panels_bbox_height}\n")
         f.write(f"calc panels bbox height  = {calc_panels_bbox_height}\n")
-        f.write(f"page num y bottom        = {comic.required_dim.page_num_y_bottom}\n")
+        f.write(f"page num y bottom        = {required_dim.page_num_y_bottom}\n")
         f.write("\n")
 
         f.write("Pages Config Summary:\n")
@@ -209,7 +216,12 @@ def write_metadata_file(comic: ComicBook, dest_pages: List[CleanPage]):
         f.write("\n")
 
 
-def write_json_metadata(comic: ComicBook, dest_pages: List[CleanPage]):
+def write_json_metadata(
+    comic: ComicBook,
+    srce_dim: ComicDimensions,
+    required_dim: RequiredDimensions,
+    dest_pages: List[CleanPage],
+):
     metadata_file = os.path.join(comic.get_dest_dir(), JSON_METADATA_FILENAME)
     metadata = dict()
     metadata["title"] = get_safe_title(comic.title)
@@ -223,16 +235,16 @@ def write_json_metadata(comic: ComicBook, dest_pages: List[CleanPage]):
     metadata["publication_date"] = comic.publication_date
     metadata["submitted_date"] = comic.submitted_date
     metadata["submitted_year"] = comic.submitted_year
-    metadata["srce_min_panels_bbox_width"] = comic.srce_dim.min_panels_bbox_width
-    metadata["srce_max_panels_bbox_width"] = comic.srce_dim.max_panels_bbox_width
-    metadata["srce_av_panels_bbox_width"] = comic.srce_dim.av_panels_bbox_width
-    metadata["srce_min_panels_bbox_height"] = comic.srce_dim.min_panels_bbox_height
-    metadata["srce_max_panels_bbox_height"] = comic.srce_dim.max_panels_bbox_height
-    metadata["srce_av_panels_bbox_height"] = comic.srce_dim.av_panels_bbox_height
+    metadata["srce_min_panels_bbox_width"] = srce_dim.min_panels_bbox_width
+    metadata["srce_max_panels_bbox_width"] = srce_dim.max_panels_bbox_width
+    metadata["srce_av_panels_bbox_width"] = srce_dim.av_panels_bbox_width
+    metadata["srce_min_panels_bbox_height"] = srce_dim.min_panels_bbox_height
+    metadata["srce_max_panels_bbox_height"] = srce_dim.max_panels_bbox_height
+    metadata["srce_av_panels_bbox_height"] = srce_dim.av_panels_bbox_height
     metadata["required_dim"] = [
-        comic.required_dim.panels_bbox_width,
-        comic.required_dim.panels_bbox_height,
-        comic.required_dim.page_num_y_bottom,
+        required_dim.panels_bbox_width,
+        required_dim.panels_bbox_height,
+        required_dim.page_num_y_bottom,
     ]
     metadata["page_counts"] = get_page_counts(dest_pages)
     with open(metadata_file, "w") as f:
@@ -302,10 +314,12 @@ def get_page_counts(dest_pages: List[CleanPage]) -> Dict[str, int]:
 
 def write_srce_dest_map(
     comic: ComicBook,
+    srce_dim: ComicDimensions,
+    required_dim: RequiredDimensions,
     pages: SrceAndDestPages,
 ):
     src_dst_map_file = os.path.join(comic.get_dest_dir(), DEST_SRCE_MAP_FILENAME)
-    srce_dest_map = get_srce_dest_map(comic, pages)
+    srce_dest_map = get_srce_dest_map(comic, srce_dim, required_dim, pages)
     with open(src_dst_map_file, "w") as f:
         # noinspection PyTypeChecker
         json.dump(srce_dest_map, f, indent=4)

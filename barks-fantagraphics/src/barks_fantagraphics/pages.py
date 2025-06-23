@@ -4,7 +4,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Union
 
-from .comic_book import OriginalPage, ComicBook, get_page_str, ModifiedType
+from .comic_book import (
+    ComicBook,
+    OriginalPage,
+    ModifiedType,
+    ComicDimensions,
+    RequiredDimensions,
+    get_page_str,
+)
 from .comics_consts import PageType, RESTORABLE_PAGE_TYPES, JPG_FILE_EXT
 from .comics_utils import get_timestamp
 from .panel_bounding_boxes import BoundingBox
@@ -220,18 +227,20 @@ def get_page_mod_type(comic: ComicBook, page: CleanPage) -> ModifiedType:
 
 def get_srce_dest_map(
     comic: ComicBook,
+    srce_dim: ComicDimensions,
+    required_dim: RequiredDimensions,
     pages: SrceAndDestPages,
 ) -> Dict[str, Union[str, int, Dict[str, str]]]:
     srce_dest_map = dict()
     srce_dest_map["srce_dirname"] = os.path.basename(comic.dirs.srce_dir)
     srce_dest_map["dest_dirname"] = comic.get_dest_rel_dirname()
 
-    srce_dest_map["srce_min_panels_bbox_width"] = comic.srce_dim.min_panels_bbox_width
-    srce_dest_map["srce_max_panels_bbox_width"] = comic.srce_dim.max_panels_bbox_width
-    srce_dest_map["srce_min_panels_bbox_height"] = comic.srce_dim.min_panels_bbox_height
-    srce_dest_map["srce_max_panels_bbox_height"] = comic.srce_dim.max_panels_bbox_height
-    srce_dest_map["dest_required_bbox_width"] = comic.required_dim.panels_bbox_width
-    srce_dest_map["dest_required_bbox_height"] = comic.required_dim.panels_bbox_height
+    srce_dest_map["srce_min_panels_bbox_width"] = srce_dim.min_panels_bbox_width
+    srce_dest_map["srce_max_panels_bbox_width"] = srce_dim.max_panels_bbox_width
+    srce_dest_map["srce_min_panels_bbox_height"] = srce_dim.min_panels_bbox_height
+    srce_dest_map["srce_max_panels_bbox_height"] = srce_dim.max_panels_bbox_height
+    srce_dest_map["dest_required_bbox_width"] = required_dim.panels_bbox_width
+    srce_dest_map["dest_required_bbox_height"] = required_dim.panels_bbox_height
 
     dest_page_map = dict()
     for srce_page, dest_page in zip(pages.srce_pages, pages.dest_pages):

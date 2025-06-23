@@ -9,8 +9,6 @@ from typing import List, Tuple
 from .comic_book import (
     ComicBook,
     ComicBookDirs,
-    ComicDimensions,
-    RequiredDimensions,
     OriginalPage,
     INTRO_TITLE_DEFAULT_FONT_SIZE,
     INTRO_AUTHOR_DEFAULT_FONT_SIZE,
@@ -457,8 +455,6 @@ class ComicsDatabase:
             author_font_size=config["info"].getint(
                 "author_font_size", INTRO_AUTHOR_DEFAULT_FONT_SIZE
             ),
-            srce_dim=ComicDimensions(),
-            required_dim=RequiredDimensions(),
             srce_dir_num_page_files=srce_dir_num_page_files,
             dirs=comic_book_dirs,
             intro_inset_file=intro_inset_file,

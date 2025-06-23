@@ -98,9 +98,6 @@ class ComicBook:
     issue_title: str
     author_font_size: int
 
-    srce_dim: ComicDimensions
-    required_dim: RequiredDimensions
-
     srce_dir_num_page_files: int
     dirs: ComicBookDirs
 

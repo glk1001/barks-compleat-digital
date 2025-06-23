@@ -49,7 +49,14 @@ def process_comic_book(comic: ComicBook) -> int:
             f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds"
         )
 
-        write_summary_file(comic, srce_and_dest_pages, max_dest_timestamp, process_timing)
+        write_summary_file(
+            comic,
+            comic_book_builder.get_srce_dim(),
+            comic_book_builder.get_required_dim(),
+            srce_and_dest_pages,
+            max_dest_timestamp,
+            process_timing,
+        )
     except AssertionError:
         _, _, tb = sys.exc_info()
         tb_info = traceback.extract_tb(tb)
