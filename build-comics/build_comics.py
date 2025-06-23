@@ -19,8 +19,6 @@ from additional_file_writing import (
 from barks_fantagraphics.barks_titles import get_safe_title
 from barks_fantagraphics.comic_book import (
     ComicBook,
-    ComicDimensions,
-    RequiredDimensions,
 )
 from barks_fantagraphics.comics_consts import (
     PageType,
@@ -34,7 +32,12 @@ from barks_fantagraphics.comics_utils import (
     get_abbrev_path,
     delete_all_files_in_directory,
 )
-from barks_fantagraphics.page_classes import CleanPage, SrceAndDestPages
+from barks_fantagraphics.page_classes import (
+    CleanPage,
+    SrceAndDestPages,
+    ComicDimensions,
+    RequiredDimensions,
+)
 from barks_fantagraphics.pages import (
     get_max_timestamp,
     get_page_num_str,

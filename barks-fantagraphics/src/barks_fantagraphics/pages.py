@@ -6,10 +6,7 @@ from typing import List, Dict, Union, Tuple, Callable
 
 from .comic_book import (
     ComicBook,
-    OriginalPage,
     ModifiedType,
-    ComicDimensions,
-    RequiredDimensions,
     get_page_str,
 )
 from .comics_consts import (
@@ -23,7 +20,13 @@ from .comics_consts import (
     BACK_MATTER_PAGES,
 )
 from .comics_utils import get_timestamp
-from .page_classes import CleanPage, SrceAndDestPages
+from .page_classes import (
+    CleanPage,
+    SrceAndDestPages,
+    OriginalPage,
+    RequiredDimensions,
+    ComicDimensions,
+)
 from .panel_bounding import (
     set_srce_panel_bounding_boxes,
     set_dest_panel_bounding_boxes,

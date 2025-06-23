@@ -7,8 +7,6 @@ from barks_fantagraphics.barks_titles import get_safe_title
 from barks_fantagraphics.comic_book import (
     ComicBook,
     ModifiedType,
-    ComicDimensions,
-    RequiredDimensions,
 )
 from barks_fantagraphics.comics_consts import (
     PageType,
@@ -22,12 +20,17 @@ from barks_fantagraphics.comics_consts import (
     PAINTING_PAGES,
 )
 from barks_fantagraphics.comics_utils import get_clean_path, get_timestamp_str, get_timestamp_as_str
+from barks_fantagraphics.page_classes import (
+    CleanPage,
+    SrceAndDestPages,
+    ComicDimensions,
+    RequiredDimensions,
+)
 from barks_fantagraphics.pages import (
     get_srce_dest_map,
     get_page_num_str,
     get_page_mod_type,
 )
-from barks_fantagraphics.page_classes import CleanPage, SrceAndDestPages
 from consts import (
     DEST_JPG_QUALITY,
     DEST_JPG_COMPRESS_LEVEL,

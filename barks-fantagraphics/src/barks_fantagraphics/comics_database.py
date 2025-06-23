@@ -9,7 +9,6 @@ from typing import List, Tuple
 from .comic_book import (
     ComicBook,
     ComicBookDirs,
-    OriginalPage,
     INTRO_TITLE_DEFAULT_FONT_SIZE,
     INTRO_AUTHOR_DEFAULT_FONT_SIZE,
     get_inset_file,
@@ -50,6 +49,7 @@ from .fanta_comics_info import (
     FANTA_VOLUME_OVERRIDES_ROOT,
     FANTA_OVERRIDE_DIRECTORIES,
 )
+from .page_classes import OriginalPage
 
 
 def get_default_comics_database_dir() -> str:

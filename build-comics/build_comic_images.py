@@ -4,7 +4,7 @@ from typing import Tuple, List
 
 from PIL import Image, ImageDraw, ImageFont
 
-from barks_fantagraphics.comic_book import ComicBook, RequiredDimensions
+from barks_fantagraphics.comic_book import ComicBook
 from barks_fantagraphics.comic_issues import ISSUE_NAME, Issues
 from barks_fantagraphics.comics_consts import (
     PageType,
@@ -27,11 +27,11 @@ from barks_fantagraphics.comics_consts import (
 )
 from barks_fantagraphics.comics_utils import get_relpath
 from barks_fantagraphics.fanta_comics_info import CENSORED_TITLES
+from barks_fantagraphics.page_classes import CleanPage, RequiredDimensions
 from barks_fantagraphics.pages import (
     EMPTY_IMAGE_FILEPATH,
     get_page_num_str,
 )
-from barks_fantagraphics.page_classes import CleanPage
 from barks_fantagraphics.panel_bounding import get_scaled_panels_bbox_height
 from consts import FOOTNOTE_CHAR
 from image_io import open_image_for_reading

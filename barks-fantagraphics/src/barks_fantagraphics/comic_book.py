@@ -35,32 +35,10 @@ from .fanta_comics_info import (
     FantaComicBookInfo,
     FantaBook,
 )
+from .page_classes import OriginalPage
 
 INTRO_TITLE_DEFAULT_FONT_SIZE = 155
 INTRO_AUTHOR_DEFAULT_FONT_SIZE = 90
-
-
-@dataclass
-class OriginalPage:
-    page_filenames: str
-    page_type: PageType
-
-
-@dataclass
-class RequiredDimensions:
-    panels_bbox_width: int = -1
-    panels_bbox_height: int = -1
-    page_num_y_bottom: int = -1
-
-
-@dataclass
-class ComicDimensions:
-    min_panels_bbox_width: int = -1
-    max_panels_bbox_width: int = -1
-    min_panels_bbox_height: int = -1
-    max_panels_bbox_height: int = -1
-    av_panels_bbox_width: int = -1
-    av_panels_bbox_height: int = -1
 
 
 @dataclass

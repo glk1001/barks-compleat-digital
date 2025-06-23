@@ -2,7 +2,6 @@ import logging
 import os
 from typing import List, Tuple
 
-from .comic_book import ComicDimensions, RequiredDimensions
 from .comics_consts import (
     DEST_TARGET_WIDTH,
     DEST_TARGET_HEIGHT,
@@ -11,7 +10,7 @@ from .comics_consts import (
     PAGES_WITHOUT_PANELS,
 )
 from .comics_utils import dest_file_is_older_than_srce
-from .page_classes import CleanPage, SrceAndDestPages
+from .page_classes import CleanPage, SrceAndDestPages, ComicDimensions, RequiredDimensions
 from .panel_bounding_boxes import BoundingBox, get_panels_bounding_box_from_file
 
 
