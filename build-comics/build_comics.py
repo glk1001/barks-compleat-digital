@@ -29,7 +29,6 @@ from barks_fantagraphics.comics_consts import (
     DEST_TARGET_X_MARGIN,
     DEST_TARGET_ASPECT_RATIO,
 )
-from barks_fantagraphics.comics_image_io import METADATA_PROPERTY_GROUP
 from barks_fantagraphics.comics_utils import (
     get_clean_path,
     get_abbrev_path,
@@ -41,6 +40,7 @@ from barks_fantagraphics.pages import (
     get_page_num_str,
     get_sorted_srce_and_dest_pages_with_dimensions,
 )
+from barks_fantagraphics.pil_image_utils import METADATA_PROPERTY_GROUP
 from build_comic_images import ComicBookImageBuilder
 from consts import (
     MIN_HD_SRCE_HEIGHT,

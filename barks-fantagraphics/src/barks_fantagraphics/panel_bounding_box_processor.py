@@ -5,9 +5,9 @@ from pathlib import Path
 from typing import Any, Dict
 
 from .comics_consts import JPG_FILE_EXT, PNG_FILE_EXT
-from .comics_image_io import open_pil_image_for_reading
 from .comics_utils import get_abbrev_path
 from .panel_segmentation import KumikoPanelSegmentation, get_min_max_panel_values
+from .pil_image_utils import open_pil_image_for_reading
 
 
 class BoundingBoxProcessor(object):

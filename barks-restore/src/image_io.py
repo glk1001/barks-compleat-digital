@@ -8,7 +8,7 @@ from PIL import Image
 from PIL.PngImagePlugin import PngInfo
 
 from barks_fantagraphics.comics_consts import JPG_FILE_EXT, PNG_FILE_EXT
-from barks_fantagraphics.comics_image_io import (
+from barks_fantagraphics.pil_image_utils import (
     METADATA_PROPERTY_GROUP,
     SAVE_PNG_COMPRESSION,
     SAVE_JPG_QUALITY,

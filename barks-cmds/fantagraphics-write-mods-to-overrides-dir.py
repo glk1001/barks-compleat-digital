@@ -10,19 +10,19 @@ from PIL import Image
 from barks_fantagraphics.comic_book import ComicBook, get_page_str, ModifiedType
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import JPG_FILE_EXT, PageType
-from barks_fantagraphics.comics_image_io import (
-    downscale_jpg,
-    open_pil_image_for_reading,
-    SAVE_JPG_COMPRESS_LEVEL,
-    SAVE_JPG_QUALITY,
-)
 from barks_fantagraphics.comics_utils import setup_logging, delete_all_files_in_directory
 from barks_fantagraphics.fanta_comics_info import (
     FANTA_VOLUME_OVERRIDES_ROOT,
     FANTA_OVERRIDE_DIRECTORIES,
 )
-from barks_fantagraphics.pages import get_sorted_srce_and_dest_pages, get_page_mod_type
 from barks_fantagraphics.page_classes import CleanPage
+from barks_fantagraphics.pages import get_sorted_srce_and_dest_pages, get_page_mod_type
+from barks_fantagraphics.pil_image_utils import (
+    open_pil_image_for_reading,
+    downscale_jpg,
+    SAVE_JPG_COMPRESS_LEVEL,
+    SAVE_JPG_QUALITY,
+)
 
 Image.MAX_IMAGE_PIXELS = None
 

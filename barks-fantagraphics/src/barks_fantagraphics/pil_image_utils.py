@@ -1,8 +1,7 @@
+import io
 import logging
-from typing import Dict
+from typing import Dict, Union
 
-import cv2 as cv
-import numpy as np
 from PIL import Image, ImageOps
 from PIL.PngImagePlugin import PngInfo
 
@@ -15,7 +14,7 @@ SAVE_JPG_COMPRESS_LEVEL = 9
 METADATA_PROPERTY_GROUP = "BARKS"
 
 
-def open_pil_image_for_reading(file: str) -> Image:
+def open_pil_image_for_reading(file: Union[str, io.BytesIO]) -> Image:
     current_log_level = logging.getLogger().level
     try:
         logging.getLogger().setLevel(logging.INFO)
@@ -39,20 +38,6 @@ def downscale_jpg(width: int, height: int, srce_file: str, dest_file: str) -> No
         compress_level=SAVE_JPG_COMPRESS_LEVEL,
         quality=SAVE_JPG_QUALITY,
     )
-
-
-def get_bw_image_from_alpha(rgba_file: str) -> cv.typing.MatLike:
-    black_mask = cv.imread(rgba_file, -1)
-
-    scale = 4
-    black_mask = cv.resize(
-        black_mask, (0, 0), fx=1.0 / scale, fy=1.0 / scale, interpolation=cv.INTER_AREA
-    )
-
-    _, _, _, binary = cv.split(black_mask)
-    binary = np.uint8(255 - binary)
-
-    return binary
 
 
 def add_jpg_metadata(jpg_file: str, metadata: Dict[str, str]):
