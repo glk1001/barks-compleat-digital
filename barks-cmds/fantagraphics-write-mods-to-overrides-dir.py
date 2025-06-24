@@ -133,8 +133,9 @@ for volume in volumes:
             elif file_type == FileType.ORIGINAL:
                 copy_file(mod_file, override_file)
             else:
-                assert file_type == FileType.TITLE
-                override_file = os.path.join(override_dir, title + JPG_FILE_EXT)
-                copy_file(mod_file, override_file)
+                assert False
+                # assert file_type == FileType.TITLE
+                # override_file = os.path.join(override_dir, title + JPG_FILE_EXT)
+                # copy_file(mod_file, override_file)
 
             print()
