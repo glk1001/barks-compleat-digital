@@ -42,6 +42,7 @@ from barks_fantagraphics.pages import (
     get_max_timestamp,
     get_page_num_str,
     get_sorted_srce_and_dest_pages_with_dimensions,
+    EMPTY_IMAGE_FILEPATH,
 )
 from barks_fantagraphics.pil_image_utils import METADATA_PROPERTY_GROUP
 from build_comic_images import ComicBookImageBuilder
@@ -59,7 +60,7 @@ _process_page_error = False
 class ComicBookBuilder:
     def __init__(self, comic: ComicBook):
         self.__comic = comic
-        self.__image_builder = ComicBookImageBuilder(comic)
+        self.__image_builder = ComicBookImageBuilder(comic, EMPTY_IMAGE_FILEPATH)
 
         self.__srce_dim: Union[ComicDimensions, None] = None
         self.__required_dim: Union[RequiredDimensions, None] = None

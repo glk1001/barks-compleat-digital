@@ -1,5 +1,6 @@
 import logging
 import os
+from enum import Enum, auto
 from typing import Tuple, List
 
 from PIL import Image, ImageDraw, ImageFont
@@ -28,10 +29,7 @@ from barks_fantagraphics.comics_consts import (
 from barks_fantagraphics.comics_utils import get_relpath
 from barks_fantagraphics.fanta_comics_info import CENSORED_TITLES
 from barks_fantagraphics.page_classes import CleanPage, RequiredDimensions
-from barks_fantagraphics.pages import (
-    EMPTY_IMAGE_FILEPATH,
-    get_page_num_str,
-)
+from barks_fantagraphics.pages import get_page_num_str
 from barks_fantagraphics.panel_bounding import get_scaled_panels_bbox_height
 from consts import FOOTNOTE_CHAR
 from image_io import open_image_for_reading
@@ -55,10 +53,16 @@ SPLASH_BORDER_WIDTH = 10
 SPLASH_MARGIN = DEST_TARGET_X_MARGIN
 
 
+class BasePageType(Enum):
+    EMPTY_PAGE = auto()
+    BLACK_PAGE = auto()
+
+
 class ComicBookImageBuilder:
-    def __init__(self, comic: ComicBook):
+    def __init__(self, comic: ComicBook, empty_page_file: str):
         self.__comic = comic
         self.__required_dim: RequiredDimensions = RequiredDimensions()
+        self.__empty_page_image = open_image_for_reading(empty_page_file)
 
     def set_required_dim(self, required_dim: RequiredDimensions) -> None:
         self.__required_dim = required_dim
@@ -124,8 +128,8 @@ class ComicBookImageBuilder:
 
         assert srce_page.page_type in [PageType.PAINTING, PageType.BACK_PAINTING]
         self._draw_border_around_image(painting_image)
-        dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
-        return self._get_centred_page_dest_image(painting_image, srce_page, dest_page_image)
+
+        return self._get_centred_page_dest_image(painting_image, srce_page, BasePageType.EMPTY_PAGE)
 
     def _get_splash_page_dest_image(self, splash_image: Image, srce_page: CleanPage) -> Image:
         assert srce_page.page_type == PageType.SPLASH
@@ -139,12 +143,10 @@ class ComicBookImageBuilder:
         )
         self._draw_border_around_image(smaller_splash_image)
 
-        dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
-
-        splash_image = dest_page_image.resize(size=(splash_width, splash_height))
+        splash_image = self.__empty_page_image.resize(size=(splash_width, splash_height))
         splash_image.paste(smaller_splash_image, (SPLASH_MARGIN, SPLASH_MARGIN))
 
-        return self._get_centred_page_dest_image(splash_image, srce_page, dest_page_image)
+        return self._get_centred_page_dest_image(splash_image, srce_page, BasePageType.EMPTY_PAGE)
 
     @staticmethod
     def _draw_border_around_image(image: Image):
@@ -165,10 +167,8 @@ class ComicBookImageBuilder:
     def _get_no_panels_back_page_dest_image(
         self, no_panels_image: Image, srce_page: CleanPage, dest_page: CleanPage
     ) -> Image:
-        dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
-
         dest_page_image = self._get_centred_page_dest_image(
-            no_panels_image, srce_page, dest_page_image
+            no_panels_image, srce_page, BasePageType.EMPTY_PAGE
         )
 
         self._write_page_number(dest_page_image, dest_page, PAGE_NUM_COLOR)
@@ -178,12 +178,12 @@ class ComicBookImageBuilder:
     def _get_black_bars_page_dest_image(
         self, srce_page_image: Image, srce_page: CleanPage
     ) -> Image:
-        dest_page_image = Image.new("RGB", (DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT), (0, 0, 0))
-        return self._get_centred_page_dest_image(srce_page_image, srce_page, dest_page_image)
+        return self._get_centred_page_dest_image(
+            srce_page_image, srce_page, BasePageType.BLACK_PAGE
+        )
 
-    @staticmethod
     def _get_centred_page_dest_image(
-        srce_page_image: Image, srce_page: CleanPage, dest_page_image: Image
+        self, srce_page_image: Image, srce_page: CleanPage, base_page_type: BasePageType
     ) -> Image:
         srce_aspect_ratio = float(srce_page_image.height) / float(srce_page_image.width)
         if abs(srce_aspect_ratio - DEST_TARGET_ASPECT_RATIO) > 0.01:
@@ -208,9 +208,14 @@ class ComicBookImageBuilder:
             return no_margins_image
 
         cover_top = int(round(0.5 * (DEST_TARGET_HEIGHT - required_height)))
-        dest_page_image.paste(no_margins_image, (0, cover_top))
+        base_page_image = (
+            self.__empty_page_image.copy()
+            if base_page_type == BasePageType.EMPTY_PAGE
+            else Image.new("RGB", (DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT), (0, 0, 0))
+        )
+        base_page_image.paste(no_margins_image, (0, cover_top))
 
-        return dest_page_image
+        return base_page_image
 
     @staticmethod
     def _get_blank_page_dest_image(srce_page_image: Image) -> Image:
@@ -242,18 +247,16 @@ class ComicBookImageBuilder:
 
         return dest_page_image
 
-    @staticmethod
-    def _get_centred_dest_page_image(dest_page: CleanPage, dest_panels_image: Image) -> Image:
-        dest_page_image = open_image_for_reading(EMPTY_IMAGE_FILEPATH)
-
+    def _get_centred_dest_page_image(self, dest_page: CleanPage, panels_image: Image) -> Image:
         if dest_page.page_type not in PAGES_WITHOUT_PANELS:
-            dest_panels_image = dest_panels_image.resize(
+            panels_image = panels_image.resize(
                 size=(dest_page.panels_bbox.get_width(), dest_page.panels_bbox.get_height()),
                 resample=Image.Resampling.BICUBIC,
             )
 
         dest_panels_pos = (dest_page.panels_bbox.x_min, dest_page.panels_bbox.y_min)
-        dest_page_image.paste(dest_panels_image, dest_panels_pos)
+        dest_page_image = self.__empty_page_image.copy()
+        dest_page_image.paste(panels_image, dest_panels_pos)
 
         return dest_page_image
 
