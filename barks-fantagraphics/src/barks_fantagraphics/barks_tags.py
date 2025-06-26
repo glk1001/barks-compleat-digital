@@ -49,12 +49,14 @@ class Tags(Enum):
     TANGANYIKA = "Tanganyika"
 
     AIRPLANE = "airplane"
+    CAMERA = "camera"
     CIGARETTES = "cigarettes"
     FIRE = "fire"
     SQUARE_EGGS = "square eggs"
 
     HYPNOSIS = "hypnosis"
     MAGIC = "magic"
+    PHOTOGRAPHY = "photography"
 
     AZURE_BLUE = "Azure Blue"
     ARGUS_MCFIENDY = "Argus McFiendy"
@@ -151,11 +153,12 @@ BARKS_TAG_CATEGORIES_DICT = {cat.value: cat for cat in TagCategories}
 BARKS_TAG_CATEGORIES = {
     TagCategories.THINGS: [
         Tags.AIRPLANE,
+        Tags.CAMERA,
         Tags.CIGARETTES,
         Tags.FIRE,
         Tags.SQUARE_EGGS,
     ],
-    TagCategories.THEMES: [Tags.HYPNOSIS, Tags.MAGIC, TagGroups.DRUGS],
+    TagCategories.THEMES: [TagGroups.DRUGS, Tags.HYPNOSIS, Tags.MAGIC, Tags.PHOTOGRAPHY],
     TagCategories.CHARACTERS: [
         Tags.ARGUS_MCFIENDY,
         Tags.AZURE_BLUE,
@@ -451,6 +454,15 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
         Titles.SECRET_OF_ATLANTIS_THE,
         Titles.SMOKE_WRITER_IN_THE_SKY,
         Titles.QUEEN_OF_THE_WILD_DOG_PACK_THE,
+    ],
+    Tags.CAMERA: [
+        Titles.CAMERA_CRAZY,
+        Titles.PECKING_ORDER,
+        Titles.VACATION_TIME,
+        Titles.SECRET_RESOLUTIONS,
+        Titles.MYSTERY_OF_THE_LOCH,
+        Titles.MEDALING_AROUND,
+        Titles.DUCKS_EYE_VIEW_OF_EUROPE_A,
     ],
     Tags.CIGARETTES: [
         Titles.LIMBER_W_GUEST_RANCH_THE,
@@ -840,6 +852,8 @@ BARKS_TAGGED_PAGES: Dict[Tuple[Tags, Titles], List[str]] = {
         "31",
     ],
     (Tags.CORNELIUS_MC_COBB, Titles.VOODOO_HOODOO): ["20", "21", "22", "23"],
+    (Tags.CAMERA, Titles.SECRET_RESOLUTIONS): ["8"],
+    (Tags.CAMERA, Titles.VACATION_TIME): ["10"],  # plus more pages
     (Tags.CIGARETTES, Titles.MAD_CHEMIST_THE): ["10"],
     (Tags.CIGARETTES, Titles.SWIMMING_SWINDLERS): ["1", "2", "7"],
     (Tags.CIGARETTES, Titles.GOING_BUGGY): ["3"],
@@ -862,6 +876,17 @@ BARKS_TAGGED_PAGES: Dict[Tuple[Tags, Titles], List[str]] = {
     (Tags.CIGARETTES, Titles.BILLIONS_TO_SNEEZE_AT): ["8"],
     (Tags.BARNACLE_BAY, Titles.NO_SUCH_VARMINT): ["11"],
 }
+
+def set_tag_alias(main_tag: Tags, alias_tag: Tags) -> None:
+    assert alias_tag not in BARKS_TAGGED_TITLES
+    BARKS_TAGGED_TITLES[alias_tag] = BARKS_TAGGED_TITLES[main_tag]
+
+    main_tag_title_pages = [(k[1],v) for k,v in BARKS_TAGGED_PAGES.items() if main_tag == k[0]]
+    for (title, pages) in main_tag_title_pages:
+        assert (alias_tag, title) not in BARKS_TAGGED_PAGES
+        BARKS_TAGGED_PAGES[(alias_tag, title)] = pages
+
+set_tag_alias(Tags.CAMERA, Tags.PHOTOGRAPHY)
 
 
 def is_tag_enum(value: str) -> bool:
