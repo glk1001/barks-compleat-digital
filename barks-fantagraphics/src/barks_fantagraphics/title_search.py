@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Tuple
 
 from barks_fantagraphics.barks_tags import (
     Tags,
@@ -88,7 +88,6 @@ class BarksTitleSearch:
 
     def get_tags_matching_prefix(self, prefix: str) -> List[Union[Tags, TagGroups]]:
         prefix = prefix.lower()
-        print(f'Getting tags for prefix "{prefix}".')
 
         if len(prefix) == 0:
             return []
@@ -99,24 +98,20 @@ class BarksTitleSearch:
         if short_prefix not in self.tag_prefix_dict:
             return []
 
-        print(f'short_prefix = "{short_prefix}".')
-        print(f'self.tag_prefix_dict[short_prefix] = "{self.tag_prefix_dict[short_prefix]}".')
         tag_list = []
         for alias_tag_str in self.tag_prefix_dict[short_prefix]:
-            print(f'alias_tag_str = "{alias_tag_str}", prefix = "{prefix}".')
             if not alias_tag_str.startswith(prefix):
-                print(f'alias_tag_str = "{alias_tag_str}" DOES NOT START WITH prefix = "{prefix}".')
                 continue
             if alias_tag_str in BARKS_TAG_ALIASES:
                 tag_list.append(BARKS_TAG_ALIASES[alias_tag_str])
             if alias_tag_str in BARKS_TAG_GROUPS_ALIASES:
                 tag_list.append(BARKS_TAG_GROUPS_ALIASES[alias_tag_str])
-        print(f'tag_list = "{tag_list}".')
 
         return list(set(tag_list))
 
     @staticmethod
-    def get_titles_from_alias_tag(alias_tag_str) -> List[Titles]:
+    def get_titles_from_alias_tag(alias_tag_str) -> Tuple[Tags, List[Titles]]:
+        tag = None
         title_list = []
 
         if alias_tag_str in BARKS_TAG_ALIASES:
@@ -128,8 +123,9 @@ class BarksTitleSearch:
             tags = BARKS_TAG_GROUPS[tag_group]
             for tag in tags:
                 unique_extend(title_list, BARKS_TAGGED_TITLES[tag])
+            tag = tag_group
 
-        return sorted(title_list)
+        return tag, sorted(title_list)
 
     @staticmethod
     def __get_titles_with_one_char_tag_search(prefix: str) -> List[Tags]:
