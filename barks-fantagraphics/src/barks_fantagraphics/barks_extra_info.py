@@ -28,23 +28,30 @@ BARKS_EXTRA_INFO = {
     # " been Walt Kelly's partner in a story unit at Disneys. I understand he got fed up with gag"
     # ' writing and bought a nursery (plants and trees) and lived happily ever after."'
     " (The artist's name was Merrill de Maris).",
-    Titles.MIGHTY_TRAPPER_THE: "First appearance of [b][i]Daisy.[/i][/b]",
-    Titles.GOOD_DEEDS: "First appearance of [b][i]Neighbor Jones.[/i][/b]"
+    Titles.MIGHTY_TRAPPER_THE: "The first appearance of [b][i]Daisy.[/i][/b]",
+    Titles.GOOD_DEEDS: "The first appearance of [b][i]Neighbor Jones.[/i][/b]"
     " (Mr. Jones in this story.)",
     Titles.GOOD_NEIGHBORS: "The first real appearance of [b][i]Neighbor Jones[/i][/b]"
     " - the one we all know!",
-    Titles.THREE_DIRTY_LITTLE_DUCKS: "First appearance of [b][i]Herbert[/i][/b]"
+    Titles.THREE_DIRTY_LITTLE_DUCKS: "The first appearance of [b][i]Herbert[/i][/b]"
     " and [b][i]Bornworthy[/i][/b] (aka [b][i]Bolivar)[/i][/b] the dog."
     "\n\nAnd the first Barks Duck story drawn in a four tier layout.",
     Titles.SMUGSNORKLE_SQUATTIE_THE: "Last appearance of [b][i]Herbert[/i][/b].",
-    Titles.MAD_CHEMIST_THE: "First appearance of [b][i]Car 313.[/i][/b]",
+    Titles.MAD_CHEMIST_THE: "The first appearance of [b][i]Car 313.[/i][/b]",
     Titles.HIGH_WIRE_DAREDEVILS: "First mention of [b][i]Duckburg.[/i][/b]"
     " (Last panel of last page.)",
     Titles.TURKEY_RAFFLE: 'On page 4, a can of "Barks Dog Soup" is shown in Donald\'s kitchen'
     '-cupboard. In a letter to Michael Barrier, Barks wrote: "As for the can of dog food with'
     " Barks on it..., I probably put the name on it myself just to see if the editors would white"
     ' it out."',
-    Titles.CHRISTMAS_ON_BEAR_MOUNTAIN: "First appearance of [b][i]Uncle Scrooge.[/i][/b]",
+    Titles.CHRISTMAS_ON_BEAR_MOUNTAIN: "The first appearance of [b][i]Uncle Scrooge.[/i][/b]"
+    " In a 1975 interview Barks said: "
+    '[i]"The office, I think, wanted me to do a Christmas story, and so I cast around for'
+    " Christmas stories. I began to think of the great Dickens Christmas story about Scrooge;"
+    " it is the classic of all Christmas stories. I just was thief enough to sort of steal some"
+    " of the idea and have a rich uncle for Donald. And all these situations of the bear and"
+    " Donald having to go to this cabin in the wintertime to prove his bravery and so on."
+    ' It just came out of the situation of bringing in a rich uncle."[/i]',
     Titles.LOST_IN_THE_ANDES: 'In a 1962 interview, Barks agreed that [i]"my best story,'
     ' technically, is probably the square egg one."[/i]\n\n'
     "From 'www.seriesam.com:' [i]\"Western Publishing objected to the accent Barks had given the"
@@ -56,19 +63,40 @@ BARKS_EXTRA_INFO = {
     " Zombie' with blank eyeballs. The editors at Western Publishing feared that the vacant eyes"
     ' might frighten children and so they added pupils and half-closed lids."[/i] In this digital'
     " edition, Bombie has been changed back to having blank eyeballs.",
-    Titles.WINTERTIME_WAGER: "First appearance of [b][i]Gladstone Gander.[/i][/b]",
-    Titles.LUCK_OF_THE_NORTH: "First appearance of [b][i]Gladstone Gander[/i][/b] in "
-    "the [i]Donald Duck[/i] series.",
-    Titles.OPERATION_ST_BERNARD: "First appearance of [b][i]The Junior Woodchucks.[/i][/b]",
-    Titles.PIXILATED_PARROT_THE: "First appearance of what looks like the [b][i]Money Bin[/i][/b]"
-    " but in this story is called the Safe.",
-    Titles.TERROR_OF_THE_BEAGLE_BOYS: "First appearance of [b][i]The Beagle Boys.[/i][/b]"
+    Titles.WINTERTIME_WAGER: "The first appearance of [b][i]Gladstone Gander.[/i][/b]"
+    " In a 1975 interview Barks said this about Gladstone:"
+    " [i]Well, I think the reason for bringing in Gladstone was that I thought of this"
+    " situation of Donald having to take a midwinter swim in a lake of ice-cold water."
+    " It was something, I guess, from reading of the Polar Bear Club up in San Francisco"
+    " that go out under the Golden Gate and swim around on New Year's Day."
+    " And I just thought of Donald: how in the summertime he would get very rash and boast"
+    " that he would go into the water in the wintertime. And so that's how Gladstone got into it."
+    " He had to be somebody that Donald was trying to outdo.[/i]",
+    Titles.RACE_TO_THE_SOUTH_SEAS: "The first appearance of [b][i]Gladstone Gander[/i][/b] in "
+    "a long Donald Duck story.",
+    Titles.LUCK_OF_THE_NORTH: "In a 1975 interview Barks said this about Gladstone's luck:"
+    ' [i]"Well, that came the second time I was using him [actually, the second time'
+    " in a long Donald story]. I established him as an obnoxious character in"
+    " his first story, and so the second time I used him, I thought of what particular"
+    " thing can make that guy [i]lastingly[/i] obnoxious. And so I thought of this lucky angle."
+    ' He was the kind of guy who who got all the breaks, and poor old Donald never got anywhere."',
+    Titles.OPERATION_ST_BERNARD: "The first appearance of [b][i]The Junior Woodchucks.[/i][/b]",
+    Titles.PIXILATED_PARROT_THE: "The first appearance of what looks like the"
+    " [b][i]Money Bin[/i][/b] but in this story is called the Safe.",
+    Titles.TERROR_OF_THE_BEAGLE_BOYS: "The first appearance of [b][i]The Beagle Boys.[/i][/b]"
     " And first mention of the [b][i]Money Bin.[/i][/b]",
-    Titles.BIG_BIN_ON_KILLMOTOR_HILL_THE: "First appearance of the [b][i]Money Bin.[/i][/b]",
-    Titles.ROUND_MONEY_BIN_THE: "First appearance of [b][i]Number One Dime.[/i][/b]",
-    Titles.GLADSTONES_TERRIBLE_SECRET: "First appearance of [b][i]Gyro Gearloose.[/i][/b]",
-    Titles.CAT_BOX_THE: "First appearance of [b][i]Little Helper.[/i][/b]",
-    Titles.MIDAS_TOUCH_THE: "First appearance of [b][i]Magica de Spell.[/i][/b]",
+    Titles.BIG_BIN_ON_KILLMOTOR_HILL_THE: "The first appearance of the [b][i]Money Bin.[/i][/b]",
+    Titles.ROUND_MONEY_BIN_THE: "The first appearance of [b][i]Number One Dime.[/i][/b]",
+    Titles.GLADSTONES_TERRIBLE_SECRET: "The first appearance of [b][i]Gyro Gearloose.[/i][/b]",
+    Titles.ONLY_A_POOR_OLD_MAN: "In a 1975 interview Barks said this about Scrooge playing"
+    " with money:"
+    "[i]\"And I don't know how I got on that idea, but it ... it just seemed like a ridiculous"
+    " thing for him – to play with his money, physically play with it. And those were things"
+    " that he could do with it that make a good picture in a comic book. We know when you stack"
+    " up a few dollars and you touch them, they're hard; they don't yield or bounce around like"
+    " water. You can't dive into a pile of money like you would into a snowdrift. So he had to"
+    " have a trick by which he did it, and I don't explain that trick because I don't understand"
+    " it myself.\"[/i]",
     Titles.GOLDEN_FLEECING_THE: 'In a letter to Ronald O. Burnett, Barks wrote: [i]"If you read'
     " Uncle Scrooge comics, you may have noticed the story in which I had Uncle Scrooge and the"
     " ducks go to the site of ancient Colchis to find the golden fleece. A plot based on the old"
@@ -77,4 +105,6 @@ BARKS_EXTRA_INFO = {
     ' I managed to save the story by renaming the old girls Larkies."[/i] Therefore, in this'
     " digital edition, 'Larkie' has been changed to 'Harpie'. (Pages 6, 7, 9, 13-16, and 18-26,"
     " re-lettered by GLK, December 2023)",
+    Titles.CAT_BOX_THE: "The first appearance of [b][i]Little Helper.[/i][/b]",
+    Titles.MIDAS_TOUCH_THE: "The first appearance of [b][i]Magica de Spell.[/i][/b]",
 }
