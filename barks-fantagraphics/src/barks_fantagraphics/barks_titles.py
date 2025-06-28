@@ -2572,8 +2572,9 @@ USEFUL_TITLES = {
 }
 
 
-def get_title_dict() -> Dict[str, Titles]:
-    return {info.get_title_str(): info.title for info in BARKS_TITLE_INFO}
+BARKS_TITLE_DICT: Dict[str, Titles] = {
+    info.get_title_str(): info.title for info in BARKS_TITLE_INFO
+}
 
 
 def check_story_submitted_order(title_list: List[ComicBookInfo]):
