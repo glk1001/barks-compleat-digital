@@ -36,6 +36,17 @@ BARKS_EXTRA_INFO = {
     Titles.THREE_DIRTY_LITTLE_DUCKS: "The first appearance of [b][i]Herbert[/i][/b]"
     " and [b][i]Bornworthy[/i][/b] (aka [b][i]Bolivar)[/i][/b] the dog."
     "\n\nAnd the first Barks Duck story drawn in a four tier layout.",
+    Titles.MYSTERY_OF_THE_SWAMP: "[size=14]From the [i]Duck Man[/i] interview:"
+    "[i]\"I'd been struggling for days trying to think of something"
+    " that I could use for a long story plot ... I just sat by myself out on the lawn in the"
+    " swing ... And all of a sudden I got to thinking of the Everglades, and what could Donald"
+    " do in the Everglades, and what sort of creatures besides alligators would he find out in"
+    " the Everglades, and just like that comes the thought of all these weird little people,"
+    " like little gnomes that lived out in there. And as soon as I thought of them, my ideas"
+    " of how to use them just kept popping into my head. So I just sat there and let the"
+    " thoughts just pour all over me ... When I had gotten enough that I knew I had a story,"
+    " I [re]joined the party and hoisted a few drinks. Next day I was hard at it writing"
+    ' the Gneezles story."[/i][/size]',
     Titles.SMUGSNORKLE_SQUATTIE_THE: "Last appearance of [b][i]Herbert[/i][/b].",
     Titles.MAD_CHEMIST_THE: "The first appearance of [b][i]Car 313.[/i][/b]",
     Titles.HIGH_WIRE_DAREDEVILS: "First mention of [b][i]Duckburg.[/i][/b]"
@@ -45,7 +56,7 @@ BARKS_EXTRA_INFO = {
     " Barks on it..., I probably put the name on it myself just to see if the editors would white"
     ' it out."',
     Titles.CHRISTMAS_ON_BEAR_MOUNTAIN: "The first appearance of [b][i]Uncle Scrooge.[/i][/b]"
-    " In a 1975 interview Barks said: "
+    " In the [i]Duck Man[/i] interview Barks said: "
     '[i]"The office, I think, wanted me to do a Christmas story, and so I cast around for'
     " Christmas stories. I began to think of the great Dickens Christmas story about Scrooge;"
     " it is the classic of all Christmas stories. I just was thief enough to sort of steal some"
@@ -64,7 +75,7 @@ BARKS_EXTRA_INFO = {
     ' might frighten children and so they added pupils and half-closed lids."[/i] In this digital'
     " edition, Bombie has been changed back to having blank eyeballs.",
     Titles.WINTERTIME_WAGER: "The first appearance of [b][i]Gladstone Gander.[/i][/b]"
-    " In a 1975 interview Barks said this about Gladstone:"
+    " In the [i]Duck Man[/i] interview Barks said this about Gladstone:"
     " [i]Well, I think the reason for bringing in Gladstone was that I thought of this"
     " situation of Donald having to take a midwinter swim in a lake of ice-cold water."
     " It was something, I guess, from reading of the Polar Bear Club up in San Francisco"
@@ -74,12 +85,26 @@ BARKS_EXTRA_INFO = {
     " He had to be somebody that Donald was trying to outdo.[/i]",
     Titles.RACE_TO_THE_SOUTH_SEAS: "The first appearance of [b][i]Gladstone Gander[/i][/b] in "
     "a long Donald Duck story.",
-    Titles.LUCK_OF_THE_NORTH: "In a 1975 interview Barks said this about Gladstone's luck:"
-    ' [i]"Well, that came the second time I was using him [actually, the second time'
+    Titles.LUCK_OF_THE_NORTH: "In the [i]Duck Man[/i] interview Barks said this about Gladstone's"
+    ' luck: [i]"Well, that came the second time I was using him [actually, the second time'
     " in a long Donald story]. I established him as an obnoxious character in"
     " his first story, and so the second time I used him, I thought of what particular"
     " thing can make that guy [i]lastingly[/i] obnoxious. And so I thought of this lucky angle."
     ' He was the kind of guy who who got all the breaks, and poor old Donald never got anywhere."',
+    Titles.IN_OLD_CALIFORNIA: "In the [i]Duck Man[/i] interview Barks said this about"
+    " [i]In Old California:[/i]"
+    ' [i]"I was able to present a little love story in that, and also'
+    ' got in a great deal of nostalgia and a little history, and a little bit of villainy."[/i]',
+    Titles.DANGEROUS_DISGUISE: "In the [i]Duck Man[/i] interview Barks said this about"
+    " his use of humans in [i]Dangerous Disguise:[/i]"
+    " [i]\"Well, that was a situation which I somehow couldn't visualize all these"
+    " master spies from all the different nations as being dog-faces or pig-faces;"
+    " I visualized them as looking like they do in the movies: these suave-looking"
+    " characters and the beautiful girl spies. They—to me, somehow—they just had"
+    " to look like human beings; I couldn't—just couldn't—see them any other way."
+    " So I went ahead and drew them like that, and I got called on the carpet for it."
+    " They said that Donald and the Ducks just didn't look right working alongside of"
+    " human beings.\"[/i]",
     Titles.OPERATION_ST_BERNARD: "The first appearance of [b][i]The Junior Woodchucks.[/i][/b]",
     Titles.PIXILATED_PARROT_THE: "The first appearance of what looks like the"
     " [b][i]Money Bin[/i][/b] but in this story is called the Safe.",
@@ -88,15 +113,15 @@ BARKS_EXTRA_INFO = {
     Titles.BIG_BIN_ON_KILLMOTOR_HILL_THE: "The first appearance of the [b][i]Money Bin.[/i][/b]",
     Titles.ROUND_MONEY_BIN_THE: "The first appearance of [b][i]Number One Dime.[/i][/b]",
     Titles.GLADSTONES_TERRIBLE_SECRET: "The first appearance of [b][i]Gyro Gearloose.[/i][/b]",
-    Titles.ONLY_A_POOR_OLD_MAN: "In a 1975 interview Barks said this about Scrooge playing"
-    " with money:"
+    Titles.ONLY_A_POOR_OLD_MAN: "In the [i]Duck Man[/i] interview Barks said this about Scrooge"
+    " playing with money:"
     "[i]\"And I don't know how I got on that idea, but it ... it just seemed like a ridiculous"
     " thing for him – to play with his money, physically play with it. And those were things"
     " that he could do with it that make a good picture in a comic book. We know when you stack"
     " up a few dollars and you touch them, they're hard; they don't yield or bounce around like"
     " water. You can't dive into a pile of money like you would into a snowdrift. So he had to"
     " have a trick by which he did it, and I don't explain that trick because I don't understand"
-    " it myself.\"[/i]",
+    ' it myself."[/i]',
     Titles.GOLDEN_FLEECING_THE: 'In a letter to Ronald O. Burnett, Barks wrote: [i]"If you read'
     " Uncle Scrooge comics, you may have noticed the story in which I had Uncle Scrooge and the"
     " ducks go to the site of ancient Colchis to find the golden fleece. A plot based on the old"
