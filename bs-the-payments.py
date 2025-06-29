@@ -6,7 +6,7 @@ from typing import List, Tuple
 
 from bs4 import BeautifulSoup
 
-from barks_fantagraphics.barks_titles import get_title_dict, Titles, BARKS_TITLES
+from barks_fantagraphics.barks_titles import Titles, BARKS_TITLES, BARKS_TITLE_DICT
 from barks_fantagraphics.comics_consts import MONTH_AS_LONG_STR
 
 KYLING_TITLE_MAP = {
@@ -364,7 +364,7 @@ class PaymentInfo:
 
 titles_with_prelim_payment_info = []
 
-for year in range(1956, 1957):
+for year in range(1958, 1960):
     html_file = os.path.join(html_file_base, f"thepayments{year}.html")
     print(f'\nProcessing file "{html_file}"...')
 
@@ -394,7 +394,7 @@ for year in range(1956, 1957):
 for cols in titles_with_prelim_payment_info:
     print("Prelim: ", cols)
 
-title_dict = get_title_dict()
+title_dict = BARKS_TITLE_DICT
 titles_with_payment_info = []
 for cols in titles_with_prelim_payment_info[1:]:
     if cols[0][:2] in ISSUE_PREFIXES_TO_SKIP:

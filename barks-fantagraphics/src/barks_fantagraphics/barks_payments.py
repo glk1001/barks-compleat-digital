@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from barks_fantagraphics.barks_titles import Titles
+from barks_fantagraphics.barks_titles import Titles, BARKS_TITLES, BARKS_TITLE_INFO, ONE_PAGERS
 
 
 @dataclass
@@ -315,6 +315,7 @@ BARKS_PAYMENTS = {
     Titles.CHRISTMAS_IN_DUCKBURG: PaymentInfo(Titles.CHRISTMAS_IN_DUCKBURG, 20, 15, 5, 1958, 630.0),
     Titles.ROCKET_ROASTED_CHRISTMAS_TURKEY: PaymentInfo(Titles.ROCKET_ROASTED_CHRISTMAS_TURKEY, 10, 24, 4, 1959, 425.0),
     Titles.MASTER_MOVER_THE: PaymentInfo(Titles.MASTER_MOVER_THE, 10, 24, 4, 1959, 425.0),
+    Titles.SPRING_FEVER: PaymentInfo(Titles.SPRING_FEVER, 10, 24, 4, 1959, 425.0),
     Titles.FLYING_DUTCHMAN_THE: PaymentInfo(Titles.FLYING_DUTCHMAN_THE, 20, 29, 5, 1959, 850.0),
     Titles.PYRAMID_SCHEME: PaymentInfo(Titles.PYRAMID_SCHEME, 6, 19, 6, 1959, 255.0),
     Titles.WISHING_WELL_THE: PaymentInfo(Titles.WISHING_WELL_THE, 4, 19, 6, 1959, 170.0),
@@ -484,3 +485,14 @@ BARKS_PAYMENTS = {
     Titles.KING_SCROOGE_THE_FIRST: PaymentInfo(Titles.KING_SCROOGE_THE_FIRST, 21, 22, 6, 1967, 276.0),
 }
 # fmt: on
+
+
+def validate_payment_data() -> None:
+    there_were_errors = False
+    for title_info in BARKS_TITLE_INFO:
+        title = title_info.title
+        if (title not in ONE_PAGERS) and (title not in BARKS_PAYMENTS):
+            print(f'Title "{BARKS_TITLES[title]}" has no payment info.')
+            there_were_errors = True
+
+    assert not there_were_errors
