@@ -54,6 +54,7 @@ from consts import (
 from image_io import open_image_for_reading
 from zipping import zip_comic_book, create_symlinks_to_comic_zip
 
+USE_CONCURRENT_PROCESSES = True
 _process_page_error = False
 
 
@@ -133,16 +134,20 @@ class ComicBookBuilder:
         global _process_page_error
         _process_page_error = False
 
-        with concurrent.futures.ProcessPoolExecutor() as executor:
+        if USE_CONCURRENT_PROCESSES:
+            # max_workers = min(32, (os.cpu_count() or 1) + 4)
+            max_workers = None
+            # with concurrent.futures.ProcessPoolExecutor() as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers) as executor:
+                for srce_page, dest_page in zip(
+                    self.__srce_and_dest_pages.srce_pages, self.__srce_and_dest_pages.dest_pages
+                ):
+                    executor.submit(self._process_page, srce_page, dest_page)
+        else:
             for srce_page, dest_page in zip(
                 self.__srce_and_dest_pages.srce_pages, self.__srce_and_dest_pages.dest_pages
             ):
-                executor.submit(self._process_page, srce_page, dest_page)
-
-        # for srce_page, dest_page in zip(
-        #     srce_and_dest_pages.srce_pages, srce_and_dest_pages.dest_pages
-        # ):
-        #     self._process_page(srce_page, dest_page)
+                self._process_page(srce_page, dest_page)
 
         if _process_page_error:
             raise Exception("There were errors while processing pages.")
