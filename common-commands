@@ -1,5 +1,8 @@
 # Common backup commands
 
+# Backup to 2TB internal drive
+rsync --delete -avh /home/greg/Books/Carl\ Barks/  /mnt/2tb_drive/barks-backup/Carl\ Barks/
+
 # Backups to 2TB external laptop drive
 rsync --delete -avh /home/greg/Books/Carl\ Barks/  /media/greg/2tb_drive_backup/barks-backup/Carl\ Barks/
 rsync --delete -avh /mnt/2tb_drive/Books/          /media/greg/2tb_drive_backup/Books/
@@ -16,6 +19,7 @@ rsync --delete -avh /home/greg/Books/Carl\ Barks/  /media/greg/restic_backup/Boo
 # Common comics commands
 python barks-cmds/fantagraphics-info.py --log-level WARN --volume 2-4
 
+python build-comics/batch-build-comics.py build --log-level INFO --title "The Riddle of the Red Hat"
 python build-comics/batch-build-comics.py check-integrity --log-level INFO --volume 2
 
 python barks-restore/batch-upscayl.py --volume 9 | tee /mnt/2tb_drive/workdir/9-upscayl.log
