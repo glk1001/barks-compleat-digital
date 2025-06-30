@@ -6,7 +6,7 @@ from google import genai
 from google.genai.types import UploadFileConfigDict
 
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
-MODEL = "gemini-2.5-flash-preview-04-17-thinking"
+MODEL = "gemini-2.5-flash"
 
 
 prompt = """
