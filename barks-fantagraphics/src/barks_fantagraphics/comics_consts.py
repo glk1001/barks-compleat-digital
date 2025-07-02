@@ -92,6 +92,7 @@ STORY_TITLES_DIR = "story-titles"
 IMAGES_SUBDIR = "images"
 BOUNDED_SUBDIR = "bounded"
 
+INSET_DIR = os.path.join(BARKS_ROOT_DIR, "Compleat Barks Disney Reader", "Barks Panels", "Insets")
 INSET_FILE_EXT = ".png"
 
 FONT_DIR = os.path.join(str(Path.home()), "Prj", "fonts")

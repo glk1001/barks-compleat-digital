@@ -22,6 +22,7 @@ from .comics_consts import (
     PNG_FILE_EXT,
     SVG_FILE_EXT,
     JSON_FILE_EXT,
+    INSET_DIR,
 )
 from .comics_utils import (
     get_abbrev_path,
@@ -611,10 +612,9 @@ def get_page_num_str(filename: str) -> str:
 
 def get_inset_file(ini_file: str) -> str:
     prefix = Path(ini_file).stem
-    inset_filename = prefix + " Inset" + INSET_FILE_EXT
-    ini_file_dir = os.path.dirname(ini_file)
+    inset_filename = prefix + INSET_FILE_EXT
 
-    return os.path.join(ini_file_dir, inset_filename)
+    return os.path.join(INSET_DIR, inset_filename)
 
 
 def get_story_files(image_dir: str, comic: ComicBook, file_ext: str) -> List[str]:
