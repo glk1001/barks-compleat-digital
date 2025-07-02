@@ -74,10 +74,11 @@ class Tags(Enum):
     GENERAL_SNOZZIE = "General Snozzie"
     GLADSTONE_GANDER = "Gladstone Gander"
     GYRO_GEARLOOSE = "Gyro Gearloose"
+    GYRO_NOT_N_GG = "Gyro not in GG series"
     HERBERT = "Herbert"
     MAGICA_DE_SPELL = "Magica de Spell"
     NEIGHBOR_JONES = "Neighbor Jones"
-    SCROOGE_NOT_IN_US = "Uncle Scrooge not in US"
+    SCROOGE_NOT_IN_US = "Uncle Scrooge not in US series"
     TERRIES = "Terries"
 
 
@@ -176,6 +177,7 @@ BARKS_TAG_CATEGORIES = {
         Tags.GENERAL_SNOZZIE,
         Tags.GLADSTONE_GANDER,
         Tags.GYRO_GEARLOOSE,
+        Tags.GYRO_NOT_N_GG,
         Tags.HERBERT,
         Tags.MAGICA_DE_SPELL,
         Tags.NEIGHBOR_JONES,
@@ -725,6 +727,63 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
         Titles.CAPN_BLIGHTS_MYSTERY_SHIP,
         Titles.FUN_WHATS_THAT,
     ],
+    Tags.GYRO_NOT_N_GG: [
+        Titles.HOBBLIN_GOBLINS,
+        Titles.SEVEN_CITIES_OF_CIBOLA_THE,
+        Titles.HEIRLOOM_WATCH,
+        Titles.GLADSTONES_TERRIBLE_SECRET,
+        Titles.THINK_BOX_BOLLIX_THE,
+        Titles.TALKING_DOG_THE,
+        Titles.WORM_WEARY,
+        Titles.TOO_SAFE_SAFE,
+        Titles.SMOKE_WRITER_IN_THE_SKY,
+        Titles.GYROS_IMAGINATION_INVENTION,
+        Titles.DAY_DUCKBURG_GOT_DYED_THE,
+        Titles.ROCKET_RACE_AROUND_THE_WORLD,
+        Titles.BLACK_WEDNESDAY,
+        Titles.KNIGHTS_OF_THE_FLYING_SLEDS,
+        Titles.VILLAGE_BLACKSMITH_THE,
+        Titles.BALLOONATICS,
+        Titles.MISSILE_FIZZLE,
+        Titles.MADCAP_MARINER_THE,
+        Titles.STRANGER_THAN_FICTION,
+        Titles.JET_WITCH,
+        Titles.DUCKBURG_PET_PARADE_THE,
+        Titles.CAPN_BLIGHTS_MYSTERY_SHIP,
+        Titles.FORBIDIUM_MONEY_BIN_THE,
+        # TODO: NEED TO CHECK THESE
+        Titles.GAB_MUFFER_THE,
+        Titles.STUBBORN_STORK_THE,
+        Titles.MILKTIME_MELODIES,
+        Titles.LOST_RABBIT_FOOT_THE,
+        Titles.BIRD_CAMERA_THE,
+        Titles.ODD_ORDER_THE,
+        Titles.CALL_OF_THE_WILD_THE,
+        Titles.CAVE_OF_THE_WINDS,
+        Titles.MIXED_UP_MIXER,
+        Titles.MADBALL_PITCHER_THE,
+        Titles.BEAR_TAMER_THE,
+        Titles.TALE_OF_THE_TAPE,
+        Titles.HIS_SHINING_HOUR,
+        Titles.INVENTORS_CONTEST_THE,
+        Titles.OODLES_OF_OOMPH,
+        Titles.WAR_PAINT,
+        Titles.FISHY_WARDEN,
+        Titles.THAT_SMALL_FEELING,
+        Titles.YOU_CANT_WIN,
+        Titles.WILY_RIVAL,
+        Titles.FAST_AWAY_CASTAWAY,
+        Titles.DUCKBURGS_DAY_OF_PERIL,
+        Titles.GREAT_POP_UP_THE,
+        Titles.MADCAP_INVENTORS,
+        Titles.FINNY_FUN,
+        Titles.POSTHASTY_POSTMAN,
+        Titles.SNOW_DUSTER,
+        Titles.HELPERS_HELPING_HAND_A,
+        Titles.MAN_VERSUS_MACHINE,
+        Titles.JONAH_GYRO,
+        Titles.FUN_WHATS_THAT,
+    ],
     Tags.HERBERT: [
         Titles.THREE_DIRTY_LITTLE_DUCKS,
         Titles.TEN_CENTS_WORTH_OF_TROUBLE,
@@ -877,14 +936,16 @@ BARKS_TAGGED_PAGES: Dict[Tuple[Tags, Titles], List[str]] = {
     (Tags.BARNACLE_BAY, Titles.NO_SUCH_VARMINT): ["11"],
 }
 
+
 def set_tag_alias(main_tag: Tags, alias_tag: Tags) -> None:
     assert alias_tag not in BARKS_TAGGED_TITLES
     BARKS_TAGGED_TITLES[alias_tag] = BARKS_TAGGED_TITLES[main_tag]
 
-    main_tag_title_pages = [(k[1],v) for k,v in BARKS_TAGGED_PAGES.items() if main_tag == k[0]]
-    for (title, pages) in main_tag_title_pages:
+    main_tag_title_pages = [(k[1], v) for k, v in BARKS_TAGGED_PAGES.items() if main_tag == k[0]]
+    for title, pages in main_tag_title_pages:
         assert (alias_tag, title) not in BARKS_TAGGED_PAGES
         BARKS_TAGGED_PAGES[(alias_tag, title)] = pages
+
 
 set_tag_alias(Tags.CAMERA, Tags.PHOTOGRAPHY)
 
