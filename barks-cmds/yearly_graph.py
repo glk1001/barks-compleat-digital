@@ -3,6 +3,7 @@ import numpy as np
 
 
 def create_yearly_plot(
+    plot_title: str,
     years,
     values,
     output_filename="barks-yearly-page-count.png",
@@ -15,6 +16,7 @@ def create_yearly_plot(
     at a specific output resolution.
 
     Args:
+        plot_title
         years (list): A list of years for the x-axis.
         values (list): A list of integer values for the y-axis.
         output_filename (str): The name of the file to save the plot to.
@@ -51,7 +53,7 @@ def create_yearly_plot(
 
     # --- Customize the plot for clarity ---
     ax.set_title(
-        f"Barks' Yearly Page Count from {years[0]} to {years[-1]}",
+        plot_title,
         fontsize=18,
         fontweight="bold",
         pad=10,
@@ -89,6 +91,7 @@ def create_yearly_plot(
 if __name__ == "__main__":
     start_year = 1942
     end_year = 1966
+    title = f"Yearly Page Count from {start_year} to {end_year}"
     years_data = list(range(start_year, end_year + 1))
 
     values_data = [
@@ -122,6 +125,7 @@ if __name__ == "__main__":
     print(f"Plotting {len(years_data)} data points...")
 
     create_yearly_plot(
+        title,
         years=years_data,
         values=values_data,
         output_filename="/tmp/barks-yearly-page-counts.png",

@@ -6,6 +6,7 @@ from barks_fantagraphics.barks_titles import BARKS_TITLE_INFO, BARKS_TITLES, ONE
 from barks_fantagraphics.comic_book import get_total_num_pages
 from barks_fantagraphics.comics_cmd_args import CmdArgs
 from barks_fantagraphics.comics_utils import setup_logging
+from yearly_graph import create_yearly_plot
 
 TEMP_PAGE_COUNTS = {
     Titles.DONALD_DUCK_FINDS_PIRATE_GOLD: 32,
@@ -204,3 +205,19 @@ for title_info in BARKS_TITLE_INFO:
 
 for year in page_counts:
     print(f"{year}: {page_counts[year]}")
+
+years = sorted([y for y in page_counts])
+title = f"Yearly Page Count from {years[0]} to {years[-1]}"
+values_data = [page_counts[y] for y in years]
+
+print(f"Plotting {len(years)} data points...")
+
+create_yearly_plot(
+    title,
+    years=years,
+    values=values_data,
+    output_filename="/tmp/barks-yearly-page-counts.png",
+    width_px=1000,
+    height_px=732,
+    dpi=100,  # A common DPI for screen resolutions
+)

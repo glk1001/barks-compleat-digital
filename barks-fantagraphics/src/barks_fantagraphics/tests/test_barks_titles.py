@@ -82,6 +82,16 @@ class TestBarksInfo(unittest.TestCase):
                 f" expected_enum_var: {expected_enum_var} )",
             )
 
+    def test_titles_match_title_info(self):
+        for title in Titles:
+            self.assertEqual(
+                title,
+                BARKS_TITLE_INFO[title].title,
+                f"Barks title info title does not match Titles enum"
+                f" title enum: {title};"
+                f" title info title: {BARKS_TITLE_INFO[title].title} )",
+            )
+
     @staticmethod
     def get_title_var(title: str) -> str:
         enum_var = title.upper()
