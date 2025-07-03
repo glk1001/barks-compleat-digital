@@ -93,7 +93,7 @@ IMAGES_SUBDIR = "images"
 BOUNDED_SUBDIR = "bounded"
 
 INSET_DIR = os.path.join(BARKS_ROOT_DIR, "Compleat Barks Disney Reader", "Barks Panels", "Insets")
-INSET_FILE_EXT = ".png"
+INSET_FILE_EXT = ".jpg"
 
 FONT_DIR = os.path.join(str(Path.home()), "Prj", "fonts")
 INTRO_TITLE_DEFAULT_FONT_FILE = os.path.join(FONT_DIR, "Carl Barks Script.ttf")
