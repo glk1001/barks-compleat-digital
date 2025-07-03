@@ -5,12 +5,15 @@ from typing import List, Tuple
 
 from intspan import intspan
 
+from .comics_consts import PNG_INSET_DIR, PNG_INSET_EXT
 from .comics_database import ComicsDatabase, get_default_comics_database_dir
 from .comics_utils import get_titles_sorted_by_submission_date
 from .fanta_comics_info import FantaComicBookInfo
 
 LOG_LEVEL_ARG = "--log-level"
 COMICS_DATABASE_DIR_ARG = "--comics-database-dir"
+COMICS_DATABASE_INSET_DIR_ARG = "--inset-dir"
+COMICS_DATABASE_INSET_EXT_ARG = "--inset-ext"
 VOLUME_ARG = "--volume"
 TITLE_ARG = "--title"
 WORK_DIR_ARG = "--work-dir"
@@ -46,6 +49,7 @@ class CmdArgs:
         self._error_msg = ""
         self._cmd_args = self._get_args()
         self._comics_database = ComicsDatabase(self._cmd_args.comics_database_dir)
+        self._comics_database.set_inset_info(self._cmd_args.inset_dir, self._cmd_args.inset_ext)
 
     def args_are_valid(self) -> Tuple[bool, str]:
         if not self._error_msg:
@@ -138,6 +142,18 @@ class CmdArgs:
             action="store",
             type=str,
             default=get_default_comics_database_dir(),
+        )
+        parser.add_argument(
+            COMICS_DATABASE_INSET_DIR_ARG,
+            action="store",
+            type=str,
+            default=PNG_INSET_DIR,
+        )
+        parser.add_argument(
+            COMICS_DATABASE_INSET_EXT_ARG,
+            action="store",
+            type=str,
+            default=PNG_INSET_EXT,
         )
         parser.add_argument(
             VOLUME_ARG,

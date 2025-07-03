@@ -10,6 +10,7 @@ from intspan import intspan
 
 from additional_file_writing import write_summary_file
 from barks_fantagraphics.comic_book import ComicBook
+from barks_fantagraphics.comics_consts import PNG_INSET_DIR, PNG_INSET_EXT
 from barks_fantagraphics.comics_database import ComicsDatabase, get_default_comics_database_dir
 from barks_fantagraphics.comics_utils import (
     get_titles_sorted_by_submission_date,
@@ -160,6 +161,7 @@ if __name__ == "__main__":
     setup_logging(cmd_args.log_level)
 
     comics_database = ComicsDatabase(cmd_args.comics_database_dir)
+    comics_database.set_inset_info(PNG_INSET_DIR, PNG_INSET_EXT)
 
     if cmd_args.cmd_name == CHECK_INTEGRITY_ARG:
         exit_code = check_comics_integrity(comics_database, get_titles(cmd_args))

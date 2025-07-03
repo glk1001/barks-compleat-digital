@@ -11,7 +11,6 @@ from .comic_book import (
     ComicBookDirs,
     INTRO_TITLE_DEFAULT_FONT_SIZE,
     INTRO_AUTHOR_DEFAULT_FONT_SIZE,
-    get_inset_file,
     get_main_publication_info,
     _get_pages_in_order,
 )
@@ -22,6 +21,8 @@ from .comics_consts import (
     BARKS_ROOT_DIR,
     INTRO_TITLE_DEFAULT_FONT_FILE,
     STORY_TITLES_DIR,
+    JPG_FILE_EXT,
+    PNG_FILE_EXT,
 )
 from .comics_utils import (
     get_relpath,
@@ -64,6 +65,14 @@ class ComicsDatabase:
         self._ini_files = [f for f in os.listdir(self._story_titles_dir) if f.endswith(".ini")]
         self._story_titles = set([Path(f).stem for f in self._ini_files])
         self._issue_titles = self._get_all_issue_titles()
+        self.__inset_dir = ""
+        self.__inset_ext = ""
+
+    def set_inset_info(self, inset_dir: str, inset_ext: str):
+        self.__inset_dir = inset_dir
+        self.__inset_ext = inset_ext
+        assert os.path.isdir(self.__inset_dir)
+        assert self.__inset_ext in [JPG_FILE_EXT, PNG_FILE_EXT]
 
     def _get_all_issue_titles(self):
         all_issues = {}
@@ -416,7 +425,7 @@ class ComicsDatabase:
         config.read(ini_file)
 
         issue_title = "" if "issue_title" not in config["info"] else config["info"]["issue_title"]
-        intro_inset_file = get_inset_file(ini_file)
+        intro_inset_file = self.__get_inset_file(ini_file)
 
         fanta_info: FantaComicBookInfo = self.get_fanta_comic_book_info(story_title)
         fanta_book = FANTA_SOURCE_COMICS[config["info"]["source_comic"]]
@@ -502,6 +511,15 @@ class ComicsDatabase:
             )
 
         return comic
+
+    def __get_inset_file(self, ini_file: str) -> str:
+        assert self.__inset_dir
+        assert self.__inset_ext
+
+        title = Path(ini_file).stem
+        inset_filename = title + self.__inset_ext
+
+        return os.path.join(self.__inset_dir, inset_filename)
 
 
 def _get_comics_database_dir(db_dir: str) -> str:
