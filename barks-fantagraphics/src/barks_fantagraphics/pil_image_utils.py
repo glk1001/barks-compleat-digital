@@ -1,6 +1,6 @@
 import io
 import logging
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 from PIL import Image, ImageOps
 from PIL.PngImagePlugin import PngInfo
@@ -14,11 +14,13 @@ SAVE_JPG_COMPRESS_LEVEL = 9
 METADATA_PROPERTY_GROUP = "BARKS"
 
 
-def open_pil_image_for_reading(file: Union[str, io.BytesIO]) -> Image:
+def open_pil_image_for_reading(
+    file: Union[str, io.BytesIO], pil_formats: List[str] = None
+) -> Image:
     current_log_level = logging.getLogger().level
     try:
         logging.getLogger().setLevel(logging.INFO)
-        return Image.open(file, "r")
+        return Image.open(file, "r", formats=pil_formats)
     finally:
         logging.getLogger().setLevel(current_log_level)
 
