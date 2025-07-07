@@ -94,6 +94,9 @@ class ComicsDatabase:
     def get_ini_file(self, story_title: str) -> str:
         return os.path.join(self._story_titles_dir, story_title + ".ini")
 
+    def get_fanta_volume(self, story_title: str) -> str:
+        return self._all_comic_book_info[story_title].fantagraphics_volume
+
     def is_story_title(self, title: str) -> Tuple[bool, str]:
         if title in self._story_titles:
             return True, ""

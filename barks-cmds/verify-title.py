@@ -45,7 +45,8 @@ title = cmd_args.get_title()
 found, titles, close = comics_database.get_story_title_from_issue(title)
 if found:
     titles_str = ", ".join([f'"{t}"' for t in titles])
-    print(f'This is an issue title: "{title}" -> title: {titles_str}')
+    fanta_vol = comics_database.get_fanta_volume(titles[0])
+    print(f'This is an issue title: "{title}" -> title: {titles_str}, {fanta_vol}')
 elif close:
     print(f'"{title}" is not a valid issue title. Did you mean: "{close}".')
 else:
@@ -53,7 +54,8 @@ else:
     if found:
         display_title = get_display_title(title)
         issue_title = get_issue_title(title)
-        print(f'This is a valid title: "{display_title}" [{issue_title}].')
+        fanta_vol = comics_database.get_fanta_volume(title)
+        print(f'This is a valid title: "{display_title}" [{issue_title}], {fanta_vol}.')
     elif close:
         print(f'"{title}" is not a valid title. Did you mean: "{close}".')
     else:
