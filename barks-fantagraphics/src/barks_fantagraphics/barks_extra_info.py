@@ -36,7 +36,7 @@ BARKS_EXTRA_INFO = {
     Titles.THREE_DIRTY_LITTLE_DUCKS: "The first appearance of [b][i]Herbert[/i][/b]"
     " and [b][i]Bornworthy[/i][/b] (aka [b][i]Bolivar)[/i][/b] the dog."
     "\n\nAnd the first Barks Duck story drawn in a four tier layout.",
-    Titles.MYSTERY_OF_THE_SWAMP: "[size=14]From the [i]Duck Man[/i] interview:"
+    Titles.MYSTERY_OF_THE_SWAMP: "From the [i]Duck Man[/i] interview:"
     "[i]\"I'd been struggling for days trying to think of something"
     " that I could use for a long story plot ... I just sat by myself out on the lawn in the"
     " swing ... And all of a sudden I got to thinking of the Everglades, and what could Donald"
@@ -46,7 +46,7 @@ BARKS_EXTRA_INFO = {
     " of how to use them just kept popping into my head. So I just sat there and let the"
     " thoughts just pour all over me ... When I had gotten enough that I knew I had a story,"
     " I [re]joined the party and hoisted a few drinks. Next day I was hard at it writing"
-    ' the Gneezles story."[/i][/size]',
+    ' the Gneezles story."[/i]',
     Titles.SMUGSNORKLE_SQUATTIE_THE: "Last appearance of [b][i]Herbert[/i][/b].",
     Titles.MAD_CHEMIST_THE: "The first appearance of [b][i]Car 313.[/i][/b]",
     Titles.HIGH_WIRE_DAREDEVILS: "First mention of [b][i]Duckburg.[/i][/b]"
@@ -112,7 +112,16 @@ BARKS_EXTRA_INFO = {
     " And first mention of the [b][i]Money Bin.[/i][/b]",
     Titles.BIG_BIN_ON_KILLMOTOR_HILL_THE: "The first appearance of the [b][i]Money Bin.[/i][/b]",
     Titles.ROUND_MONEY_BIN_THE: "The first appearance of [b][i]Number One Dime.[/i][/b]",
-    Titles.GLADSTONES_TERRIBLE_SECRET: "The first appearance of [b][i]Gyro Gearloose.[/i][/b]",
+    Titles.GLADSTONES_TERRIBLE_SECRET: "The first appearance of [b][i]Gyro Gearloose.[/i][/b]"
+    " From the [i]Duck Man[/i] interview:"
+    ' "I think that every cartoonist that ever ran anything in comic strips and newspapers'
+    ' always had a crazy inventor at some time in their strips. So I was in need of a crazy'
+    ' inventor, so I just deliberately invented Gyro as a crazy inventor, but I had only'
+    ' figured on using him once in a great while. So I just made him a big, awkward-looking'
+    ' chicken. If I\'d known I was going to have to do a book of Gyro stories and so on,'
+    ' I would have made him about the same size as Donald and Uncle Scrooge so that he could'
+    ' have been handled much easier. That he was this big, tall, gawky chicken and very'
+    ' difficult to work him in the same panels with the Ducks all the time."',
     Titles.ONLY_A_POOR_OLD_MAN: "In the [i]Duck Man[/i] interview Barks said this about Scrooge"
     " playing with money:"
     "[i]\"And I don't know how I got on that idea, but it ... it just seemed like a ridiculous"
