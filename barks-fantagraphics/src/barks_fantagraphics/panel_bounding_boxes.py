@@ -35,10 +35,10 @@ def get_panels_bounding_box_from_file(panels_segments_file: str) -> BoundingBox:
 
     x_min, y_min, x_max, y_max = segment_info["overall_bounds"]
 
-    logging.debug(
-        f'Using panels segment info file "{get_abbrev_path(panels_segments_file)}".'
-        f"Box: {x_min}, {y_min}, {x_max}, {y_max}."
-    )
+    # logging.debug(
+    #     f'Using panels segment info file "{get_abbrev_path(panels_segments_file)}".'
+    #     f" Overall bounding box: {x_min}, {y_min}, {x_max}, {y_max}."
+    # )
 
     return BoundingBox(x_min, y_min, x_max, y_max)
 
