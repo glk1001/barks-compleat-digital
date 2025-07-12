@@ -223,7 +223,9 @@ def get_long_formatted_submitted_date(comic_book_info: ComicBookInfo) -> str:
 
 
 def get_formatted_first_published_str(
-    comic_book_info: ComicBookInfo, issue_name_dict: Dict[Issues, str] = ISSUE_NAME
+    comic_book_info: ComicBookInfo,
+    issue_name_dict: Dict[Issues, str] = ISSUE_NAME,
+    max_len_before_shorten: int = 0,
 ) -> str:
     issue_name = issue_name_dict[comic_book_info.issue_name]
     issue = f"{issue_name} #{comic_book_info.issue_number}"
@@ -235,7 +237,18 @@ def get_formatted_first_published_str(
             f"{MONTH_AS_LONG_STR[comic_book_info.issue_month]}" f" {comic_book_info.issue_year}"
         )
 
-    return f"{issue}, {issue_date}"
+    first_published_str = f"{issue}, {issue_date}"
+    if (
+        (max_len_before_shorten > 0)
+        and (len(first_published_str) > max_len_before_shorten)
+        and (comic_book_info.issue_month != -1)
+    ):
+        issue_date = (
+            f"{MONTH_AS_SHORT_STR[comic_book_info.issue_month]}" f" {comic_book_info.issue_year}"
+        )
+        first_published_str = f"{issue}, {issue_date}"
+
+    return first_published_str
 
 
 def get_formatted_submitted_date(comic_book_info: ComicBookInfo) -> str:
