@@ -6,7 +6,7 @@ from typing import List, Tuple
 
 from barks_fantagraphics.comic_book import ComicBook, get_page_str
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
-from barks_fantagraphics.comics_utils import setup_logging
+from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.fanta_comics_info import get_fanta_volume_str
 from barks_fantagraphics.pages import PageType, get_sorted_srce_and_dest_pages
 from barks_fantagraphics.panel_segmentation import BIG_NUM, get_kumiko_panel_bound

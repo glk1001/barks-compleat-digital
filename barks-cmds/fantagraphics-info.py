@@ -13,14 +13,14 @@ from barks_fantagraphics.comic_book import (
 )
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames, ExtraArg
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
+from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import (
     dest_file_is_older_than_srce,
     get_timestamp,
     get_max_timestamp,
     get_titles_and_info_sorted_by_submission_date,
-    setup_logging,
 )
+from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
 
 EMPTY_FLAG = " "
 FIXES_FLAG = "F"

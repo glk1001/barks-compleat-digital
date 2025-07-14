@@ -4,7 +4,8 @@ import sys
 from typing import List, Tuple
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
-from barks_fantagraphics.comics_utils import setup_logging, get_abbrev_path
+from barks_fantagraphics.comics_logging import setup_logging
+from barks_fantagraphics.comics_utils import get_abbrev_path
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo, get_fanta_volume_str
 
 

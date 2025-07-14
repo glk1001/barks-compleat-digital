@@ -958,6 +958,14 @@ def is_tag_enum(value: str) -> bool:
         return False
 
 
+def get_num_tagged_titles() -> int:
+    num = 0
+    for tag, titles_list in BARKS_TAGGED_TITLES.items():
+        num += len(titles_list)
+
+    return num
+
+
 # TODO: Assert tagged pages are in tagged titles
 def validate_tag_data() -> None:
     """

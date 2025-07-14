@@ -104,7 +104,7 @@ BARKS_EXTRA_INFO = {
     " to look like human beings; I couldn't—just couldn't—see them any other way."
     " So I went ahead and drew them like that, and I got called on the carpet for it."
     " They said that Donald and the Ducks just didn't look right working alongside of"
-    " human beings.\"[/i]",
+    ' human beings."[/i]',
     Titles.OPERATION_ST_BERNARD: "The first appearance of [b][i]The Junior Woodchucks.[/i][/b]",
     Titles.PIXILATED_PARROT_THE: "The first appearance of what looks like the"
     " [b][i]Money Bin[/i][/b] but in this story is called the Safe.",
@@ -115,12 +115,12 @@ BARKS_EXTRA_INFO = {
     Titles.GLADSTONES_TERRIBLE_SECRET: "The first appearance of [b][i]Gyro Gearloose.[/i][/b]"
     " From the [i]Duck Man[/i] interview:"
     ' "I think that every cartoonist that ever ran anything in comic strips and newspapers'
-    ' always had a crazy inventor at some time in their strips. So I was in need of a crazy'
-    ' inventor, so I just deliberately invented Gyro as a crazy inventor, but I had only'
-    ' figured on using him once in a great while. So I just made him a big, awkward-looking'
-    ' chicken. If I\'d known I was going to have to do a book of Gyro stories and so on,'
-    ' I would have made him about the same size as Donald and Uncle Scrooge so that he could'
-    ' have been handled much easier. That he was this big, tall, gawky chicken and very'
+    " always had a crazy inventor at some time in their strips. So I was in need of a crazy"
+    " inventor, so I just deliberately invented Gyro as a crazy inventor, but I had only"
+    " figured on using him once in a great while. So I just made him a big, awkward-looking"
+    " chicken. If I'd known I was going to have to do a book of Gyro stories and so on,"
+    " I would have made him about the same size as Donald and Uncle Scrooge so that he could"
+    " have been handled much easier. That he was this big, tall, gawky chicken and very"
     ' difficult to work him in the same panels with the Ducks all the time."',
     Titles.ONLY_A_POOR_OLD_MAN: "In the [i]Duck Man[/i] interview Barks said this about Scrooge"
     " playing with money:"

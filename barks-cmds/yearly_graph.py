@@ -58,8 +58,8 @@ def create_yearly_plot(
         fontweight="bold",
         pad=10,
     )
-    #ax.set_xlabel("Year", color="blue", fontsize=14, fontweight="bold", labelpad=10)
-    #ax.set_ylabel("Count", color="blue", fontsize=14, fontweight="bold", labelpad=5)
+    # ax.set_xlabel("Year", color="blue", fontsize=14, fontweight="bold", labelpad=10)
+    # ax.set_ylabel("Count", color="blue", fontsize=14, fontweight="bold", labelpad=5)
 
     # Set the x-axis ticks to appear every 2 years to avoid clutter
     ax.set_xticks(np.arange(min(years), max(years) + 1, 2))

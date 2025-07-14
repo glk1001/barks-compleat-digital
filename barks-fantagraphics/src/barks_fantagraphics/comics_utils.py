@@ -149,17 +149,6 @@ def file_is_older_than_timestamp(file: str, timestamp: float) -> bool:
     return file_timestamp < timestamp
 
 
-def setup_logging(log_level) -> None:
-    logging.basicConfig(
-        format="%(asctime)s %(levelname)s: %(message)s",
-        datefmt="%m/%d/%Y %H:%M:%S",
-        level=log_level,
-    )
-    # TODO: Hack to stop third-party modules screwing with our logging.
-    # Must be a better way.
-    logging.root.setLevel(log_level)
-
-
 def get_ocr_no_json_suffix(ocr_json_file: str) -> str:
     return Path(Path(ocr_json_file).stem).suffix
 

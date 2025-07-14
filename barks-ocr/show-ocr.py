@@ -10,7 +10,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES, PNG_FILE_EXT
-from barks_fantagraphics.comics_utils import get_abbrev_path, get_ocr_no_json_suffix, setup_logging
+from barks_fantagraphics.comics_utils import get_abbrev_path, get_ocr_no_json_suffix
+from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.cv_image_utils import get_bw_image_from_alpha
 from utils.ocr_box import OcrBox
 

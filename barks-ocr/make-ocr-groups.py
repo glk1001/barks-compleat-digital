@@ -9,7 +9,8 @@ from shapely.geometry import Polygon
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_utils import get_abbrev_path, get_ocr_no_json_suffix, setup_logging
+from barks_fantagraphics.comics_utils import get_abbrev_path, get_ocr_no_json_suffix
+from barks_fantagraphics.comics_logging import setup_logging
 from utils.geometry import Rect
 from utils.ocr_box import OcrBox, save_groups_as_json, load_groups_from_json, get_box_str
 

@@ -6,9 +6,9 @@ from typing import List
 
 from barks_fantagraphics.comic_book import ModifiedType
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames, ExtraArg
+from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import (
     get_abbrev_path,
-    setup_logging,
     get_timestamp,
     get_timestamp_as_str,
 )

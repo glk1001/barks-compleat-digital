@@ -10,7 +10,8 @@ from PIL import Image
 from barks_fantagraphics.comic_book import ComicBook, get_page_str, ModifiedType
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import JPG_FILE_EXT, PageType
-from barks_fantagraphics.comics_utils import setup_logging, delete_all_files_in_directory
+from barks_fantagraphics.comics_logging import setup_logging
+from barks_fantagraphics.comics_utils import delete_all_files_in_directory
 from barks_fantagraphics.fanta_comics_info import (
     FANTA_VOLUME_OVERRIDES_ROOT,
     FANTA_OVERRIDE_DIRECTORIES,

@@ -6,9 +6,9 @@ from typing import List
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
+from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import (
     get_abbrev_path,
-    setup_logging,
 )
 from src.upscale_image import upscale_image_file
 

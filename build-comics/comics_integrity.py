@@ -26,11 +26,11 @@ from barks_fantagraphics.fanta_comics_info import (
     FIRST_VOLUME_NUMBER,
     LAST_VOLUME_NUMBER,
 )
+from barks_fantagraphics.page_classes import SrceAndDestPages
 from barks_fantagraphics.pages import (
     get_sorted_srce_and_dest_pages,
     get_restored_srce_dependencies,
 )
-from barks_fantagraphics.page_classes import SrceAndDestPages
 from consts import DEST_NON_IMAGE_FILES
 from utils import (
     DATE_SEP,

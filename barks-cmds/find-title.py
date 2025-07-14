@@ -4,7 +4,7 @@ from typing import List
 
 from barks_fantagraphics.barks_titles import BARKS_TITLE_INFO
 from barks_fantagraphics.comics_cmd_args import CmdArgs, ExtraArg
-from barks_fantagraphics.comics_utils import setup_logging
+from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.title_search import BarksTitleSearch, unique_extend
 
 extra_args: List[ExtraArg] = [

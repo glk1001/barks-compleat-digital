@@ -3,7 +3,7 @@ import sys
 
 from barks_fantagraphics.comic_book import get_total_num_pages
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
-from barks_fantagraphics.comics_utils import setup_logging
+from barks_fantagraphics.comics_logging import setup_logging
 
 cmd_args = CmdArgs("Fantagraphics volume page counts", CmdArgNames.VOLUME)
 args_ok, error_msg = cmd_args.args_are_valid()

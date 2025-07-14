@@ -6,15 +6,13 @@ from typing import Union, Tuple
 from barks_fantagraphics.comic_book import ComicBook, get_page_str, ModifiedType
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import PageType, ROMAN_NUMERALS, FRONT_MATTER_PAGES
-from barks_fantagraphics.comics_utils import (
-    setup_logging,
-)
+from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.fanta_comics_info import get_fanta_volume_str
+from barks_fantagraphics.page_classes import CleanPage
 from barks_fantagraphics.pages import (
     get_sorted_srce_and_dest_pages,
     get_page_mod_type,
 )
-from barks_fantagraphics.page_classes import CleanPage
 
 
 def get_srce_dest_mods_map(comic: ComicBook) -> Union[None, Tuple[str, str]]:

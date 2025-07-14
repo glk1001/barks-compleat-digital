@@ -2,7 +2,7 @@ import logging
 import sys
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs
-from barks_fantagraphics.comics_utils import setup_logging
+from barks_fantagraphics.comics_logging import setup_logging
 
 cmd_args = CmdArgs("Make required Fantagraphics directories.")
 args_ok, error_msg = cmd_args.args_are_valid()

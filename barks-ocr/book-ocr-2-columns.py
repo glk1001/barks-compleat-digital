@@ -37,16 +37,18 @@ image_paths = [
 
 uploaded_files = []
 for path in image_paths:
-    uploaded_file = client.files.upload(file=path, config=UploadFileConfigDict(name=Path(path).stem))
+    uploaded_file = client.files.upload(
+        file=path, config=UploadFileConfigDict(name=Path(path).stem)
+    )
     uploaded_files.append(uploaded_file)
 uploaded_files = sorted(uploaded_files, key=lambda f: f.name)
 
-print('My files:')
+print("My files:")
 for f in uploaded_files:
-    print(' ', f.name)
+    print(" ", f.name)
 # for f in client.files.list():
 #     print(' ', f.name)
-#sys.exit(0)
+# sys.exit(0)
 
 # Prepare the content with the uploaded file IDs and a text prompt
 contents = [prompt]

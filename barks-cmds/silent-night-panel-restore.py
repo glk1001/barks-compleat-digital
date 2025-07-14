@@ -10,7 +10,7 @@ import cv2 as cv
 from PIL import Image
 from PIL import ImageDraw
 
-from barks_fantagraphics.comics_utils import setup_logging
+from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.panel_bounding_box_processor import BoundingBoxProcessor
 from barks_fantagraphics.panel_segmentation import get_kumiko_panel_bound, KumikoBound
 from barks_fantagraphics.pil_image_utils import open_pil_image_for_reading

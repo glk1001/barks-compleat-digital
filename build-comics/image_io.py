@@ -2,8 +2,8 @@ import logging
 
 from PIL import Image
 
-from barks_fantagraphics.pages import EMPTY_IMAGE_FILES
 from barks_fantagraphics.comics_consts import DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT
+from barks_fantagraphics.pages import EMPTY_IMAGE_FILES
 
 
 def open_image_for_reading(filename: str) -> Image:
