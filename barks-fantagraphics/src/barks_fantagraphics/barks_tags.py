@@ -53,7 +53,9 @@ class Tags(Enum):
     CIGARETTES = "cigarettes"
     FIRE = "fire"
     SQUARE_EGGS = "square eggs"
+    WEEMITE = "weemite"
 
+    CHRISTMAS_STORIES = "christmas stories"
     HYPNOSIS = "hypnosis"
     MAGIC = "magic"
     PHOTOGRAPHY = "photography"
@@ -144,6 +146,9 @@ class TagGroups(Enum):
     OTHER = "Other"
     SOUTH_AMERICA = "South America"
     DRUGS = "drugs"
+    PRIMARY_CHARACTERS = "Primary Characters"
+    SECONDARY_CHARACTERS = "Secondary Characters"
+    ONE_OFF_CHARACTERS = "One-off Characters"
 
 
 BARKS_TAG_GROUPS_ALIASES = {str(t.value).lower(): t for t in TagGroups}
@@ -158,31 +163,19 @@ BARKS_TAG_CATEGORIES = {
         Tags.CIGARETTES,
         Tags.FIRE,
         Tags.SQUARE_EGGS,
+        Tags.WEEMITE,
     ],
-    TagCategories.THEMES: [TagGroups.DRUGS, Tags.HYPNOSIS, Tags.MAGIC, Tags.PHOTOGRAPHY],
+    TagCategories.THEMES: [
+        Tags.CHRISTMAS_STORIES,
+        TagGroups.DRUGS,
+        Tags.HYPNOSIS,
+        Tags.MAGIC,
+        Tags.PHOTOGRAPHY,
+    ],
     TagCategories.CHARACTERS: [
-        Tags.ARGUS_MCFIENDY,
-        Tags.AZURE_BLUE,
-        Tags.BEAGLE_BOYS,
-        Tags.BENZENE_BANZOONY,
-        Tags.BOMBIE_THE_ZOMBIE,
-        Tags.CARVER_BEAKOFF,
-        Tags.CHISEL_MC_SUE,
-        Tags.CORNELIUS_MC_COBB,
-        Tags.DAISY,
-        Tags.EL_DORADO,
-        Tags.FERMIES,
-        Tags.FLINTHEART_GLOMGOLD,
-        Tags.FOOLA_ZOOLA,
-        Tags.GENERAL_SNOZZIE,
-        Tags.GLADSTONE_GANDER,
-        Tags.GYRO_GEARLOOSE,
-        Tags.GYRO_NOT_N_GG,
-        Tags.HERBERT,
-        Tags.MAGICA_DE_SPELL,
-        Tags.NEIGHBOR_JONES,
-        Tags.SCROOGE_NOT_IN_US,
-        Tags.TERRIES,
+        TagGroups.PRIMARY_CHARACTERS,
+        TagGroups.SECONDARY_CHARACTERS,
+        TagGroups.ONE_OFF_CHARACTERS,
     ],
     TagCategories.PLACES: [
         TagGroups.AFRICA,
@@ -291,6 +284,34 @@ BARKS_TAG_GROUPS = {
     ],
     TagGroups.DRUGS: [
         Tags.CIGARETTES,
+    ],
+    TagGroups.PRIMARY_CHARACTERS: [
+        Tags.BEAGLE_BOYS,
+        Tags.DAISY,
+        Tags.GLADSTONE_GANDER,
+        Tags.GYRO_GEARLOOSE,
+        Tags.GYRO_NOT_N_GG,
+        Tags.SCROOGE_NOT_IN_US,
+    ],
+    TagGroups.SECONDARY_CHARACTERS: [
+        Tags.FLINTHEART_GLOMGOLD,
+        Tags.GENERAL_SNOZZIE,
+        Tags.HERBERT,
+        Tags.MAGICA_DE_SPELL,
+        Tags.NEIGHBOR_JONES,
+    ],
+    TagGroups.ONE_OFF_CHARACTERS: [
+        Tags.ARGUS_MCFIENDY,
+        Tags.AZURE_BLUE,
+        Tags.BENZENE_BANZOONY,
+        Tags.BOMBIE_THE_ZOMBIE,
+        Tags.CARVER_BEAKOFF,
+        Tags.CHISEL_MC_SUE,
+        Tags.CORNELIUS_MC_COBB,
+        Tags.EL_DORADO,
+        Tags.FERMIES,
+        Tags.FOOLA_ZOOLA,
+        Tags.TERRIES,
     ],
 }
 
@@ -419,6 +440,32 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
     ],
     Tags.OLD_DEMON_TOOTH: [Titles.GOLDEN_CHRISTMAS_TREE_THE, Titles.MONEY_STAIRS_THE],
     # Themes
+    Tags.CHRISTMAS_STORIES: [
+        Titles.DONALD_DUCKS_BEST_CHRISTMAS,
+        Titles.SILENT_NIGHT,
+        Titles.SANTAS_STORMY_VISIT,
+        Titles.CHRISTMAS_ON_BEAR_MOUNTAIN,
+        Titles.TOYLAND,
+        Titles.GOLDEN_CHRISTMAS_TREE_THE,
+        Titles.WINTERTIME_WAGER,
+        Titles.NEW_TOYS,
+        Titles.LETTER_TO_SANTA,
+        Titles.YOU_CANT_WIN,
+        Titles.TURKEY_RAFFLE,
+        Titles.CHRISTMAS_FOR_SHACKTOWN_A,
+        Titles.TURKEY_WITH_ALL_THE_SCHEMINGS,
+        Titles.HAMMY_CAMEL_THE,
+        Titles.SEARCH_FOR_THE_CUSPIDORIA,
+        Titles.THREE_UN_DUCKS,
+        Titles.BLACK_PEARLS_OF_TABU_YAMA_THE,
+        Titles.CODE_OF_DUCKBURG_THE,
+        Titles.CHRISTMAS_IN_DUCKBURG,
+        Titles.ROCKET_ROASTED_CHRISTMAS_TURKEY,
+        Titles.NORTHEASTER_ON_CAPE_QUACK,
+        Titles.CHRISTMAS_CHEERS,
+        Titles.DOUBLE_MASQUERADE,
+        Titles.THRIFTY_SPENDTHRIFT_THE,
+    ],
     Tags.HYPNOSIS: [
         Titles.DAYS_AT_THE_LAZY_K,
         Titles.ADVENTURE_DOWN_UNDER,
@@ -480,6 +527,7 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
     ],
     Tags.FIRE: [Titles.FIREBUG_THE, Titles.FIREMAN_DONALD, Titles.LOVELORN_FIREMAN_THE],
     Tags.SQUARE_EGGS: [Titles.LOST_IN_THE_ANDES],
+    Tags.WEEMITE: [Titles.ROCKET_ROASTED_CHRISTMAS_TURKEY],
     # Characters
     Tags.ARGUS_MCFIENDY: [Titles.DARKEST_AFRICA],
     Tags.AZURE_BLUE: [Titles.GOLDEN_HELMET_THE],
@@ -934,6 +982,7 @@ BARKS_TAGGED_PAGES: Dict[Tuple[Tags, Titles], List[str]] = {
     (Tags.CIGARETTES, Titles.VACATION_TIME): ["8", "9", "12", "13", "29", "30"],
     (Tags.CIGARETTES, Titles.BILLIONS_TO_SNEEZE_AT): ["8"],
     (Tags.BARNACLE_BAY, Titles.NO_SUCH_VARMINT): ["11"],
+    (Tags.WEEMITE, Titles.ROCKET_ROASTED_CHRISTMAS_TURKEY): ["3", "4", "6", "7", "8"],
 }
 
 
@@ -1035,17 +1084,6 @@ def get_tag_categories_titles() -> Dict[TagCategories, List[Titles]]:
     return tag_categories_titles
 
 
-def get_all_tag_group_titles() -> Dict[TagGroups, List[Titles]]:
-    """
-    Gets a dictionary mapping each TagGroup to a sorted list of unique titles
-    associated with the tags in that group.
-    """
-    tag_group_titles: Dict[TagGroups, List[Titles]] = {}
-    for tag_group, tags_list in BARKS_TAG_GROUPS.items():
-        tag_group_titles[tag_group] = sorted(list(__get_titles_for_tags_or_groups(tags_list)))
-    return tag_group_titles
-
-
 def __get_titles_for_tags_or_groups(items_list: List[Union[Tags, TagGroups]]) -> Set[Titles]:
     """
     Helper function to recursively collect all unique titles for a list
@@ -1064,4 +1102,3 @@ def __get_titles_for_tags_or_groups(items_list: List[Union[Tags, TagGroups]]) ->
 
 
 BARKS_TAG_CATEGORIES_TITLES: Dict[TagCategories, List[Titles]] = get_tag_categories_titles()
-BARKS_TAG_GROUPS_TITLES: Dict[TagGroups, List[Titles]] = get_all_tag_group_titles()

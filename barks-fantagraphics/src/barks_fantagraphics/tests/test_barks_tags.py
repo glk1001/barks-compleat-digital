@@ -10,15 +10,13 @@ from barks_fantagraphics.barks_tags import (
     Titles,
     TagCategories,
     TagGroups,
+    get_tagged_titles,
     BARKS_TAG_ALIASES,
     BARKS_TAG_GROUPS_ALIASES,
     BARKS_TAG_CATEGORIES_DICT,
     BARKS_TAG_CATEGORIES_TITLES,
-    BARKS_TAG_GROUPS_TITLES,
-    get_tagged_titles,
-    # validate_tag_data is called from barks_tags.validate_tag_data
-    # get_tag_categories_titles and get_all_tag_group_titles are tested via
-    # the pre-computed BARKS_TAG_CATEGORIES_TITLES and BARKS_TAG_GROUPS_TITLES
+    BARKS_TAG_GROUPS,
+    BARKS_TAG_CATEGORIES,
 )
 
 
@@ -222,31 +220,14 @@ class TestBarksTags(unittest.TestCase):
             "Category (PLACES) titles should be sorted and unique",
         )
 
-    def test_barks_tag_groups_titles_computation(self):
-        # BARKS_TAG_GROUPS_TITLES is computed at module import.
-        result = BARKS_TAG_GROUPS_TITLES
-
-        self.assertIn(TagGroups.AFRICA, result)
-        africa_titles = result[TagGroups.AFRICA]
-        self.assertIsInstance(africa_titles, list)
-        self.assertIn(
-            Titles.ROCKET_RACE_AROUND_THE_WORLD, africa_titles
-        )  # From Tags.ALGERIA in Africa group
-        self.assertIn(Titles.BONGO_ON_THE_CONGO, africa_titles)  # From Tags.CONGO in Africa group
-        self.assertEqual(
-            africa_titles,
-            sorted(list(set(africa_titles))),
-            "Group (AFRICA) titles should be sorted and unique",
-        )
-
-        self.assertIn(TagGroups.EUROPE, result)
-        europe_titles = result[TagGroups.EUROPE]
-        self.assertIn(Titles.DANGEROUS_DISGUISE, europe_titles)  # From Tags.FRANCE in Europe group
-        self.assertEqual(
-            europe_titles,
-            sorted(list(set(europe_titles))),
-            "Group (EUROPE) titles should be sorted and unique",
-        )
+    def test_barks_character_tag_groups(self):
+        character_groups = BARKS_TAG_CATEGORIES[TagCategories.CHARACTERS]
+        for tag_group in character_groups:
+            mutually_exclusive_groups = character_groups.copy()
+            mutually_exclusive_groups.remove(tag_group)
+            for tag in BARKS_TAG_GROUPS[tag_group]:
+                for excl_group in mutually_exclusive_groups:
+                    self.assertNotIn(tag, BARKS_TAG_GROUPS[excl_group])
 
     def test_barks_tag_aliases(self):
         self.assertEqual(BARKS_TAG_ALIASES["fire"], Tags.FIRE)
