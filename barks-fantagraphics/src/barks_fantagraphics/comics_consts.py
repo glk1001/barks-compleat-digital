@@ -95,8 +95,9 @@ BOUNDED_SUBDIR = "bounded"
 PNG_INSET_DIR = os.path.join(BARKS_ROOT_DIR, "Barks Panels Pngs", "Insets")
 PNG_INSET_EXT = PNG_FILE_EXT
 
+CARL_BARKS_FONT_NAME = "Carl Barks Script"
 FONT_DIR = os.path.join(str(Path.home()), "Prj", "fonts")
-INTRO_TITLE_DEFAULT_FONT_FILE = os.path.join(FONT_DIR, "Carl Barks Script.ttf")
+INTRO_TITLE_DEFAULT_FONT_FILE = os.path.join(FONT_DIR, f"{CARL_BARKS_FONT_NAME}.ttf")
 INTRO_TEXT_FONT_FILE = "Verdana Italic.ttf"
 PAGE_NUM_FONT_FILE = "verdana.ttf"
 
