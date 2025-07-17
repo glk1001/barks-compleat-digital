@@ -65,14 +65,14 @@ class ComicsDatabase:
         self._ini_files = [f for f in os.listdir(self._story_titles_dir) if f.endswith(".ini")]
         self._story_titles = set([Path(f).stem for f in self._ini_files])
         self._issue_titles = self._get_all_issue_titles()
-        self.__inset_dir = ""
-        self.__inset_ext = ""
+        self._inset_dir = ""
+        self._inset_ext = ""
 
     def set_inset_info(self, inset_dir: str, inset_ext: str):
-        self.__inset_dir = inset_dir
-        self.__inset_ext = inset_ext
-        assert os.path.isdir(self.__inset_dir)
-        assert self.__inset_ext in [JPG_FILE_EXT, PNG_FILE_EXT]
+        self._inset_dir = inset_dir
+        self._inset_ext = inset_ext
+        assert os.path.isdir(self._inset_dir)
+        assert self._inset_ext in [JPG_FILE_EXT, PNG_FILE_EXT]
 
     def _get_all_issue_titles(self):
         all_issues = {}
@@ -516,13 +516,13 @@ class ComicsDatabase:
         return comic
 
     def __get_inset_file(self, ini_file: str) -> str:
-        assert self.__inset_dir
-        assert self.__inset_ext
+        assert self._inset_dir
+        assert self._inset_ext
 
         title = Path(ini_file).stem
-        inset_filename = title + self.__inset_ext
+        inset_filename = title + self._inset_ext
 
-        return os.path.join(self.__inset_dir, inset_filename)
+        return os.path.join(self._inset_dir, inset_filename)
 
 
 def _get_comics_database_dir(db_dir: str) -> str:

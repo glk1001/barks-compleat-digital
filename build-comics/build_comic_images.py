@@ -60,12 +60,12 @@ class BasePageType(Enum):
 
 class ComicBookImageBuilder:
     def __init__(self, comic: ComicBook, empty_page_file: str):
-        self.__comic = comic
-        self.__required_dim: RequiredDimensions = RequiredDimensions()
-        self.__empty_page_image = open_image_for_reading(empty_page_file)
+        self._comic = comic
+        self._required_dim: RequiredDimensions = RequiredDimensions()
+        self._empty_page_image = open_image_for_reading(empty_page_file)
 
     def set_required_dim(self, required_dim: RequiredDimensions) -> None:
-        self.__required_dim = required_dim
+        self._required_dim = required_dim
 
     @staticmethod
     def _log_page_info(prefix: str, image: Image, page: CleanPage):
@@ -143,7 +143,7 @@ class ComicBookImageBuilder:
         )
         self._draw_border_around_image(smaller_splash_image)
 
-        splash_image = self.__empty_page_image.resize(size=(splash_width, splash_height))
+        splash_image = self._empty_page_image.resize(size=(splash_width, splash_height))
         splash_image.paste(smaller_splash_image, (SPLASH_MARGIN, SPLASH_MARGIN))
 
         return self._get_centred_page_dest_image(splash_image, srce_page, BasePageType.EMPTY_PAGE)
@@ -209,7 +209,7 @@ class ComicBookImageBuilder:
 
         cover_top = int(round(0.5 * (DEST_TARGET_HEIGHT - required_height)))
         base_page_image = (
-            self.__empty_page_image.copy()
+            self._empty_page_image.copy()
             if base_page_type == BasePageType.EMPTY_PAGE
             else Image.new("RGB", (DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT), (0, 0, 0))
         )
@@ -255,7 +255,7 @@ class ComicBookImageBuilder:
             )
 
         dest_panels_pos = (dest_page.panels_bbox.x_min, dest_page.panels_bbox.y_min)
-        dest_page_image = self.__empty_page_image.copy()
+        dest_page_image = self._empty_page_image.copy()
         dest_page_image.paste(panels_image, dest_panels_pos)
 
         return dest_page_image
@@ -267,7 +267,7 @@ class ComicBookImageBuilder:
         page_num_x_start = dest_page_centre - PAGE_NUM_X_OFFSET_FROM_CENTRE
         page_num_x_end = dest_page_centre + PAGE_NUM_X_OFFSET_FROM_CENTRE
         page_num_y_start = (
-            dest_page_image.height - self.__required_dim.page_num_y_bottom
+            dest_page_image.height - self._required_dim.page_num_y_bottom
         ) - PAGE_NUM_HEIGHT
         page_num_y_end = page_num_y_start + PAGE_NUM_HEIGHT
 
@@ -322,12 +322,12 @@ class ComicBookImageBuilder:
         return dest_page_image
 
     def _write_introduction(self, dest_page_image: Image):
-        if not os.path.isfile(self.__comic.intro_inset_file):
-            raise Exception(f'Could not find inset file "{self.__comic.intro_inset_file}".')
+        if not os.path.isfile(self._comic.intro_inset_file):
+            raise Exception(f'Could not find inset file "{self._comic.intro_inset_file}".')
 
         logging.info(
             f"Writing introduction - using inset file"
-            f' "{get_relpath(self.__comic.intro_inset_file)}".'
+            f' "{get_relpath(self._comic.intro_inset_file)}".'
         )
 
         draw = ImageDraw.Draw(dest_page_image)
@@ -349,17 +349,15 @@ class ComicBookImageBuilder:
 
         top += INTRO_TITLE_AUTHOR_GAP
         text = "by"
-        by_font_size = int(0.6 * self.__comic.author_font_size)
-        by_font = ImageFont.truetype(self.__comic.title_font_file, by_font_size)
+        by_font_size = int(0.6 * self._comic.author_font_size)
+        by_font = ImageFont.truetype(self._comic.title_font_file, by_font_size)
         text_height = self._get_intro_text_height(draw, text, by_font)
         self._draw_centered_text(text, dest_page_image, draw, by_font, INTRO_AUTHOR_COLOR, top)
         top += text_height
 
         top += INTRO_TITLE_AUTHOR_BY_GAP
         text = f"{BARKS}"
-        author_font = ImageFont.truetype(
-            self.__comic.title_font_file, self.__comic.author_font_size
-        )
+        author_font = ImageFont.truetype(self._comic.title_font_file, self._comic.author_font_size)
         text_height = self._get_intro_text_height(draw, text, author_font)
         self._draw_centered_text(text, dest_page_image, draw, author_font, INTRO_AUTHOR_COLOR, top)
         top += text_height + INTRO_AUTHOR_INSET_GAP
@@ -367,13 +365,11 @@ class ComicBookImageBuilder:
         pub_text_font = ImageFont.truetype(
             get_font_path(INTRO_TEXT_FONT_FILE), INTRO_PUB_TEXT_FONT_SIZE
         )
-        text_height = self._get_intro_text_height(
-            draw, self.__comic.publication_text, pub_text_font
-        )
+        text_height = self._get_intro_text_height(draw, self._comic.publication_text, pub_text_font)
         pub_text_top = dest_page_image.height - INTRO_BOTTOM_MARGIN - text_height
 
         inset_pos, new_inset = self._get_resized_inset(
-            self.__comic.intro_inset_file,
+            self._comic.intro_inset_file,
             top,
             pub_text_top,
             dest_page_image.width,
@@ -381,7 +377,7 @@ class ComicBookImageBuilder:
         dest_page_image.paste(new_inset, inset_pos)
 
         self._draw_centered_multiline_text(
-            self.__comic.publication_text,
+            self._comic.publication_text,
             dest_page_image,
             draw,
             pub_text_font,
@@ -433,13 +429,13 @@ class ComicBookImageBuilder:
     def _get_title_and_fonts(
         self, draw: ImageDraw.Draw
     ) -> Tuple[List[str], List[ImageFont.truetype], int]:
-        title = self.__comic.get_comic_title()
-        font_file = self.__comic.title_font_file
-        font_size = self.__comic.title_font_size
-        comic_book_info = self.__comic.fanta_info.comic_book_info
+        title = self._comic.get_comic_title()
+        font_file = self._comic.title_font_file
+        font_size = self._comic.title_font_size
+        comic_book_info = self._comic.fanta_info.comic_book_info
 
         if (not comic_book_info.is_barks_title) and (comic_book_info.issue_name == Issues.CS):
-            add_footnote = self.__comic.get_ini_title() in CENSORED_TITLES
+            add_footnote = self._comic.get_ini_title() in CENSORED_TITLES
 
             title_and_fonts = self._get_comics_and_stories_title_and_fonts(
                 draw, title, font_file, font_size, add_footnote
@@ -573,8 +569,8 @@ class ComicBookImageBuilder:
         spacing: int,
         draw: ImageDraw,
     ):
-        superscript_font_size = int(0.7 * self.__comic.title_font_size)
-        superscript_font = ImageFont.truetype(self.__comic.title_font_file, superscript_font_size)
+        superscript_font_size = int(0.7 * self._comic.title_font_size)
+        superscript_font = ImageFont.truetype(self._comic.title_font_file, superscript_font_size)
         draw.multiline_text(
             (
                 left - int(0.75 * superscript_font_size),

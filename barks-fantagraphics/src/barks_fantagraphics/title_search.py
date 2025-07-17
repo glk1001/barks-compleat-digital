@@ -16,8 +16,8 @@ PREFIX_LEN = 2
 
 class BarksTitleSearch:
     def __init__(self):
-        self.title_prefix_dict: OrderedDict[str, List[Titles]] = self.__get_title_prefix_dict()
-        self.tag_prefix_dict: Dict[str, List[str]] = self.__get_tag_prefix_dict()
+        self.title_prefix_dict: OrderedDict[str, List[Titles]] = self._get_title_prefix_dict()
+        self.tag_prefix_dict: Dict[str, List[str]] = self._get_tag_prefix_dict()
 
     def get_titles_matching_prefix(self, prefix: str) -> List[Titles]:
         prefix = prefix.lower()
@@ -25,7 +25,7 @@ class BarksTitleSearch:
         if len(prefix) == 0:
             return []
         if len(prefix) == 1:
-            return self.__get_titles_with_one_char_search(prefix)
+            return self._get_titles_with_one_char_search(prefix)
 
         short_prefix = prefix[:PREFIX_LEN]
         if short_prefix not in self.title_prefix_dict:
@@ -47,7 +47,7 @@ class BarksTitleSearch:
 
         return title_info_list
 
-    def __get_titles_with_one_char_search(self, prefix: str) -> List[Titles]:
+    def _get_titles_with_one_char_search(self, prefix: str) -> List[Titles]:
         assert len(prefix) == 1
 
         title_list = []
@@ -75,7 +75,7 @@ class BarksTitleSearch:
         return title_list
 
     @staticmethod
-    def __get_title_prefix_dict() -> OrderedDict[str, List[Titles]]:
+    def _get_title_prefix_dict() -> OrderedDict[str, List[Titles]]:
         pref_dict = OrderedDict()
 
         for info in BARKS_TITLE_INFO:
@@ -92,7 +92,7 @@ class BarksTitleSearch:
         if len(prefix) == 0:
             return []
         if len(prefix) == 1:
-            return self.__get_titles_with_one_char_tag_search(prefix)
+            return self._get_titles_with_one_char_tag_search(prefix)
 
         short_prefix = prefix[:PREFIX_LEN]
         if short_prefix not in self.tag_prefix_dict:
@@ -128,15 +128,15 @@ class BarksTitleSearch:
         return tag, sorted(title_list)
 
     @staticmethod
-    def __get_titles_with_one_char_tag_search(prefix: str) -> List[Tags]:
+    def _get_titles_with_one_char_tag_search(prefix: str) -> List[Tags]:
         assert len(prefix) == 1
 
         tag_list = []
         return tag_list
 
-    def __get_tag_prefix_dict(self) -> Dict[str, List[str]]:
-        alias_tag_dict = self.__get_alias_tag_prefix_dict(BARKS_TAG_ALIASES)
-        alias_tag_group_dict = self.__get_alias_tag_prefix_dict(BARKS_TAG_GROUPS_ALIASES)
+    def _get_tag_prefix_dict(self) -> Dict[str, List[str]]:
+        alias_tag_dict = self._get_alias_tag_prefix_dict(BARKS_TAG_ALIASES)
+        alias_tag_group_dict = self._get_alias_tag_prefix_dict(BARKS_TAG_GROUPS_ALIASES)
 
         pref_dict = {}
 
@@ -152,7 +152,7 @@ class BarksTitleSearch:
         return pref_dict
 
     @staticmethod
-    def __get_alias_tag_prefix_dict(
+    def _get_alias_tag_prefix_dict(
         alias_dict: Union[Dict[str, Tags], Dict[str, TagGroups]]
     ) -> Dict[str, List[str]]:
         pref_dict = {}

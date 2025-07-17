@@ -12,7 +12,7 @@ from .pil_image_utils import open_pil_image_for_reading
 
 class BoundingBoxProcessor(object):
     def __init__(self, work_dir: str, no_panel_expansion: bool = False):
-        self.__kumiko = KumikoPanelSegmentation(work_dir, no_panel_expansion)
+        self._kumiko = KumikoPanelSegmentation(work_dir, no_panel_expansion)
 
     def get_panels_segment_info_from_kumiko(
         self,
@@ -33,7 +33,7 @@ class BoundingBoxProcessor(object):
 
         srce_bounded_image = srce_bounded_image.convert("RGB")
 
-        segment_info = self.__kumiko.get_panels_segment_info(srce_bounded_image, srce_file)
+        segment_info = self._kumiko.get_panels_segment_info(srce_bounded_image, srce_file)
 
         segment_info["overall_bounds"] = get_min_max_panel_values(segment_info)
 

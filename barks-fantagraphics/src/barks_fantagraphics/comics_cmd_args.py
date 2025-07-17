@@ -45,7 +45,7 @@ class CmdArgs:
     ):
         self._description = description
         self._required_args = required_args
-        self.extra_args = extra_args if extra_args else []
+        self._extra_args = extra_args if extra_args else []
         self._error_msg = ""
         self._cmd_args = self._get_args()
         self._comics_database = ComicsDatabase(self._cmd_args.comics_database_dir)
@@ -180,7 +180,7 @@ class CmdArgs:
             required=False,
         )
 
-        for extra in self.extra_args:
+        for extra in self._extra_args:
             if extra.type is None:
                 parser.add_argument(extra.name, action=extra.action, required=False)
             elif extra.action == "store_true":

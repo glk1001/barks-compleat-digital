@@ -25,7 +25,7 @@ FantaComicBookInfoDict = OrderedDict[str, FantaComicBookInfo]
 
 
 # TODO: Use a list here - not a dict
-def __get_all_fanta_comic_book_info() -> FantaComicBookInfoDict:
+def _get_all_fanta_comic_book_info() -> FantaComicBookInfoDict:
     current_number_in_series = SERIES_INFO_START_NUMBERS.copy()
 
     all_fanta_info: FantaComicBookInfoDict = collections.OrderedDict()
@@ -598,4 +598,4 @@ def get_filtered_title_lists(
     return filtered_dict
 
 
-ALL_FANTA_COMIC_BOOK_INFO = __get_all_fanta_comic_book_info()
+ALL_FANTA_COMIC_BOOK_INFO = _get_all_fanta_comic_book_info()
