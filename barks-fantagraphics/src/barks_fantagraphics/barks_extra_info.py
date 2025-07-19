@@ -67,6 +67,8 @@ BARKS_EXTRA_INFO = {
     '-cupboard. In a letter to Michael Barrier, Barks wrote: "As for the can of dog food with'
     " Barks on it..., I probably put the name on it myself just to see if the editors would white"
     ' it out."',
+    Titles.GHOST_OF_THE_GROTTO_THE: "This was Garé Barks' favorite story, because, "
+    ' as she said: [i]"It\'s got pathos."[/i]',
     Titles.CHRISTMAS_ON_BEAR_MOUNTAIN: "The first appearance of [b][i]Uncle Scrooge.[/i][/b]"
     " In the [i]Duck Man[/i] interview Barks said: "
     '[i]"The office, I think, wanted me to do a Christmas story, and so I cast around for'
@@ -143,10 +145,33 @@ BARKS_EXTRA_INFO = {
     " water. You can't dive into a pile of money like you would into a snowdrift. So he had to"
     " have a trick by which he did it, and I don't explain that trick because I don't understand"
     ' it myself."[/i]',
-    Titles.WISPY_WILLIE: "The first story inked by Garé Barks.",
-    Titles.MENEHUNE_MYSTERY_THE: '[i]"The Menehune Mystery had become Garé\'s story; we see'
-    ' that in every leaf and flower she inked. She was the authority for all that moolamoola,'
-    ' chuckled Carl, I still don\'t believe that those damned Menehunes ever existed."[/i]',
+    Titles.FINANCIAL_FABLE_A: "In a letter from October 14, 1969, to Klas Reimers, Barks wrote:"
+    " [i]\"...I have no favorite 10-pager anymore. The issue of March 1951 I've always"
+    " considered technically well done. It had a rhythm that could have almost been set to"
+    ' music..."[/i]',
+    Titles.SOMETHIN_FISHY_HERE: "The first story inked by Garé Barks. Barks had this to say "
+    " about how it happened: \n"
+    '\n[i]"I persuaded her to try out on the lettering. She had been working at an aircraft'
+    " office during the war, doing drafting of these big bombers and so on, so she had gotten"
+    " to have a wonderful lettering style. Garé started doing lettering and inking in all the"
+    " background details in about October of 1952. She'd ink in all those things. And she would"
+    " put in the solid blacks in the ducks' jackets, and the eyeballs, and so on. She kept doing"
+    " more and more of it, and I was paying her more and more, and finally we decided, hell,"
+    " what's the use of going on like this? We might as well get married and pool the money all"
+    ' in one bundle."[/i]',
+    Titles.WORM_WEARY: 'Garé Barks said this about inking the story: [i]"For quite a while I just'
+    " did some of the blacking. I remember one of the first stories I worked on was a Gyro"
+    " Gearloose in which he caught some mammoth fish. Carl left all the scales for me to put on! I"
+    " was so nervous because I'd never done anything that thousands and thousands of people would"
+    " look at. I kept having visions of people opening these books and looking at all these"
+    ' scales on the fish to see if they were in just the right places."[/i]',
+    Titles.MONEY_STAIRS_THE: "In a letter from October 3, 1973, to Kim Weston, Barks commented"
+    ' on the ending to [i]"The Money Stairs": "...it was quite likely changed to a dream ending'
+    " by me. I believe I recall looking at the panel of Uncle Scrooge's money ramp and"
+    ' deciding it looked too impossible to be real..."[/i]',
+    Titles.MENEHUNE_MYSTERY_THE: "[i]\"The Menehune Mystery had become Garé's story; we see"
+    " that in every leaf and flower she inked. She was the authority for all that moolamoola,"
+    " chuckled Carl, I still don't believe that those damned Menehunes ever existed.\"[/i]",
     Titles.GOLDEN_FLEECING_THE: 'In a letter to Ronald O. Burnett, Barks wrote: [i]"If you read'
     " Uncle Scrooge comics, you may have noticed the story in which I had Uncle Scrooge and the"
     " ducks go to the site of ancient Colchis to find the golden fleece. A plot based on the old"
