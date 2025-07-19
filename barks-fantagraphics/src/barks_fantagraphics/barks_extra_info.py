@@ -47,6 +47,18 @@ BARKS_EXTRA_INFO = {
     " thoughts just pour all over me ... When I had gotten enough that I knew I had a story,"
     " I [re]joined the party and hoisted a few drinks. Next day I was hard at it writing"
     ' the Gneezles story."[/i]',
+    Titles.FIREBUG_THE: "Barks had this to say about Western's changing of the Firebug ending:"
+    ' [i]"The editors objected to the last couple of panels of that story because I had Donald set'
+    " fire to the judge's wastebasket. [It] accidentally burned down the courthouse, and he wound"
+    " up in jail. Western couldn't have a Disney character looking out from behind bars in the"
+    " final panel of the story, so they changed the ending. They didn't usually redraw my art"
+    " like that; the editors would often suggest that the artist do the changing himself. But"
+    " these two panels would have been done by one of the staff artists, either Carl Buettner"
+    ' or Tom McKimson."[/i]\n'
+    "\nIn the Fantagraphics edition of The Firebug, the last two panels are replaced with a single"
+    " panel of Donald in jail, scripted by Geoffrey Blum and art by Daan Jippes. In this digital"
+    " edition, there is yet another last panel with Donald in jail, scripted by GLK and art cut"
+    " out from the last panel of WDCS #62.",
     Titles.SMUGSNORKLE_SQUATTIE_THE: "Last appearance of [b][i]Herbert[/i][/b].",
     Titles.MAD_CHEMIST_THE: "The first appearance of [b][i]Car 313.[/i][/b]",
     Titles.HIGH_WIRE_DAREDEVILS: "First mention of [b][i]Duckburg.[/i][/b]"
@@ -131,6 +143,10 @@ BARKS_EXTRA_INFO = {
     " water. You can't dive into a pile of money like you would into a snowdrift. So he had to"
     " have a trick by which he did it, and I don't explain that trick because I don't understand"
     ' it myself."[/i]',
+    Titles.WISPY_WILLIE: "The first story inked by Garé Barks.",
+    Titles.MENEHUNE_MYSTERY_THE: '[i]"The Menehune Mystery had become Garé\'s story; we see'
+    ' that in every leaf and flower she inked. She was the authority for all that moolamoola,'
+    ' chuckled Carl, I still don\'t believe that those damned Menehunes ever existed."[/i]',
     Titles.GOLDEN_FLEECING_THE: 'In a letter to Ronald O. Burnett, Barks wrote: [i]"If you read'
     " Uncle Scrooge comics, you may have noticed the story in which I had Uncle Scrooge and the"
     " ducks go to the site of ancient Colchis to find the golden fleece. A plot based on the old"
@@ -139,6 +155,16 @@ BARKS_EXTRA_INFO = {
     ' I managed to save the story by renaming the old girls Larkies."[/i] Therefore, in this'
     " digital edition, 'Larkie' has been changed to 'Harpie'. (Pages 6, 7, 9, 13-16, and 18-26,"
     " re-lettered by GLK, December 2023)",
+    Titles.FORBIDDEN_VALLEY: 'This is a new version of [b][i]"Darkest Africa".[/i][/b]\n'
+    '\nBarks wrote this is in a letter to John Spicer in 1960: [i]"If in the future you notice a'
+    " dropping off in quality of my stories, don't be surprised. The mind is not a bottomless"
+    " well of new ideas, and mine is about pumped dry. Recently I have re-vitaminized some of my"
+    " old plot formulas around new gimmicks or vice versa in a desperate effort to keep ahead of"
+    " the deadlines. This mechanical formation of the stories may eventually supplant my old"
+    " method of writing by inspiration. I will always keep striving, though, to come up with"
+    " bright new plots, even though the characters and props comprise the same old stable of"
+    " professors, pot-bellied cannons, voracious crocodiles, ill-tempered birds, animals, and"
+    ' strong-jawed women."[/i]',
     Titles.CAT_BOX_THE: "The first appearance of [b][i]Little Helper.[/i][/b]",
     Titles.MIDAS_TOUCH_THE: "The first appearance of [b][i]Magica de Spell.[/i][/b]",
 }
