@@ -72,9 +72,9 @@ if [[ "${FUZZ: -1}" != "%" ]]; then
   echo "Error: The fuzz amount must end with a '%': \"${FUZZ}\"."
   exit 1
 fi
-if [[ "${fuzz}" != "0%" ]]; then
+if [[ "${FUZZ}" != "0%" ]]; then
   if [[ "${DIFF_DIR}" == "" ]] ; then
-    echo "Error: For non-zero fuzz amount you must specify a diff dir."
+    echo "Error: For non-zero fuzz amount \"${FUZZ}\" you must specify a diff dir."
     exit 1
   fi
   if [[ ! -d "${DIFF_DIR}" ]]; then
