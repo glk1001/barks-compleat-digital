@@ -47,7 +47,7 @@ BARKS_EXTRA_INFO = {
     " thoughts just pour all over me ... When I had gotten enough that I knew I had a story,"
     " I [re]joined the party and hoisted a few drinks. Next day I was hard at it writing"
     ' the Gneezles story."[/i]',
-    Titles.FIREBUG_THE: "Barks had this to say about Western's changing of the Firebug ending:"
+    Titles.FIREBUG_THE: "Barks said this about Western's change to The Firebug ending:"
     ' [i]"The editors objected to the last couple of panels of that story because I had Donald set'
     " fire to the judge's wastebasket. [It] accidentally burned down the courthouse, and he wound"
     " up in jail. Western couldn't have a Disney character looking out from behind bars in the"
@@ -55,10 +55,9 @@ BARKS_EXTRA_INFO = {
     " like that; the editors would often suggest that the artist do the changing himself. But"
     " these two panels would have been done by one of the staff artists, either Carl Buettner"
     ' or Tom McKimson."[/i]\n'
-    "\nIn the Fantagraphics edition of The Firebug, the last two panels are replaced with a single"
-    " panel of Donald in jail, scripted by Geoffrey Blum and art by Daan Jippes. In this digital"
-    " edition, there is yet another last panel with Donald in jail, scripted by GLK and art cut"
-    " out from the last panel of WDCS #62.",
+    "In this digital edition, the last two panels are replaced with text by GLK and art lifted"
+    " from the last panel of WDCS #62. But you also have the option of choosing the Fantagraphics"
+    " alternate ending by Geoffrey Blum and Daan Jippes.",
     Titles.SMUGSNORKLE_SQUATTIE_THE: "Last appearance of [b][i]Herbert[/i][/b].",
     Titles.MAD_CHEMIST_THE: "The first appearance of [b][i]Car 313.[/i][/b]",
     Titles.HIGH_WIRE_DAREDEVILS: "First mention of [b][i]Duckburg.[/i][/b]"
