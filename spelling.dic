@@ -22,6 +22,7 @@ DIBP
 DIGI
 Digikore
 dirname
+dirselect
 Disneys
 DONALDS
 Duckburg
@@ -37,6 +38,7 @@ Gearloose
 GLEA
 Glomgold
 Gneezles
+halign
 Harpie
 Hobblin
 Hondorica
@@ -49,9 +51,11 @@ JRC
 Kakimaw
 Killmotor
 Krankenstein
+labellayout
 Larkie
 Larkies
 levelname
+longpath
 madball
 matchpatch
 McCobb
