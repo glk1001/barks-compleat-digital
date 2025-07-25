@@ -18,8 +18,8 @@ LOGGING_COLORS = {
     "FATAL": RED,
 }
 
-PLAIN_FORMAT = "%(asctime)s %(levelname)-7s: %(message)s"
-COLOR_FORMAT = "%(asctime)s %(levelname)-18s: %(message)s"
+PLAIN_FORMAT = "%(asctime)s %(levelname)-7s: %(name)s: %(message)s"
+COLOR_FORMAT = "%(asctime)s %(levelname)-18s: %(name)s: %(message)s"
 
 
 def get_color_seq(color: int) -> str:
@@ -30,12 +30,18 @@ class LogPlainFormatter(logging.Formatter):
     def __init__(self):
         logging.Formatter.__init__(self, PLAIN_FORMAT)
 
+    def format(self, record) -> str:
+        if record.name == "root":
+            record.name = "app "
+        return logging.Formatter.format(self, record)
 
 class LogColoredFormatter(logging.Formatter):
     def __init__(self):
         logging.Formatter.__init__(self, COLOR_FORMAT)
 
-    def format(self, record):
+    def format(self, record) -> str:
+        if record.name == "root":
+            record.name = "app"
         levelname = record.levelname
         if levelname in LOGGING_COLORS:
             levelname_color = f"{get_color_seq(LOGGING_COLORS[levelname])}{levelname}{RESET_SEQ}"
