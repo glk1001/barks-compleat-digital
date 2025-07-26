@@ -48,8 +48,7 @@ class CmdArgs:
         self._extra_args = extra_args if extra_args else []
         self._error_msg = ""
         self._cmd_args = self._get_args()
-        self._comics_database = ComicsDatabase(self._cmd_args.comics_database_dir)
-        self._comics_database.set_inset_info(self._cmd_args.inset_dir, self._cmd_args.inset_ext)
+        self._comics_database = None
 
     def args_are_valid(self) -> Tuple[bool, str]:
         if not self._error_msg:
@@ -59,7 +58,13 @@ class CmdArgs:
     def get_log_level(self) -> str:
         return self._cmd_args.log_level
 
-    def get_comics_database(self) -> ComicsDatabase:
+    def get_comics_database(self, for_building_comics=True) -> ComicsDatabase:
+        if not self._comics_database:
+            self._comics_database = ComicsDatabase(
+                self._cmd_args.comics_database_dir, for_building_comics
+            )
+            self._comics_database.set_inset_info(self._cmd_args.inset_dir, self._cmd_args.inset_ext)
+
         return self._comics_database
 
     def get_title(self) -> str:

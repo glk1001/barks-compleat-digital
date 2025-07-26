@@ -58,8 +58,9 @@ def get_default_comics_database_dir() -> str:
 
 
 class ComicsDatabase:
-    def __init__(self, database_dir: str):
+    def __init__(self, database_dir: str, for_building_comics: bool = True):
         self._database_dir = _get_comics_database_dir(database_dir)
+        self._for_building_comics = for_building_comics
         self._story_titles_dir = _get_story_titles_dir(self._database_dir)
         self._all_comic_book_info = ALL_FANTA_COMIC_BOOK_INFO
         self._ini_files = [f for f in os.listdir(self._story_titles_dir) if f.endswith(".ini")]
@@ -479,39 +480,41 @@ class ComicsDatabase:
             fanta_info=fanta_info,
         )
 
-        if not os.path.isdir(comic.dirs.srce_dir):
-            raise NotADirectoryError(f'Could not find srce directory "{comic.dirs.srce_dir}".')
-        if not os.path.isdir(comic.get_srce_image_dir()):
-            raise NotADirectoryError(
-                f'Could not find srce image directory "{comic.get_srce_image_dir()}".'
-            )
-        if not os.path.isdir(comic.dirs.srce_upscayled_dir):
-            raise NotADirectoryError(
-                f"Could not find srce upscayled directory " f'"{comic.dirs.srce_upscayled_dir}".'
-            )
-        if not os.path.isdir(comic.get_srce_upscayled_image_dir()):
-            raise NotADirectoryError(
-                f"Could not find srce upscayled image directory"
-                f' "{comic.get_srce_upscayled_image_dir()}".'
-            )
-        if not os.path.isdir(comic.dirs.srce_restored_dir):
-            raise NotADirectoryError(
-                f"Could not find srce restored directory " f'"{comic.dirs.srce_restored_dir}".'
-            )
-        if not os.path.isdir(comic.get_srce_restored_image_dir()):
-            raise NotADirectoryError(
-                f"Could not find srce restored image directory"
-                f' "{comic.get_srce_restored_image_dir()}".'
-            )
-        if not os.path.isdir(comic.dirs.srce_fixes_dir):
-            raise NotADirectoryError(
-                f'Could not find srce fixes directory "{comic.dirs.srce_fixes_dir}".'
-            )
-        if not os.path.isdir(comic.get_srce_original_fixes_image_dir()):
-            raise NotADirectoryError(
-                f"Could not find srce fixes image directory "
-                f'"{comic.get_srce_original_fixes_image_dir()}".'
-            )
+        if self._for_building_comics:
+            if not os.path.isdir(comic.dirs.srce_dir):
+                raise NotADirectoryError(f'Could not find srce directory "{comic.dirs.srce_dir}".')
+            if not os.path.isdir(comic.get_srce_image_dir()):
+                raise NotADirectoryError(
+                    f'Could not find srce image directory "{comic.get_srce_image_dir()}".'
+                )
+            if not os.path.isdir(comic.dirs.srce_upscayled_dir):
+                raise NotADirectoryError(
+                    f"Could not find srce upscayled directory "
+                    f'"{comic.dirs.srce_upscayled_dir}".'
+                )
+            if not os.path.isdir(comic.get_srce_upscayled_image_dir()):
+                raise NotADirectoryError(
+                    f"Could not find srce upscayled image directory"
+                    f' "{comic.get_srce_upscayled_image_dir()}".'
+                )
+            if not os.path.isdir(comic.dirs.srce_restored_dir):
+                raise NotADirectoryError(
+                    f"Could not find srce restored directory " f'"{comic.dirs.srce_restored_dir}".'
+                )
+            if not os.path.isdir(comic.get_srce_restored_image_dir()):
+                raise NotADirectoryError(
+                    f"Could not find srce restored image directory"
+                    f' "{comic.get_srce_restored_image_dir()}".'
+                )
+            if not os.path.isdir(comic.dirs.srce_fixes_dir):
+                raise NotADirectoryError(
+                    f'Could not find srce fixes directory "{comic.dirs.srce_fixes_dir}".'
+                )
+            if not os.path.isdir(comic.get_srce_original_fixes_image_dir()):
+                raise NotADirectoryError(
+                    f"Could not find srce fixes image directory "
+                    f'"{comic.get_srce_original_fixes_image_dir()}".'
+                )
 
         return comic
 

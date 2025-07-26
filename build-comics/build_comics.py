@@ -67,7 +67,6 @@ class ComicBookBuilder:
         self._required_dim: Union[RequiredDimensions, None] = None
 
         self._srce_and_dest_pages: Union[SrceAndDestPages, None] = None
-        self._max_dest_page_timestamp = None
 
     def get_srce_dim(self) -> ComicDimensions:
         return self._srce_dim
@@ -79,7 +78,7 @@ class ComicBookBuilder:
         return self._srce_and_dest_pages
 
     def get_max_dest_page_timestamp(self) -> float:
-        return self._max_dest_page_timestamp
+        return get_max_timestamp(self._srce_and_dest_pages.dest_pages)
 
     def build(self) -> None:
         self._init_pages()
@@ -91,11 +90,11 @@ class ComicBookBuilder:
         self._zip_and_symlink_comic_book()
 
     def _init_pages(self):
+        logging.debug("Initializing pages...")
         self._srce_and_dest_pages, self._srce_dim, self._required_dim = (
             self._get_srce_and_dest_pages_and_dimensions(self._comic)
         )
         self._image_builder.set_required_dim(self._required_dim)
-        self._max_dest_page_timestamp = get_max_timestamp(self._srce_and_dest_pages.dest_pages)
 
     @staticmethod
     def _get_srce_and_dest_pages_and_dimensions(
@@ -123,11 +122,13 @@ class ComicBookBuilder:
         return srce_and_dest_pages, srce_dim, required_dim
 
     def _create_comic_book(self) -> None:
+        logging.debug("Creating comic book...")
         self._create_dest_dirs()
         self._process_pages()
         self._process_additional_files()
 
     def _process_pages(self):
+        logging.debug("Processing pages...")
         delete_all_files_in_directory(self._comic.get_dest_dir())
         delete_all_files_in_directory(self._comic.get_dest_image_dir())
 
