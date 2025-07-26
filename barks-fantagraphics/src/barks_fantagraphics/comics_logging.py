@@ -1,7 +1,7 @@
 import logging
 import sys
 from logging.handlers import RotatingFileHandler
-from typing import Dict
+from typing import Dict, Union
 
 
 class AnsiColor:
@@ -64,7 +64,9 @@ class LogColoredFormatter(logging.Formatter):
         return super().format(colored_rec)
 
 
-def setup_logging(log_level: int, logger_name: str = "", to_file_also: str = "") -> None:
+def setup_logging(
+    log_level: Union[str, int], logger_name: str = "", to_file_also: str = ""
+) -> None:
     """
     Configures the root logger for the application.
 

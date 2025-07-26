@@ -1080,11 +1080,11 @@ def get_tag_categories_titles() -> Dict[TagCategories, List[Titles]]:
     """
     tag_categories_titles: Dict[TagCategories, List[Titles]] = {}
     for category, items_list in BARKS_TAG_CATEGORIES.items():
-        tag_categories_titles[category] = sorted(list(__get_titles_for_tags_or_groups(items_list)))
+        tag_categories_titles[category] = sorted(list(_get_titles_for_tags_or_groups(items_list)))
     return tag_categories_titles
 
 
-def __get_titles_for_tags_or_groups(items_list: List[Union[Tags, TagGroups]]) -> Set[Titles]:
+def _get_titles_for_tags_or_groups(items_list: List[Union[Tags, TagGroups]]) -> Set[Titles]:
     """
     Helper function to recursively collect all unique titles for a list
     that may contain individual Tags or TagGroups.
@@ -1094,7 +1094,7 @@ def __get_titles_for_tags_or_groups(items_list: List[Union[Tags, TagGroups]]) ->
         if isinstance(item, TagGroups):
             # Recursively get titles for tags within this group
             if item in BARKS_TAG_GROUPS:
-                collected_titles.update(__get_titles_for_tags_or_groups(BARKS_TAG_GROUPS[item]))
+                collected_titles.update(_get_titles_for_tags_or_groups(BARKS_TAG_GROUPS[item]))
         elif isinstance(item, Tags):
             if item in BARKS_TAGGED_TITLES:
                 collected_titles.update(BARKS_TAGGED_TITLES[item])

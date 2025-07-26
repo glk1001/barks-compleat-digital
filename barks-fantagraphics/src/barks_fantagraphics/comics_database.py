@@ -428,7 +428,7 @@ class ComicsDatabase:
         config.read(ini_file)
 
         issue_title = "" if "issue_title" not in config["info"] else config["info"]["issue_title"]
-        intro_inset_file = self.__get_inset_file(ini_file)
+        intro_inset_file = self._get_inset_file(ini_file)
 
         fanta_info: FantaComicBookInfo = self.get_fanta_comic_book_info(story_title)
         fanta_book = FANTA_SOURCE_COMICS[config["info"]["source_comic"]]
@@ -515,7 +515,7 @@ class ComicsDatabase:
 
         return comic
 
-    def __get_inset_file(self, ini_file: str) -> str:
+    def _get_inset_file(self, ini_file: str) -> str:
         assert self._inset_dir
         assert self._inset_ext
 

@@ -118,50 +118,50 @@ class ComicBook:
         return self.fanta_book.volume
 
     @staticmethod
-    def __get_image_subdir(dirpath: str) -> str:
+    def _get_image_subdir(dirpath: str) -> str:
         return os.path.join(dirpath, IMAGES_SUBDIR)
 
     def get_srce_image_dir(self) -> str:
-        return self.__get_image_subdir(self.dirs.srce_dir)
+        return self._get_image_subdir(self.dirs.srce_dir)
 
     def get_srce_upscayled_image_dir(self) -> str:
-        return self.__get_image_subdir(self.dirs.srce_upscayled_dir)
+        return self._get_image_subdir(self.dirs.srce_upscayled_dir)
 
     def get_srce_restored_image_dir(self) -> str:
-        return self.__get_image_subdir(self.dirs.srce_restored_dir)
+        return self._get_image_subdir(self.dirs.srce_restored_dir)
 
     def get_srce_restored_upscayled_image_dir(self) -> str:
-        return self.__get_image_subdir(self.dirs.srce_restored_upscayled_dir)
+        return self._get_image_subdir(self.dirs.srce_restored_upscayled_dir)
 
     def get_srce_restored_svg_image_dir(self) -> str:
-        return self.__get_image_subdir(self.dirs.srce_restored_svg_dir)
+        return self._get_image_subdir(self.dirs.srce_restored_svg_dir)
 
     def get_srce_restored_ocr_image_dir(self) -> str:
-        return self.__get_image_subdir(self.dirs.srce_restored_ocr_dir)
+        return self._get_image_subdir(self.dirs.srce_restored_ocr_dir)
 
     def get_srce_original_fixes_image_dir(self) -> str:
-        return self.__get_image_subdir(self.dirs.srce_fixes_dir)
+        return self._get_image_subdir(self.dirs.srce_fixes_dir)
 
     def get_srce_upscayled_fixes_image_dir(self) -> str:
-        return self.__get_image_subdir(self.dirs.srce_upscayled_fixes_dir)
+        return self._get_image_subdir(self.dirs.srce_upscayled_fixes_dir)
 
     def get_srce_original_fixes_bounded_dir(self) -> str:
         return os.path.join(self.get_srce_original_fixes_image_dir(), BOUNDED_SUBDIR)
 
     def get_srce_original_story_files(self, page_types: List[PageType]) -> List[str]:
-        return self.__get_story_files(page_types, self.__get_srce_original_story_file)
+        return self._get_story_files(page_types, self._get_srce_original_story_file)
 
     def get_srce_upscayled_story_files(self, page_types: List[PageType]) -> List[str]:
-        return self.__get_story_files(page_types, self.get_srce_upscayled_story_file)
+        return self._get_story_files(page_types, self.get_srce_upscayled_story_file)
 
     def get_srce_restored_story_files(self, page_types: List[PageType]) -> List[str]:
-        return self.__get_story_files(page_types, self.__get_srce_restored_story_file)
+        return self._get_story_files(page_types, self._get_srce_restored_story_file)
 
     def get_srce_restored_upscayled_story_files(self, page_types: List[PageType]) -> List[str]:
-        return self.__get_story_files(page_types, self.get_srce_restored_upscayled_story_file)
+        return self._get_story_files(page_types, self.get_srce_restored_upscayled_story_file)
 
     def get_srce_restored_svg_story_files(self, page_types: List[PageType]) -> List[str]:
-        return self.__get_story_files(page_types, self.get_srce_restored_svg_story_file)
+        return self._get_story_files(page_types, self.get_srce_restored_svg_story_file)
 
     def get_srce_restored_ocr_story_files(
         self, page_types: List[PageType]
@@ -169,31 +169,29 @@ class ComicBook:
         all_files = []
         for page in self.page_images_in_order:
             if page.page_type in page_types:
-                all_files.append(self.__get_srce_restored_ocr_story_file(page.page_filenames))
+                all_files.append(self._get_srce_restored_ocr_story_file(page.page_filenames))
 
         return all_files
 
     def get_srce_panel_segments_files(self, page_types: List[PageType]) -> List[str]:
-        return self.__get_story_files(page_types, self.get_srce_panel_segments_file)
+        return self._get_story_files(page_types, self.get_srce_panel_segments_file)
 
     def get_final_srce_original_story_files(
         self, page_types: List[PageType]
     ) -> List[Tuple[str, ModifiedType]]:
-        return self.__get_story_files_with_mods(page_types, self.get_final_srce_original_story_file)
+        return self._get_story_files_with_mods(page_types, self.get_final_srce_original_story_file)
 
     def get_final_srce_upscayled_story_files(
         self, page_types: List[PageType]
     ) -> List[Tuple[str, ModifiedType]]:
-        return self.__get_story_files_with_mods(
-            page_types, self.get_final_srce_upscayled_story_file
-        )
+        return self._get_story_files_with_mods(page_types, self.get_final_srce_upscayled_story_file)
 
     def get_final_srce_story_files(
         self, page_types: Union[None, List[PageType]]
     ) -> List[Tuple[str, ModifiedType]]:
-        return self.__get_story_files_with_mods(page_types, self.get_final_srce_story_file)
+        return self._get_story_files_with_mods(page_types, self.get_final_srce_story_file)
 
-    def __get_story_files(
+    def _get_story_files(
         self,
         page_types: List[PageType],
         get_story_file: Callable[[str], str],
@@ -205,7 +203,7 @@ class ComicBook:
 
         return all_files
 
-    def __get_story_files_with_mods(
+    def _get_story_files_with_mods(
         self,
         page_types: List[PageType],
         get_story_file: Callable[[str, PageType], Tuple[str, ModifiedType]],
@@ -217,13 +215,13 @@ class ComicBook:
 
         return all_files
 
-    def __get_srce_original_story_file(self, page_num: str) -> str:
+    def _get_srce_original_story_file(self, page_num: str) -> str:
         return os.path.join(self.get_srce_image_dir(), page_num + JPG_FILE_EXT)
 
     def get_srce_upscayled_story_file(self, page_num: str) -> str:
         return os.path.join(self.get_srce_upscayled_image_dir(), page_num + PNG_FILE_EXT)
 
-    def __get_srce_restored_story_file(self, page_num: str) -> str:
+    def _get_srce_restored_story_file(self, page_num: str) -> str:
         return os.path.join(self.get_srce_restored_image_dir(), page_num + PNG_FILE_EXT)
 
     def get_srce_restored_upscayled_story_file(self, page_num: str) -> str:
@@ -232,7 +230,7 @@ class ComicBook:
     def get_srce_restored_svg_story_file(self, page_num: str) -> str:
         return os.path.join(self.get_srce_restored_svg_image_dir(), page_num + SVG_FILE_EXT)
 
-    def __get_srce_restored_ocr_story_file(self, page_num: str) -> Tuple[str, str]:
+    def _get_srce_restored_ocr_story_file(self, page_num: str) -> Tuple[str, str]:
         return (
             os.path.join(
                 self.dirs.srce_restored_ocr_dir,
@@ -268,17 +266,17 @@ class ComicBook:
     def get_final_srce_original_story_file(
         self, page_num: str, page_type: PageType
     ) -> Tuple[str, ModifiedType]:
-        srce_file = self.__get_srce_original_story_file(page_num)
+        srce_file = self._get_srce_original_story_file(page_num)
         srce_fixes_file = self.get_srce_original_fixes_story_file(page_num)
 
-        return self.__get_final_story_file(
+        return self._get_final_story_file(
             FixesType.ORIGINAL, page_num, page_type, srce_file, srce_fixes_file
         )
 
     def get_final_srce_upscayled_story_file(
         self, page_num: str, page_type: PageType
     ) -> Tuple[str, ModifiedType]:
-        srce_file = self.__get_srce_original_story_file(page_num)
+        srce_file = self._get_srce_original_story_file(page_num)
         srce_upscayled_fixes_file = os.path.join(
             self.get_srce_upscayled_fixes_image_dir(), page_num + JPG_FILE_EXT
         )
@@ -289,7 +287,7 @@ class ComicBook:
         srce_upscayled_fixes_file = self.get_srce_upscayled_fixes_story_file(page_num)
         srce_upscayled_file = self.get_srce_upscayled_story_file(page_num)
 
-        final_file, mod_type = self.__get_final_story_file(
+        final_file, mod_type = self._get_final_story_file(
             FixesType.UPSCAYLED, page_num, page_type, srce_file, srce_upscayled_fixes_file
         )
 
@@ -318,7 +316,7 @@ class ComicBook:
             if os.path.isfile(srce_restored_file):
                 raise Exception(f'Restored files should be png not jpg: "{srce_restored_file}".')
 
-            srce_restored_file = self.__get_srce_restored_story_file(page_num)
+            srce_restored_file = self._get_srce_restored_story_file(page_num)
             if os.path.isfile(srce_restored_file):
                 return srce_restored_file, ModifiedType.ORIGINAL
 
@@ -333,7 +331,7 @@ class ComicBook:
 
         raise Exception(f'Could not find source file "{srce_file}" of type "{page_type.name}"')
 
-    def __get_final_story_file(
+    def _get_final_story_file(
         self,
         file_type: FixesType,
         page_num: str,
@@ -347,7 +345,7 @@ class ComicBook:
         # Fixes file exists - use it unless a special case.
         if os.path.isfile(primary_file):
             # Fixes file is an EDITED file.
-            if self.__is_edited_fixes_special_case(page_num):
+            if self._is_edited_fixes_special_case(page_num):
                 logging.info(
                     f"NOTE: Special case - using EDITED {page_type.name}"
                     f" {file_type.name} fixes file:"
@@ -408,7 +406,7 @@ class ComicBook:
 
         return False
 
-    def __is_edited_fixes_special_case(self, page_num: str) -> bool:
+    def _is_edited_fixes_special_case(self, page_num: str) -> bool:
         if self.fanta_book.volume == 16 and page_num == "209":
             return True
 
@@ -423,10 +421,10 @@ class ComicBook:
         return False
 
     def get_story_file_sources(self, page_num: str) -> List[str]:
-        srce_restored_file = self.__get_srce_restored_story_file(page_num)
+        srce_restored_file = self._get_srce_restored_story_file(page_num)
         srce_upscayled_file = self.get_srce_upscayled_story_file(page_num)
         srce_upscayled_fixes_file = self.get_srce_upscayled_fixes_story_file(page_num)
-        srce_original_file = self.__get_srce_original_story_file(page_num)
+        srce_original_file = self._get_srce_original_story_file(page_num)
         srce_original_fixes_file = self.get_srce_original_fixes_story_file(page_num)
 
         sources = []
