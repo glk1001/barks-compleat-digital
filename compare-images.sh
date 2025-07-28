@@ -8,6 +8,7 @@ function do_compare()
   local -r file1="$1"
   local -r file2="$2"
   local -r fuzz=$3
+  local -r ae_cutoff=$4
 
   if [[ "${fuzz}" == "0%" ]]; then
     compare -metric MAE "${file1}" "${file2}" NULL: &> "${COMPARE_OUT_FILE}"
@@ -36,7 +37,7 @@ function do_compare()
       RESULT=0
       AE=$(head -n 1 "${COMPARE_OUT_FILE}" | awk '{print $1}')
       AE=$(echo "$AE" | calc -p)
-      if [[ $(echo "${AE} > 10000" | bc) -eq 1 ]]; then
+      if [[ $(echo "${AE} > ${ae_cutoff}" | bc) -eq 1 ]]; then
         RESULT=1
       fi
     fi
@@ -54,7 +55,8 @@ function do_compare()
 declare -r DIRECTORY1=$1
 declare -r DIRECTORY2=$2
 declare -r FUZZ=$3
-declare -r DIFF_DIR=$4
+declare -r AE_CUTOFF=$4
+declare -r DIFF_DIR=$5
 
 if [[ ! -d "${DIRECTORY1}" ]]; then
   echo "Error: Could not find directory1: \"${DIRECTORY1}\"."
@@ -81,7 +83,12 @@ if [[ "${FUZZ}" != "0%" ]]; then
     echo "Error: Could not find diff directory: \"${DIFF_DIR}\"."
     exit 1
   fi
+  if [[ "${AE_CUTOFF}" == "" ]]; then
+    echo "Error: You must specify an \"AE_CUTOFF\"."
+    exit 1
+  fi
 fi
+
 
 ERRORS=0
 
@@ -105,7 +112,7 @@ for file in "${DIRECTORY1}"/*; do
 
     # printf "${filename}: "
 
-    METRIC=$(do_compare "${file1}" "${file2}" ${FUZZ})
+    METRIC=$(do_compare "${file1}" "${file2}" ${FUZZ} ${AE_CUTOFF})
 
     if [[ $? == 0 ]]; then
       : # printf "ok (metric = ${METRIC})\n"

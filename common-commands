@@ -28,3 +28,5 @@ python batch-panel-bounds.py --work-dir /mnt/2tb_drive/workdir/barks-restore/pan
 
 bash compare-build-dirs.sh "/media/greg/2tb_drive_backup/Books/Carl Barks/Regression-Tests/Small/aaa-Chronological-dirs" "/home/greg/Books/Carl Barks/The Comics/aaa-Chronological-dirs"
 bash compare-build-dirs.sh "/media/greg/2tb_drive_backup/Books/Carl Barks/Regression-Tests/Big/aaa-Chronological-dirs" "/home/greg/Books/Carl Barks/The Comics/aaa-Chronological-dirs"
+
+bash compare-fanta-image-dirs.sh "$HOME/Books/Carl Barks/Fantagraphics-restored" "$HOME/Books/Carl Barks/Fantagraphics-original" 50% 5000
