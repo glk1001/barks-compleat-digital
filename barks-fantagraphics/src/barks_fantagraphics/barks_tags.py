@@ -5,6 +5,9 @@ from .barks_titles import Titles
 
 
 class Tags(Enum):
+    BARKS_FAVOURITES = "Barks' Picks"
+    PERSONAL_FAVOURITES = "My Picks"
+
     ALGERIA = "Algeria"
     ANDES = "Andes"
     ANTARCTICA = "Antarctica"
@@ -132,6 +135,7 @@ BARKS_TAG_ALIASES = {str(t.value).lower(): t for t in Tags} | BARKS_TAG_EXTRA_AL
 
 class TagCategories(Enum):
     CHARACTERS = "Characters"
+    FAVOURITES = "Favourites"
     PLACES = "Places"
     THEMES = "Themes"
     THINGS = "Things"
@@ -157,6 +161,7 @@ BARKS_TAG_GROUPS_ALIASES = {str(t.value).lower(): t for t in TagGroups}
 BARKS_TAG_CATEGORIES_DICT = {cat.value: cat for cat in TagCategories}
 
 BARKS_TAG_CATEGORIES = {
+    TagCategories.FAVOURITES: [Tags.BARKS_FAVOURITES, Tags.PERSONAL_FAVOURITES],
     TagCategories.THINGS: [
         Tags.AIRPLANE,
         Tags.CAMERA,
@@ -316,6 +321,25 @@ BARKS_TAG_GROUPS = {
 }
 
 BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
+    # Favourites
+    Tags.BARKS_FAVOURITES: [
+        # This list of Barks' favorites is from https://www.cbarks.dk/thefavourites.htm
+        Titles.LOST_IN_THE_ANDES,
+        Titles.IN_OLD_CALIFORNIA,
+        Titles.RIP_VAN_DONALD,
+        Titles.FINANCIAL_FABLE_A,
+        Titles.OMELET,
+        Titles.HORSERADISH_STORY_THE,
+        Titles.SECRET_OF_ATLANTIS_THE,
+        Titles.LAND_OF_THE_PYGMY_INDIANS,
+        Titles.ISLAND_IN_THE_SKY,
+        Titles.MICRO_DUCKS_FROM_OUTER_SPACE,
+        Titles.GHOST_OF_THE_GROTTO_THE,
+        Titles.LAND_OF_THE_TOTEM_POLES,
+        Titles.IN_ANCIENT_PERSIA,
+        Titles.GOLDEN_HELMET_THE,
+        Titles.VACATION_TIME,
+    ],
     # Real places
     Tags.ALGERIA: [Titles.ROCKET_RACE_AROUND_THE_WORLD],
     Tags.ANDES: [Titles.LOST_IN_THE_ANDES],
@@ -984,6 +1008,10 @@ BARKS_TAGGED_PAGES: Dict[Tuple[Tags, Titles], List[str]] = {
     (Tags.BARNACLE_BAY, Titles.NO_SUCH_VARMINT): ["11"],
     (Tags.WEEMITE, Titles.ROCKET_ROASTED_CHRISTMAS_TURKEY): ["3", "4", "6", "7", "8"],
 }
+
+
+def special_case_personal_favourites_tag_update(my_title_picks: List[Titles]) -> None:
+    BARKS_TAGGED_TITLES[Tags.PERSONAL_FAVOURITES] = my_title_picks
 
 
 def set_tag_alias(main_tag: Tags, alias_tag: Tags) -> None:
