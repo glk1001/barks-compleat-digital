@@ -67,7 +67,17 @@ BARKS_EXTRA_INFO = {
     " Barks on it..., I probably put the name on it myself just to see if the editors would white"
     ' it out."',
     Titles.GHOST_OF_THE_GROTTO_THE: "This was Garé Barks' favorite story, because, "
-    ' as she said: [i]"It\'s got pathos."[/i]',
+    ' as she said: [i]"It\'s got pathos."[/i]\n'
+    'Barks commented: [i]"I can remember the first idea I had on that was just trying to figure'
+    " out something Donald could do. I thought of him sailing boats and came up with a"
+    " potential ten pages of gathering seaweed, and selling this kelp, which would give me"
+    " a lot of gags with boats. I think of a scene, a locale, and think, 'Well,"
+    " I feel in the mood to draw boats, and the ocean, and so on,' and that would"
+    " cause me to start working on that particular type of story. As I developed more"
+    " and more things with the story, I think it's quite possible that that 'Ghost of"
+    " the Grotto' was brought in as a menace. There is so much in that, I couldn't have"
+    " thought of it in a whole bucketful of writing at once. It had to come out one thing"
+    ' after another."[/i]',
     Titles.CHRISTMAS_ON_BEAR_MOUNTAIN: "The first appearance of [b][i]Uncle Scrooge.[/i][/b]"
     " In the [i]Duck Man[/i] interview Barks said: "
     '[i]"The office, I think, wanted me to do a Christmas story, and so I cast around for'
@@ -189,6 +199,31 @@ BARKS_EXTRA_INFO = {
     " bright new plots, even though the characters and props comprise the same old stable of"
     " professors, pot-bellied cannons, voracious crocodiles, ill-tempered birds, animals, and"
     ' strong-jawed women."[/i]',
+    Titles.LAND_OF_THE_PYGMY_INDIANS: "Barks commented: \"[i]On comparison with 'Mystery of"
+    " the Swamp:' I realized that only the plotline was similar; all other elements were"
+    " breaking new ground. Besides, the pygmy Indians were more believable and interesting"
+    " than the Gneezles, so I went ahead with the story and let the gags fall where they might."
+    " The ducks were always peewees in comparison with the villains. In order for them to"
+    ' become a menace, they had to come up against somebody smaller."[/i]'
+    " [Barks had the Peeweegahs speak in pentameters, a type of poetic verse borrowed"
+    " from Longfellow's epic 'The Song of Hiawatha:']"
+    ' [i]"About the 8th grade, I had to read it and recite it in school. I thought it was a'
+    " tiresome way of telling a story back then, but the meter lends itself very well to"
+    " the comments of the Peeweegahs when they talk about what they're going to do.[/i]\"",
+    Titles.DONALDS_RAUCOUS_ROLE: 'Barks commented: [i]"I guess among the very best ones is'
+    " a 10-page story of Donald, where he got to complaining about everything being too noisy"
+    " and he moves to a very quiet place, and he was not satisfied until everything was"
+    " absolutely silent around him. He went around everywhere seeing if there was any noise"
+    " he could pick up. Donald is naturally the loudest one of all. That's really good, and"
+    " even the secondary figures are well done, for example the cheese-taster who blows"
+    ' his alpenhorn."[/i]',
     Titles.CAT_BOX_THE: "The first appearance of [b][i]Little Helper.[/i][/b]",
     Titles.MIDAS_TOUCH_THE: "The first appearance of [b][i]Magica de Spell.[/i][/b]",
+    Titles.MICRO_DUCKS_FROM_OUTER_SPACE: 'Barks commented: [i]"I liked that story! I felt'
+    " that I had touched on something that was a little different than just about any other"
+    " space-type story that's come around. Creatures from outer space are villainous"
+    " characters usually, and they have not rung a bell with me, because I have felt that"
+    " out in outer space there are good people as well as bad, so in that story I did a"
+    " little preaching, I guess. Of course, that micro-duck story is something that I just"
+    " grasped out of thin air. It's a fable, you might say...\"[/i]",
 }
