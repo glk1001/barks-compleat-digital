@@ -1027,12 +1027,34 @@ def set_tag_alias(main_tag: Tags, alias_tag: Tags) -> None:
 set_tag_alias(Tags.CAMERA, Tags.PHOTOGRAPHY)
 
 
+def is_tag_group_enum(value: str) -> bool:
+    try:
+        TagGroups(value)
+        return True
+    except ValueError:
+        return False
+
+
+def get_tag_group_enum(value: str) -> Union[TagGroups, None]:
+    try:
+        return TagGroups(value)
+    except ValueError:
+        return None
+
+
 def is_tag_enum(value: str) -> bool:
     try:
         Tags(value)
         return True
     except ValueError:
         return False
+
+
+def get_tag_enum(value: str) -> Union[Tags, None]:
+    try:
+        return Tags(value)
+    except ValueError:
+        return None
 
 
 def get_num_tagged_titles() -> int:
@@ -1101,7 +1123,7 @@ def get_tagged_titles(tag: Tags) -> List[Titles]:
     return sorted(list(set(BARKS_TAGGED_TITLES[tag])))  # Ensure uniqueness and sort
 
 
-def get_tag_categories_titles() -> Dict[TagCategories, List[Titles]]:
+def _get_tag_categories_titles() -> Dict[TagCategories, List[Titles]]:
     """
     Gets a dictionary mapping each TagCategory to a sorted list of unique titles
     associated with the tags/groups in that category.
@@ -1110,6 +1132,17 @@ def get_tag_categories_titles() -> Dict[TagCategories, List[Titles]]:
     for category, items_list in BARKS_TAG_CATEGORIES.items():
         tag_categories_titles[category] = sorted(list(_get_titles_for_tags_or_groups(items_list)))
     return tag_categories_titles
+
+
+def _get_tag_groups_titles() -> Dict[TagGroups, List[Titles]]:
+    """
+    Gets a dictionary mapping each TagGroup to a sorted list of unique titles
+    associated with the tags/groups in that tag group.
+    """
+    tag_groups_titles: Dict[TagGroups, List[Titles]] = {}
+    for tag_group, items_list in BARKS_TAG_GROUPS.items():
+        tag_groups_titles[tag_group] = sorted(list(_get_titles_for_tags_or_groups(items_list)))
+    return tag_groups_titles
 
 
 def _get_titles_for_tags_or_groups(items_list: List[Union[Tags, TagGroups]]) -> Set[Titles]:
@@ -1129,4 +1162,5 @@ def _get_titles_for_tags_or_groups(items_list: List[Union[Tags, TagGroups]]) -> 
     return collected_titles
 
 
-BARKS_TAG_CATEGORIES_TITLES: Dict[TagCategories, List[Titles]] = get_tag_categories_titles()
+BARKS_TAG_CATEGORIES_TITLES: Dict[TagCategories, List[Titles]] = _get_tag_categories_titles()
+BARKS_TAG_GROUPS_TITLES: Dict[TagGroups, List[Titles]] = _get_tag_groups_titles()
