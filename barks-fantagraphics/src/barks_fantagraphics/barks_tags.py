@@ -6,7 +6,10 @@ from .barks_titles import Titles
 
 class Tags(Enum):
     BARKS_FAVOURITES = "Barks' Picks"
+    EVERY_GEEK_FAVOURITES = "everygeek.net"
     PERSONAL_FAVOURITES = "My Picks"
+    PETER_SCHILLING_FAVOURITES = "Peter Schilling"
+    WIKI_NOTABLE_STORIES = "Wiki Notable Stories"
 
     ALGERIA = "Algeria"
     ANDES = "Andes"
@@ -161,7 +164,13 @@ BARKS_TAG_GROUPS_ALIASES = {str(t.value).lower(): t for t in TagGroups}
 BARKS_TAG_CATEGORIES_DICT = {cat.value: cat for cat in TagCategories}
 
 BARKS_TAG_CATEGORIES = {
-    TagCategories.FAVOURITES: [Tags.BARKS_FAVOURITES, Tags.PERSONAL_FAVOURITES],
+    TagCategories.FAVOURITES: [
+        Tags.BARKS_FAVOURITES,
+        Tags.EVERY_GEEK_FAVOURITES,
+        Tags.PERSONAL_FAVOURITES,
+        Tags.PETER_SCHILLING_FAVOURITES,
+        Tags.WIKI_NOTABLE_STORIES,
+    ],
     TagCategories.THINGS: [
         Tags.AIRPLANE,
         Tags.CAMERA,
@@ -339,6 +348,57 @@ BARKS_TAGGED_TITLES: Dict[Tags, List[Titles]] = {
         Titles.IN_ANCIENT_PERSIA,
         Titles.GOLDEN_HELMET_THE,
         Titles.VACATION_TIME,
+    ],
+    Tags.PETER_SCHILLING_FAVOURITES: [
+        # This list of the Barks stories covered in Peter Schilling's book:
+        # "Carl Barks' Duck - Average American"
+        Titles.MAHARAJAH_DONALD,
+        Titles.LOST_IN_THE_ANDES,
+        Titles.LUCK_OF_THE_NORTH,
+        Titles.GILDED_MAN_THE,
+        Titles.MAGIC_HOURGLASS_THE,
+        Titles.GOLDEN_HELMET_THE,
+        Titles.LAND_OF_THE_TOTEM_POLES,
+        Titles.NO_SUCH_VARMINT,
+        Titles.MASTER_RAINMAKER_THE,
+        Titles.SMOKE_WRITER_IN_THE_SKY,
+        Titles.MASTER_GLASSER_THE,
+        Titles.SPARE_THAT_HAIR,
+        Titles.VACATION_TIME,
+    ],
+    Tags.WIKI_NOTABLE_STORIES: [
+        Titles.DONALD_DUCK_FINDS_PIRATE_GOLD,
+        Titles.DONALD_DUCK_AND_THE_MUMMYS_RING,
+        Titles.CHRISTMAS_ON_BEAR_MOUNTAIN,
+        Titles.OLD_CASTLES_SECRET_THE,
+        Titles.SHERIFF_OF_BULLET_VALLEY,
+        Titles.LOST_IN_THE_ANDES,
+        Titles.VACATION_TIME,
+        Titles.FINANCIAL_FABLE_A,
+        Titles.IN_OLD_CALIFORNIA,
+        Titles.CHRISTMAS_FOR_SHACKTOWN_A,
+        Titles.ONLY_A_POOR_OLD_MAN,
+        Titles.FLIP_DECISION,
+        Titles.GOLDEN_HELMET_THE,
+        Titles.BACK_TO_THE_KLONDIKE,
+        Titles.TRALLA_LA,
+        Titles.FABULOUS_PHILOSOPHERS_STONE_THE,
+        Titles.GOLDEN_FLEECING_THE,
+        Titles.LAND_BENEATH_THE_GROUND,
+        Titles.MONEY_WELL_THE,
+        Titles.GOLDEN_RIVER_THE,
+        Titles.ISLAND_IN_THE_SKY,
+        Titles.NORTH_OF_THE_YUKON,
+    ],
+    Tags.EVERY_GEEK_FAVOURITES: [
+        # This list from https://everygeek.net/carl-barks-comics-ducktales-fan
+        Titles.BACK_TO_THE_KLONDIKE,
+        Titles.FABULOUS_PHILOSOPHERS_STONE_THE,
+        Titles.GOLDEN_FLEECING_THE,
+        Titles.VACATION_TIME,
+        Titles.GOLDEN_HELMET_THE,
+        Titles.LUCK_OF_THE_NORTH,
+        Titles.STATUESQUE_SPENDTHRIFTS,
     ],
     # Real places
     Tags.ALGERIA: [Titles.ROCKET_RACE_AROUND_THE_WORLD],
