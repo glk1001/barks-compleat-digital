@@ -17,6 +17,7 @@ class Issues(IntEnum):
     US = auto()
     USGTD = auto()
     VP = auto()
+    EXTRAS = auto()
 
 
 SHORT_ISSUE_NAME = [
@@ -35,6 +36,7 @@ SHORT_ISSUE_NAME = [
     "US",
     "USGTD",
     "VP",
+    "EX",
 ]
 
 ISSUE_NAME = [
@@ -53,6 +55,7 @@ ISSUE_NAME = [
     "Uncle Scrooge",
     "Uncle Scrooge Goes to Disneyland",
     "Vacation Parade",
+    "Extras (Non-Barks)",
 ]
 
 ISSUE_NAME_WRAPPED = {

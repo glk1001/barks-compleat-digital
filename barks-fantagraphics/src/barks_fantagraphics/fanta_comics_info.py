@@ -219,6 +219,7 @@ SERIES_USS = ISSUE_NAME[Issues.US] + " Short Stories"
 SERIES_CS = ISSUE_NAME[Issues.CS]
 SERIES_GG = "Gyro Gearloose"
 SERIES_MISC = "Misc"
+SERIES_EXTRAS = "Extras"
 
 RTOM = "Rich Tommaso"
 GLEA = "Gary Leach"
@@ -247,6 +248,7 @@ SERIES_INFO_START_NUMBERS: Dict[str, int] = {
     SERIES_CS: 1,
     SERIES_GG: 1,
     SERIES_MISC: 1,
+    SERIES_EXTRAS: 1,
 }
 
 CENSORED_TITLES = [bt.SILENT_NIGHT, bt.MILKMAN_THE]
@@ -574,6 +576,9 @@ SERIES_INFO: List[FantaSeriesInfo] = [
     FantaSeriesInfo(Bt.HONEY_OF_A_HEN_A, DIGI, SERIES_MISC, FANTA_21),
     FantaSeriesInfo(Bt.WEATHER_WATCHERS_THE, DIGI, SERIES_MISC, FANTA_21),
     FantaSeriesInfo(Bt.SHEEPISH_COWBOYS_THE, DIGI, SERIES_MISC, FANTA_21),
+    # Articles
+    FantaSeriesInfo(Bt.DON_AULT_FANTA_INTRO, "", SERIES_EXTRAS, FANTA_07),
+    FantaSeriesInfo(Bt.DON_AULT_LIFE_AMONG_THE_DUCKS, "", SERIES_EXTRAS, FANTA_02),
 ]
 
 
