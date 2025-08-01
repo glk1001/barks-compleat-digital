@@ -10,7 +10,7 @@ from .comic_issues import (
     SHORT_ISSUE_NAME,
 )
 
-NUM_TITLES = 616 + 2  # +2 for Don Ault articles
+NUM_TITLES = 616 + 3  # +3 for articles
 
 US_1_FC_ISSUE_NUM = 386
 US_2_FC_ISSUE_NUM = 456
@@ -635,7 +635,7 @@ ZERO_HERO = "Zero Hero"
 # Not comics below!
 DON_AULT_FANTA_INTRO = "Don Ault - Fantagraphics Introduction"
 DON_AULT_LIFE_AMONG_THE_DUCKS = "Don Ault - Life Among the Ducks"
-
+RICH_TOMASSO_ON_COLORING_BARKS = "Rich Tomasso - On Coloring Barks"
 
 @verify(CONTINUOUS, UNIQUE)
 class Titles(IntEnum):
@@ -1258,6 +1258,7 @@ class Titles(IntEnum):
     # Not comics below!
     DON_AULT_FANTA_INTRO = auto()
     DON_AULT_LIFE_AMONG_THE_DUCKS = auto()
+    RICH_TOMASSO_ON_COLORING_BARKS = auto()
 
 
 assert NUM_TITLES == len(Titles)
@@ -1882,6 +1883,7 @@ BARKS_TITLES = [
     # Not comics below!
     DON_AULT_FANTA_INTRO,
     DON_AULT_LIFE_AMONG_THE_DUCKS,
+    RICH_TOMASSO_ON_COLORING_BARKS,
 ]
 
 assert NUM_TITLES == len(BARKS_TITLES)
@@ -2559,6 +2561,7 @@ BARKS_TITLE_INFO: List[ComicBookInfo] = [
     # Not comics below!
     ComicBookInfo(Titles.DON_AULT_FANTA_INTRO, False, Issues.EXTRAS, 1, 1, 2011, 1, 1, 2011),
     ComicBookInfo(Titles.DON_AULT_LIFE_AMONG_THE_DUCKS, False, Issues.EXTRAS, 1, 1, 2014, 1, 1, 2014),
+    ComicBookInfo(Titles.RICH_TOMASSO_ON_COLORING_BARKS, False, Issues.EXTRAS, 1, 1, 2011, 1, 1, 2011),
 ]
 # fmt: on
 

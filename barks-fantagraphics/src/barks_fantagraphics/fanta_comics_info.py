@@ -579,6 +579,7 @@ SERIES_INFO: List[FantaSeriesInfo] = [
     # Articles
     FantaSeriesInfo(Bt.DON_AULT_FANTA_INTRO, "", SERIES_EXTRAS, FANTA_07),
     FantaSeriesInfo(Bt.DON_AULT_LIFE_AMONG_THE_DUCKS, "", SERIES_EXTRAS, FANTA_02),
+    FantaSeriesInfo(Bt.RICH_TOMASSO_ON_COLORING_BARKS, "", SERIES_EXTRAS, FANTA_07),
 ]
 
 
