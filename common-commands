@@ -17,14 +17,14 @@ rsync --delete -avh /home/greg/Books/Carl\ Barks/  /media/greg/restic_backup/Boo
 
 
 # Common comics commands
-python barks-cmds/fantagraphics-info.py --log-level WARN --volume 2-4
+uvenv run barks-cmds/fantagraphics-info.py --log-level WARN --volume 2-4
 
-python build-comics/batch-build-comics.py build --log-level INFO --title "The Riddle of the Red Hat"
-python build-comics/batch-build-comics.py check-integrity --log-level INFO --volume 2
+uvenv run build-comics/batch-build-comics.py build --log-level INFO --title "The Riddle of the Red Hat"
+uvenv run build-comics/batch-build-comics.py check-integrity --log-level INFO --volume 2
 
-python barks-restore/batch-upscayl.py --volume 9 | tee /mnt/2tb_drive/workdir/9-upscayl.log
-python barks-restore/batch-restore-pipeline.py --work-dir /mnt/2tb_drive/workdir/barks-restore/restore --volume 9 | tee /mnt/2tb_drive/workdir/9-restore.log
-python batch-panel-bounds.py --work-dir /mnt/2tb_drive/workdir/barks-restore/panel-bounds --volume 5
+uvenv run barks-restore/batch-upscayl.py --volume 9 | tee /mnt/2tb_drive/workdir/9-upscayl.log
+uvenv run barks-restore/batch-restore-pipeline.py --work-dir /mnt/2tb_drive/workdir/barks-restore/restore --volume 9 | tee /mnt/2tb_drive/workdir/9-restore.log
+uvenv run batch-panel-bounds.py --work-dir /mnt/2tb_drive/workdir/barks-restore/panel-bounds --volume 5
 
 bash compare-build-dirs.sh "/media/greg/2tb_drive_backup/Books/Carl Barks/Regression-Tests/Small/aaa-Chronological-dirs" "/home/greg/Books/Carl Barks/The Comics/aaa-Chronological-dirs"
 bash compare-build-dirs.sh "/media/greg/2tb_drive_backup/Books/Carl Barks/Regression-Tests/Big/aaa-Chronological-dirs" "/home/greg/Books/Carl Barks/The Comics/aaa-Chronological-dirs"

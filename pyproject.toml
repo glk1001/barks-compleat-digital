@@ -1,0 +1,46 @@
+[project]
+name = "barks-compleat-digital"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "asgiref==3.8.1",
+    "cairocffi==1.7.1",
+    "cairosvg==2.7.1",
+    "cffi==1.17.1",
+    "colormath==3.0.0",
+    "cssselect2==0.7.0",
+    "cssutils==2.11.1",
+    "defusedxml==0.7.1",
+    "django==5.1",
+    "easyocr>=1.7.2",
+    "google-generativeai>=0.8.5",
+    "image==1.5.33",
+    "intspan==1.6.1",
+    "llvmlite==0.43.0",
+    "lxml==5.3.0",
+    "more-itertools==10.5.0",
+    "networkx==3.2.1",
+    "numba==0.60.0",
+    "numpy==1.26.4",
+    "opencv-python==4.10.0.84",
+    "paddleocr==2.9.1",
+    "paddlepaddle==2.6.2",
+    "pillow==11.2.1",
+    "psutil==6.1.0",
+    "pycparser==2.22",
+    "pyenchant>=3.2.2",
+    "shapely>=2.1.1",
+    "six==1.16.0",
+    "sqlparse==0.5.1",
+    "tinycss2==1.4.0",
+    "vtracer==0.6.11",
+    "webencodings==0.5.1",
+    "wurlitzer==3.1.1",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.12.7",
+]
