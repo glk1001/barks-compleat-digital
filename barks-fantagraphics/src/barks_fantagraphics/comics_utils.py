@@ -88,8 +88,7 @@ def get_relpath(file: Union[str, Path]) -> str:
         return os.path.relpath(file, BARKS_ROOT_DIR)
 
     file_parts = Path(file).parts[-2:]
-    # noinspection PyArgumentList
-    return str(os.path.join(*file_parts))
+    return str(Path().joinpath(*file_parts))
 
 
 def get_abspath_from_relpath(relpath: str, root_dir=BARKS_ROOT_DIR) -> str:
