@@ -176,7 +176,7 @@ def write_readme_file(comic: ComicBook) -> None:
         f.write(f'Ini Title:   "{comic.get_ini_title()}"\n')
         f.write(f'Issue Title: "{get_safe_title(comic.issue_title)}"\n')
         f.write("\n")
-        now_str = datetime.now().strftime("%b %d %Y %H:%M:%S")
+        now_str = datetime.now().astimezone().strftime("%b %d %Y %H:%M:%S")
         f.write(f"Created:           {now_str}\n")
         f.write(f'Archived ini file: "{os.path.basename(comic.ini_file)}"\n')
 
@@ -187,10 +187,9 @@ def write_metadata_file(comic: ComicBook, dest_pages: list[CleanPage]) -> None:
     double_pages = {}
     page_num_str = {}
     body_start_page_num = -1
-    orig_page_num = 0
     left = True
-    for page in dest_pages:
-        orig_page_num += 1
+    for index, page in enumerate(dest_pages):
+        orig_page_num = index + 1
         if page.page_type not in FRONT_MATTER_PAGES and body_start_page_num == -1:
             body_start_page_num = orig_page_num
         if body_start_page_num == -1:
@@ -213,8 +212,8 @@ def write_metadata_file(comic: ComicBook, dest_pages: list[CleanPage]) -> None:
         f.write("\n")
 
         f.write(f"[{PAGE_NUMBERS_SECTION}]\n")
-        for page in page_num_str:
-            f.write(f"{page}: {page_num_str[page]}" + "\n")
+        for page, num_str in page_num_str.items():
+            f.write(f"{page}: {num_str}" + "\n")
         f.write("\n")
 
 

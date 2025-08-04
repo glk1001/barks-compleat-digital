@@ -1,12 +1,8 @@
 import argparse
-import datetime
 import logging
 import sys
 import traceback
-from datetime import datetime
-from typing import List
-
-from intspan import intspan
+from datetime import UTC, datetime
 
 from additional_file_writing import write_summary_file
 from barks_fantagraphics.comic_book import ComicBook
@@ -16,12 +12,13 @@ from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import get_titles_sorted_by_submission_date
 from build_comics import ComicBookBuilder
 from comics_integrity import check_comics_integrity
+from intspan import intspan
 from timing import Timing
 
 
 def process_comic_book_titles(
     comics_db: ComicsDatabase,
-    titles: List[str],
+    titles: list[str],
 ) -> int:
     assert len(titles) > 0
 
@@ -37,14 +34,14 @@ def process_comic_book_titles(
 
 
 def process_comic_book(comic: ComicBook) -> int:
-    process_timing = Timing(datetime.now())
+    process_timing = Timing(datetime.now(UTC))
 
     try:
         comic_book_builder = ComicBookBuilder(comic)
 
         comic_book_builder.build()
 
-        process_timing.end_time = datetime.now()
+        process_timing.end_time = datetime.now(UTC)
         mark_process_end(process_timing)
 
         write_summary_file(
@@ -60,19 +57,19 @@ def process_comic_book(comic: ComicBook) -> int:
         tb_info = traceback.extract_tb(tb)
         filename, line, func, text = tb_info[-1]
         err_msg = f'Assert failed at "{filename}:{line}" for statement "{text}".'
-        logging.error(err_msg)
+        logging.exception(err_msg)
         return 1
-    except Exception as e:
+    except Exception:
         # raise Exception
-        logging.error(e)
+        logging.exception("Build error: ")
         return 1
 
     return 0
 
 
-def mark_process_end(process_timing: Timing):
+def mark_process_end(process_timing: Timing) -> None:
     logging.info(
-        f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds"
+        f"Time taken to complete comic: {process_timing.get_elapsed_time_in_seconds()} seconds",
     )
 
 
@@ -88,7 +85,7 @@ CHECK_INTEGRITY_ARG = "check-integrity"
 def get_args():
     global_parser = argparse.ArgumentParser(
         #            prog="build-barks",
-        description="Create a clean Barks comic from Fantagraphics source."
+        description="Create a clean Barks comic from Fantagraphics source.",
     )
 
     subparsers = global_parser.add_subparsers(
@@ -108,11 +105,16 @@ def get_args():
     build_comics_parser.add_argument(VOLUME_ARG, action="store", type=str, required=False)
     build_comics_parser.add_argument(TITLE_ARG, action="store", type=str, required=False)
     build_comics_parser.add_argument(
-        LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
+        LOG_LEVEL_ARG,
+        action="store",
+        type=str,
+        required=False,
+        default="INFO",
     )
 
     check_integrity_parser = subparsers.add_parser(
-        CHECK_INTEGRITY_ARG, help="check the integrity of all previously built comics"
+        CHECK_INTEGRITY_ARG,
+        help="check the integrity of all previously built comics",
     )
     check_integrity_parser.add_argument(
         COMICS_DATABASE_DIR_ARG,
@@ -123,23 +125,27 @@ def get_args():
     check_integrity_parser.add_argument(VOLUME_ARG, action="store", type=str, required=False)
     check_integrity_parser.add_argument(TITLE_ARG, action="store", type=str, required=False)
     check_integrity_parser.add_argument(
-        LOG_LEVEL_ARG, action="store", type=str, required=False, default="INFO"
+        LOG_LEVEL_ARG,
+        action="store",
+        type=str,
+        required=False,
+        default="INFO",
     )
 
     args = global_parser.parse_args()
 
-    if args.cmd_name == CHECK_INTEGRITY_ARG:
-        if args.title and args.volume:
-            raise Exception(f"Cannot have both '{TITLE_ARG} and '{VOLUME_ARG}'.")
-    if args.cmd_name == BUILD_ARG:
-        if args.title and args.volume:
-            raise Exception(f"Cannot have both '{TITLE_ARG} and '{VOLUME_ARG}'.")
+    if args.cmd_name == CHECK_INTEGRITY_ARG and args.title and args.volume:
+        msg = f"Cannot have both '{TITLE_ARG} and '{VOLUME_ARG}'."
+        raise ValueError(msg)
+    if args.cmd_name == BUILD_ARG and args.title and args.volume:
+        msg = f"Cannot have both '{TITLE_ARG} and '{VOLUME_ARG}'."
+        raise ValueError(msg)
 
     return args
 
 
-def get_titles(args) -> List[str]:
-    assert args.cmd_name == CHECK_INTEGRITY_ARG or args.cmd_name == BUILD_ARG
+def get_titles(args) -> list[str]:
+    assert args.cmd_name in (CHECK_INTEGRITY_ARG, BUILD_ARG)
 
     if args.title:
         return [args.title]
@@ -147,8 +153,7 @@ def get_titles(args) -> List[str]:
     if args.volume is not None:
         vol_list = list(intspan(args.volume))
         titles_and_info = comics_database.get_configured_titles_in_fantagraphics_volumes(vol_list)
-        titles = get_titles_sorted_by_submission_date(titles_and_info)
-        return titles
+        return get_titles_sorted_by_submission_date(titles_and_info)
 
     return []
 
@@ -166,8 +171,9 @@ if __name__ == "__main__":
     elif cmd_args.cmd_name == BUILD_ARG:
         exit_code = process_comic_book_titles(comics_database, get_titles(cmd_args))
     else:
-        raise Exception(f'ERROR: Unknown cmd_arg "{cmd_args.cmd_name}".')
+        msg = f'ERROR: Unknown cmd_arg "{cmd_args.cmd_name}".'
+        raise ValueError(msg)
 
     if exit_code != 0:
-        print(f"\nThere were errors: exit code = {exit_code}.")
+        print(f"\nThere were errors: exit code = {exit_code}.")  # noqa: T201
         sys.exit(exit_code)

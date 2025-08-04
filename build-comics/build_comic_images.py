@@ -1,30 +1,29 @@
+# ruff: noqa: PLR0911, PLR0913
+
 import logging
 import os
 from enum import Enum, auto
-from typing import Tuple, List
-
-from PIL import Image, ImageDraw, ImageFont
 
 from barks_fantagraphics.comic_book import ComicBook
 from barks_fantagraphics.comic_issues import ISSUE_NAME, Issues
 from barks_fantagraphics.comics_consts import (
-    PageType,
-    BARKS,
-    get_font_path,
-    PAGE_NUM_FONT_FILE,
-    INTRO_TEXT_FONT_FILE,
-    DEST_TARGET_WIDTH,
-    DEST_TARGET_HEIGHT,
-    DEST_TARGET_X_MARGIN,
-    DEST_TARGET_ASPECT_RATIO,
-    PAGE_NUM_X_OFFSET_FROM_CENTRE,
-    PAGE_NUM_X_BLANK_PIXEL_OFFSET,
-    PAGE_NUM_HEIGHT,
-    PAGE_NUM_FONT_SIZE,
-    PAGE_NUM_COLOR,
     BACK_NO_PANELS_PAGES,
-    PAINTING_PAGES,
+    BARKS,
+    DEST_TARGET_ASPECT_RATIO,
+    DEST_TARGET_HEIGHT,
+    DEST_TARGET_WIDTH,
+    DEST_TARGET_X_MARGIN,
+    INTRO_TEXT_FONT_FILE,
+    PAGE_NUM_COLOR,
+    PAGE_NUM_FONT_FILE,
+    PAGE_NUM_FONT_SIZE,
+    PAGE_NUM_HEIGHT,
+    PAGE_NUM_X_BLANK_PIXEL_OFFSET,
+    PAGE_NUM_X_OFFSET_FROM_CENTRE,
     PAGES_WITHOUT_PANELS,
+    PAINTING_PAGES,
+    PageType,
+    get_font_path,
 )
 from barks_fantagraphics.comics_utils import get_relpath
 from barks_fantagraphics.fanta_comics_info import CENSORED_TITLES
@@ -33,6 +32,7 @@ from barks_fantagraphics.pages import get_page_num_str
 from barks_fantagraphics.panel_bounding import get_scaled_panels_bbox_height
 from consts import FOOTNOTE_CHAR
 from image_io import open_image_for_reading
+from PIL import Image, ImageDraw, ImageFont
 
 INTRO_TOP = 350
 INTRO_BOTTOM_MARGIN = INTRO_TOP
@@ -59,7 +59,7 @@ class BasePageType(Enum):
 
 
 class ComicBookImageBuilder:
-    def __init__(self, comic: ComicBook, empty_page_file: str):
+    def __init__(self, comic: ComicBook, empty_page_file: str) -> None:
         self._comic = comic
         self._required_dim: RequiredDimensions = RequiredDimensions()
         self._empty_page_image = open_image_for_reading(empty_page_file)
@@ -68,18 +68,21 @@ class ComicBookImageBuilder:
         self._required_dim = required_dim
 
     @staticmethod
-    def _log_page_info(prefix: str, image: Image, page: CleanPage):
+    def _log_page_info(prefix: str, image: Image, page: CleanPage) -> None:
         width = image.width if image else 0
         height = image.height if image else 0
         logging.debug(
             f"{prefix}: width = {width:4}, height = {height:4},"
             f" page_type = {page.page_type.name:13},"
             f" panels bbox = {page.panels_bbox.x_min:4}, {page.panels_bbox.y_min:4},"
-            f" {page.panels_bbox.x_max:4}, {page.panels_bbox.y_max:4}."
+            f" {page.panels_bbox.x_max:4}, {page.panels_bbox.y_max:4}.",
         )
 
     def get_dest_page_image(
-        self, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
+        self,
+        srce_page_image: Image,
+        srce_page: CleanPage,
+        dest_page: CleanPage,
     ) -> Image:
         self._log_page_info(f"{srce_page.page_num}-Srce", srce_page_image, srce_page)
         self._log_page_info(f"{srce_page.page_num}-Dest", None, dest_page)
@@ -96,7 +99,10 @@ class ComicBookImageBuilder:
         return rgb_dest_page_image
 
     def _get_no_panels_dest_image(
-        self, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
+        self,
+        srce_page_image: Image,
+        srce_page: CleanPage,
+        dest_page: CleanPage,
     ) -> Image:
         if dest_page.page_type == PageType.FRONT:
             return self._get_front_page_dest_image(srce_page_image, srce_page)
@@ -112,7 +118,7 @@ class ComicBookImageBuilder:
             return self._get_blank_page_dest_image(srce_page_image)
         if dest_page.page_type == PageType.TITLE:
             return self._get_dest_title_page_image(srce_page_image)
-        assert False
+        raise AssertionError
 
     def _get_front_page_dest_image(self, srce_page_image: Image, srce_page: CleanPage) -> Image:
         return self._get_black_bars_page_dest_image(srce_page_image, srce_page)
@@ -149,7 +155,7 @@ class ComicBookImageBuilder:
         return self._get_centred_page_dest_image(splash_image, srce_page, BasePageType.EMPTY_PAGE)
 
     @staticmethod
-    def _draw_border_around_image(image: Image):
+    def _draw_border_around_image(image: Image) -> None:
         x_min = 0
         y_min = 0
         x_max = image.width - 1
@@ -165,10 +171,15 @@ class ComicBookImageBuilder:
         draw.line(border, fill=SPLASH_BORDER_COLOR, width=SPLASH_BORDER_WIDTH)
 
     def _get_no_panels_back_page_dest_image(
-        self, no_panels_image: Image, srce_page: CleanPage, dest_page: CleanPage
+        self,
+        no_panels_image: Image,
+        srce_page: CleanPage,
+        dest_page: CleanPage,
     ) -> Image:
         dest_page_image = self._get_centred_page_dest_image(
-            no_panels_image, srce_page, BasePageType.EMPTY_PAGE
+            no_panels_image,
+            srce_page,
+            BasePageType.EMPTY_PAGE,
         )
 
         self._write_page_number(dest_page_image, dest_page, PAGE_NUM_COLOR)
@@ -176,25 +187,36 @@ class ComicBookImageBuilder:
         return dest_page_image
 
     def _get_black_bars_page_dest_image(
-        self, srce_page_image: Image, srce_page: CleanPage
+        self,
+        srce_page_image: Image,
+        srce_page: CleanPage,
     ) -> Image:
         return self._get_centred_page_dest_image(
-            srce_page_image, srce_page, BasePageType.BLACK_PAGE
+            srce_page_image,
+            srce_page,
+            BasePageType.BLACK_PAGE,
         )
 
     def _get_centred_page_dest_image(
-        self, srce_page_image: Image, srce_page: CleanPage, base_page_type: BasePageType
+        self,
+        srce_page_image: Image,
+        srce_page: CleanPage,
+        base_page_type: BasePageType,
     ) -> Image:
+        small_float = 0.01
+
         srce_aspect_ratio = float(srce_page_image.height) / float(srce_page_image.width)
-        if abs(srce_aspect_ratio - DEST_TARGET_ASPECT_RATIO) > 0.01:
+        if abs(srce_aspect_ratio - DEST_TARGET_ASPECT_RATIO) > small_float:
             logging.debug(
                 f"Wrong aspect ratio for page '{get_relpath(srce_page.page_filename)}':"
-                f" {srce_aspect_ratio:.2f} != {DEST_TARGET_ASPECT_RATIO :.2f}."
-                f" Using black bars."
+                f" {srce_aspect_ratio:.2f} != {DEST_TARGET_ASPECT_RATIO:.2f}."
+                f" Using black bars.",
             )
 
         required_height = get_scaled_panels_bbox_height(
-            DEST_TARGET_WIDTH, srce_page_image.width, srce_page_image.height
+            DEST_TARGET_WIDTH,
+            srce_page_image.width,
+            srce_page_image.height,
         )
 
         no_margins_image = srce_page_image.resize(
@@ -202,12 +224,12 @@ class ComicBookImageBuilder:
             resample=Image.Resampling.BICUBIC,
         )
         no_margins_aspect_ratio = float(no_margins_image.height) / float(no_margins_image.width)
-        assert abs(srce_aspect_ratio - no_margins_aspect_ratio) <= 0.01
+        assert abs(srce_aspect_ratio - no_margins_aspect_ratio) <= small_float
 
         if required_height == DEST_TARGET_HEIGHT:
             return no_margins_image
 
-        cover_top = int(round(0.5 * (DEST_TARGET_HEIGHT - required_height)))
+        cover_top = round(0.5 * (DEST_TARGET_HEIGHT - required_height))
         base_page_image = (
             self._empty_page_image.copy()
             if base_page_type == BasePageType.EMPTY_PAGE
@@ -219,29 +241,32 @@ class ComicBookImageBuilder:
 
     @staticmethod
     def _get_blank_page_dest_image(srce_page_image: Image) -> Image:
-        dest_page_image = srce_page_image.resize(
+        return srce_page_image.resize(
             size=(DEST_TARGET_WIDTH, DEST_TARGET_HEIGHT),
             resample=Image.Resampling.BICUBIC,
         )
 
-        return dest_page_image
-
     def _get_main_page_dest_image(
-        self, srce_page_image: Image, srce_page: CleanPage, dest_page: CleanPage
+        self,
+        srce_page_image: Image,
+        srce_page: CleanPage,
+        dest_page: CleanPage,
     ) -> Image:
         dest_panels_image = srce_page_image.crop(srce_page.panels_bbox.get_box())
         dest_page_image = self._get_centred_dest_page_image(dest_page, dest_panels_image)
 
         if dest_page_image.width != DEST_TARGET_WIDTH:
-            raise Exception(
+            msg = (
                 f'Width mismatch for page "{srce_page.page_filename}":'
                 f"{dest_page_image.width} != {DEST_TARGET_WIDTH}"
             )
+            raise RuntimeError(msg)
         if dest_page_image.height != DEST_TARGET_HEIGHT:
-            raise Exception(
+            msg = (
                 f'Height mismatch for page "{srce_page.page_filename}":'
                 f"{dest_page_image.height} != {DEST_TARGET_HEIGHT}"
             )
+            raise RuntimeError(msg)
 
         self._write_page_number(dest_page_image, dest_page, PAGE_NUM_COLOR)
 
@@ -260,7 +285,12 @@ class ComicBookImageBuilder:
 
         return dest_page_image
 
-    def _write_page_number(self, dest_page_image: Image, dest_page: CleanPage, color):
+    def _write_page_number(
+        self,
+        dest_page_image: Image,
+        dest_page: CleanPage,
+        color: tuple[int, int, int],
+    ) -> None:
         draw = ImageDraw.Draw(dest_page_image)
 
         dest_page_centre = int(dest_page_image.width / 2)
@@ -276,7 +306,7 @@ class ComicBookImageBuilder:
             (
                 page_num_x_start + PAGE_NUM_X_BLANK_PIXEL_OFFSET,
                 page_num_y_end,
-            )
+            ),
         )
 
         # Remove the existing page number
@@ -305,8 +335,13 @@ class ComicBookImageBuilder:
 
     @staticmethod
     def _draw_centered_text(
-        text: str, image: Image, draw: ImageDraw, font: ImageFont, color, top: int
-    ):
+        text: str,
+        image: Image,
+        draw: ImageDraw,
+        font: ImageFont,
+        color: tuple[int, int, int],
+        top: int,
+    ) -> None:
         w = draw.textlength(text, font)
         left = (image.width - w) / 2
         draw.text((left, top), text, fill=color, font=font, align="center")
@@ -321,13 +356,14 @@ class ComicBookImageBuilder:
 
         return dest_page_image
 
-    def _write_introduction(self, dest_page_image: Image):
+    def _write_introduction(self, dest_page_image: Image) -> None:
         if not os.path.isfile(self._comic.intro_inset_file):
-            raise Exception(f'Could not find inset file "{self._comic.intro_inset_file}".')
+            msg = f'Could not find inset file "{self._comic.intro_inset_file}".'
+            raise FileNotFoundError(msg)
 
         logging.info(
             f"Writing introduction - using inset file"
-            f' "{get_relpath(self._comic.intro_inset_file)}".'
+            f' "{get_relpath(self._comic.intro_inset_file)}".',
         )
 
         draw = ImageDraw.Draw(dest_page_image)
@@ -363,7 +399,8 @@ class ComicBookImageBuilder:
         top += text_height + INTRO_AUTHOR_INSET_GAP
 
         pub_text_font = ImageFont.truetype(
-            get_font_path(INTRO_TEXT_FONT_FILE), INTRO_PUB_TEXT_FONT_SIZE
+            get_font_path(INTRO_TEXT_FONT_FILE),
+            INTRO_PUB_TEXT_FONT_SIZE,
         )
         text_height = self._get_intro_text_height(draw, self._comic.publication_text, pub_text_font)
         pub_text_top = dest_page_image.height - INTRO_BOTTOM_MARGIN - text_height
@@ -388,8 +425,11 @@ class ComicBookImageBuilder:
 
     @staticmethod
     def _get_resized_inset(
-        inset_file: str, top: int, bottom: int, page_width: int
-    ) -> Tuple[Tuple[int, int], Image]:
+        inset_file: str,
+        top: int,
+        bottom: int,
+        page_width: int,
+    ) -> tuple[tuple[int, int], Image]:
         inset = open_image_for_reading(inset_file)
         inset_width, inset_height = inset.size
 
@@ -408,7 +448,8 @@ class ComicBookImageBuilder:
             new_inset_width = int((inset_width / inset_height) * new_inset_height)
 
         new_inset = inset.resize(
-            size=(new_inset_width, new_inset_height), resample=Image.Resampling.BICUBIC
+            size=(new_inset_width, new_inset_height),
+            resample=Image.Resampling.BICUBIC,
         )
 
         inset_left = int((page_width - new_inset_width) / 2)
@@ -427,8 +468,9 @@ class ComicBookImageBuilder:
         return text_bbox[2] - text_bbox[0]
 
     def _get_title_and_fonts(
-        self, draw: ImageDraw.Draw
-    ) -> Tuple[List[str], List[ImageFont.truetype], int]:
+        self,
+        draw: ImageDraw.Draw,
+    ) -> tuple[list[str], list[ImageFont.FreeTypeFont], int]:
         title = self._comic.get_comic_title()
         font_file = self._comic.title_font_file
         font_size = self._comic.title_font_size
@@ -437,18 +479,26 @@ class ComicBookImageBuilder:
         if (not comic_book_info.is_barks_title) and (comic_book_info.issue_name == Issues.CS):
             add_footnote = self._comic.get_ini_title() in CENSORED_TITLES
 
-            title_and_fonts = self._get_comics_and_stories_title_and_fonts(
-                draw, title, font_file, font_size, add_footnote
+            return self._get_comics_and_stories_title_and_fonts(
+                draw,
+                title,
+                font_file,
+                font_size,
+                add_footnote,
             )
-            return title_and_fonts
 
         title_font = ImageFont.truetype(font_file, font_size)
         text_height = self._get_intro_text_height(draw, title, title_font)
         return [title], [title_font], text_height
 
     def _get_comics_and_stories_title_and_fonts(
-        self, draw: ImageDraw.Draw, title: str, font_file: str, font_size: int, add_footnote: bool
-    ) -> Tuple[List[str], List[ImageFont.truetype], int]:
+        self,
+        draw: ImageDraw.Draw,
+        title: str,
+        font_file: str,
+        font_size: int,
+        add_footnote: bool,
+    ) -> tuple[list[str], list[ImageFont.FreeTypeFont], int]:
         assert title.startswith(ISSUE_NAME[Issues.CS])
 
         comic_num = title[len(ISSUE_NAME[Issues.CS]) :]
@@ -472,26 +522,31 @@ class ComicBookImageBuilder:
         image: Image,
         draw: ImageDraw,
         font: ImageFont,
-        color,
+        color: tuple[int, int, int],
         top: int,
         spacing: int,
-    ):
+    ) -> None:
         text_width = self._get_intro_text_width(draw, text, font)
         left = (image.width - text_width) / 2
         draw.multiline_text(
-            (left, top), text, fill=color, font=font, align="center", spacing=spacing
+            (left, top),
+            text,
+            fill=color,
+            font=font,
+            align="center",
+            spacing=spacing,
         )
 
     def _draw_centered_multiline_title_text(
         self,
-        text_vals: List[str],
-        fonts: List[ImageFont],
-        color: Tuple[int, int, int],
+        text_vals: list[str],
+        fonts: list[ImageFont.FreeTypeFont],
+        color: tuple[int, int, int],
         top: int,
         spacing: int,
         image: Image,
         draw: ImageDraw,
-    ):
+    ) -> None:
         lines = []
         line = []
         for text, font in zip(text_vals, fonts):
@@ -519,7 +574,10 @@ class ComicBookImageBuilder:
         for text_line, line_width in zip(text_lines, line_widths):
             left = (image.width - line_width) / 2
             line_start = True
-            for text, font, text_width in text_line:
+            for txt, font, txt_width in text_line:
+                text = txt
+                text_width = txt_width
+
                 font_height = self._get_intro_text_height(draw, text, font)
                 assert font_height <= max_font_height
 
@@ -563,12 +621,12 @@ class ComicBookImageBuilder:
     def _draw_superscript_title_text(
         self,
         text: str,
-        color: Tuple[int, int, int],
+        color: tuple[int, int, int],
         left: int,
         top: int,
         spacing: int,
         draw: ImageDraw,
-    ):
+    ) -> None:
         superscript_font_size = int(0.7 * self._comic.title_font_size)
         superscript_font = ImageFont.truetype(self._comic.title_font_file, superscript_font_size)
         draw.multiline_text(
