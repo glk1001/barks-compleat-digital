@@ -166,7 +166,8 @@ class ComicBook:
         return self._get_story_files(page_types, self.get_srce_restored_svg_story_file)
 
     def get_srce_restored_ocr_story_files(
-        self, page_types: list[PageType]
+        self,
+        page_types: list[PageType],
     ) -> list[tuple[str, str]]:
         all_files = []
         for page in self.page_images_in_order:
@@ -260,7 +261,7 @@ class ComicBook:
             page_num + PNG_FILE_EXT,
         )
         if os.path.isfile(jpg_fixes_file) and os.path.isfile(png_fixes_file):
-            raise Exception(f'Cannot have both .jpg and .png fixes file "{jpg_fixes_file}"')
+            raise RuntimeError(f'Cannot have both .jpg and .png fixes file "{jpg_fixes_file}"')
 
         if os.path.isfile(jpg_fixes_file):
             return jpg_fixes_file
@@ -297,7 +298,7 @@ class ComicBook:
             page_num + JPG_FILE_EXT,
         )
         if os.path.isfile(srce_upscayled_fixes_file):
-            raise Exception(
+            raise RuntimeError(
                 f'Upscayled fixes file must be .png not .jpg: "{srce_upscayled_fixes_file}".',
             )
         srce_upscayled_fixes_file = self.get_srce_upscayled_fixes_story_file(page_num)
@@ -314,7 +315,7 @@ class ComicBook:
         if mod_type == ModifiedType.ORIGINAL:
             final_file = srce_upscayled_file
         elif os.path.isfile(srce_upscayled_file):
-            raise Exception(
+            raise RuntimeError(
                 f"Cannot have an upscayled file and a fixes file:"
                 f' "{srce_upscayled_file}" and "{srce_upscayled_fixes_file}".',
             )
@@ -343,7 +344,7 @@ class ComicBook:
             if os.path.isfile(srce_restored_file):
                 return srce_restored_file, ModifiedType.ORIGINAL
 
-            raise Exception(
+            raise FileNotFoundError(
                 f'Could not find restored source file "{srce_restored_file}"'
                 f' of type "{page_type.name}"',
             )
@@ -353,7 +354,7 @@ class ComicBook:
             return srce_file, mod_type
 
         raise FileNotFoundError(
-            f'Could not find source file "{srce_file}" of type "{page_type.name}"'
+            f'Could not find source file "{srce_file}" of type "{page_type.name}"',
         )
 
     def _get_final_story_file(
@@ -382,10 +383,11 @@ class ComicBook:
                     f' fixes file: "{get_abbrev_path(fixes_file)}".',
                 )
                 if page_type not in STORY_PAGE_TYPES:
-                    raise RuntimeError(
+                    msg = (
                         f"EDITED {file_type.name} fixes page '{page_num}',"
-                        f' must be in "{", ".join(STORY_PAGE_TYPES_STR_LIST)}"',
+                        f' must be in "{", ".join(STORY_PAGE_TYPES_STR_LIST)}"'
                     )
+                    raise RuntimeError(msg)
             mod_type = ModifiedType.MODIFIED
         elif self._is_added_fixes_special_case(page_num, page_type):
             # Fixes file is a special case ADDED file.
@@ -401,10 +403,11 @@ class ComicBook:
                 f' "{get_abbrev_path(fixes_file)}".',
             )
             if page_type in STORY_PAGE_TYPES:
-                raise RuntimeError(
+                msg = (
                     f"ADDED {file_type.name} page '{page_num}',"
-                    f' must NOT be in "{", ".join(STORY_PAGE_TYPES_STR_LIST)}"',
+                    f' must NOT be in "{", ".join(STORY_PAGE_TYPES_STR_LIST)}"'
                 )
+                raise RuntimeError(msg)
             mod_type = ModifiedType.ADDED
 
         return fixes_file, mod_type
@@ -428,7 +431,14 @@ class ComicBook:
             return True
         if volume == 16 and page_num == "235":  # Copied from volume 14, jpeg 145
             return True
-        if volume == 7 and page_num in ["260", "261", "262", "263", "264", "265"]:  # Articles titles
+        if volume == 7 and page_num in [
+            "260",
+            "261",
+            "262",
+            "263",
+            "264",
+            "265",
+        ]:  # Non-comic title
             return True
 
         return False
@@ -587,24 +597,22 @@ def get_main_publication_info(
 
     if file_title == SILENT_NIGHT:
         # Originally intended for WDCS 64
-        publication_text = (
+        return (
             f"(*) Rejected by Western editors in 1945, this story was originally\n"
             f" intended for publication in {first_published}\n"
             f"Submitted to Western Publishing{submitted_date}\n"
         )
-        return publication_text
     if file_title == MILKMAN_THE:
         # Originally intended for WDCS 215
-        publication_text = (
+        return (
             f"(*) Rejected by Western editors in 1957, this story was originally\n"
             f" intended for publication in {first_published}\n"
             f"Submitted to Western Publishing{submitted_date}\n"
             "\n"
             f"Color restoration by {fanta_info.colorist}"
         )
-        return publication_text
 
-    publication_text = (
+    return (
         f"First published in {first_published}\n"
         f"Submitted to Western Publishing{submitted_date}\n"
         "\n"
@@ -612,8 +620,6 @@ def get_main_publication_info(
         f" Volume {fanta_book.volume}, {fanta_book.year}\n"
         f"Color restoration by {fanta_info.colorist}"
     )
-
-    return publication_text
 
 
 def _get_pages_in_order(config_pages: list[OriginalPage]) -> list[OriginalPage]:

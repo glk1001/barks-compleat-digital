@@ -1,3 +1,5 @@
+# ruff: noqa: C901, T201
+
 import logging
 import os
 from dataclasses import dataclass
@@ -61,14 +63,10 @@ def check_comics_integrity(comics_db: ComicsDatabase, titles: list[str]) -> int:
     if check_ini_files_match_series_info(comics_db) != 0:
         return 1
 
-    ret_code = 0
-
-    if check_no_unexpected_files(comics_db) != 0:
-        ret_code = 1
+    unexpected_files = check_no_unexpected_files(comics_db) != 0
 
     if not titles:
-        if ret_code != 0:
-            ret_code = check_all_titles(comics_db)
+        ret_code = check_all_titles(comics_db)
     else:
         ret_code = 0
         for title in titles:
@@ -77,7 +75,11 @@ def check_comics_integrity(comics_db: ComicsDatabase, titles: list[str]) -> int:
                 ret_code = ret
 
     if ret_code == 0:
-        print("\nThere were no problems found.\n")
+        if not unexpected_files:
+            print("\nThere were no problems found.\n")
+        else:
+            print("\nThere were no other problems found.\n")
+            ret_code = 1
 
     return ret_code
 
@@ -187,30 +189,15 @@ def check_standard_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
     fanta_original_image_dir = comics_db.get_fantagraphics_volume_image_dir(volume)
     num_fanta_pages = comics_db.get_num_pages_in_fantagraphics_volume(volume)
 
-    ret_code = 0
-
-    # Basic 'fixes' check.
     fixes_root_dir = comics_db.get_fantagraphics_fixes_volume_dir(volume)
-    if _get_num_files_in_dir(fixes_root_dir) != 1:
-        print(f'{ERROR_MSG_PREFIX}Directory "{fixes_root_dir}" has too many files.')
-        ret_code = 1
-        return ret_code
-
     fixes_dir = comics_db.get_fantagraphics_fixes_volume_image_dir(volume)
-    if not os.path.isdir(fixes_dir):
-        print(f'{ERROR_MSG_PREFIX}Could not find fixes directory "{fixes_dir}".')
-        ret_code = 1
-        return ret_code
-
     upscayled_fixes_dir = comics_db.get_fantagraphics_upscayled_fixes_volume_image_dir(volume)
-    if not os.path.isdir(upscayled_fixes_dir):
-        print(
-            f'{ERROR_MSG_PREFIX}Could not find upscayled fixes directory "{upscayled_fixes_dir}".',
-        )
-        ret_code = 1
-        return ret_code
+
+    if check_basic_fixes(fixes_root_dir, fixes_dir, upscayled_fixes_dir) != 0:
+        return 1
 
     # Standard fixes files.
+    ret_code = 0
     for file in os.listdir(fixes_dir):
         # TODO: Should 'bounded' be here?
         if file == "bounded":
@@ -253,10 +240,7 @@ def check_standard_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
             ret_code = 1
             continue
 
-        if os.path.isfile(jpg_fixes_file):
-            fixes_file = jpg_fixes_file
-        else:
-            fixes_file = png_fixes_file
+        fixes_file = jpg_fixes_file if os.path.isfile(jpg_fixes_file) else png_fixes_file
 
         if not os.path.isfile(original_file):
             # If it's an added file it must have a valid page number.
@@ -285,6 +269,24 @@ def check_standard_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
     return ret_code
 
 
+def check_basic_fixes(fixes_root_dir: str, fixes_dir: str, upscayled_fixes_dir: str) -> int:
+    if _get_num_files_in_dir(fixes_root_dir) != 1:
+        print(f'{ERROR_MSG_PREFIX}Directory "{fixes_root_dir}" has too many files.')
+        return 1
+
+    if not os.path.isdir(fixes_dir):
+        print(f'{ERROR_MSG_PREFIX}Could not find fixes directory "{fixes_dir}".')
+        return 1
+
+    if not os.path.isdir(upscayled_fixes_dir):
+        print(
+            f'{ERROR_MSG_PREFIX}Could not find upscayled fixes directory "{upscayled_fixes_dir}".',
+        )
+        return 1
+
+    return 0
+
+
 def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume: int) -> int:
     fanta_original_image_dir = comics_db.get_fantagraphics_volume_image_dir(volume)
     fixes_dir = comics_db.get_fantagraphics_fixes_volume_image_dir(volume)
@@ -295,16 +297,14 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
     upscayled_fixes_root_dir = comics_db.get_fantagraphics_upscayled_fixes_volume_dir(volume)
     if _get_num_files_in_dir(upscayled_fixes_root_dir) != 1:
         print(f'{ERROR_MSG_PREFIX}Directory "{upscayled_fixes_root_dir}" has too many files.')
-        ret_code = 1
-        return ret_code
+        return 1
 
     upscayled_fixes_dir = comics_db.get_fantagraphics_upscayled_fixes_volume_image_dir(volume)
     if not os.path.isdir(fixes_dir):
         print(
             f'{ERROR_MSG_PREFIX}Could not find upscayled fixes directory "{upscayled_fixes_dir}".',
         )
-        ret_code = 1
-        return ret_code
+        return 1
 
     # Upscayled fixes files.
     for file in os.listdir(upscayled_fixes_dir):
@@ -367,13 +367,12 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
 
 
 # TODO: Fill this out
-# noinspection PyUnusedLocal
-def _not_used(page_num: int) -> bool:
+def _not_used(_page_num: int) -> bool:
     return False
 
 
 def _get_num_files_in_dir(dirname: str) -> int:
-    return len([file for file in os.listdir(dirname)])
+    return len(list(os.listdir(dirname)))
 
 
 def check_folder_and_contents_are_readonly(dir_path: str) -> int:
@@ -451,9 +450,9 @@ def check_ini_files_match_series_info(comics_db: ComicsDatabase) -> int:
 
     for volume in range(FIRST_VOLUME_NUMBER, LAST_VOLUME_NUMBER + 1):
         titles_and_info = comics_db.get_configured_titles_in_fantagraphics_volumes([volume])
-        ini_titles = set([t[0] for t in titles_and_info])
+        ini_titles = {t[0] for t in titles_and_info}
         titles_and_info = comics_db.get_all_titles_in_fantagraphics_volumes([volume])
-        series_info_titles = set([t[0] for t in titles_and_info])
+        series_info_titles = {t[0] for t in titles_and_info}
         for ini_title in ini_titles:
             if ini_title not in series_info_titles:
                 print(
