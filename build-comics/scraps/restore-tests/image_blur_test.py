@@ -27,9 +27,7 @@ def median_filter2(data, filter_size):
     data_final = []
     data_final = np.zeros((len(data), len(data[0])))
     for i in range(len(data)):
-
         for j in range(len(data[0])):
-
             for z in range(filter_size):
                 if i + z - indexer < 0 or i + z - indexer > len(data) - 1:
                     for c in range(filter_size):

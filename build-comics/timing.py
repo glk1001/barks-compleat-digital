@@ -9,5 +9,4 @@ class Timing:
 
     def get_elapsed_time_in_seconds(self) -> int:
         elapsed_time = self.end_time - self.start_time
-        elapsed_time = int(round(elapsed_time.total_seconds(), 1))
-        return elapsed_time
+        return int(round(elapsed_time.total_seconds(), 1))

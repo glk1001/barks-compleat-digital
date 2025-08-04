@@ -1,3 +1,7 @@
+# ruff: noqa: ERA001, E501
+
+from __future__ import annotations
+
 import concurrent.futures
 import logging
 import os
@@ -5,68 +9,69 @@ import shutil
 import sys
 import traceback
 from datetime import datetime
-from typing import List, Union, Tuple
-
-from PIL import Image
+from typing import TYPE_CHECKING
 
 from additional_file_writing import (
-    write_readme_file,
-    write_metadata_file,
-    write_json_metadata,
-    write_srce_dest_map,
     write_dest_panels_bboxes,
+    write_json_metadata,
+    write_metadata_file,
+    write_readme_file,
+    write_srce_dest_map,
 )
 from barks_fantagraphics.barks_titles import get_safe_title
-from barks_fantagraphics.comic_book import (
-    ComicBook,
-)
 from barks_fantagraphics.comics_consts import (
-    PageType,
-    DEST_TARGET_WIDTH,
-    DEST_TARGET_HEIGHT,
-    DEST_TARGET_X_MARGIN,
     DEST_TARGET_ASPECT_RATIO,
+    DEST_TARGET_HEIGHT,
+    DEST_TARGET_WIDTH,
+    DEST_TARGET_X_MARGIN,
+    PageType,
 )
 from barks_fantagraphics.comics_utils import (
-    get_clean_path,
-    get_abbrev_path,
     delete_all_files_in_directory,
-)
-from barks_fantagraphics.page_classes import (
-    CleanPage,
-    SrceAndDestPages,
-    ComicDimensions,
-    RequiredDimensions,
+    get_abbrev_path,
+    get_clean_path,
 )
 from barks_fantagraphics.pages import (
+    EMPTY_IMAGE_FILEPATH,
     get_max_timestamp,
     get_page_num_str,
     get_sorted_srce_and_dest_pages_with_dimensions,
-    EMPTY_IMAGE_FILEPATH,
 )
 from barks_fantagraphics.pil_image_utils import METADATA_PROPERTY_GROUP
 from build_comic_images import ComicBookImageBuilder
 from consts import (
-    MIN_HD_SRCE_HEIGHT,
     DEST_JPG_COMPRESS_LEVEL,
     DEST_JPG_QUALITY,
+    MIN_HD_SRCE_HEIGHT,
 )
 from image_io import open_image_for_reading
-from zipping import zip_comic_book, create_symlinks_to_comic_zip
+from zipping import create_symlinks_to_comic_zip, zip_comic_book
+
+if TYPE_CHECKING:
+    from barks_fantagraphics.comic_book import (
+        ComicBook,
+    )
+    from barks_fantagraphics.page_classes import (
+        CleanPage,
+        ComicDimensions,
+        RequiredDimensions,
+        SrceAndDestPages,
+    )
+    from PIL import Image
 
 USE_CONCURRENT_PROCESSES = True
 _process_page_error = False
 
 
 class ComicBookBuilder:
-    def __init__(self, comic: ComicBook):
+    def __init__(self, comic: ComicBook) -> None:
         self._comic = comic
         self._image_builder = ComicBookImageBuilder(comic, EMPTY_IMAGE_FILEPATH)
 
-        self._srce_dim: Union[ComicDimensions, None] = None
-        self._required_dim: Union[RequiredDimensions, None] = None
+        self._srce_dim: ComicDimensions | None = None
+        self._required_dim: RequiredDimensions | None = None
 
-        self._srce_and_dest_pages: Union[SrceAndDestPages, None] = None
+        self._srce_and_dest_pages: SrceAndDestPages | None = None
 
     def get_srce_dim(self) -> ComicDimensions:
         return self._srce_dim
@@ -89,7 +94,7 @@ class ComicBookBuilder:
 
         self._zip_and_symlink_comic_book()
 
-    def _init_pages(self):
+    def _init_pages(self) -> None:
         logging.debug("Initializing pages...")
         self._srce_and_dest_pages, self._srce_dim, self._required_dim = (
             self._get_srce_and_dest_pages_and_dimensions(self._comic)
@@ -99,7 +104,7 @@ class ComicBookBuilder:
     @staticmethod
     def _get_srce_and_dest_pages_and_dimensions(
         comic: ComicBook,
-    ) -> Tuple[SrceAndDestPages, ComicDimensions, RequiredDimensions]:
+    ) -> tuple[SrceAndDestPages, ComicDimensions, RequiredDimensions]:
         srce_and_dest_pages, srce_dim, required_dim = (
             get_sorted_srce_and_dest_pages_with_dimensions(comic, get_full_paths=True)
         )
@@ -108,8 +113,8 @@ class ComicBookBuilder:
         assert srce_dim.max_panels_bbox_height >= srce_dim.min_panels_bbox_height > 0
         assert srce_dim.max_panels_bbox_width >= srce_dim.av_panels_bbox_width > 0
         assert srce_dim.max_panels_bbox_height >= srce_dim.av_panels_bbox_height > 0
-        assert required_dim.panels_bbox_width == int(
-            round((DEST_TARGET_WIDTH - (2 * DEST_TARGET_X_MARGIN)))
+        assert required_dim.panels_bbox_width == round(
+            DEST_TARGET_WIDTH - (2 * DEST_TARGET_X_MARGIN)
         )
 
         logging.debug(f"Srce average panels bbox width: {srce_dim.av_panels_bbox_width}.")
@@ -127,12 +132,12 @@ class ComicBookBuilder:
         self._process_pages()
         self._process_additional_files()
 
-    def _process_pages(self):
+    def _process_pages(self) -> None:
         logging.debug("Processing pages...")
         delete_all_files_in_directory(self._comic.get_dest_dir())
         delete_all_files_in_directory(self._comic.get_dest_image_dir())
 
-        global _process_page_error
+        global _process_page_error  # noqa: PLW0603
         _process_page_error = False
 
         if USE_CONCURRENT_PROCESSES:
@@ -141,46 +146,55 @@ class ComicBookBuilder:
             # with concurrent.futures.ProcessPoolExecutor() as executor:
             with concurrent.futures.ThreadPoolExecutor(max_workers) as executor:
                 for srce_page, dest_page in zip(
-                    self._srce_and_dest_pages.srce_pages, self._srce_and_dest_pages.dest_pages
+                    self._srce_and_dest_pages.srce_pages,
+                    self._srce_and_dest_pages.dest_pages,
                 ):
                     executor.submit(self._process_page, srce_page, dest_page)
         else:
             for srce_page, dest_page in zip(
-                self._srce_and_dest_pages.srce_pages, self._srce_and_dest_pages.dest_pages
+                self._srce_and_dest_pages.srce_pages,
+                self._srce_and_dest_pages.dest_pages,
             ):
                 self._process_page(srce_page, dest_page)
 
         if _process_page_error:
-            raise Exception("There were errors while processing pages.")
+            raise RuntimeError("There were errors while processing pages.")
 
     def _process_page(
         self,
         srce_page: CleanPage,
         dest_page: CleanPage,
     ) -> None:
-        # noinspection PyBroadException
-        try:
-            srce_page_image = open_image_for_reading(srce_page.page_filename)
-            if srce_page.page_type == PageType.BODY and srce_page_image.height < MIN_HD_SRCE_HEIGHT:
-                raise Exception(
+        def check_srce_page_image_min_height() -> None:
+            if srce_page_image.height < MIN_HD_SRCE_HEIGHT:
+                msg = (
                     f"Srce image error: min required height {MIN_HD_SRCE_HEIGHT}."
                     f' Poor srce file resolution for "{srce_page.page_filename}":'
                     f" {srce_page_image.width} x {srce_page_image.height}."
                 )
+                raise ValueError(msg)
+
+        # noinspection PyBroadException
+        try:
+            srce_page_image = open_image_for_reading(srce_page.page_filename)
+            if srce_page.page_type == PageType.BODY:
+                check_srce_page_image_min_height()
 
             logging.info(
                 f'Convert "{get_abbrev_path(srce_page.page_filename)}"'
                 f" (page-type {srce_page.page_type.name})"
                 f' to "{get_abbrev_path(dest_page.page_filename)}"'
-                f" (page {get_page_num_str(dest_page):>2}."
+                f" (page {get_page_num_str(dest_page):>2}.",
             )
 
             logging.info(
                 f'Creating dest image "{get_abbrev_path(dest_page.page_filename)}"'
-                f' from srce file "{get_abbrev_path(srce_page.page_filename)}".'
+                f' from srce file "{get_abbrev_path(srce_page.page_filename)}".',
             )
             dest_page_image = self._image_builder.get_dest_page_image(
-                srce_page_image, srce_page, dest_page
+                srce_page_image,
+                srce_page,
+                dest_page,
             )
 
             self._save_dest_image(dest_page, dest_page_image, srce_page)
@@ -192,12 +206,15 @@ class ComicBookBuilder:
             tb_info = traceback.extract_tb(tb)
             filename, line, func, text = tb_info[-1]
             err_msg = f'Error in process page at "{filename}:{line}" for statement "{text}".'
-            logging.error(err_msg)
-            global _process_page_error
+            logging.exception(err_msg)
+            global _process_page_error  # noqa: PLW0603
             _process_page_error = True
 
     def _save_dest_image(
-        self, dest_page: CleanPage, dest_page_image: Image, srce_page: CleanPage
+        self,
+        dest_page: CleanPage,
+        dest_page_image: Image,
+        srce_page: CleanPage,
     ) -> None:
         dest_page_image.save(
             dest_page.page_filename,
@@ -208,12 +225,12 @@ class ComicBookBuilder:
         )
 
     @staticmethod
-    def _get_dest_jpg_comments(srce_page: CleanPage, dest_page: CleanPage) -> List[str]:
-        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+    def _get_dest_jpg_comments(srce_page: CleanPage, dest_page: CleanPage) -> list[str]:
+        now_str = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S.%f")
 
         prefix = METADATA_PROPERTY_GROUP
         indent = "      "
-        comments = [
+        return [
             indent,
             f'{indent}{prefix}:Srce file: "{get_clean_path(srce_page.page_filename)}"',
             f'{indent}{prefix}:Dest file: "{get_clean_path(dest_page.page_filename)}"',
@@ -225,8 +242,6 @@ class ComicBookBuilder:
             f" {dest_page.panels_bbox.x_max}, {dest_page.panels_bbox.y_max}",
             f"{indent}{prefix}:Dest page num: {dest_page.page_num}",
         ]
-
-        return comments
 
     def _process_additional_files(self) -> None:
         shutil.copy2(self._comic.ini_file, self._comic.get_dest_dir())
@@ -240,7 +255,10 @@ class ComicBookBuilder:
             self._srce_and_dest_pages.dest_pages,
         )
         write_srce_dest_map(
-            self._comic, self._srce_dim, self._required_dim, self._srce_and_dest_pages
+            self._comic,
+            self._srce_dim,
+            self._required_dim,
+            self._srce_and_dest_pages,
         )
         write_dest_panels_bboxes(self._comic, self._srce_and_dest_pages.dest_pages)
 
@@ -249,9 +267,10 @@ class ComicBookBuilder:
             os.makedirs(self._comic.get_dest_image_dir())
 
         if not os.path.isdir(self._comic.get_dest_image_dir()):
-            raise Exception(f'Could not make directory "{self._comic.get_dest_image_dir()}".')
+            msg = f'Could not make directory "{self._comic.get_dest_image_dir()}".'
+            raise RuntimeError(msg)
 
-    def _zip_and_symlink_comic_book(self):
+    def _zip_and_symlink_comic_book(self) -> None:
         zip_comic_book(self._comic)
         create_symlinks_to_comic_zip(self._comic)
 
@@ -259,11 +278,9 @@ class ComicBookBuilder:
     def _log_comic_book_params(self) -> None:
         logging.info("")
 
-        calc_panels_bbox_height = int(
-            round(
-                (self._srce_dim.av_panels_bbox_height * self._required_dim.panels_bbox_width)
-                / self._srce_dim.av_panels_bbox_width
-            )
+        calc_panels_bbox_height = round(
+            (self._srce_dim.av_panels_bbox_height * self._required_dim.panels_bbox_width)
+            / self._srce_dim.av_panels_bbox_width,
         )
 
         # fmt: off

@@ -1,4 +1,4 @@
-# ruff: noqa: C901, T201
+# ruff: noqa: ERA001, C901, T201
 
 import logging
 import os
@@ -749,7 +749,7 @@ def check_unexpected_files(
                 ret_code = 1
 
     if allowed_zip_year_symlinks:
-        year_symlink_parent_dir = os.path.dirname(list(allowed_zip_year_symlink_dirs)[0])
+        year_symlink_parent_dir = os.path.dirname(next(iter(allowed_zip_year_symlink_dirs)))
         if (
             check_files_in_dir(
                 "year dir",

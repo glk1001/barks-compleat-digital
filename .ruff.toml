@@ -4,14 +4,14 @@ line-length = 100
     select = ["ALL"]
 
     ignore = [
-        "D100", "D101", "D102", "D103", "D107", "D213",  # doc-strings
+        "D100", "D101", "D102", "D103", "D107", "D203", "D211", "D213",  # doc-strings
+        "COM812",  # turn off trailing commas as recommended by the formatter
         "FBT001", "FBT002",  # boolean
         "LOG015", "G004",  # logging
         "S101", "S311",  # assert
     ]
 #    ignore = [
 #        "C901", "PLR0912",
-#        "COM812",
 #        "FIX002",
 #        "LOG015", "G004",
 #        "PLR0913",

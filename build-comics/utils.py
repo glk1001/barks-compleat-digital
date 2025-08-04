@@ -1,13 +1,12 @@
 import logging
 import os
-from typing import List
 
 from barks_fantagraphics.comics_utils import (
-    get_timestamp_str,
-    get_timestamp_as_str,
     dest_file_is_older_than_srce,
     file_is_older_than_timestamp,
     get_abbrev_path,
+    get_timestamp_as_str,
+    get_timestamp_str,
 )
 
 DATE_SEP = "-"
@@ -19,14 +18,14 @@ def get_shorter_ini_filename(ini_file: str) -> str:
     return os.path.basename(ini_file)
 
 
-def get_list_of_numbers(list_str: str) -> List[int]:
+def get_list_of_numbers(list_str: str) -> list[int]:
     if not list_str:
-        return list()
+        return []
     if "-" not in list_str:
         return [int(list_str)]
 
     p_start, p_end = list_str.split("-")
-    return [n for n in range(int(p_start), int(p_end) + 1)]
+    return list(range(int(p_start), int(p_end) + 1))
 
 
 def dest_file_is_out_of_date_wrt_srce(srce_file: str, dest_file: str) -> bool:
@@ -34,7 +33,7 @@ def dest_file_is_out_of_date_wrt_srce(srce_file: str, dest_file: str) -> bool:
         logging.debug(f'Dest file "{dest_file}" not found.')
         return True
 
-    if dest_file_is_older_than_srce(srce_file, dest_file, False):
+    if dest_file_is_older_than_srce(srce_file, dest_file, include_missing_dest=False):
         logging.debug(get_file_out_of_date_with_other_file_msg(dest_file, srce_file, ""))
         return True
 
@@ -42,7 +41,9 @@ def dest_file_is_out_of_date_wrt_srce(srce_file: str, dest_file: str) -> bool:
 
 
 def zip_file_is_out_of_date_wrt_dest(
-    zip_file: str, max_dest_file: str, max_dest_timestamp: float
+    zip_file: str,
+    max_dest_file: str,
+    max_dest_timestamp: float,
 ) -> bool:
     if not os.path.isfile(zip_file):
         logging.debug(f'Dest zip file "{zip_file}" not found.')
@@ -51,8 +52,11 @@ def zip_file_is_out_of_date_wrt_dest(
     if file_is_older_than_timestamp(zip_file, max_dest_timestamp):
         logging.debug(
             get_file_out_of_date_wrt_max_timestamp_msg(
-                zip_file, max_dest_file, max_dest_timestamp, ""
-            )
+                zip_file,
+                max_dest_file,
+                max_dest_timestamp,
+                "",
+            ),
         )
         return True
 
@@ -72,7 +76,7 @@ def symlink_is_out_of_date_wrt_zip(symlink: str, zip_file: str) -> bool:
         logging.debug(f'Dest file "{symlink}" not found.')
         return False
 
-    if dest_file_is_older_than_srce(zip_file, symlink, False):
+    if dest_file_is_older_than_srce(zip_file, symlink, include_missing_dest=False):
         logging.debug(get_symlink_out_of_date_wrt_zip_msg(symlink, zip_file))
         return True
 
@@ -85,7 +89,7 @@ def get_file_out_of_date_with_other_file_msg(file: str, other_file: str, msg_pre
     if not os.path.isfile(file):
         return f'File "{file}" is missing.'
 
-    blank_prefix = f'{" ":<{len(msg_prefix)}}'
+    blank_prefix = f"{' ':<{len(msg_prefix)}}"
 
     return (
         f'{msg_prefix}File "{get_abbrev_path(file)}"\n'
@@ -97,9 +101,12 @@ def get_file_out_of_date_with_other_file_msg(file: str, other_file: str, msg_pre
 
 
 def get_file_out_of_date_wrt_max_timestamp_msg(
-    file: str, max_file: str, max_timestamp: float, msg_prefix: str
+    file: str,
+    max_file: str,
+    max_timestamp: float,
+    msg_prefix: str,
 ) -> str:
-    blank_prefix = f'{" ":<{len(msg_prefix)}}'
+    blank_prefix = f"{' ':<{len(msg_prefix)}}"
 
     return (
         f'{msg_prefix}File "{get_abbrev_path(file)}"\n'
