@@ -635,9 +635,9 @@ YOU_CANT_GUESS = "You Can't Guess!"
 YOU_CANT_WIN = "You Can't Win"
 ZERO_HERO = "Zero Hero"
 # Not comics below!
-DON_AULT_FANTA_INTRO = "Don Ault - Fantagraphics Introduction"
-DON_AULT_LIFE_AMONG_THE_DUCKS = "Don Ault - Life Among the Ducks"
-RICH_TOMASSO_ON_COLORING_BARKS = "Rich Tomasso - On Coloring Barks"
+RICH_TOMASSO___ON_COLORING_BARKS = "Rich Tomasso - On Coloring Barks"
+DON_AULT___FANTAGRAPHICS_INTRODUCTION = "Don Ault - Fantagraphics Introduction"
+DON_AULT___LIFE_AMONG_THE_DUCKS = "Don Ault - Life Among the Ducks"
 
 
 @verify(CONTINUOUS, UNIQUE)
@@ -1259,9 +1259,9 @@ class Titles(IntEnum):
     CATTLE_KING_THE = auto()
     KING_SCROOGE_THE_FIRST = auto()
     # Not comics below!
-    DON_AULT_FANTA_INTRO = auto()
-    DON_AULT_LIFE_AMONG_THE_DUCKS = auto()
-    RICH_TOMASSO_ON_COLORING_BARKS = auto()
+    RICH_TOMASSO___ON_COLORING_BARKS = auto()
+    DON_AULT___FANTAGRAPHICS_INTRODUCTION = auto()
+    DON_AULT___LIFE_AMONG_THE_DUCKS = auto()
 
 
 assert len(Titles) == NUM_TITLES
@@ -1884,9 +1884,9 @@ BARKS_TITLES = [
     CATTLE_KING_THE,
     KING_SCROOGE_THE_FIRST,
     # Not comics below!
-    DON_AULT_FANTA_INTRO,
-    DON_AULT_LIFE_AMONG_THE_DUCKS,
-    RICH_TOMASSO_ON_COLORING_BARKS,
+    RICH_TOMASSO___ON_COLORING_BARKS,
+    DON_AULT___FANTAGRAPHICS_INTRODUCTION,
+    DON_AULT___LIFE_AMONG_THE_DUCKS,
 ]
 
 assert len(BARKS_TITLES) == NUM_TITLES
@@ -2562,9 +2562,9 @@ BARKS_TITLE_INFO: list[ComicBookInfo] = [
     ComicBookInfo(Titles.CATTLE_KING_THE, False, Issues.US, 69, 5, 1967, 27, 5, 1966),
     ComicBookInfo(Titles.KING_SCROOGE_THE_FIRST, False, Issues.US, 71, 10, 1967, 22, 6, 1966),
     # Not comics below!
-    ComicBookInfo(Titles.DON_AULT_FANTA_INTRO, False, Issues.EXTRAS, 1, 1, 2011, 1, 1, 2011),
-    ComicBookInfo(Titles.DON_AULT_LIFE_AMONG_THE_DUCKS, False, Issues.EXTRAS, 1, 1, 2014, 1, 1, 2014),
-    ComicBookInfo(Titles.RICH_TOMASSO_ON_COLORING_BARKS, False, Issues.EXTRAS, 1, 1, 2011, 1, 1, 2011),
+    ComicBookInfo(Titles.RICH_TOMASSO___ON_COLORING_BARKS, False, Issues.EXTRAS, 1, 1, 2011, 1, 1, 2011),
+    ComicBookInfo(Titles.DON_AULT___FANTAGRAPHICS_INTRODUCTION, False, Issues.EXTRAS, 1, 1, 2011, 1, 1, 2011),
+    ComicBookInfo(Titles.DON_AULT___LIFE_AMONG_THE_DUCKS, False, Issues.EXTRAS, 1, 1, 2014, 1, 1, 2014),
 ]
 # fmt: on
 
@@ -2593,9 +2593,9 @@ BARKS_TITLE_DICT: dict[str, Titles] = {
 }
 
 NON_COMIC_TITLES = [
-    Titles.DON_AULT_FANTA_INTRO,
-    Titles.DON_AULT_LIFE_AMONG_THE_DUCKS,
-    Titles.RICH_TOMASSO_ON_COLORING_BARKS,
+    Titles.DON_AULT___FANTAGRAPHICS_INTRODUCTION,
+    Titles.DON_AULT___LIFE_AMONG_THE_DUCKS,
+    Titles.RICH_TOMASSO___ON_COLORING_BARKS,
 ]
 
 ONE_PAGERS = [
