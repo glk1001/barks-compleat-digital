@@ -1,24 +1,25 @@
 import logging
 import os
-from typing import List, Tuple
 
 from .comics_consts import (
-    DEST_TARGET_WIDTH,
     DEST_TARGET_HEIGHT,
+    DEST_TARGET_WIDTH,
     DEST_TARGET_X_MARGIN,
-    PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN,
     PAGES_WITHOUT_PANELS,
+    PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN,
 )
-from .comics_utils import dest_file_is_older_than_srce
-from .page_classes import CleanPage, SrceAndDestPages, ComicDimensions, RequiredDimensions
+from .comics_utils import dest_file_is_older_than_srce, get_abbrev_path
+from .page_classes import CleanPage, ComicDimensions, RequiredDimensions, SrceAndDestPages
 from .panel_bounding_boxes import BoundingBox, get_panels_bounding_box_from_file
+
+warn_on_panels_bbox_height_less_than_av = True
 
 
 def get_required_panels_bbox_width_height(
-    srce_pages: List[CleanPage],
+    srce_pages: list[CleanPage],
     required_page_height: int,
     required_page_number_height: int,
-) -> Tuple[ComicDimensions, RequiredDimensions]:
+) -> tuple[ComicDimensions, RequiredDimensions]:
     (
         min_panels_bbox_width,
         max_panels_bbox_width,
@@ -27,18 +28,19 @@ def get_required_panels_bbox_width_height(
     ) = _get_min_max_panels_bbox_width_height(srce_pages)
 
     av_panels_bbox_width, av_panels_bbox_height = _get_average_panels_bbox_width_height(
-        max_panels_bbox_height, srce_pages
+        max_panels_bbox_height,
+        srce_pages,
     )
     assert av_panels_bbox_width > 0
     assert av_panels_bbox_height > 0
 
     required_panels_bbox_width = DEST_TARGET_WIDTH - (2 * DEST_TARGET_X_MARGIN)
     required_panels_bbox_height = get_scaled_panels_bbox_height(
-        required_panels_bbox_width, av_panels_bbox_width, av_panels_bbox_height
+        required_panels_bbox_width,
+        av_panels_bbox_width,
+        av_panels_bbox_height,
     )
-    page_num_y_centre = int(
-        round(0.5 * (0.5 * (required_page_height - required_panels_bbox_height)))
-    )
+    page_num_y_centre = round(0.5 * (0.5 * (required_page_height - required_panels_bbox_height)))
     required_page_num_y_bottom = int(page_num_y_centre - (required_page_number_height / 2))
 
     return (
@@ -51,20 +53,25 @@ def get_required_panels_bbox_width_height(
             av_panels_bbox_height,
         ),
         RequiredDimensions(
-            required_panels_bbox_width, required_panels_bbox_height, required_page_num_y_bottom
+            required_panels_bbox_width,
+            required_panels_bbox_height,
+            required_page_num_y_bottom,
         ),
     )
 
 
 def get_scaled_panels_bbox_height(
-    scaled_panels_bbox_width: int, panels_bbox_width, panels_bbox_height: int
+    scaled_panels_bbox_width: int,
+    panels_bbox_width: int,
+    panels_bbox_height: int,
 ) -> int:
-    return int(round((panels_bbox_height * scaled_panels_bbox_width) / panels_bbox_width))
+    return round((panels_bbox_height * scaled_panels_bbox_width) / panels_bbox_width)
 
 
 def _get_average_panels_bbox_width_height(
-    max_panels_bbox_height: int, srce_pages: List[CleanPage]
-) -> Tuple[int, int]:
+    max_panels_bbox_height: int,
+    srce_pages: list[CleanPage],
+) -> tuple[int, int]:
     sum_panels_bbox_width = 0
     sum_panels_bbox_height = 0
     num_pages = 0
@@ -83,14 +90,14 @@ def _get_average_panels_bbox_width_height(
         num_pages += 1
 
     assert num_pages > 0
-    return int(round(float(sum_panels_bbox_width) / float(num_pages))), int(
-        round(float(sum_panels_bbox_height) / float(num_pages))
+    return round(float(sum_panels_bbox_width) / float(num_pages)), round(
+        float(sum_panels_bbox_height) / float(num_pages),
     )
 
 
 def _get_min_max_panels_bbox_width_height(
-    srce_pages: List[CleanPage],
-) -> Tuple[int, int, int, int]:
+    srce_pages: list[CleanPage],
+) -> tuple[int, int, int, int]:
     big_num = 10000
 
     min_panels_bbox_width = big_num
@@ -119,25 +126,26 @@ def _get_min_max_panels_bbox_width_height(
 
 
 def set_srce_panel_bounding_boxes(
-    srce_pages: List[CleanPage],
-    srce_panels_segment_info_files: List[str],
+    srce_pages: list[CleanPage],
+    srce_panels_segment_info_files: list[str],
     check_srce_page_timestamps: bool,
-):
+) -> None:
     logging.debug("Setting srce panel bounding boxes.")
 
     for srce_page, srce_panels_segment_info_file in zip(srce_pages, srce_panels_segment_info_files):
         if srce_page.page_type in PAGES_WITHOUT_PANELS:
             continue
         if not os.path.isfile(srce_panels_segment_info_file):
-            raise Exception(
-                f'Could not find panels segments info file "{srce_panels_segment_info_file}".'
+            raise FileNotFoundError(
+                f'Could not find panels segments info file "{srce_panels_segment_info_file}".',
             )
         if check_srce_page_timestamps and dest_file_is_older_than_srce(
-            srce_page.page_filename, srce_panels_segment_info_file
+            srce_page.page_filename,
+            srce_panels_segment_info_file,
         ):
-            raise Exception(
+            raise RuntimeError(
                 f'Panels segments info file "{srce_panels_segment_info_file}"'
-                f' is older than srce image file "{srce_page.page_filename}".'
+                f' is older than srce image file "{srce_page.page_filename}".',
             )
         srce_page.panels_bbox = get_panels_bounding_box_from_file(srce_panels_segment_info_file)
 
@@ -145,8 +153,10 @@ def set_srce_panel_bounding_boxes(
 
 
 def set_dest_panel_bounding_boxes(
-    srce_dim: ComicDimensions, required_dim: RequiredDimensions, pages: SrceAndDestPages
-):
+    srce_dim: ComicDimensions,
+    required_dim: RequiredDimensions,
+    pages: SrceAndDestPages,
+) -> None:
     logging.debug("Setting dest panel bounding boxes.")
 
     for srce_page, dest_page in zip(pages.srce_pages, pages.dest_pages):
@@ -156,7 +166,9 @@ def set_dest_panel_bounding_boxes(
 
 
 def _get_dest_panels_bounding_box(
-    srce_dim: ComicDimensions, required_dim: RequiredDimensions, srce_page: CleanPage
+    srce_dim: ComicDimensions,
+    required_dim: RequiredDimensions,
+    srce_page: CleanPage,
 ) -> BoundingBox:
     if srce_page.page_type in PAGES_WITHOUT_PANELS:
         return BoundingBox(0, 0, DEST_TARGET_WIDTH - 1, DEST_TARGET_HEIGHT - 1)
@@ -176,16 +188,21 @@ def _get_dest_panels_bounding_box(
         required_panels_height = required_dim.panels_bbox_height
     else:
         required_panels_height = get_scaled_panels_bbox_height(
-            required_panels_width, srce_panels_bbox_width, srce_panels_bbox_height
+            required_panels_width,
+            srce_panels_bbox_width,
+            srce_panels_bbox_height,
         )
-        logging.warning(
-            f'For "{os.path.basename(srce_page.page_filename)}",'
+        log_panel_warning = (
+            logging.warning if warn_on_panels_bbox_height_less_than_av else logging.debug
+        )
+        log_panel_warning(
+            f'For "{get_abbrev_path(srce_page.page_filename)}",'
             f" panels bbox height {srce_panels_bbox_height}"
             f" < {srce_dim.av_panels_bbox_height - PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN}"
             f" (= average height:{srce_dim.av_panels_bbox_height}"
             f" - error:{PANELS_BBOX_HEIGHT_SIMILARITY_MARGIN})."
             f" So setting required bbox height to {required_panels_height},"
-            f" not {required_dim.panels_bbox_height}."
+            f" not {required_dim.panels_bbox_height}.",
         )
 
     # Centre the dest panels image on an empty page.

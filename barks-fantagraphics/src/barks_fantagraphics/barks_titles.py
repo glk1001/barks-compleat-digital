@@ -1,13 +1,12 @@
 from dataclasses import dataclass
 from datetime import date
-from enum import IntEnum, auto, verify, CONTINUOUS, UNIQUE
-from typing import List, Dict
+from enum import CONTINUOUS, UNIQUE, IntEnum, auto, verify
 
 from .comic_issues import (
-    Issues,
     ISSUE_NAME,
     ISSUE_NAME_WRAPPED,
     SHORT_ISSUE_NAME,
+    Issues,
 )
 
 NUM_TITLES = 616 + 3  # +3 for articles
@@ -637,6 +636,7 @@ DON_AULT_FANTA_INTRO = "Don Ault - Fantagraphics Introduction"
 DON_AULT_LIFE_AMONG_THE_DUCKS = "Don Ault - Life Among the Ducks"
 RICH_TOMASSO_ON_COLORING_BARKS = "Rich Tomasso - On Coloring Barks"
 
+
 @verify(CONTINUOUS, UNIQUE)
 class Titles(IntEnum):
     DONALD_DUCK_FINDS_PIRATE_GOLD = 0
@@ -1261,7 +1261,7 @@ class Titles(IntEnum):
     RICH_TOMASSO_ON_COLORING_BARKS = auto()
 
 
-assert NUM_TITLES == len(Titles)
+assert len(Titles) == NUM_TITLES
 
 BARKS_TITLES = [
     DONALD_DUCK_FINDS_PIRATE_GOLD,
@@ -1886,7 +1886,7 @@ BARKS_TITLES = [
     RICH_TOMASSO_ON_COLORING_BARKS,
 ]
 
-assert NUM_TITLES == len(BARKS_TITLES)
+assert len(BARKS_TITLES) == NUM_TITLES
 
 
 @dataclass
@@ -1905,23 +1905,23 @@ class ComicBookInfo:
     def chronological_number(self) -> int:
         return self.title + 1
 
-    def get_title_str(self):
+    def get_title_str(self) -> str:
         return BARKS_TITLES[self.title]
 
-    def get_issue_name(self):
+    def get_issue_name(self) -> str:
         return ISSUE_NAME[self.issue_name]
 
-    def get_short_issue_title(self):
+    def get_short_issue_title(self) -> str:
         short_issue_name = SHORT_ISSUE_NAME[self.issue_name]
         return f"{short_issue_name} {self.issue_number}"
 
-    def get_title_from_issue_name(self):
+    def get_title_from_issue_name(self) -> str:
         if self.title in USEFUL_TITLES:
             return USEFUL_TITLES[self.title]
 
         return f"{self.get_issue_name()} #{self.issue_number}"
 
-    def get_formatted_title_from_issue_name(self):
+    def get_formatted_title_from_issue_name(self) -> str:
         if self.issue_name in ISSUE_NAME_WRAPPED:
             issue_name_str = ISSUE_NAME_WRAPPED[self.issue_name] + " #"
         else:
@@ -1939,7 +1939,7 @@ class ComicBookInfo:
 
 # fmt: off
 # noinspection LongLine
-BARKS_TITLE_INFO: List[ComicBookInfo] = [
+BARKS_TITLE_INFO: list[ComicBookInfo] = [
     ComicBookInfo(Titles.DONALD_DUCK_FINDS_PIRATE_GOLD, True, Issues.FC, 9, 10, 1942, -1, 5, 1942),
     ComicBookInfo(Titles.VICTORY_GARDEN_THE, False, Issues.CS, 31, 4, 1943, -1, 12, 1942),
     ComicBookInfo(Titles.RABBITS_FOOT_THE, False, Issues.CS, 32, 5, 1943, 23, 12, 1942),
@@ -2565,7 +2565,7 @@ BARKS_TITLE_INFO: List[ComicBookInfo] = [
 ]
 # fmt: on
 
-assert NUM_TITLES == len(BARKS_TITLE_INFO)
+assert len(BARKS_TITLE_INFO) == NUM_TITLES
 
 USEFUL_TITLES = {
     Titles.HORSERADISH_STORY_THE: "Uncle Scrooge #3",
@@ -2585,9 +2585,15 @@ USEFUL_TITLES = {
     Titles.SURE_FIRE_GOLD_FINDER_THE: "Gyro Gearloose",
 }
 
-BARKS_TITLE_DICT: Dict[str, Titles] = {
+BARKS_TITLE_DICT: dict[str, Titles] = {
     info.get_title_str(): info.title for info in BARKS_TITLE_INFO
 }
+
+TITLES_WITHOUT_TITLE_PAGES = [
+    Titles.DON_AULT_FANTA_INTRO,
+    Titles.DON_AULT_LIFE_AMONG_THE_DUCKS,
+    Titles.RICH_TOMASSO_ON_COLORING_BARKS,
+]
 
 ONE_PAGERS = [
     Titles.IF_THE_HAT_FITS,
@@ -2742,7 +2748,7 @@ ONE_PAGERS = [
 ]
 
 
-def check_story_submitted_order(title_list: List[ComicBookInfo]):
+def check_story_submitted_order(title_list: list[ComicBookInfo]) -> None:
     prev_chronological_number = 0
     prev_title = ""
     prev_submitted_date = date(1940, 1, 1)
@@ -2758,14 +2764,14 @@ def check_story_submitted_order(title_list: List[ComicBookInfo]):
         if prev_submitted_date > submitted_date:
             raise Exception(
                 f'"{title}": Out of order submitted date {submitted_date}.'
-                f' Previous entry: "{prev_title}" - {prev_submitted_date}.'
+                f' Previous entry: "{prev_title}" - {prev_submitted_date}.',
             )
         chronological_number = title.chronological_number
         if prev_chronological_number >= chronological_number:
             raise Exception(
                 f'"{title}": Out of order chronological number {chronological_number}.'
                 f' Previous title: "{prev_title}"'
-                f" with chronological number {prev_chronological_number}."
+                f" with chronological number {prev_chronological_number}.",
             )
         prev_title = title
         prev_submitted_date = submitted_date

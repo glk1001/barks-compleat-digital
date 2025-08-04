@@ -2,23 +2,23 @@ import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Tuple, Set
 
-from barks_fantagraphics.barks_titles import get_safe_title
+from barks_fantagraphics import panel_bounding
+from barks_fantagraphics.barks_titles import TITLES_WITHOUT_TITLE_PAGES, get_safe_title
 from barks_fantagraphics.comic_book import (
     ComicBook,
     get_page_num_str,
     get_total_num_pages,
 )
 from barks_fantagraphics.comics_consts import (
-    THE_CHRONOLOGICAL_DIRS_DIR,
-    THE_CHRONOLOGICAL_DIR,
-    THE_YEARS_COMICS_DIR,
-    THE_COMICS_DIR,
-    IMAGES_SUBDIR,
     BARKS_ROOT_DIR,
+    IMAGES_SUBDIR,
     JPG_FILE_EXT,
     PNG_FILE_EXT,
+    THE_CHRONOLOGICAL_DIR,
+    THE_CHRONOLOGICAL_DIRS_DIR,
+    THE_COMICS_DIR,
+    THE_YEARS_COMICS_DIR,
 )
 from barks_fantagraphics.comics_database import ComicsDatabase
 from barks_fantagraphics.comics_utils import get_relpath, get_timestamp, get_timestamp_as_str
@@ -28,8 +28,8 @@ from barks_fantagraphics.fanta_comics_info import (
 )
 from barks_fantagraphics.page_classes import SrceAndDestPages
 from barks_fantagraphics.pages import (
-    get_sorted_srce_and_dest_pages,
     get_restored_srce_dependencies,
+    get_sorted_srce_and_dest_pages,
 )
 from consts import DEST_NON_IMAGE_FILES
 from utils import (
@@ -41,10 +41,12 @@ from utils import (
 )
 
 ERROR_MSG_PREFIX = "ERROR: "
-BLANK_ERR_MSG_PREFIX = f'{" ":<{len(ERROR_MSG_PREFIX)}}'
+BLANK_ERR_MSG_PREFIX = f"{' ':<{len(ERROR_MSG_PREFIX)}}"
 
 
-def check_comics_integrity(comics_db: ComicsDatabase, titles: List[str]) -> int:
+def check_comics_integrity(comics_db: ComicsDatabase, titles: list[str]) -> int:
+    panel_bounding.warn_on_panels_bbox_height_less_than_av = False
+
     print()
 
     if check_comics_source_is_readonly(comics_db) != 0:
@@ -104,12 +106,12 @@ class ZipSymlinkOutOfDateErrors:
 class OutOfDateErrors:
     title: str
     ini_file: str
-    dest_dir_files_missing: List[str]
-    dest_dir_files_out_of_date: List[str]
-    srce_and_dest_files_missing: List[Tuple[str, str]]
-    srce_and_dest_files_out_of_date: List[Tuple[str, str]]
-    unexpected_dest_image_files: List[str]
-    exception_errors: List[str]
+    dest_dir_files_missing: list[str]
+    dest_dir_files_out_of_date: list[str]
+    srce_and_dest_files_missing: list[tuple[str, str]]
+    srce_and_dest_files_out_of_date: list[tuple[str, str]]
+    unexpected_dest_image_files: list[str]
+    exception_errors: list[str]
     zip_errors: ZipOutOfDateErrors
     series_zip_symlink_errors: ZipSymlinkOutOfDateErrors
     year_zip_symlink_errors: ZipSymlinkOutOfDateErrors
@@ -141,7 +143,7 @@ def check_comics_source_is_readonly(comics_db: ComicsDatabase) -> int:
     logging.info("Checking Fantagraphics original directories are readonly.")
 
     ret_code = check_folder_and_contents_are_readonly(
-        comics_db.get_fantagraphics_original_root_dir()
+        comics_db.get_fantagraphics_original_root_dir(),
     )
 
     if ret_code == 0:
@@ -203,7 +205,7 @@ def check_standard_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
     upscayled_fixes_dir = comics_db.get_fantagraphics_upscayled_fixes_volume_image_dir(volume)
     if not os.path.isdir(upscayled_fixes_dir):
         print(
-            f'{ERROR_MSG_PREFIX}Could not find upscayled fixes directory "{upscayled_fixes_dir}".'
+            f'{ERROR_MSG_PREFIX}Could not find upscayled fixes directory "{upscayled_fixes_dir}".',
         )
         ret_code = 1
         return ret_code
@@ -230,7 +232,7 @@ def check_standard_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
         png_fixes_file = os.path.join(fixes_dir, file_stem + PNG_FILE_EXT)
         if not os.path.isfile(jpg_fixes_file) and not os.path.isfile(png_fixes_file):
             print(
-                f"{ERROR_MSG_PREFIX}Fixes file must be a .jpg or .png file:" f' "{jpg_fixes_file}".'
+                f'{ERROR_MSG_PREFIX}Fixes file must be a .jpg or .png file: "{jpg_fixes_file}".',
             )
             ret_code = 1
             continue
@@ -246,7 +248,7 @@ def check_standard_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
         if os.path.isfile(upscayl_fixes_file):
             print(
                 f"{ERROR_MSG_PREFIX}Fixes file should not have"
-                f' matching upscayled fixes file: "{upscayl_fixes_file}".'
+                f' matching upscayled fixes file: "{upscayl_fixes_file}".',
             )
             ret_code = 1
             continue
@@ -260,14 +262,14 @@ def check_standard_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
             # If it's an added file it must have a valid page number.
             page_num = Path(file).stem
             if not page_num.isnumeric():
-                print(f"{ERROR_MSG_PREFIX}Invalid fixes file:" f' "{fixes_file}".')
+                print(f'{ERROR_MSG_PREFIX}Invalid fixes file: "{fixes_file}".')
                 ret_code = 1
                 continue
             page_num = int(page_num)
             if page_num <= num_fanta_pages or page_num > MAX_FIXES_PAGE_NUM:
                 print(
                     f"{ERROR_MSG_PREFIX}Fixes file is outside page num range"
-                    f' [{num_fanta_pages}..{MAX_FIXES_PAGE_NUM}]: "{fixes_file}".'
+                    f' [{num_fanta_pages}..{MAX_FIXES_PAGE_NUM}]: "{fixes_file}".',
                 )
                 ret_code = 1
                 continue
@@ -275,8 +277,7 @@ def check_standard_fixes_and_additions_files(comics_db: ComicsDatabase, volume: 
             # If it's an added file it must be used in some ini file.
             if _not_used(page_num):
                 print(
-                    f"{ERROR_MSG_PREFIX}Fixes file is"
-                    f' not used in any ini files: "{fixes_file}".'
+                    f'{ERROR_MSG_PREFIX}Fixes file is not used in any ini files: "{fixes_file}".',
                 )
                 ret_code = 1
                 continue
@@ -300,8 +301,7 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
     upscayled_fixes_dir = comics_db.get_fantagraphics_upscayled_fixes_volume_image_dir(volume)
     if not os.path.isdir(fixes_dir):
         print(
-            f"{ERROR_MSG_PREFIX}Could not find upscayled fixes directory"
-            f' "{upscayled_fixes_dir}".'
+            f'{ERROR_MSG_PREFIX}Could not find upscayled fixes directory "{upscayled_fixes_dir}".',
         )
         ret_code = 1
         return ret_code
@@ -315,8 +315,7 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
 
         if not os.path.isfile(upscayled_fixes_file):
             print(
-                f"{ERROR_MSG_PREFIX}Upscayled fixes file must be a file:"
-                f' "{upscayled_fixes_file}".'
+                f'{ERROR_MSG_PREFIX}Upscayled fixes file must be a file: "{upscayled_fixes_file}".',
             )
             ret_code = 1
             continue
@@ -324,12 +323,13 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
         # TODO: Another special case. Needed?
         if file.endswith("-fix.txt"):
             matching_fixes_file = os.path.join(
-                upscayled_fixes_dir, file[: -len("-fix.txt")] + PNG_FILE_EXT
+                upscayled_fixes_dir,
+                file[: -len("-fix.txt")] + PNG_FILE_EXT,
             )
             if not os.path.isfile(matching_fixes_file):
                 print(
                     f"{ERROR_MSG_PREFIX}Upscayled fixes text file has no match:"
-                    f' "{upscayled_fixes_file}".'
+                    f' "{upscayled_fixes_file}".',
                 )
                 ret_code = 1
             continue
@@ -337,8 +337,7 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
         # Must be a png file.
         if Path(file).suffix != PNG_FILE_EXT:
             print(
-                f"{ERROR_MSG_PREFIX}Upscayled fixes file must be a png: "
-                f'"{upscayled_fixes_file}".'
+                f'{ERROR_MSG_PREFIX}Upscayled fixes file must be a png: "{upscayled_fixes_file}".',
             )
             ret_code = 1
             continue
@@ -346,11 +345,12 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
         # Upscayled fixes cannot be additions?
         # TODO: Will need comic object here to get censored titles
         if not os.path.isfile(original_file) and not ComicBook.is_fixes_special_case_added(
-            volume, get_page_num_str(original_file)
+            volume,
+            get_page_num_str(original_file),
         ):
             print(
                 f"{ERROR_MSG_PREFIX}Upscayled fixes file does not have matching original file:"
-                f' "{upscayled_fixes_file}".'
+                f' "{upscayled_fixes_file}".',
             )
             ret_code = 1
             continue
@@ -358,7 +358,7 @@ def check_upscayled_fixes_and_additions_files(comics_db: ComicsDatabase, volume:
         if os.path.isfile(fixes_file):
             print(
                 f"{ERROR_MSG_PREFIX}Upscayled fixes file cannot have a matching fixes"
-                f' file: "{upscayled_fixes_file}".'
+                f' file: "{upscayled_fixes_file}".',
             )
             ret_code = 1
             continue
@@ -458,7 +458,7 @@ def check_ini_files_match_series_info(comics_db: ComicsDatabase) -> int:
             if ini_title not in series_info_titles:
                 print(
                     f"{ERROR_MSG_PREFIX}For volume {volume}, ini title is not"
-                    f' in SERIES_INFO: "{ini_title}".'
+                    f' in SERIES_INFO: "{ini_title}".',
                 )
                 ret_code = 1
 
@@ -489,7 +489,7 @@ def check_no_unexpected_files(comics_db: ComicsDatabase) -> int:
     ]
 
     srce_dirs = extra_srce_dirs
-    for volume in range(FIRST_VOLUME_NUMBER, LAST_VOLUME_NUMBER + 1):
+    for _volume in range(FIRST_VOLUME_NUMBER, LAST_VOLUME_NUMBER + 1):
         srce_dirs.append(comics_db.get_fantagraphics_original_root_dir())
         srce_dirs.append(comics_db.get_fantagraphics_upscayled_root_dir())
         srce_dirs.append(comics_db.get_fantagraphics_restored_root_dir())
@@ -517,14 +517,17 @@ def check_no_unexpected_files(comics_db: ComicsDatabase) -> int:
         zip_year_symlink_dirs.add(comic.get_dest_year_zip_symlink_dir())
         zip_year_symlinks.append(comic.get_dest_year_comic_zip_symlink())
 
-    if 0 != check_unexpected_files(
-        srce_dirs,
-        dest_dirs,
-        zip_files,
-        zip_series_symlink_dirs,
-        zip_series_symlinks,
-        zip_year_symlink_dirs,
-        zip_year_symlinks,
+    if (
+        check_unexpected_files(
+            srce_dirs,
+            dest_dirs,
+            zip_files,
+            zip_series_symlink_dirs,
+            zip_series_symlinks,
+            zip_year_symlink_dirs,
+            zip_year_symlinks,
+        )
+        != 0
     ):
         ret_code = 1
 
@@ -541,9 +544,7 @@ def check_single_title(comics_db: ComicsDatabase, title: str) -> int:
 
     comic = comics_db.get_comic_book(title)
 
-    if 0 != check_comic_structure(comic):
-        ret_code = 1
-    elif 0 != check_out_of_date_files(comic):
+    if check_comic_structure(comic) != 0 or check_out_of_date_files(comic) != 0:
         ret_code = 1
 
     return ret_code
@@ -555,11 +556,11 @@ def check_all_titles(comics_db: ComicsDatabase) -> int:
     for title in comics_db.get_all_story_titles():
         comic = comics_db.get_comic_book(title)
 
-        if 0 != check_comic_structure(comic):
+        if check_comic_structure(comic) != 0:
             ret_code = 1
             continue
 
-        if 0 != check_out_of_date_files(comic):
+        if check_out_of_date_files(comic) != 0:
             ret_code = 1
 
     return ret_code
@@ -622,7 +623,7 @@ def check_srce_and_dest_files(comic: ComicBook, errors: OutOfDateErrors) -> None
     errors.exception_errors = []
 
     inset_file = comic.intro_inset_file
-    if not os.path.isfile(inset_file):
+    if comic.get_title_enum() not in TITLES_WITHOUT_TITLE_PAGES and not os.path.isfile(inset_file):
         errors.exception_errors.append(f'Inset file not found: "{inset_file}"')
         return
 
@@ -646,7 +647,7 @@ def check_missing_or_out_of_date_dest_files(
         dest_page = pages[1]
         if not os.path.isfile(dest_page.page_filename):
             errors.srce_and_dest_files_missing.append(
-                (srce_page.page_filename, dest_page.page_filename)
+                (srce_page.page_filename, dest_page.page_filename),
             )
         else:
             srce_dependencies = get_restored_srce_dependencies(comic, srce_page)
@@ -686,26 +687,27 @@ def check_unexpected_dest_image_files(
 
 
 def check_unexpected_files(
-    srce_dirs_list: List[str],
-    dest_dirs_info_list: List[Tuple[str, str]],
-    allowed_zip_files: List[str],
-    allowed_zip_series_symlink_dirs: Set[str],
-    allowed_zip_series_symlinks: List[str],
-    allowed_zip_year_symlink_dirs: Set[str],
-    allowed_zip_year_symlinks: List[str],
+    srce_dirs_list: list[str],
+    dest_dirs_info_list: list[tuple[str, str]],
+    allowed_zip_files: list[str],
+    allowed_zip_series_symlink_dirs: set[str],
+    allowed_zip_series_symlinks: list[str],
+    allowed_zip_year_symlink_dirs: set[str],
+    allowed_zip_year_symlinks: list[str],
 ) -> int:
     ret_code = 0
 
-    if 0 != check_files_in_dir("main", BARKS_ROOT_DIR, srce_dirs_list):
+    if check_files_in_dir("main", BARKS_ROOT_DIR, srce_dirs_list) != 0:
         ret_code = 1
 
     allowed_main_dir_files = [
         THE_CHRONOLOGICAL_DIRS_DIR,
         THE_CHRONOLOGICAL_DIR,
         THE_YEARS_COMICS_DIR,
-    ] + list(allowed_zip_series_symlink_dirs)
+        *list(allowed_zip_series_symlink_dirs),
+    ]
 
-    if 0 != check_files_in_dir("main", THE_COMICS_DIR, allowed_main_dir_files):
+    if check_files_in_dir("main", THE_COMICS_DIR, allowed_main_dir_files) != 0:
         ret_code = 1
 
     for dest_dir_info in dest_dirs_info_list:
@@ -723,19 +725,19 @@ def check_unexpected_files(
             if file not in DEST_NON_IMAGE_FILES:
                 print(
                     f"{ERROR_MSG_PREFIX}The info file"
-                    f' "{os.path.join(dest_dir, file)}" was unexpected.'
+                    f' "{os.path.join(dest_dir, file)}" was unexpected.',
                 )
                 ret_code = 1
 
     if dest_dirs_info_list:
         allowed_dest_dirs = [d[1] for d in dest_dirs_info_list]
         dest_dir = os.path.dirname(allowed_dest_dirs[0])
-        if 0 != check_files_in_dir("dest", dest_dir, allowed_dest_dirs):
+        if check_files_in_dir("dest", dest_dir, allowed_dest_dirs) != 0:
             ret_code = 1
 
     if allowed_zip_files:
         dest_dir = os.path.dirname(allowed_zip_files[0])
-        if 0 != check_files_in_dir("zip", dest_dir, allowed_zip_files):
+        if check_files_in_dir("zip", dest_dir, allowed_zip_files) != 0:
             ret_code = 1
 
     if allowed_zip_series_symlinks:
@@ -745,8 +747,13 @@ def check_unexpected_files(
 
     if allowed_zip_year_symlinks:
         year_symlink_parent_dir = os.path.dirname(list(allowed_zip_year_symlink_dirs)[0])
-        if 0 != check_files_in_dir(
-            "year dir", year_symlink_parent_dir, list(allowed_zip_year_symlink_dirs)
+        if (
+            check_files_in_dir(
+                "year dir",
+                year_symlink_parent_dir,
+                list(allowed_zip_year_symlink_dirs),
+            )
+            != 0
         ):
             ret_code = 1
 
@@ -760,7 +767,7 @@ def check_unexpected_files(
     return ret_code
 
 
-def check_files_in_dir(file_type: str, the_dir: str, allowed_files: List[str]) -> int:
+def check_files_in_dir(file_type: str, the_dir: str, allowed_files: list[str]) -> int:
     ret_code = 0
 
     if not os.path.isdir(the_dir):
@@ -878,145 +885,196 @@ def print_check_errors(errors: OutOfDateErrors) -> None:
     if errors.zip_errors.missing:
         print(
             f'{ERROR_MSG_PREFIX}For "{errors.title}",'
-            f' the zip file "{errors.zip_errors.file}" is missing.'
+            f' the zip file "{errors.zip_errors.file}" is missing.',
         )
 
     if errors.series_zip_symlink_errors.missing:
         print(
             f'{ERROR_MSG_PREFIX}For "{errors.title}",'
-            f' the series symlink "{errors.series_zip_symlink_errors.symlink}" is missing.'
+            f' the series symlink "{errors.series_zip_symlink_errors.symlink}" is missing.',
         )
 
     if errors.year_zip_symlink_errors.missing:
         print(
             f'{ERROR_MSG_PREFIX}For "{errors.title}",'
-            f' the year symlink "{errors.year_zip_symlink_errors.symlink}" is missing.'
+            f' the year symlink "{errors.year_zip_symlink_errors.symlink}" is missing.',
         )
 
     if errors.zip_errors.out_of_date_wrt_srce:
         zip_file_timestamp = get_timestamp_as_str(
-            errors.zip_errors.timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.zip_errors.timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         max_srce_timestamp = get_timestamp_as_str(
-            errors.max_srce_timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.max_srce_timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         print(
             f'{ERROR_MSG_PREFIX}For "{errors.title}", the zip file\n'
             f'{BLANK_ERR_MSG_PREFIX}"{errors.zip_errors.file}"\n'
             f'{BLANK_ERR_MSG_PREFIX}is out of date with the srce file "{errors.max_srce_file}"\n'
-            f"{BLANK_ERR_MSG_PREFIX}'{zip_file_timestamp}' < '{max_srce_timestamp}'."
+            f"{BLANK_ERR_MSG_PREFIX}'{zip_file_timestamp}' < '{max_srce_timestamp}'.",
         )
 
     if errors.zip_errors.out_of_date_wrt_dest:
         zip_file_timestamp = get_timestamp_as_str(
-            errors.zip_errors.timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.zip_errors.timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         max_dest_timestamp = get_timestamp_as_str(errors.max_dest_timestamp)
         print(
             f'{ERROR_MSG_PREFIX}For "{errors.title}", the zip file\n'
             f'{BLANK_ERR_MSG_PREFIX}"{errors.zip_errors.file}"\n'
             f"{BLANK_ERR_MSG_PREFIX}is out of date with the max dest file timestamp:\n"
-            f"{BLANK_ERR_MSG_PREFIX}'{zip_file_timestamp}' < '{max_dest_timestamp}'."
+            f"{BLANK_ERR_MSG_PREFIX}'{zip_file_timestamp}' < '{max_dest_timestamp}'.",
         )
 
     if errors.zip_errors.out_of_date_wrt_ini:
         zip_file_timestamp = get_timestamp_as_str(
-            errors.zip_errors.timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.zip_errors.timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         ini_file_timestamp = get_timestamp_as_str(
-            errors.ini_timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.ini_timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         print(
             f'{ERROR_MSG_PREFIX}For "{errors.title}", the zip file\n'
             f'{BLANK_ERR_MSG_PREFIX}"{errors.zip_errors.file}"\n'
             f"{BLANK_ERR_MSG_PREFIX}is out of date with the ini file timestamp:\n"
-            f"{BLANK_ERR_MSG_PREFIX}'{zip_file_timestamp}' < '{ini_file_timestamp}'."
+            f"{BLANK_ERR_MSG_PREFIX}'{zip_file_timestamp}' < '{ini_file_timestamp}'.",
         )
 
     if errors.series_zip_symlink_errors.out_of_date_wrt_zip:
         symlink_timestamp = get_timestamp_as_str(
-            errors.series_zip_symlink_errors.timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.series_zip_symlink_errors.timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         zip_file_timestamp = get_timestamp_as_str(
-            errors.zip_errors.timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.zip_errors.timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         print(
             f'{ERROR_MSG_PREFIX}For "{errors.title}", the series symlink\n'
             f'{BLANK_ERR_MSG_PREFIX}"{errors.series_zip_symlink_errors.symlink}"\n'
             f"{BLANK_ERR_MSG_PREFIX}is out of date with the zip file\n"
             f'{BLANK_ERR_MSG_PREFIX}"{errors.zip_errors.file}":\n'
-            f"{BLANK_ERR_MSG_PREFIX}'{symlink_timestamp}' < '{zip_file_timestamp}'."
+            f"{BLANK_ERR_MSG_PREFIX}'{symlink_timestamp}' < '{zip_file_timestamp}'.",
         )
 
     if errors.series_zip_symlink_errors.out_of_date_wrt_ini:
         symlink_timestamp = get_timestamp_as_str(
-            errors.series_zip_symlink_errors.timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.series_zip_symlink_errors.timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         ini_file_timestamp = get_timestamp_as_str(
-            errors.ini_timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.ini_timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         print(
             f'{ERROR_MSG_PREFIX}For "{errors.title}", the series symlink\n'
             f'{BLANK_ERR_MSG_PREFIX}"{errors.series_zip_symlink_errors.symlink}"\n'
             f"{BLANK_ERR_MSG_PREFIX}is out of date with the ini file timestamp:\n"
-            f"{BLANK_ERR_MSG_PREFIX}'{symlink_timestamp}' < '{ini_file_timestamp}'."
+            f"{BLANK_ERR_MSG_PREFIX}'{symlink_timestamp}' < '{ini_file_timestamp}'.",
         )
 
     if errors.series_zip_symlink_errors.out_of_date_wrt_dest:
         symlink_timestamp = get_timestamp_as_str(
-            errors.series_zip_symlink_errors.timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.series_zip_symlink_errors.timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         max_dest_timestamp = get_timestamp_as_str(
-            errors.max_dest_timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.max_dest_timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         print(
             f'{ERROR_MSG_PREFIX}For "{errors.title}", the series symlink\n'
             f'{BLANK_ERR_MSG_PREFIX}"{errors.series_zip_symlink_errors.symlink}"\n'
             f"{BLANK_ERR_MSG_PREFIX}is out of date with the max dest file timestamp:\n"
-            f"{BLANK_ERR_MSG_PREFIX}'{symlink_timestamp}' < '{max_dest_timestamp}'."
+            f"{BLANK_ERR_MSG_PREFIX}'{symlink_timestamp}' < '{max_dest_timestamp}'.",
         )
 
     if errors.year_zip_symlink_errors.out_of_date_wrt_zip:
         symlink_timestamp = get_timestamp_as_str(
-            errors.year_zip_symlink_errors.timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.year_zip_symlink_errors.timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         zip_file_timestamp = get_timestamp_as_str(
-            errors.zip_errors.timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.zip_errors.timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         print(
             f'{ERROR_MSG_PREFIX}For "{errors.title}", the year symlink\n'
             f'{BLANK_ERR_MSG_PREFIX}"{errors.year_zip_symlink_errors.symlink}"\n'
             f"{BLANK_ERR_MSG_PREFIX}is out of date with the zip file\n"
             f'{BLANK_ERR_MSG_PREFIX}"{errors.zip_errors.file}":\n'
-            f"{BLANK_ERR_MSG_PREFIX}'{symlink_timestamp}' < '{zip_file_timestamp}'."
+            f"{BLANK_ERR_MSG_PREFIX}'{symlink_timestamp}' < '{zip_file_timestamp}'.",
         )
 
     if errors.year_zip_symlink_errors.out_of_date_wrt_ini:
         symlink_timestamp = get_timestamp_as_str(
-            errors.year_zip_symlink_errors.timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.year_zip_symlink_errors.timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         ini_file_timestamp = get_timestamp_as_str(
-            errors.ini_timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.ini_timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         print(
             f'{ERROR_MSG_PREFIX}For "{errors.title}", the year symlink\n'
             f'{BLANK_ERR_MSG_PREFIX}"{errors.year_zip_symlink_errors.symlink}"\n'
             f"{BLANK_ERR_MSG_PREFIX}is out of date with the ini file timestamp:\n"
-            f"{BLANK_ERR_MSG_PREFIX}'{symlink_timestamp}' < '{ini_file_timestamp}'."
+            f"{BLANK_ERR_MSG_PREFIX}'{symlink_timestamp}' < '{ini_file_timestamp}'.",
         )
 
     if errors.year_zip_symlink_errors.out_of_date_wrt_dest:
         symlink_timestamp = get_timestamp_as_str(
-            errors.year_zip_symlink_errors.timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.year_zip_symlink_errors.timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         max_dest_timestamp = get_timestamp_as_str(
-            errors.max_dest_timestamp, DATE_SEP, DATE_TIME_SEP, HOUR_SEP
+            errors.max_dest_timestamp,
+            DATE_SEP,
+            DATE_TIME_SEP,
+            HOUR_SEP,
         )
         print(
             f'{ERROR_MSG_PREFIX}For "{errors.title}", the year symlink\n'
             f'{BLANK_ERR_MSG_PREFIX}"{errors.year_zip_symlink_errors.symlink}"\n'
             f"{BLANK_ERR_MSG_PREFIX}is out of date with the max dest file timestamp:\n"
-            f"{BLANK_ERR_MSG_PREFIX}'{symlink_timestamp}' < '{max_dest_timestamp}'."
+            f"{BLANK_ERR_MSG_PREFIX}'{symlink_timestamp}' < '{max_dest_timestamp}'.",
         )
 
     if len(errors.unexpected_dest_image_files) > 0:
@@ -1035,7 +1093,7 @@ def print_out_of_date_or_missing_errors(errors: OutOfDateErrors) -> None:
         dest_file = srce_dest[1]
         print(
             f'{ERROR_MSG_PREFIX} There is no dest file "{dest_file}"'
-            f' matching srce file "{srce_file}".'
+            f' matching srce file "{srce_file}".',
         )
     for srce_dest in errors.srce_and_dest_files_out_of_date:
         srce_file = srce_dest[0]
@@ -1059,8 +1117,11 @@ def print_out_of_date_or_missing_errors(errors: OutOfDateErrors) -> None:
         for err_msg in errors.dest_dir_files_out_of_date:
             print(
                 get_file_out_of_date_wrt_max_timestamp_msg(
-                    err_msg, errors.max_srce_file, errors.max_srce_timestamp, ERROR_MSG_PREFIX
-                )
+                    err_msg,
+                    errors.max_srce_file,
+                    errors.max_srce_timestamp,
+                    ERROR_MSG_PREFIX,
+                ),
             )
         print()
 
@@ -1077,19 +1138,19 @@ def print_out_of_date_or_missing_errors(errors: OutOfDateErrors) -> None:
             f'{ERROR_MSG_PREFIX} For "{errors.title}",'
             f" there were {len(errors.srce_and_dest_files_missing)} missing dest files"
             f" and {len(errors.srce_and_dest_files_out_of_date)} out of date"
-            f" dest files.\n"
+            f" dest files.\n",
         )
     else:
         if len(errors.srce_and_dest_files_missing) > 0:
             print(
                 f'{ERROR_MSG_PREFIX} For "{errors.title}",'
                 f" there were {len(errors.srce_and_dest_files_missing)} missing"
-                f" dest files.\n"
+                f" dest files.\n",
             )
 
         if len(errors.srce_and_dest_files_out_of_date) > 0:
             print(
                 f'{ERROR_MSG_PREFIX} For "{errors.title}",'
                 f" there were {len(errors.srce_and_dest_files_out_of_date)} out of"
-                f" date dest files.\n"
+                f" date dest files.\n",
             )

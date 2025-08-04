@@ -1,48 +1,47 @@
 import json
 import os
 from datetime import datetime
-from typing import List, Dict
 
-from barks_fantagraphics.barks_titles import get_safe_title
+from barks_fantagraphics.barks_titles import TITLES_WITHOUT_TITLE_PAGES, get_safe_title
 from barks_fantagraphics.comic_book import (
     ComicBook,
     ModifiedType,
 )
 from barks_fantagraphics.comics_consts import (
-    PageType,
-    get_font_path,
-    DEST_TARGET_WIDTH,
-    DEST_TARGET_HEIGHT,
-    DEST_TARGET_X_MARGIN,
     DEST_TARGET_ASPECT_RATIO,
-    ROMAN_NUMERALS,
+    DEST_TARGET_HEIGHT,
+    DEST_TARGET_WIDTH,
+    DEST_TARGET_X_MARGIN,
     FRONT_MATTER_PAGES,
     PAINTING_PAGES,
+    ROMAN_NUMERALS,
+    PageType,
+    get_font_path,
 )
-from barks_fantagraphics.comics_utils import get_clean_path, get_timestamp_str, get_timestamp_as_str
+from barks_fantagraphics.comics_utils import get_clean_path, get_timestamp_as_str, get_timestamp_str
 from barks_fantagraphics.page_classes import (
     CleanPage,
-    SrceAndDestPages,
     ComicDimensions,
     RequiredDimensions,
+    SrceAndDestPages,
 )
 from barks_fantagraphics.pages import (
-    get_srce_dest_map,
-    get_page_num_str,
     get_page_mod_type,
+    get_page_num_str,
+    get_srce_dest_map,
 )
 from consts import (
-    DEST_JPG_QUALITY,
     DEST_JPG_COMPRESS_LEVEL,
-    DEST_SRCE_MAP_FILENAME,
+    DEST_JPG_QUALITY,
     DEST_PANELS_BBOXES_FILENAME,
+    DEST_SRCE_MAP_FILENAME,
+    DOUBLE_PAGES,
+    DOUBLE_PAGES_SECTION,
+    JSON_METADATA_FILENAME,
+    METADATA_FILENAME,
+    PAGE_NUMBERS_SECTION,
     README_FILENAME,
     SUMMARY_FILENAME,
-    METADATA_FILENAME,
-    JSON_METADATA_FILENAME,
-    DOUBLE_PAGES_SECTION,
-    PAGE_NUMBERS_SECTION,
-    DOUBLE_PAGES,
 )
 from timing import Timing
 
@@ -54,14 +53,12 @@ def write_summary_file(
     pages: SrceAndDestPages,
     max_dest_timestamp: float,
     timing: Timing,
-):
+) -> None:
     summary_file = os.path.join(comic.get_dest_dir(), SUMMARY_FILENAME)
 
-    calc_panels_bbox_height = int(
-        round(
-            (srce_dim.av_panels_bbox_height * required_dim.panels_bbox_width)
-            / srce_dim.av_panels_bbox_width
-        )
+    calc_panels_bbox_height = round(
+        (srce_dim.av_panels_bbox_height * required_dim.panels_bbox_width)
+        / srce_dim.av_panels_bbox_width,
     )
 
     series_symlink_timestamp = get_timestamp_str(comic.get_dest_series_comic_zip_symlink())
@@ -124,7 +121,7 @@ def write_summary_file(
         f.write(f"publication date         = {comic.publication_date}\n")
         f.write(f"publication text         = \n{comic.publication_text}\n")
         f.write(f"has modified cover       = {has_modified_cover}\n")
-        f.write(f"modified body pages      = {", ".join(modified_body_pages)}\n")
+        f.write(f"modified body pages      = {', '.join(modified_body_pages)}\n")
         f.write(f'intro inset file         = "{intro_inset_file}"\n')
         f.write(f"title font size          = {comic.title_font_size}\n")
         f.write(f"author font size         = {comic.author_font_size}\n")
@@ -147,8 +144,10 @@ def write_summary_file(
         f.write("\n")
 
         f.write("Pages Config Summary:\n")
-        for pg in comic.config_page_images:
-            f.write(f"pages = {pg.page_filenames:11}," f" page type = {pg.page_type.name:12}\n")
+        f.writelines(
+            f"pages = {pg.page_filenames:11}, page type = {pg.page_type.name:12}\n"
+            for pg in comic.config_page_images
+        )
         f.write("\n")
 
         f.write("Page List Summary:\n")
@@ -165,12 +164,12 @@ def write_summary_file(
                 f" type {dest_page_type:14}, "
                 f" page {dest_page.page_num:2} ({get_page_num_str(dest_page):>3}),"
                 f" bbox ({dest_page.panels_bbox.x_min:3}, {dest_page.panels_bbox.y_min:3},"
-                f" {dest_page.panels_bbox.x_max:3}, {dest_page.panels_bbox.y_max:3}).\n"
+                f" {dest_page.panels_bbox.x_max:3}, {dest_page.panels_bbox.y_max:3}).\n",
             )
         f.write("\n")
 
 
-def write_readme_file(comic: ComicBook):
+def write_readme_file(comic: ComicBook) -> None:
     readme_file = os.path.join(comic.get_dest_dir(), README_FILENAME)
     with open(readme_file, "w") as f:
         f.write(f'Title:       "{get_safe_title(comic.title)}"\n')
@@ -182,7 +181,7 @@ def write_readme_file(comic: ComicBook):
         f.write(f'Archived ini file: "{os.path.basename(comic.ini_file)}"\n')
 
 
-def write_metadata_file(comic: ComicBook, dest_pages: List[CleanPage]):
+def write_metadata_file(comic: ComicBook, dest_pages: list[CleanPage]) -> None:
     metadata_file = os.path.join(comic.get_dest_dir(), METADATA_FILENAME)
 
     double_pages = {}
@@ -223,10 +222,10 @@ def write_json_metadata(
     comic: ComicBook,
     srce_dim: ComicDimensions,
     required_dim: RequiredDimensions,
-    dest_pages: List[CleanPage],
-):
+    dest_pages: list[CleanPage],
+) -> None:
     metadata_file = os.path.join(comic.get_dest_dir(), JSON_METADATA_FILENAME)
-    metadata = dict()
+    metadata = {}
     metadata["title"] = get_safe_title(comic.title)
     metadata["ini_title"] = comic.get_ini_title()
     metadata["issue_title"] = get_safe_title(comic.issue_title)
@@ -249,20 +248,20 @@ def write_json_metadata(
         required_dim.panels_bbox_height,
         required_dim.page_num_y_bottom,
     ]
-    metadata["page_counts"] = get_page_counts(dest_pages)
+    metadata["page_counts"] = get_page_counts(comic, dest_pages)
     with open(metadata_file, "w") as f:
         # noinspection PyTypeChecker
         json.dump(metadata, f, indent=4)
 
 
-def get_page_counts(dest_pages: List[CleanPage]) -> Dict[str, int]:
-    page_counts = dict()
+def get_page_counts(comic: ComicBook, dest_pages: list[CleanPage]) -> dict[str, int]:
+    page_counts = {}
 
     front_page_count = len([p for p in dest_pages if p.page_type == PageType.FRONT])
     assert front_page_count <= 1
 
     title_page_count = len([p for p in dest_pages if p.page_type == PageType.TITLE])
-    assert title_page_count == 1
+    assert title_page_count == 1 or comic.get_title_enum() in TITLES_WITHOUT_TITLE_PAGES
 
     cover_page_count = len([p for p in dest_pages if p.page_type == PageType.COVER])
     assert cover_page_count <= 1
@@ -282,7 +281,7 @@ def get_page_counts(dest_pages: List[CleanPage]) -> Dict[str, int]:
             for p in dest_pages
             if p.page_type
             in [PageType.BACK_MATTER, PageType.BACK_NO_PANELS, PageType.BACK_NO_PANELS_DOUBLE]
-        ]
+        ],
     )
 
     blank_page_count = len([p for p in dest_pages if p.page_type == PageType.BLANK_PAGE])
@@ -320,7 +319,7 @@ def write_srce_dest_map(
     srce_dim: ComicDimensions,
     required_dim: RequiredDimensions,
     pages: SrceAndDestPages,
-):
+) -> None:
     src_dst_map_file = os.path.join(comic.get_dest_dir(), DEST_SRCE_MAP_FILENAME)
     srce_dest_map = get_srce_dest_map(comic, srce_dim, required_dim, pages)
     with open(src_dst_map_file, "w") as f:
@@ -330,10 +329,10 @@ def write_srce_dest_map(
 
 def write_dest_panels_bboxes(
     comic: ComicBook,
-    dest_pages: List[CleanPage],
-):
+    dest_pages: list[CleanPage],
+) -> None:
     dst_bboxes_file = os.path.join(comic.get_dest_dir(), DEST_PANELS_BBOXES_FILENAME)
-    bboxes_dict = dict()
+    bboxes_dict = {}
     for dest_page in dest_pages:
         bbox_key = os.path.basename(dest_page.page_filename)
         bboxes_dict[bbox_key] = dest_page.panels_bbox.get_box()
