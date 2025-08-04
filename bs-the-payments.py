@@ -1,13 +1,13 @@
+# ruff: noqa: T201
+
 import os.path
 import re
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import List, Tuple
 
-from bs4 import BeautifulSoup
-
-from barks_fantagraphics.barks_titles import Titles, BARKS_TITLES, BARKS_TITLE_DICT
+from barks_fantagraphics.barks_titles import BARKS_TITLE_DICT, BARKS_TITLES, Titles
 from barks_fantagraphics.comics_consts import MONTH_AS_LONG_STR
+from bs4 import BeautifulSoup
 
 KYLING_TITLE_MAP = {
     "Pirate Gold": Titles.DONALD_DUCK_FINDS_PIRATE_GOLD,
@@ -235,11 +235,11 @@ class PrelimPaymentInfo:
     issue: str
     title: str
     num_pages: int
-    accepted_date: Tuple[int, int, int]
+    accepted_date: tuple[int, int, int]
     payment: float
 
 
-def get_prelim_payment_info(row: List[str]) -> PrelimPaymentInfo:
+def get_prelim_payment_info(row: list[str]) -> PrelimPaymentInfo:
     this_year = int(row[6])
 
     issue = row[0]
@@ -256,9 +256,11 @@ def get_prelim_payment_info(row: List[str]) -> PrelimPaymentInfo:
     try:
         accepted_date = get_date(accepted_date_str, this_year)
     except Exception as e:
-        raise Exception(
-            f'Date error for title "{title}, issue "{issue}", year {this_year}: "{accepted_date_str}": {e}.'
+        msg = (
+            f'Date error for title "{title}, issue "{issue}", year {this_year}:'
+            f' "{accepted_date_str}": {e}.'
         )
+        raise RuntimeError(msg) from e
 
     payment_str = row[5].replace("*", "").strip()
     if payment_str == "NR":
@@ -266,8 +268,9 @@ def get_prelim_payment_info(row: List[str]) -> PrelimPaymentInfo:
     else:
         try:
             payment = float(payment_str)
-        except ValueError:
-            raise Exception(f'"{payment_str}" is not a float: "{row}".')
+        except ValueError as e:
+            msg = f'"{payment_str}" is not a float: "{row}".'
+            raise ValueError(msg) from e
 
     return PrelimPaymentInfo(issue, title, num_pages, accepted_date, payment)
 
@@ -276,7 +279,7 @@ def get_stripped_new_lines(text: str) -> str:
     return re.sub("\n *", " ", text)
 
 
-def get_date(col: str, this_year: int) -> Tuple[int, int, int]:
+def get_date(col: str, this_year: int) -> tuple[int, int, int]:
     if col.strip() == "?":
         return -1, -1, -1
 
@@ -291,10 +294,7 @@ def get_date(col: str, this_year: int) -> Tuple[int, int, int]:
     assert len(mth_day) == 2
 
     day = mth_day[1].strip()
-    if day == "??":
-        day = 1
-    else:
-        day = int(day)
+    day = 1 if day == "??" else int(day)
 
     mth = get_month(mth_day[0].strip())
 
@@ -308,10 +308,11 @@ def get_month(mth_str: str) -> int:
         if MONTH_AS_LONG_STR[mth].lower() == mth_str:
             return mth
 
-    raise Exception(f'Unknown month "{mth_str}".')
+    msg = f'Unknown month "{mth_str}".'
+    raise ValueError(msg)
 
 
-def split_multi_titles(rows: List[List[str]]) -> List[List[str]]:
+def split_multi_titles(rows: list[list[str]]) -> list[list[str]]:
     new_rows = []
     for r in rows:
         num_new_lines = r[0].count("\n")
@@ -327,7 +328,7 @@ def split_multi_titles(rows: List[List[str]]) -> List[List[str]]:
     return new_rows
 
 
-def split_row(r: List[str], num_titles: int) -> List[List[str]]:
+def split_row(r: list[str], num_titles: int) -> list[list[str]]:
     title_list = []
 
     issues = split_column(r[0], num_titles)
@@ -344,12 +345,13 @@ def split_row(r: List[str], num_titles: int) -> List[List[str]]:
     return title_list
 
 
-def split_column(col: str, num_titles: int) -> List[str]:
+def split_column(col: str, num_titles: int) -> list[str]:
     values = col.split("\n")
     if len(values) != num_titles:
-        raise Exception(f'Not enough multi-values: {len(values)} != {num_titles} - "{col}".')
-    values = [v.strip() for v in values]
-    return values
+        msg = f'Not enough multi-values: {len(values)} != {num_titles} - "{col}".'
+        raise ValueError(msg)
+
+    return [v.strip() for v in values]
 
 
 @dataclass
@@ -358,7 +360,7 @@ class PaymentInfo:
     title_str: str
     issue: str
     num_pages: int
-    accepted_date: Tuple[int, int, int]
+    accepted_date: tuple[int, int, int]
     payment: float
 
 
@@ -368,7 +370,7 @@ for year in range(1958, 1960):
     html_file = os.path.join(html_file_base, f"thepayments{year}.html")
     print(f'\nProcessing file "{html_file}"...')
 
-    with open(html_file, "r", encoding="ISO-8859-1") as f:
+    with open(html_file, encoding="ISO-8859-1") as f:
         html = f.read()
 
     bs = BeautifulSoup(html, "html.parser")

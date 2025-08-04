@@ -1,6 +1,7 @@
-from bs4 import BeautifulSoup
+# ruff: noqa: T201, ERA001
 
-from barks_fantagraphics.barks_titles import get_title_dict
+from barks_fantagraphics.barks_titles import BARKS_TITLE_DICT
+from bs4 import BeautifulSoup
 
 #html_file = "/home/greg/Downloads/the-beagle-boys_I.N.D.U.C.K.S.html"
 #html_file = "/home/greg/Downloads/gladstone_I.N.D.U.C.K.S.html"
@@ -56,13 +57,12 @@ for row in filtered_data:
     print(row)
 
 # Character searches
-barks_titles = get_title_dict()
 character_titles = []
 for row in filtered_data:
     print(row)
     title = row[1]
-    if title in barks_titles:
-        character_titles.append(barks_titles[title])
+    if title in BARKS_TITLE_DICT:
+        character_titles.append(BARKS_TITLE_DICT[title])
     else:
         print("Not a Barks title: ", title)
 
