@@ -54,8 +54,8 @@ def convert_svg_to_png(srce_svg: str) -> None:
         )
         svg_file_to_png(srce_svg, png_file)
 
-    except Exception as e:
-        logging.exception(f"Error: {e}")
+    except Exception:
+        logging.exception("Error: ")
         return
 
 

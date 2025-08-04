@@ -1,6 +1,5 @@
 import os
 from collections import OrderedDict
-from typing import Tuple, Dict
 
 import cv2 as cv
 import numpy as np
@@ -14,15 +13,15 @@ NUM_POSTERIZE_EXCEPTION_LEVELS = 2
 FIRST_LEVEL = int(255 / (NUM_POSTERIZE_LEVELS - 1))
 
 
-def posterize_image(image: cv.typing.MatLike):
+def posterize_image(image: cv.typing.MatLike) -> None:
     for i in range(NUM_POSTERIZE_LEVELS):
         image[
             (image >= i * 255 / NUM_POSTERIZE_LEVELS)
             & (image < (i + 1) * 255 / NUM_POSTERIZE_LEVELS)
-        ] = (i * 255 / (NUM_POSTERIZE_LEVELS - 1))
+        ] = i * 255 / (NUM_POSTERIZE_LEVELS - 1)
 
 
-def remove_colors(image: cv.typing.MatLike):
+def remove_colors(image: cv.typing.MatLike) -> None:
     colors_to_remove = np.any(
         [
             image[:, :, 0] > FIRST_LEVEL,
@@ -34,13 +33,13 @@ def remove_colors(image: cv.typing.MatLike):
     image[colors_to_remove] = (255, 255, 255, 0)
 
 
-def get_color_counts(image: cv.typing.MatLike) -> Dict[Tuple[int, int, int], int]:
+def get_color_counts(image: cv.typing.MatLike) -> dict[tuple[int, int, int], int]:
     image_h, image_w = image.shape[0], image.shape[1]
 
-    all_colors = dict()
+    all_colors = {}
 
-    for i in range(0, image_h):  ## traverse image row
-        for j in range(0, image_w):  ## traverse image col
+    for i in range(image_h):  ## traverse image row
+        for j in range(image_w):  ## traverse image col
             pixel = image[i][j]
             red = int(pixel[2])
             green = int(pixel[1])
@@ -56,17 +55,20 @@ def get_color_counts(image: cv.typing.MatLike) -> Dict[Tuple[int, int, int], int
     return all_colors
 
 
-def write_color_counts(filename: str, image: cv.typing.MatLike):
+def write_color_counts(filename: str, image: cv.typing.MatLike) -> None:
     color_counts = get_color_counts(image)
     color_counts_descending = OrderedDict(
         sorted(color_counts.items(), key=lambda kv: kv[1], reverse=True)
     )
     with open(filename, "w") as f:
-        for color in color_counts_descending:
-            f.write(f"{color}: {color_counts_descending[color]}\n")
+        f.writelines(
+            f"{color}: {color_counts_descending[color]}\n" for color in color_counts_descending
+        )
 
 
-def remove_colors_from_image(work_dir: str, work_file_stem: str, in_file: str, out_file: str):
+def remove_colors_from_image(
+    work_dir: str, work_file_stem: str, in_file: str, out_file: str
+) -> None:
     out_image = cv.imread(in_file)
 
     posterize_image(out_image)

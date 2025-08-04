@@ -13,11 +13,13 @@ def inpaint_image_file(
     in_file: str,
     black_ink_mask_file: str,
     out_file: str,
-):
+) -> None:
     if not os.path.exists(in_file):
-        raise Exception(f'File not found: "{in_file}".')
+        msg = f'File not found: "{in_file}".'
+        raise FileNotFoundError(msg)
     if not os.path.exists(black_ink_mask_file):
-        raise Exception(f'File not found: "{black_ink_mask_file}".')
+        msg = f'File not found: "{black_ink_mask_file}".'
+        raise FileNotFoundError(msg)
 
     input_image = cv.imread(in_file)
     assert input_image.shape[2] == 3
@@ -30,7 +32,6 @@ def inpaint_image_file(
     _, _, r_remove_mask = cv.split(remove_mask)
 
     remove_mask = np.uint8(r_remove_mask)
-    # logging.info(remove_mask.shape)
     remove_mask_file = os.path.join(work_dir, f"{work_file_stem}-remove-mask.png")
     write_cv_image_file(remove_mask_file, remove_mask)
 

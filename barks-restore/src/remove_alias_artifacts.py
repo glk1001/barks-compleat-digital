@@ -1,3 +1,5 @@
+# ruff: noqa: ERA001
+
 import os
 
 import cv2 as cv
@@ -43,7 +45,12 @@ def _median_filter(
 
 
 @jit(nopython=True, parallel=False)
-def _median_filter_core(wrapped_image, wrapped_mask, kernel_size: int, filtered_image):
+def _median_filter_core(
+    wrapped_image: cv.typing.MatLike,
+    wrapped_mask: cv.typing.MatLike,
+    kernel_size: int,
+    filtered_image: cv.typing.MatLike,
+) -> None:
     image_h, image_w = filtered_image.shape[0], filtered_image.shape[1]
     w: int = kernel_size // 2
 
@@ -115,7 +122,8 @@ def get_median_filter(input_image: cv.typing.MatLike) -> cv.typing.MatLike:
 
 def _get_black_ink_mask(image: cv.typing.MatLike) -> cv.typing.MatLike:
     gray_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    black_ink_mask = cv.adaptiveThreshold(
+
+    return cv.adaptiveThreshold(
         gray_image,
         255,
         cv.ADAPTIVE_THRESH_GAUSSIAN_C,
@@ -123,5 +131,3 @@ def _get_black_ink_mask(image: cv.typing.MatLike) -> cv.typing.MatLike:
         ADAPTIVE_THRESHOLD_BLOCK_SIZE,
         ADAPTIVE_THRESHOLD_CONST_SUBTRACT,
     )
-
-    return black_ink_mask

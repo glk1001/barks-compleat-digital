@@ -13,7 +13,7 @@ UPSCAYL_OUTPUT_FORMAT = "png"
 UPSCAYL_OUTPUT_EXTENSION = ".png"
 
 
-def upscale_image_file(in_file: str, out_file: str, scale: int = 2):
+def upscale_image_file(in_file: str, out_file: str, scale: int = 2) -> None:
     assert os.path.splitext(out_file)[1] == UPSCAYL_OUTPUT_EXTENSION
 
     run_args = [
@@ -46,7 +46,7 @@ def upscale_image_file(in_file: str, out_file: str, scale: int = 2):
 
     rc = process.poll()
     if rc != 0:
-        raise Exception("Upscayl failed.")
+        raise RuntimeError("Upscayl failed.")
 
     metadata = {
         "Srce file": f'"{get_clean_path(in_file)}"',

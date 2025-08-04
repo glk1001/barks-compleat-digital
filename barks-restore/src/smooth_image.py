@@ -1,7 +1,7 @@
 from .gmic_exe import run_gmic
 
 
-def smooth_image_file(in_file: str, out_file: str):
+def smooth_image_file(in_file: str, out_file: str) -> None:
     smooth_cmd = [
         in_file,
         "fx_smooth_anisotropic",

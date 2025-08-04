@@ -39,7 +39,8 @@ def upscayl(title_list: list[str]) -> None:
 
 def upscayl_file(srce_file: str, dest_file: str) -> bool:
     if not os.path.isfile(srce_file):
-        raise FileNotFoundError(f'Could not find srce file: "{srce_file}".')
+        msg = f'Could not find srce file: "{srce_file}".'
+        raise FileNotFoundError(msg)
     if os.path.isfile(dest_file):
         logging.warning(f'Dest upscayl file exists - skipping: "{get_abbrev_path(dest_file)}".')
         return False

@@ -3,16 +3,15 @@ import logging
 import os
 import sys
 import time
-from typing import List
 
-from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
+from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import get_abbrev_path
 from barks_fantagraphics.panel_bounding_box_processor import BoundingBoxProcessor
 
 
-def panel_bounds(title_list: List[str]) -> None:
+def panel_bounds(title_list: list[str]) -> None:
     start = time.time()
 
     num_page_files = 0
@@ -30,10 +29,11 @@ def panel_bounds(title_list: List[str]) -> None:
         dest_files = comic.get_srce_panel_segments_files(RESTORABLE_PAGE_TYPES)
 
         if not os.path.isdir(comic.get_srce_original_fixes_image_dir()):
-            raise Exception(
+            msg = (
                 f"Could not find panel bounds directory "
                 f'"{comic.get_srce_original_fixes_image_dir()}".'
             )
+            raise FileNotFoundError(msg)
         # TODO: Put this in barks_fantagraphics
         srce_panels_bounds_override_dir = os.path.join(
             comic.get_srce_original_fixes_image_dir(), "bounded"
@@ -64,7 +64,8 @@ def get_page_panel_bounds(
 ) -> None:
     try:
         if not os.path.isfile(srce_file):
-            raise Exception(f'Could not find srce file: "{srce_file}".')
+            msg = f'Could not find srce file: "{srce_file}".'
+            raise FileNotFoundError(msg)
         if os.path.isfile(dest_file):
             logging.warning(f'Dest file exists - skipping: "{get_abbrev_path(dest_file)}".')
             return
@@ -81,8 +82,8 @@ def get_page_panel_bounds(
 
         bounding_box_processor.save_panels_segment_info(dest_file, segment_info)
 
-    except Exception as e:
-        logging.error(f"Error: {e}")
+    except Exception:  # noqa: BLE001
+        logging.exception(f"Error: ")
         return
 
 

@@ -1,9 +1,8 @@
 import logging
 import subprocess
-from typing import List
 
 
-def run_gmic(params: List[str]) -> None:
+def run_gmic(params: list[str]) -> None:
     gmic_path = "gmic"
     run_args = [gmic_path, "-v", "+1"]
     run_args.extend(params)
@@ -21,4 +20,4 @@ def run_gmic(params: List[str]) -> None:
 
     rc = process.poll()
     if rc != 0:
-        raise Exception("Gmic failed.")
+        raise RuntimeError("Gmic failed.")

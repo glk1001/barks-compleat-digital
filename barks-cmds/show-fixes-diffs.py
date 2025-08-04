@@ -6,16 +6,14 @@ import logging
 import os.path
 import sys
 from pathlib import Path
-from typing import Any
 
-import cv2
+import cv2 as cv
 import numpy as np
 from barks_fantagraphics.comic_book import ModifiedType
 from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.pil_image_utils import downscale_jpg
-from cv2 import Mat
 from skimage.metrics import structural_similarity
 
 # TODO: Put these somewhere else
@@ -25,18 +23,20 @@ SRCE_STANDARD_HEIGHT = 3000
 
 def get_image_diffs(
     diff_thresh: float, image1_file: str, image2_file: str
-) -> tuple[float, int, Mat | np.ndarray[Any, np.dtype], Mat | np.ndarray[Any, np.dtype]]:
+) -> tuple[float, int, cv.typing.MatLike, cv.typing.MatLike]:
     if not os.path.isfile(image1_file):
-        raise FileNotFoundError(f'Could not find image1 file "{image1_file}".')
+        msg = f'Could not find image1 file "{image1_file}".'
+        raise FileNotFoundError(msg)
     if not os.path.isfile(image2_file):
-        raise FileNotFoundError(f'Could not find image2 file "{image2_file}".')
+        msg = f'Could not find image2 file "{image2_file}".'
+        raise FileNotFoundError(msg)
 
-    image1 = cv2.imread(image1_file)
-    image2 = cv2.imread(image2_file)
+    image1 = cv.imread(image1_file)
+    image2 = cv.imread(image2_file)
 
     # Use grayscale for the comparison.
-    image1_grey = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
-    image2_grey = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+    image1_grey = cv.cvtColor(image1, cv.COLOR_BGR2GRAY)
+    image2_grey = cv.cvtColor(image2, cv.COLOR_BGR2GRAY)
 
     # Compute the SSIM and diff images between the two grayscale images.
     (score, diffs) = structural_similarity(image1_grey, image2_grey, full=True)
@@ -49,8 +49,8 @@ def get_image_diffs(
 
     # Threshold the difference image, followed by finding contours to obtain the regions
     # where the two input images that differ.
-    thresh = cv2.threshold(diffs, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
-    contours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    thresh = cv.threshold(diffs, 0, 255, cv.THRESH_BINARY_INV | cv.THRESH_OTSU)[1]
+    contours = cv.findContours(thresh.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     contours = contours[0] if len(contours) == 2 else contours[1]
 
     # mask = np.zeros(image1.shape, dtype="uint8")
@@ -63,12 +63,12 @@ def get_image_diffs(
 
     num_diff_areas = 0
     for c in contours:
-        area = cv2.contourArea(c)
+        area = cv.contourArea(c)
         if area > 40:
             num_diff_areas += 1
-            x, y, w, h = cv2.boundingRect(c)
-            cv2.rectangle(image1, (x, y), (x + w, y + h), srce_rect_color, rect_line_thickness)
-            cv2.rectangle(image2, (x, y), (x + w, y + h), fixed_rect_color, rect_line_thickness)
+            x, y, w, h = cv.boundingRect(c)
+            cv.rectangle(image1, (x, y), (x + w, y + h), srce_rect_color, rect_line_thickness)
+            cv.rectangle(image2, (x, y), (x + w, y + h), fixed_rect_color, rect_line_thickness)
             # cv2.drawContours(mask, [c], 0, (0, 255, 0), -1)
             # cv2.drawContours(image2_filled, [c], 0, (0, 255, 0), -1)
 
@@ -171,8 +171,8 @@ def show_diffs_for_file(
 
     diff1_file = os.path.join(out_dir, page + "-1-srce.png")
     diff2_file = os.path.join(out_dir, page + "-2-fixes.png")
-    cv2.imwrite(diff1_file, image1_with_diffs)
-    cv2.imwrite(diff2_file, image2_with_diffs)
+    cv.imwrite(diff1_file, image1_with_diffs)
+    cv.imwrite(diff2_file, image2_with_diffs)
     # cv2.imwrite(os.path.join(out_dir, "diffs.png"), diffs)
     # cv2.imwrite(os.path.join(out_dir, "mask.png"), mask)
     # cv2.imwrite(os.path.join(out_dir, "image2-with-filled-diffs.png"), image2_filled)
