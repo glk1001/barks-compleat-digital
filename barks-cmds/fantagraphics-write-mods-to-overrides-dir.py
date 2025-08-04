@@ -1,29 +1,27 @@
+from __future__ import annotations
+
 import logging
 import os
 import sys
 from enum import Enum, auto
 from pathlib import Path
-from typing import Union, List, Tuple
+from typing import TYPE_CHECKING
 
-from PIL import Image
-
-from barks_fantagraphics.comic_book import ComicBook, get_page_str, ModifiedType
-from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
+from barks_fantagraphics.comic_book import ComicBook, ModifiedType, get_page_str
+from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_consts import JPG_FILE_EXT, PageType
 from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import delete_all_files_in_directory
 from barks_fantagraphics.fanta_comics_info import (
-    FANTA_VOLUME_OVERRIDES_ROOT,
     FANTA_OVERRIDE_DIRECTORIES,
+    FANTA_VOLUME_OVERRIDES_ROOT,
 )
-from barks_fantagraphics.page_classes import CleanPage
-from barks_fantagraphics.pages import get_sorted_srce_and_dest_pages, get_page_mod_type
-from barks_fantagraphics.pil_image_utils import (
-    open_pil_image_for_reading,
-    downscale_jpg,
-    SAVE_JPG_COMPRESS_LEVEL,
-    SAVE_JPG_QUALITY,
-)
+from barks_fantagraphics.pages import get_page_mod_type, get_sorted_srce_and_dest_pages
+from barks_fantagraphics.pil_image_utils import copy_file_to_jpg, downscale_jpg
+from PIL import Image
+
+if TYPE_CHECKING:
+    from barks_fantagraphics.page_classes import CleanPage
 
 Image.MAX_IMAGE_PIXELS = None
 
@@ -38,7 +36,7 @@ class FileType(Enum):
     TITLE = auto()
 
 
-def get_srce_mod_files(comic: ComicBook) -> Union[None, List[Tuple[str, FileType]]]:
+def get_srce_mod_files(comic: ComicBook) -> None | list[tuple[str, FileType]]:
     srce_and_dest_pages = get_sorted_srce_and_dest_pages(comic, get_full_paths=True)
 
     modified_srce_files = [
@@ -52,15 +50,15 @@ def get_srce_mod_files(comic: ComicBook) -> Union[None, List[Tuple[str, FileType
     return modified_srce_files
 
 
-def get_title_file(dest_pages: List[CleanPage]) -> Tuple[str, FileType]:
+def get_title_file(dest_pages: list[CleanPage]) -> tuple[str, FileType]:
     for page in dest_pages:
         if page.page_type == PageType.TITLE:
             return page.page_filename, FileType.TITLE
 
-    assert False
+    raise AssertionError
 
 
-def get_mod_file(comic: ComicBook, srce: CleanPage) -> Tuple[str, FileType]:
+def get_mod_file(comic: ComicBook, srce: CleanPage) -> tuple[str, FileType]:
     page_num = get_page_str(srce.page_num)
 
     if os.path.isfile(comic.get_srce_original_fixes_story_file(page_num)):
@@ -68,26 +66,13 @@ def get_mod_file(comic: ComicBook, srce: CleanPage) -> Tuple[str, FileType]:
     if os.path.isfile(comic.get_srce_upscayled_fixes_story_file(page_num)):
         return comic.get_srce_upscayled_fixes_story_file(page_num), FileType.UPSCAYLED
 
-    raise Exception(f'Expected to find a fixes file for "{srce.page_filename}".')
+    raise FileNotFoundError(f'Expected to find a fixes file for "{srce.page_filename}".')
 
 
 def downscale(srce_file: str, dest_file: str) -> None:
     print(f'Downscale "{srce_file}" to "{dest_file}"')
 
     downscale_jpg(SRCE_STANDARD_WIDTH, SRCE_STANDARD_HEIGHT, srce_file, dest_file)
-
-
-def copy_file(srce_file: str, dest_file: str) -> None:
-    print(f'Copy "{srce_file}" to "{dest_file}"...')
-
-    image = open_pil_image_for_reading(srce_file).convert("RGB")
-
-    image.save(
-        dest_file,
-        optimize=True,
-        compress_level=SAVE_JPG_COMPRESS_LEVEL,
-        quality=SAVE_JPG_QUALITY,
-    )
 
 
 # TODO(glk): Some issue with type checking inspection?
@@ -132,7 +117,8 @@ for volume in volumes:
             if file_type == FileType.UPSCAYLED:
                 downscale(mod_file, override_file)
             elif file_type == FileType.ORIGINAL:
-                copy_file(mod_file, override_file)
+                print(f'Copy "{mod_file}" to "{override_file}"...')
+                copy_file_to_jpg(mod_file, override_file)
             else:
                 assert False
                 # assert file_type == FileType.TITLE

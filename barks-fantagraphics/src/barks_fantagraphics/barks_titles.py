@@ -2589,7 +2589,7 @@ BARKS_TITLE_DICT: dict[str, Titles] = {
     info.get_title_str(): info.title for info in BARKS_TITLE_INFO
 }
 
-TITLES_WITHOUT_TITLE_PAGES = [
+NON_COMIC_TITLES = [
     Titles.DON_AULT_FANTA_INTRO,
     Titles.DON_AULT_LIFE_AMONG_THE_DUCKS,
     Titles.RICH_TOMASSO_ON_COLORING_BARKS,
@@ -2783,3 +2783,7 @@ def get_safe_title(title: str) -> str:
     safe_title = safe_title.replace("- ", "-")
     safe_title = safe_title.replace('"', "")
     return safe_title
+
+
+def is_non_comic_title(title_str: str) -> bool:
+    return BARKS_TITLE_DICT[title_str] in NON_COMIC_TITLES

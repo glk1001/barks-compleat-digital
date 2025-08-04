@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime
 
-from barks_fantagraphics.barks_titles import TITLES_WITHOUT_TITLE_PAGES, get_safe_title
+from barks_fantagraphics.barks_titles import NON_COMIC_TITLES, get_safe_title
 from barks_fantagraphics.comic_book import (
     ComicBook,
     ModifiedType,
@@ -261,7 +261,7 @@ def get_page_counts(comic: ComicBook, dest_pages: list[CleanPage]) -> dict[str, 
     assert front_page_count <= 1
 
     title_page_count = len([p for p in dest_pages if p.page_type == PageType.TITLE])
-    assert title_page_count == 1 or comic.get_title_enum() in TITLES_WITHOUT_TITLE_PAGES
+    assert title_page_count == 1 or comic.get_title_enum() in NON_COMIC_TITLES
 
     cover_page_count = len([p for p in dest_pages if p.page_type == PageType.COVER])
     assert cover_page_count <= 1

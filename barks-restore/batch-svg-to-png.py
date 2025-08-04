@@ -3,9 +3,9 @@ import logging
 import os
 import sys
 import time
-from typing import List
 
-from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
+from barks_fantagraphics.barks_titles import is_non_comic_title
+from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import get_abbrev_path
@@ -14,11 +14,15 @@ from src.image_io import svg_file_to_png
 SCALE = 4
 
 
-def svgs_to_pngs(title_list: List[str]) -> None:
+def svgs_to_pngs(title_list: list[str]) -> None:
     start = time.time()
 
     num_png_files = 0
     for title in title_list:
+        if is_non_comic_title(title):
+            logging.info(f'Not a comic title - not converting "{title}".')
+            continue
+
         logging.info(f'Converting svg to png for "{title}"...')
 
         comic = comics_database.get_comic_book(title)
@@ -37,7 +41,7 @@ def svgs_to_pngs(title_list: List[str]) -> None:
 def convert_svg_to_png(srce_svg: str) -> None:
     try:
         if not os.path.isfile(srce_svg):
-            raise Exception(f'Could not find srce file: "{srce_svg}".')
+            raise FileNotFoundError(f'Could not find srce file: "{srce_svg}".')
 
         png_file = srce_svg + ".png"
         if os.path.isfile(png_file):
@@ -46,12 +50,12 @@ def convert_svg_to_png(srce_svg: str) -> None:
 
         logging.info(
             f'Converting svg file "{get_abbrev_path(srce_svg)}"'
-            f' to dest png "{get_abbrev_path(png_file)}".'
+            f' to dest png "{get_abbrev_path(png_file)}".',
         )
         svg_file_to_png(srce_svg, png_file)
 
     except Exception as e:
-        logging.error(f"Error: {e}")
+        logging.exception(f"Error: {e}")
         return
 
 

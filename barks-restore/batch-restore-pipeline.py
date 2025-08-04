@@ -4,31 +4,52 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import List
 
 import psutil
-
-from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
+from barks_fantagraphics.barks_titles import is_non_comic_title
+from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_logging import setup_logging
-from barks_fantagraphics.comics_utils import (
-    get_abbrev_path,
-)
+from barks_fantagraphics.comics_utils import get_abbrev_path
+from barks_fantagraphics.pil_image_utils import copy_file_to_png
 from src.restore_pipeline import RestorePipeline, check_for_errors
 
 SCALE = 4
 SMALL_RAM = 16 * 1024 * 1024 * 1024
 
 
-def restore(title_list: List[str]) -> None:
+def restore(title_list: list[str]) -> None:
     start = time.time()
 
     for title in title_list:
-        restore_title(title)
+        if is_non_comic_title(title):
+            copy_title(title)
+        else:
+            restore_title(title)
 
     logging.info(
-        f'\nTime taken to restore all {len(title_list)} titles": {int(time.time() - start)}s.'
+        f'\nTime taken to restore all {len(title_list)} titles": {int(time.time() - start)}s.',
     )
+
+
+def copy_title(title_str: str) -> None:
+    logging.info(f'Copying non-comic title "{title_str}".')
+
+    comic = comics_database.get_comic_book(title_str)
+    srce_files = comic.get_final_srce_original_story_files(RESTORABLE_PAGE_TYPES)
+    dest_restored_files = comic.get_srce_restored_story_files(RESTORABLE_PAGE_TYPES)
+
+    for srce_file, dest_file in zip(srce_files, dest_restored_files):
+        if Path(dest_file).is_file():
+            logging.warning(
+                f'Dest file exists - skipping: "{get_abbrev_path(dest_file)}".',
+            )
+            continue
+
+        logging.info(
+            f'Copying "{get_abbrev_path(srce_file[0])}" to "{get_abbrev_path(dest_file)}".',
+        )
+        copy_file_to_png(srce_file[0], dest_file)
 
 
 def restore_title(title: str) -> None:
@@ -45,11 +66,11 @@ def restore_title(title: str) -> None:
     srce_upscayl_files = comic.get_final_srce_upscayled_story_files(RESTORABLE_PAGE_TYPES)
     dest_restored_files = comic.get_srce_restored_story_files(RESTORABLE_PAGE_TYPES)
     dest_restored_upscayled_files = comic.get_srce_restored_upscayled_story_files(
-        RESTORABLE_PAGE_TYPES
+        RESTORABLE_PAGE_TYPES,
     )
     dest_restored_svg_files = comic.get_srce_restored_svg_story_files(RESTORABLE_PAGE_TYPES)
 
-    restore_processes: List[RestorePipeline] = []
+    restore_processes: list[RestorePipeline] = []
 
     for (
         srce_file,
@@ -69,14 +90,14 @@ def restore_title(title: str) -> None:
             continue
         if os.path.isfile(dest_restored_file):
             logging.warning(
-                f'Dest file exists - skipping: "{get_abbrev_path(dest_restored_file)}".'
+                f'Dest file exists - skipping: "{get_abbrev_path(dest_restored_file)}".',
             )
             continue
 
         logging.info(
             f'Restoring srce files "{get_abbrev_path(srce_file[0])}",'
             f' "{get_abbrev_path(srce_upscayl_file[0])}"'
-            f' to dest "{get_abbrev_path(dest_restored_file)}".'
+            f' to dest "{get_abbrev_path(dest_restored_file)}".',
         )
 
         restore_processes.append(
@@ -88,14 +109,14 @@ def restore_title(title: str) -> None:
                 Path(dest_restored_file),
                 Path(dest_upscayled_restored_file),
                 Path(dest_svg_restored_file),
-            )
+            ),
         )
 
     run_restore(restore_processes)
 
     logging.info(
         f"\nTime taken to restore all {len(restore_processes)}"
-        f" title files: {int(time.time() - start)}s."
+        f" title files: {int(time.time() - start)}s.",
     )
 
     check_for_errors(restore_processes)
@@ -104,7 +125,7 @@ def restore_title(title: str) -> None:
 part1_max_workers = None
 
 
-def run_restore_part1(proc: RestorePipeline):
+def run_restore_part1(proc: RestorePipeline) -> None:
     logging.info(f'Starting restore part 1 for "{proc.srce_upscale_file.name}".')
     proc.do_part1()
 
@@ -112,7 +133,7 @@ def run_restore_part1(proc: RestorePipeline):
 part2_max_workers = 1 if psutil.virtual_memory().total < SMALL_RAM else 6
 
 
-def run_restore_part2(proc: RestorePipeline):
+def run_restore_part2(proc: RestorePipeline) -> None:
     logging.info(f'Starting restore part 2 for "{proc.srce_upscale_file.name}".')
     proc.do_part2_memory_hungry()
 
@@ -120,7 +141,7 @@ def run_restore_part2(proc: RestorePipeline):
 part3_max_workers = None
 
 
-def run_restore_part3(proc: RestorePipeline):
+def run_restore_part3(proc: RestorePipeline) -> None:
     logging.info(f'Starting restore part 3 for "{proc.srce_upscale_file.name}".')
     proc.do_part3()
 
@@ -128,12 +149,12 @@ def run_restore_part3(proc: RestorePipeline):
 part4_max_workers = 1 if psutil.virtual_memory().total < SMALL_RAM else 5
 
 
-def run_restore_part4(proc: RestorePipeline):
+def run_restore_part4(proc: RestorePipeline) -> None:
     logging.info(f'Starting restore part 4 for "{proc.srce_upscale_file.name}".')
     proc.do_part4_memory_hungry()
 
 
-def run_restore(restore_processes: List[RestorePipeline]) -> None:
+def run_restore(restore_processes: list[RestorePipeline]) -> None:
     logging.info(f"Starting restore for {len(restore_processes)} processes.")
 
     with concurrent.futures.ProcessPoolExecutor(part1_max_workers) as executor:

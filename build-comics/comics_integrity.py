@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from barks_fantagraphics import panel_bounding
-from barks_fantagraphics.barks_titles import TITLES_WITHOUT_TITLE_PAGES, get_safe_title
+from barks_fantagraphics.barks_titles import NON_COMIC_TITLES, get_safe_title
 from barks_fantagraphics.comic_book import (
     ComicBook,
     get_page_num_str,
@@ -479,10 +479,12 @@ def check_no_unexpected_files(comics_db: ComicsDatabase) -> int:
         comics_db.get_root_dir("Fantagraphics-censorship-fixes"),
         comics_db.get_root_dir("Articles"),
         comics_db.get_root_dir("Books"),
+        comics_db.get_root_dir("Bugs"),
         comics_db.get_root_dir("CBL_Index"),
         comics_db.get_root_dir("Comics Scans"),
         comics_db.get_root_dir("Glk Covers"),
         comics_db.get_root_dir("Misc"),
+        comics_db.get_root_dir("Not-controversial-restored"),
         comics_db.get_root_dir("Paintings"),
         comics_db.get_root_dir("Silent Night (Gemstone)"),
         THE_COMICS_DIR,
@@ -623,7 +625,7 @@ def check_srce_and_dest_files(comic: ComicBook, errors: OutOfDateErrors) -> None
     errors.exception_errors = []
 
     inset_file = comic.intro_inset_file
-    if comic.get_title_enum() not in TITLES_WITHOUT_TITLE_PAGES and not os.path.isfile(inset_file):
+    if comic.get_title_enum() not in NON_COMIC_TITLES and not os.path.isfile(inset_file):
         errors.exception_errors.append(f'Inset file not found: "{inset_file}"')
         return
 
@@ -642,6 +644,8 @@ def check_missing_or_out_of_date_dest_files(
     srce_and_dest_pages: SrceAndDestPages,
     errors: OutOfDateErrors,
 ) -> None:
+    is_a_comic = comic.get_title_enum() not in NON_COMIC_TITLES
+
     for pages in zip(srce_and_dest_pages.srce_pages, srce_and_dest_pages.dest_pages):
         srce_page = pages[0]
         dest_page = pages[1]
@@ -654,7 +658,7 @@ def check_missing_or_out_of_date_dest_files(
             prev_timestamp = get_timestamp(dest_page.page_filename)
             prev_file = dest_page.page_filename
             for dependency in srce_dependencies:
-                if not dependency.independent:
+                if not dependency.independent and is_a_comic:
                     if (dependency.timestamp < 0) or (dependency.timestamp > prev_timestamp):
                         errors.srce_and_dest_files_out_of_date.append((dependency.file, prev_file))
                     prev_timestamp = dependency.timestamp
