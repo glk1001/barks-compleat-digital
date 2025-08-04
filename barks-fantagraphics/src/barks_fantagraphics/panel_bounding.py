@@ -136,17 +136,17 @@ def set_srce_panel_bounding_boxes(
         if srce_page.page_type in PAGES_WITHOUT_PANELS:
             continue
         if not os.path.isfile(srce_panels_segment_info_file):
-            raise FileNotFoundError(
-                f'Could not find panels segments info file "{srce_panels_segment_info_file}".',
-            )
+            msg = f'Could not find panels segments info file "{srce_panels_segment_info_file}".'
+            raise FileNotFoundError(msg)
         if check_srce_page_timestamps and dest_file_is_older_than_srce(
             srce_page.page_filename,
             srce_panels_segment_info_file,
         ):
-            raise RuntimeError(
+            msg = (
                 f'Panels segments info file "{srce_panels_segment_info_file}"'
-                f' is older than srce image file "{srce_page.page_filename}".',
+                f' is older than srce image file "{srce_page.page_filename}".'
             )
+            raise RuntimeError(msg)
         srce_page.panels_bbox = get_panels_bounding_box_from_file(srce_panels_segment_info_file)
 
     logging.debug("")
