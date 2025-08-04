@@ -1,3 +1,5 @@
+# ruff: noqa: ERA001, RUF001
+
 from barks_fantagraphics.barks_titles import Titles
 
 BARKS_EXTRA_INFO = {
@@ -32,7 +34,7 @@ BARKS_EXTRA_INFO = {
     Titles.GOOD_DEEDS: "The first appearance of [b][i]Neighbor Jones.[/i][/b]"
     " (Mr. Jones in this story.)",
     Titles.GOOD_NEIGHBORS: "The first real appearance of [b][i]Neighbor Jones[/i][/b]"
-    " - the one we all know!",
+    " – the one we all know!",
     Titles.THREE_DIRTY_LITTLE_DUCKS: "The first appearance of [b][i]Herbert[/i][/b]"
     " and [b][i]Bornworthy[/i][/b] (aka [b][i]Bolivar)[/i][/b] the dog."
     "\n\nAnd the first Barks Duck story drawn in a four tier layout.",

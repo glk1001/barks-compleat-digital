@@ -1,6 +1,8 @@
+# ruff: noqa: E501
+
 from dataclasses import dataclass
 
-from barks_fantagraphics.barks_titles import Titles, BARKS_TITLES, BARKS_TITLE_INFO, ONE_PAGERS
+from barks_fantagraphics.barks_titles import BARKS_TITLE_INFO, BARKS_TITLES, ONE_PAGERS, Titles
 
 
 @dataclass
@@ -492,7 +494,7 @@ def validate_payment_data() -> None:
     for title_info in BARKS_TITLE_INFO:
         title = title_info.title
         if (title not in ONE_PAGERS) and (title not in BARKS_PAYMENTS):
-            print(f'Title "{BARKS_TITLES[title]}" has no payment info.')
+            print(f'Title "{BARKS_TITLES[title]}" has no payment info.')  # noqa: T201
             there_were_errors = True
 
     assert not there_were_errors

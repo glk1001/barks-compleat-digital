@@ -1,3 +1,5 @@
+# ruff: noqa: E501, FBT003, S105
+
 from dataclasses import dataclass
 from datetime import date
 from enum import CONTINUOUS, UNIQUE, IntEnum, auto, verify
@@ -8,6 +10,7 @@ from .comic_issues import (
     SHORT_ISSUE_NAME,
     Issues,
 )
+from .comics_consts import DEC, JAN
 
 NUM_TITLES = 616 + 3  # +3 for articles
 
@@ -2753,8 +2756,9 @@ def check_story_submitted_order(title_list: list[ComicBookInfo]) -> None:
     prev_title = ""
     prev_submitted_date = date(1940, 1, 1)
     for title in title_list:
-        if not 1 <= title.submitted_month <= 12:
-            raise Exception(f'"{title}": Invalid submission month: {title.submitted_month}.')
+        if not JAN <= title.submitted_month <= DEC:
+            msg = f'"{title}": Invalid submission month: {title.submitted_month}.'
+            raise RuntimeError(msg)
         submitted_day = 1 if title.submitted_day == -1 else title.submitted_day
         submitted_date = date(
             title.submitted_year,
@@ -2762,17 +2766,19 @@ def check_story_submitted_order(title_list: list[ComicBookInfo]) -> None:
             submitted_day,
         )
         if prev_submitted_date > submitted_date:
-            raise Exception(
+            msg = (
                 f'"{title}": Out of order submitted date {submitted_date}.'
-                f' Previous entry: "{prev_title}" - {prev_submitted_date}.',
+                f' Previous entry: "{prev_title}" - {prev_submitted_date}.'
             )
+            raise RuntimeError(msg)
         chronological_number = title.chronological_number
         if prev_chronological_number >= chronological_number:
-            raise Exception(
+            msg = (
                 f'"{title}": Out of order chronological number {chronological_number}.'
                 f' Previous title: "{prev_title}"'
-                f" with chronological number {prev_chronological_number}.",
+                f" with chronological number {prev_chronological_number}."
             )
+            raise RuntimeError(msg)
         prev_title = title
         prev_submitted_date = submitted_date
         prev_chronological_number = chronological_number
@@ -2782,7 +2788,7 @@ def get_safe_title(title: str) -> str:
     safe_title = title.replace("\n", " ")
     safe_title = safe_title.replace("- ", "-")
     safe_title = safe_title.replace('"', "")
-    return safe_title
+    return safe_title  # noqa: RET504
 
 
 def is_non_comic_title(title_str: str) -> bool:
