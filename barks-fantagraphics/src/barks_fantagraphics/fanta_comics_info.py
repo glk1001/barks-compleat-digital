@@ -1,11 +1,14 @@
+# ruff: noqa: ERA001
+
 import collections
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from dataclasses import dataclass
-from typing import Dict, OrderedDict, List, Callable
+from typing import Callable
 
 from . import barks_titles as bt
-from .barks_titles import ComicBookInfo, Titles, Titles as Bt, BARKS_TITLE_INFO
-from .comic_issues import Issues, ISSUE_NAME
+from .barks_titles import BARKS_TITLE_INFO, ComicBookInfo, Titles
+from .barks_titles import Titles as Bt
+from .comic_issues import ISSUE_NAME, Issues
 
 
 @dataclass
@@ -17,7 +20,7 @@ class FantaComicBookInfo:
     number_in_series: int = -1
     fanta_chronological_number: int = -1
 
-    def get_short_issue_title(self):
+    def get_short_issue_title(self) -> str:
         return self.comic_book_info.get_short_issue_title()
 
 
@@ -240,7 +243,7 @@ class FantaSeriesInfo:
     number_in_series: int = -1
 
 
-SERIES_INFO_START_NUMBERS: Dict[str, int] = {
+SERIES_INFO_START_NUMBERS: dict[str, int] = {
     SERIES_DDA: 1,
     SERIES_USA: 1,
     SERIES_DDS: 1,
@@ -254,7 +257,7 @@ SERIES_INFO_START_NUMBERS: Dict[str, int] = {
 CENSORED_TITLES = [bt.SILENT_NIGHT, bt.MILKMAN_THE]
 SILENT_NIGHT_PUBLICATION_ISSUE = "Gemstone's Christmas Parade, No.3, 2005"
 
-SERIES_INFO: List[FantaSeriesInfo] = [
+SERIES_INFO: list[FantaSeriesInfo] = [
     # DDA
     FantaSeriesInfo(Bt.DONALD_DUCK_FINDS_PIRATE_GOLD, "?", SERIES_DDA, FANTA_01),
     FantaSeriesInfo(Bt.DONALD_DUCK_AND_THE_MUMMYS_RING, "?", SERIES_DDA, FANTA_01),
@@ -587,8 +590,8 @@ ALL_LISTS = "All"
 
 
 def get_filtered_title_lists(
-    filters: Dict[str, Callable[[FantaComicBookInfo], bool]]
-) -> Dict[str, List[FantaComicBookInfo]]:
+    filters: dict[str, Callable[[FantaComicBookInfo], bool]],
+) -> dict[str, list[FantaComicBookInfo]]:
     titles = ALL_FANTA_COMIC_BOOK_INFO
 
     filtered_dict = defaultdict(list)
