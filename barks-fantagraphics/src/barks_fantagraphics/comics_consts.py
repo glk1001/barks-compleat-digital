@@ -1,7 +1,6 @@
 import os
 from enum import Enum, auto
 from pathlib import Path
-from typing import Dict
 
 # TODO: Should this dest stuff be here?
 DEST_TARGET_WIDTH = 2120
@@ -35,7 +34,7 @@ OCT = 10
 NOV = 11
 DEC = 12
 
-MONTH_AS_SHORT_STR: Dict[int, str] = {
+MONTH_AS_SHORT_STR: dict[int, str] = {
     JAN: "Jan",
     FEB: "Feb",
     MAR: "Mar",
@@ -50,7 +49,7 @@ MONTH_AS_SHORT_STR: Dict[int, str] = {
     DEC: "Dec",
 }
 
-MONTH_AS_LONG_STR: Dict[int, str] = {
+MONTH_AS_LONG_STR: dict[int, str] = {
     JAN: "January",
     FEB: "February",
     MAR: "March",
@@ -141,7 +140,7 @@ FRONT_PAGES = [
     PageType.PAINTING,
     PageType.PAINTING_NO_BORDER,
 ]
-FRONT_MATTER_PAGES = FRONT_PAGES + [PageType.FRONT_MATTER]
+FRONT_MATTER_PAGES = [*FRONT_PAGES, PageType.FRONT_MATTER]
 BACK_MATTER_PAGES = [
     PageType.BACK_MATTER,
     PageType.BACK_NO_PANELS,
