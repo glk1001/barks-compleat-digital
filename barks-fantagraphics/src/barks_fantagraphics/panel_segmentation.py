@@ -4,7 +4,7 @@ import os
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any
 
 from PIL import Image
 
@@ -21,11 +21,11 @@ class KumikoBound:
     height: int
 
 
-def get_kumiko_panel_bound(raw_bound: Tuple[int, int, int, int]) -> KumikoBound:
+def get_kumiko_panel_bound(raw_bound: tuple[int, int, int, int]) -> KumikoBound:
     return KumikoBound(raw_bound[0], raw_bound[1], raw_bound[2], raw_bound[3])
 
 
-def get_min_max_panel_values(segment_info: Dict[str, Any]) -> Tuple[int, int, int, int]:
+def get_min_max_panel_values(segment_info: dict[str, Any]) -> tuple[int, int, int, int]:
     x_min = BIG_NUM
     y_min = BIG_NUM
     x_max = 0
@@ -58,30 +58,28 @@ def get_min_max_panel_values(segment_info: Dict[str, Any]) -> Tuple[int, int, in
 
 
 class KumikoPanelSegmentation:
-    def __init__(self, work_dir: str, no_panel_expansion: bool = False):
+    def __init__(self, work_dir: str, no_panel_expansion: bool = False) -> None:
         self._work_dir = work_dir
         self._no_panel_expansion = no_panel_expansion
 
-    def get_panels_segment_info(self, srce_image: Image, srce_filename: str) -> Dict[str, Any]:
+    def get_panels_segment_info(self, srce_image: Image, srce_filename: str) -> dict[str, Any]:
         logging.debug(
-            f'Getting panel bounding box for "{get_abbrev_path(srce_filename)}" using kumiko.'
+            f'Getting panel bounding box for "{get_abbrev_path(srce_filename)}" using kumiko.',
         )
 
         work_filename = str(
             os.path.join(
                 self._work_dir,
                 os.path.splitext(os.path.basename(srce_filename))[0] + "_orig.jpg",
-            )
+            ),
         )
         srce_image.save(work_filename, optimize=True, compress_level=9)
         logging.debug(f'Saved srce image to work file "{work_filename}".')
 
         logging.debug(f'Getting segment info for "{work_filename}".')
-        segment_info = self._run_kumiko(work_filename)
+        return self._run_kumiko(work_filename)
 
-        return segment_info
-
-    def _run_kumiko(self, page_filename: str) -> Dict[str, Any]:
+    def _run_kumiko(self, page_filename: str) -> dict[str, Any]:
         kumiko_home_dir = os.path.join(str(Path.home()), "Prj/github/kumiko")
         kumiko_python_path = os.path.join(kumiko_home_dir, ".venv/bin/python3")
         kumiko_script_path = os.path.join(kumiko_home_dir, "kumiko")

@@ -1,10 +1,7 @@
+# ruff: noqa: ERA001
+
 import json
-
-# import os
 from dataclasses import dataclass
-from typing import Tuple
-
-# from PIL import ImageDraw
 
 PANEL_BOUNDS_WORK_FILE_SUFFIX = "_panel_bounds.txt"
 
@@ -16,7 +13,7 @@ class BoundingBox:
     x_max: int = -1
     y_max: int = -1
 
-    def get_box(self) -> Tuple[int, int, int, int]:
+    def get_box(self) -> tuple[int, int, int, int]:
         return self.x_min, self.y_min, self.x_max, self.y_max
 
     def get_width(self) -> int:
