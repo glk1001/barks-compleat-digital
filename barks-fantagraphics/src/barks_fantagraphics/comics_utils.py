@@ -1,17 +1,21 @@
+from __future__ import annotations
+
 import logging
 import os
 import re
-from datetime import datetime, date
+from datetime import date, datetime
 from pathlib import Path
-from typing import Union, List, Tuple, Dict
+from typing import TYPE_CHECKING
 
-from .barks_titles import ComicBookInfo
-from .comic_issues import Issues, ISSUE_NAME
-from .comics_consts import BARKS_ROOT_DIR, MONTH_AS_SHORT_STR, MONTH_AS_LONG_STR
-from .fanta_comics_info import FantaComicBookInfo
+from .comic_issues import ISSUE_NAME, Issues
+from .comics_consts import BARKS_ROOT_DIR, MONTH_AS_LONG_STR, MONTH_AS_SHORT_STR
+
+if TYPE_CHECKING:
+    from .barks_titles import ComicBookInfo
+    from .fanta_comics_info import FantaComicBookInfo
 
 
-def delete_all_files_in_directory(directory_path: str):
+def delete_all_files_in_directory(directory_path: str) -> None:
     logging.debug(f'Deleting all files in directory "{get_relpath(directory_path)}".')
 
     for file in Path(directory_path).iterdir():
@@ -28,27 +32,24 @@ def get_dest_comic_zip_file_stem(title: str, chrono_num: int, issue_name: str) -
 
 
 def get_titles_and_info_chronologically_sorted(
-    titles_and_info: List[Tuple[str, FantaComicBookInfo]]
-) -> List[Tuple[str, FantaComicBookInfo]]:
-
+    titles_and_info: list[tuple[str, FantaComicBookInfo]],
+) -> list[tuple[str, FantaComicBookInfo]]:
     return sorted(titles_and_info, key=lambda x: x[1].fanta_chronological_number)
 
 
 def get_titles_sorted_by_submission_date(
-    titles_and_info: List[Tuple[str, FantaComicBookInfo]]
-) -> List[str]:
-
+    titles_and_info: list[tuple[str, FantaComicBookInfo]],
+) -> list[str]:
     return [t[0] for t in sorted(titles_and_info, key=get_submitted_date)]
 
 
 def get_titles_and_info_sorted_by_submission_date(
-    titles_and_info: List[Tuple[str, FantaComicBookInfo]]
-) -> List[Tuple[str, FantaComicBookInfo]]:
-
+    titles_and_info: list[tuple[str, FantaComicBookInfo]],
+) -> list[tuple[str, FantaComicBookInfo]]:
     return sorted(titles_and_info, key=get_submitted_date)
 
 
-def get_submitted_date(title_and_info: Tuple[str, FantaComicBookInfo]) -> date:
+def get_submitted_date(title_and_info: tuple[str, FantaComicBookInfo]) -> date:
     fanta_info = title_and_info[1]
     submitted_day = (
         1
@@ -65,7 +66,8 @@ def get_submitted_date(title_and_info: Tuple[str, FantaComicBookInfo]) -> date:
 def get_work_dir(work_dir_root: str) -> str:
     os.makedirs(work_dir_root, exist_ok=True)
     if not os.path.isdir(work_dir_root):
-        raise Exception(f'Could not find work root directory "{work_dir_root}".')
+        msg = f'Could not find work root directory "{work_dir_root}".'
+        raise FileNotFoundError(msg)
 
     work_dir = os.path.join(work_dir_root, datetime.now().strftime("%Y_%m_%d-%H_%M_%S.%f"))
     os.makedirs(work_dir)
@@ -73,17 +75,17 @@ def get_work_dir(work_dir_root: str) -> str:
     return work_dir
 
 
-def get_abbrev_path(file: Union[str, Path]) -> str:
+def get_abbrev_path(file: str | Path) -> str:
     abbrev = get_relpath(file)
 
     abbrev = re.sub(r"Carl Barks ", "**", abbrev)
     abbrev = re.sub(r" -.*- ", " - ", abbrev)
     abbrev = re.sub(r" \(.*\)", "", abbrev)
 
-    return abbrev
+    return abbrev  # noqa: RET504
 
 
-def get_relpath(file: Union[str, Path]) -> str:
+def get_relpath(file: str | Path) -> str:
     if str(file).startswith(BARKS_ROOT_DIR):
         return os.path.relpath(file, BARKS_ROOT_DIR)
 
@@ -91,13 +93,13 @@ def get_relpath(file: Union[str, Path]) -> str:
     return str(Path().joinpath(*file_parts))
 
 
-def get_abspath_from_relpath(relpath: str, root_dir=BARKS_ROOT_DIR) -> str:
+def get_abspath_from_relpath(relpath: str, root_dir: str = BARKS_ROOT_DIR) -> str:
     if os.path.isabs(relpath):
         return relpath
     return os.path.join(root_dir, relpath)
 
 
-def get_clean_path(file: Union[str, Path]) -> str:
+def get_clean_path(file: str | Path) -> str:
     return str(file).replace(str(Path.home()), "$HOME")
 
 
@@ -108,31 +110,42 @@ def get_timestamp(file: str) -> float:
     return os.path.getmtime(file)
 
 
-def get_max_timestamp(files: List[str]) -> float:
+def get_max_timestamp(files: list[str]) -> float:
     max_timestamp = -1.0
     for file in files:
         timestamp = get_timestamp(file)
-        if timestamp > max_timestamp:
-            max_timestamp = timestamp
+        max_timestamp = max(max_timestamp, timestamp)
 
     return max_timestamp
 
 
-def get_timestamp_str(file: str, date_sep: str = "_", date_time_sep="-", hr_sep="_") -> str:
+def get_timestamp_str(
+    file: str,
+    date_sep: str = "_",
+    date_time_sep: str = "-",
+    hr_sep: str = "_",
+) -> str:
     return get_timestamp_as_str(get_timestamp(file), date_sep, date_time_sep, hr_sep)
 
 
 def get_timestamp_as_str(
-    timestamp: float, date_sep: str = "_", date_time_sep="-", hr_sep="_"
+    timestamp: float,
+    date_sep: str = "_",
+    date_time_sep: str = "-",
+    hr_sep: str = "_",
 ) -> str:
     timestamp_as_date = datetime.fromtimestamp(timestamp)
     timestamp_as_date_as_str = timestamp_as_date.strftime(
-        f"%Y{date_sep}%m{date_sep}%d{date_time_sep}%H{hr_sep}%M{hr_sep}%S.%f"
+        f"%Y{date_sep}%m{date_sep}%d{date_time_sep}%H{hr_sep}%M{hr_sep}%S.%f",
     )
     return timestamp_as_date_as_str[:-4]  # trim microseconds to two places
 
 
-def dest_file_is_older_than_srce(srce_file: str, dest_file: str, include_missing_dest=True) -> bool:
+def dest_file_is_older_than_srce(
+    srce_file: str,
+    dest_file: str,
+    include_missing_dest: bool = True,
+) -> bool:
     if include_missing_dest and not os.path.exists(dest_file):
         return True
 
@@ -157,11 +170,11 @@ def get_ocr_json_suffix(ocr_json_file: str) -> str:
 
 
 def get_formatted_day(day: int) -> str:
-    if day == 1 or day == 31:
+    if day in {1, 31}:
         day_str = str(day) + "st"
-    elif day == 2 or day == 22:
+    elif day in {2, 22}:
         day_str = str(day) + "nd"
-    elif day == 3 or day == 23:
+    elif day in {3, 23}:
         day_str = str(day) + "rd"
     else:
         day_str = str(day) + "th"
@@ -176,7 +189,7 @@ def get_short_formatted_first_published_str(comic_book_info: ComicBookInfo) -> s
         issue_date = comic_book_info.issue_year
     else:
         issue_date = (
-            f"{MONTH_AS_SHORT_STR[comic_book_info.issue_month]}" f" {comic_book_info.issue_year}"
+            f"{MONTH_AS_SHORT_STR[comic_book_info.issue_month]} {comic_book_info.issue_year}"
         )
 
     return f"{issue}, {issue_date}"
@@ -199,8 +212,7 @@ def get_short_formatted_submitted_date(comic_book_info: ComicBookInfo) -> str:
 def get_long_formatted_submitted_date(comic_book_info: ComicBookInfo) -> str:
     if comic_book_info.submitted_day == -1:
         return (
-            f"{MONTH_AS_LONG_STR[comic_book_info.submitted_month]}"
-            f" {comic_book_info.submitted_year}"
+            f"{MONTH_AS_LONG_STR[comic_book_info.submitted_month]} {comic_book_info.submitted_year}"
         )
 
     return (
@@ -212,7 +224,7 @@ def get_long_formatted_submitted_date(comic_book_info: ComicBookInfo) -> str:
 
 def get_formatted_first_published_str(
     comic_book_info: ComicBookInfo,
-    issue_name_dict: Dict[Issues, str] = ISSUE_NAME,
+    issue_name_dict: dict[Issues, str] = ISSUE_NAME,
     max_len_before_shorten: int = 0,
 ) -> str:
     issue_name = issue_name_dict[comic_book_info.issue_name]
@@ -222,7 +234,7 @@ def get_formatted_first_published_str(
         issue_date = comic_book_info.issue_year
     else:
         issue_date = (
-            f"{MONTH_AS_LONG_STR[comic_book_info.issue_month]}" f" {comic_book_info.issue_year}"
+            f"{MONTH_AS_LONG_STR[comic_book_info.issue_month]} {comic_book_info.issue_year}"
         )
 
     first_published_str = f"{issue}, {issue_date}"
@@ -232,7 +244,7 @@ def get_formatted_first_published_str(
         and (comic_book_info.issue_month != -1)
     ):
         issue_date = (
-            f"{MONTH_AS_SHORT_STR[comic_book_info.issue_month]}" f" {comic_book_info.issue_year}"
+            f"{MONTH_AS_SHORT_STR[comic_book_info.issue_month]} {comic_book_info.issue_year}"
         )
         first_published_str = f"{issue}, {issue_date}"
 

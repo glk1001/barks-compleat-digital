@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import logging
 import sys
 from logging.handlers import RotatingFileHandler
-from typing import Dict, Union
 
 
 class AnsiColor:
@@ -18,7 +19,7 @@ class AnsiColor:
         return f"{AnsiColor.BOLD_SEQ}\033[1;{30 + color}m"
 
 
-LOGGING_COLORS: Dict[str, int] = {
+LOGGING_COLORS: dict[str, int] = {
     "DEBUG": AnsiColor.CYAN,
     "INFO": AnsiColor.GREEN,
     "WARNING": AnsiColor.YELLOW,
@@ -40,14 +41,14 @@ COLOR_FORMAT = get_log_format(MAX_LEVEL_LEN_WITH_COLOR)
 
 
 class LogPlainFormatter(logging.Formatter):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(PLAIN_FORMAT)
 
 
 class LogColoredFormatter(logging.Formatter):
     """A log formatter that adds color to the output based on log level."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(COLOR_FORMAT)
 
     def format(self, record: logging.LogRecord) -> str:
@@ -65,15 +66,17 @@ class LogColoredFormatter(logging.Formatter):
 
 
 def setup_logging(
-    log_level: Union[str, int], logger_name: str = "", to_file_also: str = ""
+    log_level: str | int,
+    logger_name: str = "",
+    to_file_also: str = "",
 ) -> None:
-    """
-    Configures the root logger for the application.
+    """Configure the root logger for the application.
 
     Args:
         log_level: The minimum logging level to process (e.g., logging.DEBUG).
         logger_name: An optional name to assign to the root logger.
         to_file_also: An optional path to a log file.
+
     """
     # Using force=True (Python 3.8+) removes any existing handlers from the root logger.
     # This ensures a clean setup every time this function is called.
