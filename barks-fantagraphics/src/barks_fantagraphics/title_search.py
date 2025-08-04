@@ -1,25 +1,26 @@
+from __future__ import annotations
+
 from collections import OrderedDict
-from typing import List, Dict, Union, Tuple
 
 from barks_fantagraphics.barks_tags import (
-    Tags,
-    TagGroups,
     BARKS_TAG_ALIASES,
+    BARKS_TAG_GROUPS,
     BARKS_TAG_GROUPS_ALIASES,
     BARKS_TAGGED_TITLES,
-    BARKS_TAG_GROUPS,
+    TagGroups,
+    Tags,
 )
-from barks_fantagraphics.barks_titles import Titles, BARKS_TITLE_INFO
+from barks_fantagraphics.barks_titles import BARKS_TITLE_INFO, Titles
 
 PREFIX_LEN = 2
 
 
 class BarksTitleSearch:
-    def __init__(self):
-        self.title_prefix_dict: OrderedDict[str, List[Titles]] = self._get_title_prefix_dict()
-        self.tag_prefix_dict: Dict[str, List[str]] = self._get_tag_prefix_dict()
+    def __init__(self) -> None:
+        self.title_prefix_dict: OrderedDict[str, list[Titles]] = self._get_title_prefix_dict()
+        self.tag_prefix_dict: dict[str, list[str]] = self._get_tag_prefix_dict()
 
-    def get_titles_matching_prefix(self, prefix: str) -> List[Titles]:
+    def get_titles_matching_prefix(self, prefix: str) -> list[Titles]:
         prefix = prefix.lower()
 
         if len(prefix) == 0:
@@ -40,14 +41,14 @@ class BarksTitleSearch:
         return title_list
 
     @staticmethod
-    def get_titles_as_strings(titles: List[Titles]) -> List[str]:
+    def get_titles_as_strings(titles: list[Titles]) -> list[str]:
         title_info_list = []
         for title in titles:
             title_info_list.append(BARKS_TITLE_INFO[title].get_display_title())
 
         return title_info_list
 
-    def _get_titles_with_one_char_search(self, prefix: str) -> List[Titles]:
+    def _get_titles_with_one_char_search(self, prefix: str) -> list[Titles]:
         assert len(prefix) == 1
 
         title_list = []
@@ -60,7 +61,7 @@ class BarksTitleSearch:
         return title_list
 
     @staticmethod
-    def get_titles_containing(word: str) -> List[Titles]:
+    def get_titles_containing(word: str) -> list[Titles]:
         if len(word) <= 1:
             return []
 
@@ -75,7 +76,7 @@ class BarksTitleSearch:
         return title_list
 
     @staticmethod
-    def _get_title_prefix_dict() -> OrderedDict[str, List[Titles]]:
+    def _get_title_prefix_dict() -> OrderedDict[str, list[Titles]]:
         pref_dict = OrderedDict()
 
         for info in BARKS_TITLE_INFO:
@@ -86,7 +87,7 @@ class BarksTitleSearch:
 
         return pref_dict
 
-    def get_tags_matching_prefix(self, prefix: str) -> List[Union[Tags, TagGroups]]:
+    def get_tags_matching_prefix(self, prefix: str) -> list[Tags | TagGroups]:
         prefix = prefix.lower()
 
         if len(prefix) == 0:
@@ -110,7 +111,7 @@ class BarksTitleSearch:
         return list(set(tag_list))
 
     @staticmethod
-    def get_titles_from_alias_tag(alias_tag_str) -> Tuple[Tags, List[Titles]]:
+    def get_titles_from_alias_tag(alias_tag_str: str) -> tuple[Tags, list[Titles]]:
         tag = None
         title_list = []
 
@@ -128,13 +129,12 @@ class BarksTitleSearch:
         return tag, sorted(title_list)
 
     @staticmethod
-    def _get_titles_with_one_char_tag_search(prefix: str) -> List[Tags]:
+    def _get_titles_with_one_char_tag_search(prefix: str) -> list[Tags]:
         assert len(prefix) == 1
 
-        tag_list = []
-        return tag_list
+        return []
 
-    def _get_tag_prefix_dict(self) -> Dict[str, List[str]]:
+    def _get_tag_prefix_dict(self) -> dict[str, list[str]]:
         alias_tag_dict = self._get_alias_tag_prefix_dict(BARKS_TAG_ALIASES)
         alias_tag_group_dict = self._get_alias_tag_prefix_dict(BARKS_TAG_GROUPS_ALIASES)
 
@@ -153,8 +153,8 @@ class BarksTitleSearch:
 
     @staticmethod
     def _get_alias_tag_prefix_dict(
-        alias_dict: Union[Dict[str, Tags], Dict[str, TagGroups]]
-    ) -> Dict[str, List[str]]:
+        alias_dict: dict[str, Tags] | dict[str, TagGroups],
+    ) -> dict[str, list[str]]:
         pref_dict = {}
 
         for tag_alias_str in alias_dict:
@@ -167,7 +167,7 @@ class BarksTitleSearch:
 
 
 # Assumes 'original_list' and 'extra_list' have no duplicates.
-def unique_extend(original_list: List[Titles], extras_list: List[Titles]) -> None:
+def unique_extend(original_list: list[Titles], extras_list: list[Titles]) -> None:
     seen = set(original_list)
 
     for item in extras_list:
