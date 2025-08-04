@@ -261,7 +261,8 @@ class ComicBook:
             page_num + PNG_FILE_EXT,
         )
         if os.path.isfile(jpg_fixes_file) and os.path.isfile(png_fixes_file):
-            raise RuntimeError(f'Cannot have both .jpg and .png fixes file "{jpg_fixes_file}"')
+            msg = f'Cannot have both .jpg and .png fixes file "{jpg_fixes_file}"'
+            raise RuntimeError(msg)
 
         if os.path.isfile(jpg_fixes_file):
             return jpg_fixes_file
@@ -298,9 +299,8 @@ class ComicBook:
             page_num + JPG_FILE_EXT,
         )
         if os.path.isfile(srce_upscayled_fixes_file):
-            raise RuntimeError(
-                f'Upscayled fixes file must be .png not .jpg: "{srce_upscayled_fixes_file}".',
-            )
+            msg = f'Upscayled fixes file must be .png not .jpg: "{srce_upscayled_fixes_file}".'
+            raise RuntimeError(msg)
         srce_upscayled_fixes_file = self.get_srce_upscayled_fixes_story_file(page_num)
         srce_upscayled_file = self.get_srce_upscayled_story_file(page_num)
 
@@ -338,24 +338,25 @@ class ComicBook:
                 page_num + JPG_FILE_EXT,
             )
             if os.path.isfile(srce_restored_file):
-                raise Exception(f'Restored files should be png not jpg: "{srce_restored_file}".')
+                msg = f'Restored files should be png not jpg: "{srce_restored_file}".'
+                raise RuntimeError(msg)
 
             srce_restored_file = self._get_srce_restored_story_file(page_num)
             if os.path.isfile(srce_restored_file):
                 return srce_restored_file, ModifiedType.ORIGINAL
 
-            raise FileNotFoundError(
+            msg = (
                 f'Could not find restored source file "{srce_restored_file}"'
-                f' of type "{page_type.name}"',
+                f' of type "{page_type.name}"'
             )
+            raise FileNotFoundError(msg)
 
         srce_file, mod_type = self.get_final_srce_original_story_file(page_num, page_type)
         if os.path.isfile(srce_file):
             return srce_file, mod_type
 
-        raise FileNotFoundError(
-            f'Could not find source file "{srce_file}" of type "{page_type.name}"',
-        )
+        msg = f'Could not find source file "{srce_file}" of type "{page_type.name}"'
+        raise FileNotFoundError(msg)
 
     def _get_final_story_file(
         self,

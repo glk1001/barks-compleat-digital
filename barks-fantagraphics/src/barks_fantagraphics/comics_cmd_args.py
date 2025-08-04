@@ -79,7 +79,9 @@ class CmdArgs:
 
         return self._cmd_args.title
 
-    def get_titles(self, submission_date_sorted:bool=True, configured_only:bool=True) -> list[str]:
+    def get_titles(
+        self, submission_date_sorted: bool = True, configured_only: bool = True
+    ) -> list[str]:
         titles_and_info = self.get_titles_and_info(configured_only)
 
         if submission_date_sorted:
@@ -87,7 +89,9 @@ class CmdArgs:
 
         return [t[0] for t in titles_and_info]
 
-    def get_titles_and_info(self, configured_only:bool=True) -> list[tuple[str, FantaComicBookInfo]]:
+    def get_titles_and_info(
+        self, configured_only: bool = True
+    ) -> list[tuple[str, FantaComicBookInfo]]:
         if (
             CmdArgNames.TITLE not in self._required_args
             and CmdArgNames.VOLUME not in self._required_args
