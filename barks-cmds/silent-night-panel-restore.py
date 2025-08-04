@@ -1,19 +1,18 @@
+# ruff: noqa: T201, ERA001
+
 import logging
 import os
 import sys
 from dataclasses import dataclass
 from functools import cmp_to_key
 from pathlib import Path
-from typing import Tuple, List, Dict
 
 import cv2 as cv
-from PIL import Image
-from PIL import ImageDraw
-
 from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.panel_bounding_box_processor import BoundingBoxProcessor
-from barks_fantagraphics.panel_segmentation import get_kumiko_panel_bound, KumikoBound
+from barks_fantagraphics.panel_segmentation import KumikoBound, get_kumiko_panel_bound
 from barks_fantagraphics.pil_image_utils import open_pil_image_for_reading
+from PIL import Image, ImageDraw
 
 INPUT_IMAGE_WIDTH = 8700
 INPUT_IMAGE_HEIGHT = 12000
@@ -31,13 +30,13 @@ class KumikoBoundWithPanelNum:
     panel_num: int
 
 
-BoundsInfo = Tuple[KumikoBound, List[KumikoBound]], Dict[int, List[KumikoBoundWithPanelNum]]
+BoundsInfo = tuple[KumikoBound, list[KumikoBound]], dict[int, list[KumikoBoundWithPanelNum]]
 
 
 def get_equidistant_vertical_spacing(bounds_info: BoundsInfo) -> int:
     extra_space, num_rows = get_extra_vertical_space(bounds_info)
 
-    equidistant_space = int(round(extra_space / (num_rows - 1)))
+    equidistant_space = round(extra_space / (num_rows - 1))
     print(f"equidistant_space = {equidistant_space}, num_rows = {num_rows}")
 
     return equidistant_space
@@ -76,7 +75,7 @@ def respace_panels(
     srce_image: Image,
     dest_file: str,
     image_name: str,
-    subimages: List[Image],
+    subimages: list[Image],
     vertical_spacing: int,
     bounds_info: BoundsInfo,
 ) -> None:
@@ -119,7 +118,7 @@ def respace_panels(
     srce_image.save(dest_file)
 
 
-def get_extra_vertical_space(bounds_info: BoundsInfo) -> Tuple[int, int]:
+def get_extra_vertical_space(bounds_info: BoundsInfo) -> tuple[int, int]:
     overall_bound = bounds_info[0]
     row_bounds = bounds_info[2]
 
@@ -152,7 +151,8 @@ def get_page_panel_bounds(
     panels_bounds_override_dir = "/tmp"
 
     if not os.path.isfile(srce_file):
-        raise Exception(f'Could not find srce file: "{srce_file}".')
+        msg = f'Could not find srce file: "{srce_file}".'
+        raise FileNotFoundError(msg)
 
     segment_info = bounding_box_processor.get_panels_segment_info_from_kumiko(
         srce_file,
@@ -175,7 +175,7 @@ def get_page_panel_bounds(
 
     panel_row = 0
     prev_panel_top = 0
-    row_bounds = dict()
+    row_bounds = {}
     for index, bound in enumerate(bounds):
         if abs(bound.top - prev_panel_top) > PANEL_ROW_START_SIMILARITY_MARGIN:
             panel_row += 1
@@ -194,8 +194,7 @@ def get_page_panel_bounds(
     return overall_bound, bounds, row_bounds
 
 
-def get_correctly_sorted_bounds(bounds: List[KumikoBound]) -> List[KumikoBound]:
-
+def get_correctly_sorted_bounds(bounds: list[KumikoBound]) -> list[KumikoBound]:
     def compare_panels(panel1: KumikoBound, panel2: KumikoBound) -> int:
         if abs(panel1.top - panel2.top) < PANEL_ROW_START_SIMILARITY_MARGIN:
             return panel1.left - panel2.left
@@ -204,7 +203,7 @@ def get_correctly_sorted_bounds(bounds: List[KumikoBound]) -> List[KumikoBound]:
     return sorted(bounds, key=cmp_to_key(compare_panels))
 
 
-def get_panel_bounded_subimages(srce_image: Image, bounds: List[KumikoBound]) -> List[Image]:
+def get_panel_bounded_subimages(srce_image: Image, bounds: list[KumikoBound]) -> list[Image]:
     subimages = []
     for bound in bounds:
         x_min = bound.left
@@ -217,7 +216,7 @@ def get_panel_bounded_subimages(srce_image: Image, bounds: List[KumikoBound]) ->
     return subimages
 
 
-def dump_panel_bounding_boxes(srce_image: Image, dest_file: str, bounds_info: BoundsInfo):
+def dump_panel_bounding_boxes(srce_image: Image, dest_file: str, bounds_info: BoundsInfo) -> None:
     overall_bound = bounds_info[0]
     bounds = bounds_info[1]
 
@@ -239,8 +238,8 @@ def draw_box(
     draw: ImageDraw,
     bound: KumikoBound,
     line_width: int,
-    color: Tuple[int, int, int],
-):
+    color: tuple[int, int, int],
+) -> None:
     x_min = bound.left
     y_min = bound.top
     x_max = bound.left + bound.width - 1
@@ -275,9 +274,11 @@ if __name__ == "__main__":
     output_dir = sys.argv[2]
 
     if not os.path.isfile(input_image_file):
-        raise Exception(f'Could not find input file "{input_image_file}".')
+        msg = f'Could not find input file "{input_image_file}".'
+        raise FileNotFoundError(msg)
     if not os.path.isdir(output_dir):
-        raise Exception(f'Could not find output directory "{output_dir}".')
+        msg = f'Could not find output directory "{output_dir}".'
+        raise FileNotFoundError(msg)
 
     work_dir = "/tmp/panels-fix"
     os.makedirs(work_dir, exist_ok=True)

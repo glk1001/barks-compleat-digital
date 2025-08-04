@@ -5,14 +5,13 @@ import sys
 from pathlib import Path
 
 import cv2 as cv
-from PIL import Image, ImageDraw
-
-from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
-from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES, PNG_FILE_EXT
+from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
+from barks_fantagraphics.comics_consts import PNG_FILE_EXT, RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import get_abbrev_path
 from barks_fantagraphics.cv_image_utils import get_bw_image_from_alpha
 from barks_fantagraphics.panel_segmentation import get_min_max_panel_values
+from PIL import Image, ImageDraw
 
 
 def show_panel_bounds(title: str, out_dir: str) -> None:
@@ -29,7 +28,7 @@ def show_panel_bounds(title: str, out_dir: str) -> None:
         png_file = svg_file + PNG_FILE_EXT
         bounds_img_file = os.path.join(out_dir, Path(svg_file).stem + "-with-bounds.png")
         if not write_bounds_to_image_file(png_file, panel_segments_file, bounds_img_file):
-            raise Exception("There were process errors.")
+            raise RuntimeError("There were process errors.")
 
 
 def write_bounds_to_image_file(

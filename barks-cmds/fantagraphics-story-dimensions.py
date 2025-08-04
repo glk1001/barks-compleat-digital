@@ -1,19 +1,18 @@
+# ruff: noqa: T201
+
 import json
 import logging
 import os
 import sys
 from dataclasses import dataclass
 
-from PIL import Image
-
+from barks_fantagraphics import panel_bounding
 from barks_fantagraphics.comic_book import ComicBook
-from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
+from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.page_classes import ComicDimensions
-from barks_fantagraphics.pages import (
-    PageType,
-    get_sorted_srce_and_dest_pages,
-)
+from barks_fantagraphics.pages import PageType, get_sorted_srce_and_dest_pages
+from PIL import Image
 
 
 @dataclass
@@ -36,7 +35,7 @@ def get_story_dimensions(comic: ComicBook) -> Dimensions:
 
     srce_dims = ComicDimensions()
     metadata_file = os.path.join(comic.get_dest_dir(), "comic-metadata.json")
-    with open(metadata_file, "r") as f:
+    with open(metadata_file) as f:
         comic_metadata = json.load(f)
         srce_dims.min_panels_bbox_width = comic_metadata["srce_min_panels_bbox_width"]
         srce_dims.max_panels_bbox_width = comic_metadata["srce_max_panels_bbox_width"]
@@ -58,11 +57,12 @@ if not args_ok:
 
 setup_logging(cmd_args.get_log_level())
 
+panel_bounding.warn_on_panels_bbox_height_less_than_av = False
 comics_database = cmd_args.get_comics_database()
 
 titles = cmd_args.get_titles()
 
-dimensions_dict = dict()
+dimensions_dict = {}
 max_title_len = 0
 for title in titles:
     comic_book = comics_database.get_comic_book(title)
@@ -70,15 +70,12 @@ for title in titles:
     story_dims = get_story_dimensions(comic_book)
 
     title_with_issue_num = comic_book.get_title_with_issue_num()
-    if max_title_len < len(title_with_issue_num):
-        max_title_len = len(title_with_issue_num)
+    max_title_len = max(max_title_len, len(title_with_issue_num))
 
     dimensions_dict[title_with_issue_num] = story_dims
 
-for title in dimensions_dict.keys():
+for title, story_dims in dimensions_dict.items():
     title_str = title + ":"
-
-    story_dims = dimensions_dict[title]
 
     box_dims = story_dims.srce_dims
     bboxes_str = (

@@ -1,8 +1,10 @@
+# ruff: noqa: T201
+
 import logging
 import sys
 
 from barks_fantagraphics.barks_titles import get_safe_title
-from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
+from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_logging import setup_logging
 
 
@@ -12,10 +14,7 @@ def get_display_title(ttl: str) -> str:
         disp_title = ttl
     else:
         fanta_info = comics_database.get_fanta_comic_book_info(ttl)
-        if fanta_info.comic_book_info.is_barks_title:
-            disp_title = ttl
-        else:
-            disp_title = f"({ttl})"
+        disp_title = ttl if fanta_info.comic_book_info.is_barks_title else f"({ttl})"
 
     return disp_title
 

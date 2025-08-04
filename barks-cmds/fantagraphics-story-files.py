@@ -1,24 +1,24 @@
+# ruff: noqa: T201
+
 import logging
 import os
 import sys
 from pathlib import Path
-from typing import List
 
+from barks_fantagraphics import panel_bounding
+from barks_fantagraphics.barks_titles import NON_COMIC_TITLES
 from barks_fantagraphics.comic_book import ModifiedType
-from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames, ExtraArg
+from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs, ExtraArg
 from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import (
     get_abbrev_path,
     get_timestamp,
     get_timestamp_as_str,
 )
-from barks_fantagraphics.pages import (
-    get_sorted_srce_and_dest_pages,
-    get_restored_srce_dependencies,
-)
+from barks_fantagraphics.pages import get_restored_srce_dependencies, get_sorted_srce_and_dest_pages
 
 
-def print_sources(indent: int, source_list: List[str]) -> None:
+def print_sources(indent: int, source_list: list[str]) -> None:
     if not source_list:
         print()
         return
@@ -28,7 +28,12 @@ def print_sources(indent: int, source_list: List[str]) -> None:
         print(" " * indent + f'"{srce}"')
 
 
-def get_filepath_with_date(file: str, timestamp: float, out_of_date_marker: str) -> str:
+def get_filepath_with_date(
+    is_a_comic: bool, file: str, timestamp: float, out_of_date_marker: str
+) -> str:
+    if not is_a_comic and (("upscayled" in file) or ("svg" in file)):
+        return ""
+
     missing_timestamp = "FILE MISSING          "  # same length as timestamp str
 
     if os.path.isfile(file):
@@ -43,7 +48,7 @@ def get_filepath_with_date(file: str, timestamp: float, out_of_date_marker: str)
 
 MODS_ARG = "--mods"
 
-extra_args: List[ExtraArg] = [ExtraArg(MODS_ARG, action="store_true", type=None, default=False)]
+extra_args: list[ExtraArg] = [ExtraArg(MODS_ARG, action="store_true", type=None, default=False)]
 
 # TODO(glk): Some issue with type checking inspection?
 # noinspection PyTypeChecker
@@ -55,6 +60,7 @@ if not args_ok:
 
 setup_logging(cmd_args.get_log_level())
 
+panel_bounding.warn_on_panels_bbox_height_less_than_av = False
 comics_database = cmd_args.get_comics_database()
 mods_only = cmd_args.get_extra_arg(MODS_ARG)
 
@@ -69,6 +75,7 @@ for title in titles:
     dest_pages = srce_and_dest_pages.dest_pages
 
     max_len_page_type = max([len(dp.page_type.name) for dp in dest_pages])
+    is_a_comic = comic_book.get_title_enum() not in NON_COMIC_TITLES
 
     print()
     print(f'"{title}" source files:')
@@ -79,7 +86,7 @@ for title in titles:
         page_type_str = dest_page.page_type.name
         prev_timestamp = get_timestamp(dest_page.page_filename)
 
-        sources = [get_filepath_with_date(dest_page.page_filename, prev_timestamp, " ")]
+        sources = [get_filepath_with_date(is_a_comic, dest_page.page_filename, prev_timestamp, " ")]
         is_modded = False
         for dependency in get_restored_srce_dependencies(comic_book, srce_page):
             if dependency.mod_type != ModifiedType.ORIGINAL:
@@ -90,10 +97,11 @@ for title in titles:
                 else " "
             )
             file_info = get_filepath_with_date(
-                dependency.file, dependency.timestamp, out_of_date_str
+                is_a_comic, dependency.file, dependency.timestamp, out_of_date_str
             )
-            sources.append(file_info)
-            prev_timestamp = dependency.timestamp
+            if file_info:
+                sources.append(file_info)
+                prev_timestamp = dependency.timestamp
 
         if not mods_only or is_modded:
             print(

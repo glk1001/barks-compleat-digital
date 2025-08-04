@@ -1,3 +1,5 @@
+# ruff: noqa: T201, ERA001
+
 from __future__ import annotations
 
 import logging
@@ -66,7 +68,8 @@ def get_mod_file(comic: ComicBook, srce: CleanPage) -> tuple[str, FileType]:
     if os.path.isfile(comic.get_srce_upscayled_fixes_story_file(page_num)):
         return comic.get_srce_upscayled_fixes_story_file(page_num), FileType.UPSCAYLED
 
-    raise FileNotFoundError(f'Expected to find a fixes file for "{srce.page_filename}".')
+    msg = f'Expected to find a fixes file for "{srce.page_filename}".'
+    raise FileNotFoundError(msg)
 
 
 def downscale(srce_file: str, dest_file: str) -> None:
@@ -120,7 +123,7 @@ for volume in volumes:
                 print(f'Copy "{mod_file}" to "{override_file}"...')
                 copy_file_to_jpg(mod_file, override_file)
             else:
-                assert False
+                raise AssertionError
                 # assert file_type == FileType.TITLE
                 # override_file = os.path.join(override_dir, title + JPG_FILE_EXT)
                 # copy_file(mod_file, override_file)

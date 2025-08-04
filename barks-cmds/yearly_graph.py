@@ -1,3 +1,5 @@
+# ruff: noqa: T201, ERA001
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -10,9 +12,8 @@ def create_yearly_plot(
     width_px=1800,
     height_px=1050,
     dpi=150,
-):
-    """
-    Creates, saves, and displays a plot of integer values against a range of years
+) -> None:
+    """Create, saves, and display a plot of integer values against a range of years
     at a specific output resolution.
 
     Args:
@@ -81,7 +82,7 @@ def create_yearly_plot(
         # The dpi here should match the one used for the figure for predictable results
         plt.savefig(output_filename, dpi=dpi)
         print(f"Plot successfully saved to {output_filename} ({width_px}x{height_px}px)")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"Error saving plot: {e}")
 
     # Display the plot in a new window

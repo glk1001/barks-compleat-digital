@@ -1,25 +1,31 @@
+# ruff: noqa: T201, ERA001
+
+from __future__ import annotations
+
 import logging
 import os.path
 import sys
 from pathlib import Path
-from typing import Tuple, List
+from typing import Any
 
 import cv2
 import numpy as np
-from skimage.metrics import structural_similarity
-
 from barks_fantagraphics.comic_book import ModifiedType
-from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
+from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.pil_image_utils import downscale_jpg
+from cv2 import Mat
+from skimage.metrics import structural_similarity
 
 # TODO: Put these somewhere else
 SRCE_STANDARD_WIDTH = 2175
 SRCE_STANDARD_HEIGHT = 3000
 
 
-def get_image_diffs(diff_thresh: float, image1_file: str, image2_file: str):
+def get_image_diffs(
+    diff_thresh: float, image1_file: str, image2_file: str
+) -> tuple[float, int, Mat | np.ndarray[Any, np.dtype], Mat | np.ndarray[Any, np.dtype]]:
     if not os.path.isfile(image1_file):
         raise FileNotFoundError(f'Could not find image1 file "{image1_file}".')
     if not os.path.isfile(image2_file):
@@ -103,9 +109,9 @@ def show_diffs_for_title(ttl: str, out_dir: str) -> None:
 def show_diffs_for_upscayled_files(
     ttl: str,
     out_dir: str,
-    srce_files: List[str],
-    upscayled_srce_files: List[str],
-    upscayled_fixes_files: List[Tuple[str, ModifiedType]],
+    srce_files: list[str],
+    upscayled_srce_files: list[str],
+    upscayled_fixes_files: list[tuple[str, ModifiedType]],
 ) -> None:
     made_out_dir = False
     diff_threshold = 0.5
@@ -132,7 +138,7 @@ def show_diffs_for_upscayled_files(
 
 
 def show_diffs_for_files(
-    ttl: str, out_dir: str, srce_files: List[str], fixes_files: List[Tuple[str, ModifiedType]]
+    ttl: str, out_dir: str, srce_files: list[str], fixes_files: list[tuple[str, ModifiedType]]
 ) -> None:
     made_out_dir = False
     diff_threshold = 0.9

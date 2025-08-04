@@ -1,3 +1,5 @@
+# ruff: noqa: T201
+
 import logging
 import sys
 from collections import defaultdict
@@ -193,20 +195,21 @@ for title_info in BARKS_TITLE_INFO:
         title_str = BARKS_TITLES[title_info.title]
         try:
             comic_book = comics_database.get_comic_book(title_str)
-        except Exception as e:
+        except Exception:  # noqa: BLE001
             print(f"Titles.{title_info.title.name}: X,")
             continue
 
         num_pages = get_total_num_pages(comic_book)
         if num_pages <= 1:
-            raise Exception(f'For title "{title_str}", the page count is too small.')
+            msg = f'For title "{title_str}", the page count is too small.'
+            raise ValueError(msg)
 
     page_counts[title_info.submitted_year] += num_pages
 
 for year in page_counts:
     print(f"{year}: {page_counts[year]}")
 
-years = sorted([y for y in page_counts])
+years = sorted(page_counts)
 title = f"Yearly Page Count from {years[0]} to {years[-1]}"
 values_data = [page_counts[y] for y in years]
 

@@ -1,8 +1,10 @@
+# ruff: noqa: T201
+
 import logging
 import sys
 
 from barks_fantagraphics.comic_book import get_total_num_pages
-from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
+from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_logging import setup_logging
 
 cmd_args = CmdArgs("Fantagraphics volume page counts", CmdArgNames.VOLUME)
@@ -22,7 +24,8 @@ for title in titles:
     comic_book = comics_database.get_comic_book(title)
     num_pages = get_total_num_pages(comic_book)
     if num_pages <= 1:
-        raise Exception(f'For title "{title}", the page count is too small.')
+        msg = f'For title "{title}", the page count is too small.'
+        raise ValueError(msg)
     page_count += num_pages
 
 print(f"{len(titles)} titles, {page_count} pages")

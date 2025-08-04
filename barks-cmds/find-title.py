@@ -1,13 +1,14 @@
+# ruff: noqa: T201
+
 import logging
 import sys
-from typing import List
 
 from barks_fantagraphics.barks_titles import BARKS_TITLE_INFO
 from barks_fantagraphics.comics_cmd_args import CmdArgs, ExtraArg
 from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.title_search import BarksTitleSearch, unique_extend
 
-extra_args: List[ExtraArg] = [
+extra_args: list[ExtraArg] = [
     ExtraArg("--prefix", action="store", type=str, default=""),
     ExtraArg("--word", action="store", type=str, default=""),
     ExtraArg("--sort", action="store_true", type=bool, default=False),
@@ -35,14 +36,12 @@ if word:
     unique_extend(titles, title_search.get_titles_containing(word))
 
 if not titles:
-    print(f"No titles found.")
+    print("No titles found.")
 else:
-    title_info_list = []
-    for title in titles:
-        title_info_list.append(BARKS_TITLE_INFO[title])
+    title_info_list = [BARKS_TITLE_INFO[t] for t in titles]
 
     if cmd_args.get_extra_arg("--sort"):
-        title_info_list = sorted(title_info_list, key=lambda x: x.title_str)
+        title_info_list = sorted(title_info_list, key=lambda x: x.get_title_str())
 
     for info in title_info_list:
         print(info.get_display_title())

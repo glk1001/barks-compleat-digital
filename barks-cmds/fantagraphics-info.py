@@ -1,23 +1,24 @@
+# ruff: noqa: T201
+
 import logging
 import os.path
 import sys
 from dataclasses import dataclass
-from typing import List, Tuple, Dict
 
 from barks_fantagraphics.comic_book import (
     ComicBook,
     get_abbrev_jpg_page_list,
-    get_total_num_pages,
-    get_num_splashes,
     get_has_front,
+    get_num_splashes,
+    get_total_num_pages,
 )
-from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames, ExtraArg
+from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs, ExtraArg
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import (
     dest_file_is_older_than_srce,
-    get_timestamp,
     get_max_timestamp,
+    get_timestamp,
     get_titles_and_info_sorted_by_submission_date,
 )
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo
@@ -45,8 +46,8 @@ BUILD_STATE_FLAGS = [
 
 
 def get_issue_titles(
-    title_info_list: List[Tuple[str, FantaComicBookInfo]]
-) -> List[Tuple[str, str, FantaComicBookInfo, bool]]:
+    title_info_list: list[tuple[str, FantaComicBookInfo]],
+) -> list[tuple[str, str, FantaComicBookInfo, bool]]:
     comic_issue_title_info_list = []
     for title_info in title_info_list:
         ttl = title_info[0]
@@ -139,15 +140,11 @@ def is_built(comic: ComicBook) -> bool:
     return True
 
 
-def all_files_exist(file_list: List[str]) -> bool:
+def all_files_exist(file_list: list[str]) -> bool:
     if not file_list:
         return False
 
-    for file in file_list:
-        if not os.path.isfile(file):
-            return False
-
-    return True
+    return all(os.path.isfile(file) for file in file_list)
 
 
 def get_build_state_flag(comic: ComicBook) -> str:
@@ -182,11 +179,11 @@ class Flags:
 
 
 def get_title_flags(
-    issue_titles_info_list: List[Tuple[str, str, FantaComicBookInfo, bool]]
-) -> Tuple[Dict[str, Flags], int, int]:
+    issue_titles_info_list: list[tuple[str, str, FantaComicBookInfo, bool]],
+) -> tuple[dict[str, Flags], int, int]:
     max_ttl_len = 0
     max_issue_ttl_len = 0
-    ttl_flags = dict()
+    ttl_flags = {}
 
     for issue_ttl_info in issue_titles_info_list:
         ttl = issue_ttl_info[0]
@@ -211,7 +208,8 @@ def get_title_flags(
             page_lst = ", ".join(get_abbrev_jpg_page_list(comic_book)).replace(" - ", "-")
             num_pgs = get_total_num_pages(comic_book)
             if num_pgs <= 1:
-                raise Exception(f'For title "{ttl}", the page count is to small.')
+                msg = f'For title "{ttl}", the page count is to small.'
+                raise RuntimeError(msg)
             has_front = get_has_front(comic_book)
             num_splashes = get_num_splashes(comic_book)
 
@@ -240,31 +238,33 @@ FIXES_ARG = "--fixes"
 BUILT_ARG = "--built"
 
 
-def get_fixes_filter(args: CmdArgs) -> List[str]:
+def get_fixes_filter(args: CmdArgs) -> list[str]:
     fixes_arg = args.get_extra_arg(FIXES_ARG)
     if not fixes_arg:
         return [EMPTY_FLAG, FIXES_FLAG]
 
     filt = [fixes_arg]
     if not set(filt).issubset(set(FIXES_FLAG)):
-        raise Exception(f'Not a valid fixes filter: "{filt}".')
+        msg = f'Not a valid fixes filter: "{filt}".'
+        raise RuntimeError(msg)
 
     return filt
 
 
-def get_built_filter(args: CmdArgs) -> List[str]:
+def get_built_filter(args: CmdArgs) -> list[str]:
     built_arg = args.get_extra_arg(BUILT_ARG)
     if not built_arg:
         return BUILD_STATE_FLAGS
 
     filt = built_arg.split(",")
     if not set(filt).issubset(set(BUILD_STATE_FLAGS)):
-        raise Exception(f'Not a valid built filter: "{filt}".')
+        msg = f'Not a valid built filter: "{filt}".'
+        raise RuntimeError(msg)
 
     return filt
 
 
-extra_args: List[ExtraArg] = [
+extra_args: list[ExtraArg] = [
     ExtraArg(FIXES_ARG, action="store", type=str, default=""),
     ExtraArg(BUILT_ARG, action="store", type=str, default=""),
 ]

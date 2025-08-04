@@ -1,18 +1,20 @@
+# ruff: noqa: T201, ERA001
+
 import json
 import logging
 import os
 import sys
-from typing import List, Tuple
 
+from barks_fantagraphics import panel_bounding
 from barks_fantagraphics.comic_book import ComicBook, get_page_str
-from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
+from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.fanta_comics_info import get_fanta_volume_str
 from barks_fantagraphics.pages import PageType, get_sorted_srce_and_dest_pages
 from barks_fantagraphics.panel_segmentation import BIG_NUM, get_kumiko_panel_bound
 
 
-def get_story_splashes(comic: ComicBook) -> List[str]:
+def get_story_splashes(comic: ComicBook) -> list[str]:
     srce_and_dest_pages = get_sorted_srce_and_dest_pages(comic, get_full_paths=True)
 
     splashes = []
@@ -26,7 +28,8 @@ def get_story_splashes(comic: ComicBook) -> List[str]:
 
         panels_info_file = comic.get_srce_panel_segments_file(srce_page_str)
         if not os.path.isfile(panels_info_file):
-            raise Exception(f'Could not find panels segments info file "{panels_info_file}".')
+            msg = f'Could not find panels segments info file "{panels_info_file}".'
+            raise FileNotFoundError(msg)
 
         with open(panels_info_file, "r") as f:
             panels = json.load(f)["panels"]
@@ -41,7 +44,7 @@ def get_story_splashes(comic: ComicBook) -> List[str]:
 MIN_MAX_MARGIN = 200
 
 
-def has_splash_page(panels: List[Tuple[int, int, int, int]]) -> bool:
+def has_splash_page(panels: list[tuple[int, int, int, int]]) -> bool:
     if len(panels) > 5:
         return False
 
@@ -49,9 +52,9 @@ def has_splash_page(panels: List[Tuple[int, int, int, int]]) -> bool:
     max_height = -1
     min_width = BIG_NUM
     min_height = BIG_NUM
-    for index, panel in enumerate(panels):
+    for _index, panel in enumerate(panels):
         bound = get_kumiko_panel_bound(panel)
-        # print(index, bound)
+        # print(_index, bound)
 
         min_width = min(min_width, bound.width)
         min_height = min(min_height, bound.height)
@@ -77,10 +80,11 @@ if not args_ok:
 
 setup_logging(cmd_args.get_log_level())
 
+panel_bounding.warn_on_panels_bbox_height_less_than_av = False
 comics_database = cmd_args.get_comics_database()
 titles = cmd_args.get_titles()
 
-splashes_dict = dict()
+splashes_dict = {}
 max_title_len = 0
 for title in titles:
     comic_book = comics_database.get_comic_book(title)
@@ -90,15 +94,13 @@ for title in titles:
         continue
 
     title_with_issue_num = comic_book.get_title_with_issue_num()
-    if max_title_len < len(title_with_issue_num):
-        max_title_len = len(title_with_issue_num)
+    max_title_len = max(max_title_len, len(title_with_issue_num))
 
     volume = comic_book.get_fanta_volume()
 
     splashes_dict[title_with_issue_num] = (volume, story_splashes)
 
-for title in splashes_dict.keys():
-    volume, story_splashes = splashes_dict[title]
+for title, (volume, story_splashes) in splashes_dict.items():
     volume_str = get_fanta_volume_str(volume)
     splashes_str = ", ".join(story_splashes)
 
