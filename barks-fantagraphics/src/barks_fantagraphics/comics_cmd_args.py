@@ -1,14 +1,18 @@
+from __future__ import annotations
+
 import argparse
 from dataclasses import dataclass
 from enum import Flag, auto
-from typing import List, Tuple
+from typing import TYPE_CHECKING
 
 from intspan import intspan
 
 from .comics_consts import PNG_INSET_DIR, PNG_INSET_EXT
 from .comics_database import ComicsDatabase, get_default_comics_database_dir
 from .comics_utils import get_titles_sorted_by_submission_date
-from .fanta_comics_info import FantaComicBookInfo
+
+if TYPE_CHECKING:
+    from .fanta_comics_info import FantaComicBookInfo
 
 LOG_LEVEL_ARG = "--log-level"
 COMICS_DATABASE_DIR_ARG = "--comics-database-dir"
@@ -41,8 +45,8 @@ class CmdArgs:
         self,
         description: str,
         required_args: CmdArgNames = CmdArgNames.COMICS_DATABASE_DIR,
-        extra_args: List[ExtraArg] = None,
-    ):
+        extra_args: list[ExtraArg] | None = None,
+    ) -> None:
         self._description = description
         self._required_args = required_args
         self._extra_args = extra_args if extra_args else []
@@ -50,7 +54,7 @@ class CmdArgs:
         self._cmd_args = self._get_args()
         self._comics_database = None
 
-    def args_are_valid(self) -> Tuple[bool, str]:
+    def args_are_valid(self) -> tuple[bool, str]:
         if not self._error_msg:
             return True, ""
         return False, self._error_msg
@@ -58,10 +62,11 @@ class CmdArgs:
     def get_log_level(self) -> str:
         return self._cmd_args.log_level
 
-    def get_comics_database(self, for_building_comics=True) -> ComicsDatabase:
+    def get_comics_database(self, for_building_comics: bool = True) -> ComicsDatabase:
         if not self._comics_database:
             self._comics_database = ComicsDatabase(
-                self._cmd_args.comics_database_dir, for_building_comics
+                self._cmd_args.comics_database_dir,
+                for_building_comics,
             )
             self._comics_database.set_inset_info(self._cmd_args.inset_dir, self._cmd_args.inset_ext)
 
@@ -69,10 +74,12 @@ class CmdArgs:
 
     def get_title(self) -> str:
         if CmdArgNames.TITLE not in self._required_args:
-            raise Exception(f"'{TITLE_ARG}' was not specified as an argument.")
+            msg = f"'{TITLE_ARG}' was not specified as an argument."
+            raise RuntimeError(msg)
+
         return self._cmd_args.title
 
-    def get_titles(self, submission_date_sorted=True, configured_only=True) -> List[str]:
+    def get_titles(self, submission_date_sorted:bool=True, configured_only:bool=True) -> list[str]:
         titles_and_info = self.get_titles_and_info(configured_only)
 
         if submission_date_sorted:
@@ -80,14 +87,13 @@ class CmdArgs:
 
         return [t[0] for t in titles_and_info]
 
-    def get_titles_and_info(self, configured_only=True) -> List[Tuple[str, FantaComicBookInfo]]:
+    def get_titles_and_info(self, configured_only:bool=True) -> list[tuple[str, FantaComicBookInfo]]:
         if (
             CmdArgNames.TITLE not in self._required_args
             and CmdArgNames.VOLUME not in self._required_args
         ):
-            raise Exception(
-                f"One of '{TITLE_ARG}' or '{VOLUME_ARG}' were not specified as an argument."
-            )
+            msg = f"One of '{TITLE_ARG}' or '{VOLUME_ARG}' were not specified as an argument."
+            raise RuntimeError(msg)
 
         if self._cmd_args.title:
             fanta_info = self._comics_database.get_fanta_comic_book_info(self._cmd_args.title)
@@ -103,7 +109,8 @@ class CmdArgs:
 
     def get_work_dir(self) -> str:
         if CmdArgNames.WORK_DIR not in self._required_args:
-            raise Exception(f"'{WORK_DIR_ARG}' was not specified as an argument.")
+            msg = f"'{WORK_DIR_ARG}' was not specified as an argument."
+            raise ValueError(msg)
         return self._cmd_args.work_dir
 
     def one_or_more_volumes(self) -> bool:
@@ -112,20 +119,23 @@ class CmdArgs:
     def get_volume(self) -> str:
         volumes = self.get_volumes()
         if len(volumes) > 1:
-            raise Exception(f"'{VOLUME_ARG}' specified more than one volume.")
+            msg = f"'{VOLUME_ARG}' specified more than one volume."
+            raise ValueError(msg)
 
         return volumes[0]
 
-    def get_volumes(self) -> List[str]:
+    def get_volumes(self) -> list[str]:
         if CmdArgNames.VOLUME not in self._required_args:
-            raise Exception(f"'{VOLUME_ARG}' was not specified as an argument.")
+            msg = f"'{VOLUME_ARG}' was not specified as an argument."
+            raise ValueError(msg)
 
         assert self._cmd_args.volume is not None
         return list(intspan(self._cmd_args.volume))
 
-    def get_pages(self) -> List[str]:
+    def get_pages(self) -> list[str]:
         if CmdArgNames.PAGE not in self._required_args:
-            raise Exception(f"'{PAGE_ARG}' was not specified as an argument.")
+            msg = f"'{PAGE_ARG}' was not specified as an argument."
+            raise RuntimeError(msg)
 
         assert self._cmd_args.page is not None
         return list(intspan(self._cmd_args.page))
