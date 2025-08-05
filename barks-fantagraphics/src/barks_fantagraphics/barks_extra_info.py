@@ -57,9 +57,9 @@ BARKS_EXTRA_INFO = {
     " like that; the editors would often suggest that the artist do the changing himself. But"
     " these two panels would have been done by one of the staff artists, either Carl Buettner"
     ' or Tom McKimson."[/i]\n'
-    "In this digital edition, the last two panels are replaced with text by GLK and art lifted"
-    " from the last panel of WDCS #62. But you also have the option of choosing the Fantagraphics"
-    " alternate ending by Geoffrey Blum and Daan Jippes.",
+    "In this edition, the last two panels are replaced with text by GLK and art "
+    " from the last panel of WDCS #62. But there is also the option of choosing the Fantagraphics"
+    " ending by Geoffrey Blum and Daan Jippes.",
     Titles.SMUGSNORKLE_SQUATTIE_THE: "Last appearance of [b][i]Herbert[/i][/b].",
     Titles.MAD_CHEMIST_THE: "The first appearance of [b][i]Car 313.[/i][/b]",
     Titles.HIGH_WIRE_DAREDEVILS: "First mention of [b][i]Duckburg.[/i][/b]"
@@ -109,7 +109,16 @@ BARKS_EXTRA_INFO = {
     " that he would go into the water in the wintertime. And so that's how Gladstone got into it."
     " He had to be somebody that Donald was trying to outdo.[/i]",
     Titles.RACE_TO_THE_SOUTH_SEAS: "The first appearance of [b][i]Gladstone Gander[/i][/b] in "
-    "a long Donald Duck story.",
+    "a long Donald Duck story.\n\n"
+    'David Gerstein said this about the version of [i]"Race to the South Seas"[i] in this'
+    " digital edition: [i]\"Fantagraphics'"
+    " plan for their Donald V1 [Fantagraphics CBDL 1] was to use a newly recovered all-Barks"
+    ' version of the "South Seas" story, because I had a lead on where original line art'
+    " photostats could be found... Alas, I [b]couldn't[b] acquire the original version by press"
+    " time—so my 2006 partial restoration (from Gemstone's WALT DISNEY TREASURES Vol 1) was used"
+    " in Donald V1 instead. It's actually a mix of Barks and Jippes..."
+    ' and I\'m still attempting to recover the all-Barks version of "South Seas." Presuming'
+    " everything works out, it will make its way into a later printing of Donald V1.",
     Titles.LUCK_OF_THE_NORTH: "In the [i]Duck Man[/i] interview Barks said this about Gladstone's"
     ' luck: [i]"Well, that came the second time I was using him [actually, the second time'
     " in a long Donald story]. I established him as an obnoxious character in"
