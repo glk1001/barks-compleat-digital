@@ -13,7 +13,8 @@ from barks_fantagraphics.comic_book import ModifiedType
 from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_logging import setup_logging
-from barks_fantagraphics.pil_image_utils import downscale_jpg
+from barks_fantagraphics.comics_utils import get_abbrev_path
+from barks_fantagraphics.pil_image_utils import downscale_jpg, open_pil_image_for_reading
 from skimage.metrics import structural_similarity
 
 # TODO: Put these somewhere else
@@ -113,6 +114,8 @@ def show_diffs_for_upscayled_files(
     upscayled_srce_files: list[str],
     upscayled_fixes_files: list[tuple[str, ModifiedType]],
 ) -> None:
+    logging.info(f'Showing diffs for "{ttl}".')
+
     made_out_dir = False
     diff_threshold = 0.5
 
@@ -129,9 +132,10 @@ def show_diffs_for_upscayled_files(
 
         assert not os.path.isfile(upscayled_srce_file)
 
+        srce_image = open_pil_image_for_reading(srce_file).convert("RGB")
         smaller_fixes_file = "/tmp/smaller-fixes-image.jpg"
         downscale_jpg(
-            SRCE_STANDARD_WIDTH, SRCE_STANDARD_HEIGHT, upscayled_fixes_file[0], smaller_fixes_file
+            srce_image.width, srce_image.height, upscayled_fixes_file[0], smaller_fixes_file
         )
 
         show_diffs_for_file(diff_threshold, ttl, out_dir, srce_file, smaller_fixes_file)
@@ -140,6 +144,8 @@ def show_diffs_for_upscayled_files(
 def show_diffs_for_files(
     ttl: str, out_dir: str, srce_files: list[str], fixes_files: list[tuple[str, ModifiedType]]
 ) -> None:
+    logging.info(f'Showing diffs for "{ttl}".')
+
     made_out_dir = False
     diff_threshold = 0.9
 
@@ -158,6 +164,11 @@ def show_diffs_for_files(
 def show_diffs_for_file(
     diff_threshold: float, ttl: str, out_dir: str, srce_file: str, fixes_file: str
 ) -> None:
+    logging.info(
+        f'Getting diffs for file "{get_abbrev_path(srce_file)}"'
+        f' and "{get_abbrev_path(fixes_file)}".'
+    )
+
     ssim, num_diffs, image1_with_diffs, image2_with_diffs = get_image_diffs(
         diff_threshold, srce_file, fixes_file
     )
