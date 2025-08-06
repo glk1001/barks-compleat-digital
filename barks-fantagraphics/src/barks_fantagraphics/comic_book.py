@@ -432,6 +432,14 @@ class ComicBook:
             return True
         if volume == 16 and page_num == "235":  # Copied from volume 14, jpeg 145
             return True
+        if volume == 2 and page_num in [
+            "252",
+            "253",
+            "254",
+            "255",
+            "256",
+        ]:  # Non-comic title
+            return True
         if volume == 7 and page_num in [
             "260",
             "261",

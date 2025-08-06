@@ -12,7 +12,7 @@ from .comic_issues import (
 )
 from .comics_consts import DEC, JAN
 
-NUM_TITLES = 616 + 3  # +3 for articles
+NUM_TITLES = 616 + 4  # +4 for articles
 
 US_1_FC_ISSUE_NUM = 386
 US_2_FC_ISSUE_NUM = 456
@@ -638,6 +638,7 @@ ZERO_HERO = "Zero Hero"
 RICH_TOMASSO___ON_COLORING_BARKS = "Rich Tomasso - On Coloring Barks"
 DON_AULT___FANTAGRAPHICS_INTRODUCTION = "Don Ault - Fantagraphics Introduction"
 DON_AULT___LIFE_AMONG_THE_DUCKS = "Don Ault - Life Among the Ducks"
+CENSORSHIP_FIXES_AND_OTHER_CHANGES = "Censorship Fixes and Other Changes"
 
 
 @verify(CONTINUOUS, UNIQUE)
@@ -1262,6 +1263,7 @@ class Titles(IntEnum):
     RICH_TOMASSO___ON_COLORING_BARKS = auto()
     DON_AULT___FANTAGRAPHICS_INTRODUCTION = auto()
     DON_AULT___LIFE_AMONG_THE_DUCKS = auto()
+    CENSORSHIP_FIXES_AND_OTHER_CHANGES = auto()
 
 
 assert len(Titles) == NUM_TITLES
@@ -1887,6 +1889,7 @@ BARKS_TITLES = [
     RICH_TOMASSO___ON_COLORING_BARKS,
     DON_AULT___FANTAGRAPHICS_INTRODUCTION,
     DON_AULT___LIFE_AMONG_THE_DUCKS,
+    CENSORSHIP_FIXES_AND_OTHER_CHANGES,
 ]
 
 assert len(BARKS_TITLES) == NUM_TITLES
@@ -2565,6 +2568,7 @@ BARKS_TITLE_INFO: list[ComicBookInfo] = [
     ComicBookInfo(Titles.RICH_TOMASSO___ON_COLORING_BARKS, False, Issues.EXTRAS, 1, 1, 2011, 1, 1, 2011),
     ComicBookInfo(Titles.DON_AULT___FANTAGRAPHICS_INTRODUCTION, False, Issues.EXTRAS, 1, 1, 2011, 1, 1, 2011),
     ComicBookInfo(Titles.DON_AULT___LIFE_AMONG_THE_DUCKS, False, Issues.EXTRAS, 1, 1, 2014, 1, 1, 2014),
+    ComicBookInfo(Titles.CENSORSHIP_FIXES_AND_OTHER_CHANGES, False, Issues.EXTRAS, 6, 8, 2025, 6, 8, 2025),
 ]
 # fmt: on
 
@@ -2596,6 +2600,7 @@ NON_COMIC_TITLES = [
     Titles.DON_AULT___FANTAGRAPHICS_INTRODUCTION,
     Titles.DON_AULT___LIFE_AMONG_THE_DUCKS,
     Titles.RICH_TOMASSO___ON_COLORING_BARKS,
+    Titles.CENSORSHIP_FIXES_AND_OTHER_CHANGES,
 ]
 
 ONE_PAGERS = [

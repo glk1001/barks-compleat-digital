@@ -14,6 +14,8 @@ class Tags(Enum):
     PETER_SCHILLING_FAVOURITES = "Peter Schilling"
     WIKI_NOTABLE_STORIES = "Wiki Notable Stories"
 
+    CENSORED_STORIES_BUT_FIXED = "censored but fixed stories"
+
     ALGERIA = "Algeria"
     ANDES = "Andes"
     ANTARCTICA = "Antarctica"
@@ -183,6 +185,7 @@ BARKS_TAG_CATEGORIES = {
         Tags.WEEMITE,
     ],
     TagCategories.THEMES: [
+        Tags.CENSORED_STORIES_BUT_FIXED,
         Tags.CHRISTMAS_STORIES,
         TagGroups.DRUGS,
         Tags.HYPNOSIS,
@@ -402,6 +405,24 @@ BARKS_TAGGED_TITLES: dict[Tags, list[Titles]] = {
         Titles.GOLDEN_HELMET_THE,
         Titles.LUCK_OF_THE_NORTH,
         Titles.STATUESQUE_SPENDTHRIFTS,
+    ],
+    # Censorship
+    Tags.CENSORED_STORIES_BUT_FIXED: [
+        Titles.BACK_TO_THE_KLONDIKE,
+        Titles.FROZEN_GOLD,
+        Titles.LAND_BENEATH_THE_GROUND,
+        Titles.LOST_IN_THE_ANDES,
+        Titles.SILENT_NIGHT,
+        Titles.SWIMMING_SWINDLERS,
+        Titles.BILL_COLLECTORS_THE,
+        Titles.FIREBUG_THE,
+        Titles.GOLDEN_CHRISTMAS_TREE_THE,
+        Titles.GOLDEN_FLEECING_THE,
+        Titles.ICEBOX_ROBBER_THE,
+        Titles.LOVELORN_FIREMAN_THE,
+        Titles.TERROR_OF_THE_RIVER_THE,
+        Titles.TRICK_OR_TREAT,
+        Titles.VOODOO_HOODOO,
     ],
     # Real places
     Tags.ALGERIA: [Titles.ROCKET_RACE_AROUND_THE_WORLD],
@@ -1016,6 +1037,60 @@ BARKS_TAGGED_TITLES: dict[Tags, list[Titles]] = {
 BARKS_TAGGED_PAGES: dict[tuple[Tags, Titles], list[str]] = {
     (Tags.NEIGHBOR_JONES, Titles.GOOD_DEEDS): ["1"],
     (Tags.CARVER_BEAKOFF, Titles.FIREBUG_THE): ["13"],
+    (Tags.CENSORED_STORIES_BUT_FIXED, Titles.ICEBOX_ROBBER_THE): ["7"],
+    (Tags.CENSORED_STORIES_BUT_FIXED, Titles.SWIMMING_SWINDLERS): ["1", "2", "7"],
+    (Tags.CENSORED_STORIES_BUT_FIXED, Titles.BILL_COLLECTORS_THE): ["3"],
+    (Tags.CENSORED_STORIES_BUT_FIXED, Titles.LOVELORN_FIREMAN_THE): ["8"],
+    (Tags.CENSORED_STORIES_BUT_FIXED, Titles.FROZEN_GOLD): ["5", "9", "16", "17", "24"],
+    (Tags.CENSORED_STORIES_BUT_FIXED, Titles.FIREBUG_THE): ["13"],
+    (Tags.CENSORED_STORIES_BUT_FIXED, Titles.LOST_IN_THE_ANDES): [
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "26",
+        "27",
+        "28",
+        "29",
+        "31",
+    ],
+    (Tags.CENSORED_STORIES_BUT_FIXED, Titles.VOODOO_HOODOO): [
+        "1",
+        "6",
+        "8",
+        "9",
+        "10",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "20",
+        "22",
+        "23",
+        "31",
+        "32",
+    ],
+    (Tags.CENSORED_STORIES_BUT_FIXED, Titles.GOLDEN_FLEECING_THE): [
+        "6",
+        "7",
+        "9",
+        "13",
+        "14",
+        "15",
+        "16",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "26",
+    ],
     (Tags.DAISY, Titles.EYES_IN_THE_DARK): ["7"],
     (Tags.EL_DORADO, Titles.GILDED_MAN_THE): [
         "8",
