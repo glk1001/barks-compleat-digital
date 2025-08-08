@@ -100,16 +100,18 @@ class CmdArgs:
             raise RuntimeError(msg)
 
         if self._cmd_args.title:
-            fanta_info = self._comics_database.get_fanta_comic_book_info(self._cmd_args.title)
+            fanta_info = self.get_comics_database().get_fanta_comic_book_info(self._cmd_args.title)
             return [(self._cmd_args.title, fanta_info)]
 
         assert self._cmd_args.volume is not None
         vol_list = list(intspan(self._cmd_args.volume))
 
         if configured_only:
-            return self._comics_database.get_configured_titles_in_fantagraphics_volumes(vol_list)
+            return self.get_comics_database().get_configured_titles_in_fantagraphics_volumes(
+                vol_list
+            )
 
-        return self._comics_database.get_all_titles_in_fantagraphics_volumes(vol_list)
+        return self.get_comics_database().get_all_titles_in_fantagraphics_volumes(vol_list)
 
     def get_work_dir(self) -> str:
         if CmdArgNames.WORK_DIR not in self._required_args:
