@@ -1,13 +1,9 @@
-shopt -s expand_aliases
-source ${HOME}/.bash_aliases
-
 set -e
 
-uvenv run build-comics/batch-build-comics.py build --title "Good Neighbors"
-uvenv run build-comics/batch-build-comics.py build --title "Mystery of the Swamp"
-uvenv run build-comics/batch-build-comics.py build --title "Donald Duck's Best Christmas"
-uvenv run build-comics/batch-build-comics.py build --title "The Bill Collectors"
-uvenv run build-comics/batch-build-comics.py build --title "Donald Duck's Atom Bomb"
-uvenv run build-comics/batch-build-comics.py build --title "Lost in the Andes!"
-uvenv run build-comics/batch-build-comics.py build --title "Only a Poor Old Man"
-
+just build "Good Neighbors"
+just build "Mystery of the Swamp"
+just build "Donald Duck's Best Christmas"
+just build "The Bill Collectors"
+just build "Donald Duck's Atom Bomb"
+just build "Lost in the Andes!"
+just build "Only a Poor Old Man"
