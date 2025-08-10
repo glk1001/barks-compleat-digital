@@ -12,7 +12,11 @@ from bs4 import BeautifulSoup
 #html_file = "/home/greg/Downloads/snozzie_I.N.D.U.C.K.S.html"
 #html_file = "/home/greg/Downloads/duckburg_I.N.D.U.C.K.S.html"
 #html_file = "/home/greg/Downloads/scrooge_I.N.D.U.C.K.S.html"
-html_file = "/home/greg/Downloads/daisy_I.N.D.U.C.K.S.html"
+#html_file = "/home/greg/Downloads/daisy_I.N.D.U.C.K.S.html"
+#html_file = "/home/greg/Downloads/pig villain (12 items) _ I.N.D.U.C.K.S.html"
+html_file = "/home/greg/Downloads/Junior Woodchucks (25 items) _ I.N.D.U.C.K.S.html"
+
+TAG = "Tags.JUNIOR_WOODCHUCKS"
 
 # def get_normalised_title(title_str: str) -> str:
 #     if title_str.startswith("The"):
@@ -67,7 +71,7 @@ for row in filtered_data:
         print("Not a Barks title: ", title)
 
 character_titles = sorted(character_titles, key=lambda x:x.value)
-print(f"Tags.DAISY: [")
+print(f"{TAG}: [")
 for title in character_titles:
     print(f"    Titles.{title.name},")
 print(f"],")

@@ -88,19 +88,25 @@ class Tags(Enum):
     GLADSTONE_GANDER = "Gladstone Gander"
     GYRO_GEARLOOSE = "Gyro Gearloose"
     GYRO_NOT_N_GG = "Gyro not in GG series"
+    HASSAN_BEN_JAILD = "Hassan Ben Jaild"
     HERBERT = "Herbert"
+    JUNIOR_WOODCHUCKS = "Junior Woodchucks"
     MAGICA_DE_SPELL = "Magica de Spell"
+    MR_MC_SWINE = "Mr. McSwine"
     NEIGHBOR_JONES = "Neighbor Jones"
+    P_J_MC_BRINE = "P.J.McBrine"
+    PORKMAN_DE_LARDO = "Porkman de Lardo"
     SCROOGE_NOT_IN_US = "Uncle Scrooge not in US series"
+    SOAPY_SLICK = "Soapy Slick"
     TERRIES = "Terries"
 
 
 BARKS_TAG_EXTRA_ALIASES = {
+    "south pole": Tags.ANTARCTICA,
     "arabia": Tags.ARABIAN_PENINSULA,
     "arctic": Tags.ARCTIC_OCEAN,
     "barnacle": Tags.BARNACLE_BAY,
     "niagara": Tags.NIAGARA_FALLS,
-    "south pole": Tags.ANTARCTICA,
     "argus": Tags.ARGUS_MCFIENDY,
     "mcfiendy": Tags.ARGUS_MCFIENDY,
     "azure": Tags.AZURE_BLUE,
@@ -122,18 +128,23 @@ BARKS_TAG_EXTRA_ALIASES = {
     "dorado": Tags.EL_DORADO,
     "foola": Tags.FOOLA_ZOOLA,
     "zoola": Tags.FOOLA_ZOOLA,
-    "demon": Tags.OLD_DEMON_TOOTH,
-    "mount demon tooth": Tags.OLD_DEMON_TOOTH,
-    "old demon tooth": Tags.OLD_DEMON_TOOTH,
     "flintheart": Tags.FLINTHEART_GLOMGOLD,
     "glomgold": Tags.FLINTHEART_GLOMGOLD,
     "snozzie": Tags.GENERAL_SNOZZIE,
     "gladstone": Tags.GLADSTONE_GANDER,
     "gyro": Tags.GYRO_GEARLOOSE,
     "gearloose": Tags.GYRO_GEARLOOSE,
+    "woodchucks": Tags.JUNIOR_WOODCHUCKS,
     "magica": Tags.MAGICA_DE_SPELL,
     "spell": Tags.MAGICA_DE_SPELL,
+    "mcswine": Tags.MR_MC_SWINE,
+    "mrmcswine": Tags.MR_MC_SWINE,
     "jones": Tags.NEIGHBOR_JONES,
+    "demon": Tags.OLD_DEMON_TOOTH,
+    "mount demon tooth": Tags.OLD_DEMON_TOOTH,
+    "old demon tooth": Tags.OLD_DEMON_TOOTH,
+    "pjmcbrine": Tags.P_J_MC_BRINE,
+    "mcbrine": Tags.P_J_MC_BRINE,
     "uncle": Tags.SCROOGE_NOT_IN_US,
     "scrooge": Tags.SCROOGE_NOT_IN_US,
 }
@@ -161,6 +172,7 @@ class TagGroups(Enum):
     PRIMARY_CHARACTERS = "Primary Characters"
     SECONDARY_CHARACTERS = "Secondary Characters"
     ONE_OFF_CHARACTERS = "One-off Characters"
+    PIG_VILLAINS = "Pig Villains"
 
 
 BARKS_TAG_GROUPS_ALIASES = {str(t.value).lower(): t for t in TagGroups}
@@ -311,6 +323,7 @@ BARKS_TAG_GROUPS = {
         Tags.GLADSTONE_GANDER,
         Tags.GYRO_GEARLOOSE,
         Tags.GYRO_NOT_N_GG,
+        Tags.JUNIOR_WOODCHUCKS,
         Tags.SCROOGE_NOT_IN_US,
     ],
     TagGroups.SECONDARY_CHARACTERS: [
@@ -319,6 +332,7 @@ BARKS_TAG_GROUPS = {
         Tags.HERBERT,
         Tags.MAGICA_DE_SPELL,
         Tags.NEIGHBOR_JONES,
+        TagGroups.PIG_VILLAINS,
     ],
     TagGroups.ONE_OFF_CHARACTERS: [
         Tags.ARGUS_MCFIENDY,
@@ -332,6 +346,13 @@ BARKS_TAG_GROUPS = {
         Tags.FERMIES,
         Tags.FOOLA_ZOOLA,
         Tags.TERRIES,
+    ],
+    TagGroups.PIG_VILLAINS: [
+        Tags.HASSAN_BEN_JAILD,
+        Tags.MR_MC_SWINE,
+        Tags.P_J_MC_BRINE,
+        Tags.PORKMAN_DE_LARDO,
+        Tags.SOAPY_SLICK,
     ],
 }
 
@@ -940,10 +961,31 @@ BARKS_TAGGED_TITLES: dict[Tags, list[Titles]] = {
         Titles.JONAH_GYRO,
         Titles.FUN_WHATS_THAT,
     ],
+    Tags.HASSAN_BEN_JAILD: [Titles.MCDUCK_OF_ARABIA],
     Tags.HERBERT: [
         Titles.THREE_DIRTY_LITTLE_DUCKS,
         Titles.TEN_CENTS_WORTH_OF_TROUBLE,
         Titles.SMUGSNORKLE_SQUATTIE_THE,
+    ],
+    Tags.JUNIOR_WOODCHUCKS: [
+        Titles.OPERATION_ST_BERNARD,
+        Titles.TEN_STAR_GENERALS,
+        Titles.GLADSTONES_USUAL_VERY_GOOD_YEAR,
+        Titles.SCREAMING_COWBOY_THE,
+        Titles.SPENDING_MONEY,
+        Titles.MY_LUCKY_VALENTINE,
+        Titles.BEE_BUMBLES,
+        Titles.CHICKADEE_CHALLENGE_THE,
+        Titles.HALF_BAKED_BAKER_THE,
+        Titles.TRACKING_SANDY,
+        Titles.BLACK_FOREST_RESCUE_THE,
+        Titles.STUBBORN_STORK_THE,
+        Titles.UNDER_THE_POLAR_ICE,
+        Titles.DOG_SITTER_THE,
+        Titles.HOUND_HOUNDER,
+        Titles.MEDALING_AROUND,
+        Titles.BEACH_BOY,
+        Titles.BUBBLEWEIGHT_CHAMP,
     ],
     Tags.MAGICA_DE_SPELL: [
         Titles.MIDAS_TOUCH_THE,
@@ -956,6 +998,7 @@ BARKS_TAGGED_TITLES: dict[Tags, list[Titles]] = {
         Titles.TEN_CENT_VALENTINE,
         Titles.RAVEN_MAD,
     ],
+    Tags.MR_MC_SWINE: [Titles.MILKMAN_THE],
     Tags.NEIGHBOR_JONES: [
         Titles.GOOD_DEEDS,
         Titles.GOOD_NEIGHBORS,
@@ -966,6 +1009,8 @@ BARKS_TAGGED_TITLES: dict[Tags, list[Titles]] = {
         Titles.FEUD_AND_FAR_BETWEEN,
         Titles.UNFRIENDLY_ENEMIES,
     ],
+    Tags.P_J_MC_BRINE: [Titles.FORBIDDEN_VALLEY],
+    Tags.PORKMAN_DE_LARDO: [Titles.STATUS_SEEKER_THE],
     Tags.SCROOGE_NOT_IN_US: [
         Titles.CHRISTMAS_ON_BEAR_MOUNTAIN,
         Titles.OLD_CASTLES_SECRET_THE,
@@ -1031,11 +1076,14 @@ BARKS_TAGGED_TITLES: dict[Tags, list[Titles]] = {
         Titles.DOUBLE_MASQUERADE,
         Titles.DELIVERY_DILEMMA,
     ],
+    Tags.SOAPY_SLICK: [Titles.NORTH_OF_THE_YUKON],
     Tags.TERRIES: [Titles.LAND_BENEATH_THE_GROUND],
 }
 
 BARKS_TAGGED_PAGES: dict[tuple[Tags, Titles], list[str]] = {
-    (Tags.NEIGHBOR_JONES, Titles.GOOD_DEEDS): ["1"],
+    (Tags.BARNACLE_BAY, Titles.NO_SUCH_VARMINT): ["11"],
+    (Tags.CAMERA, Titles.SECRET_RESOLUTIONS): ["8"],
+    (Tags.CAMERA, Titles.VACATION_TIME): ["10"],  # plus more pages
     (Tags.CARVER_BEAKOFF, Titles.FIREBUG_THE): ["13"],
     (Tags.CENSORED_STORIES_BUT_FIXED, Titles.ICEBOX_ROBBER_THE): ["7"],
     (Tags.CENSORED_STORIES_BUT_FIXED, Titles.SWIMMING_SWINDLERS): ["1", "2", "7"],
@@ -1091,6 +1139,27 @@ BARKS_TAGGED_PAGES: dict[tuple[Tags, Titles], list[str]] = {
         "25",
         "26",
     ],
+    (Tags.CIGARETTES, Titles.MAD_CHEMIST_THE): ["10"],
+    (Tags.CIGARETTES, Titles.SWIMMING_SWINDLERS): ["1", "2", "7"],
+    (Tags.CIGARETTES, Titles.GOING_BUGGY): ["3"],
+    (Tags.CIGARETTES, Titles.JAM_ROBBERS): ["7"],
+    (Tags.CIGARETTES, Titles.SHERIFF_OF_BULLET_VALLEY): [
+        "4",
+        "5",
+        "6",
+        "8",
+        "13",
+        "14",
+        "17",
+        "20",
+        "25",
+        "26",
+        "27",
+    ],
+    (Tags.CIGARETTES, Titles.DANGEROUS_DISGUISE): ["3"],
+    (Tags.CIGARETTES, Titles.VACATION_TIME): ["8", "9", "12", "13", "29", "30"],
+    (Tags.CIGARETTES, Titles.BILLIONS_TO_SNEEZE_AT): ["8"],
+    (Tags.CORNELIUS_MC_COBB, Titles.VOODOO_HOODOO): ["20", "21", "22", "23"],
     (Tags.DAISY, Titles.EYES_IN_THE_DARK): ["7"],
     (Tags.EL_DORADO, Titles.GILDED_MAN_THE): [
         "8",
@@ -1120,30 +1189,8 @@ BARKS_TAGGED_PAGES: dict[tuple[Tags, Titles], list[str]] = {
         "30",
         "31",
     ],
-    (Tags.CORNELIUS_MC_COBB, Titles.VOODOO_HOODOO): ["20", "21", "22", "23"],
-    (Tags.CAMERA, Titles.SECRET_RESOLUTIONS): ["8"],
-    (Tags.CAMERA, Titles.VACATION_TIME): ["10"],  # plus more pages
-    (Tags.CIGARETTES, Titles.MAD_CHEMIST_THE): ["10"],
-    (Tags.CIGARETTES, Titles.SWIMMING_SWINDLERS): ["1", "2", "7"],
-    (Tags.CIGARETTES, Titles.GOING_BUGGY): ["3"],
-    (Tags.CIGARETTES, Titles.JAM_ROBBERS): ["7"],
-    (Tags.CIGARETTES, Titles.SHERIFF_OF_BULLET_VALLEY): [
-        "4",
-        "5",
-        "6",
-        "8",
-        "13",
-        "14",
-        "17",
-        "20",
-        "25",
-        "26",
-        "27",
-    ],
-    (Tags.CIGARETTES, Titles.DANGEROUS_DISGUISE): ["3"],
-    (Tags.CIGARETTES, Titles.VACATION_TIME): ["8", "9", "12", "13", "29", "30"],
-    (Tags.CIGARETTES, Titles.BILLIONS_TO_SNEEZE_AT): ["8"],
-    (Tags.BARNACLE_BAY, Titles.NO_SUCH_VARMINT): ["11"],
+    (Tags.NEIGHBOR_JONES, Titles.GOOD_DEEDS): ["1"],
+    (Tags.P_J_MC_BRINE, Titles.FORBIDDEN_VALLEY): ["3"],
     (Tags.WEEMITE, Titles.ROCKET_ROASTED_CHRISTMAS_TURKEY): ["3", "4", "6", "7", "8"],
 }
 
