@@ -1297,10 +1297,9 @@ def validate_tag_data() -> None:
     for group, tags_list in BARKS_TAG_GROUPS.items():
         assert isinstance(group, TagGroups), f"Invalid group key: {group}"
         for tag_item in tags_list:
-            assert isinstance(
-                tag_item,
-                Tags,
-            ), f"Invalid tag '{tag_item}' in group '{group.value}'. Must be Tags."
+            assert isinstance(tag_item, (Tags, TagGroups)), (
+                f"Invalid tag '{tag_item}' in group '{group.value}'. Must be Tags or TagGroups."
+            )
 
 
 def get_tagged_titles(tag: Tags) -> list[Titles]:

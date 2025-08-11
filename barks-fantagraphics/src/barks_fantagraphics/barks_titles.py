@@ -12,7 +12,7 @@ from .comic_issues import (
 )
 from .comics_consts import DEC, JAN
 
-NUM_TITLES = 616 + 4  # +4 for articles
+NUM_TITLES = 632 + 4  # +4 for articles
 
 US_1_FC_ISSUE_NUM = 386
 US_2_FC_ISSUE_NUM = 456
@@ -41,6 +41,7 @@ BEACH_BOY = "Beach Boy"
 BEAN_TAKEN = "Bean Taken"
 BEAR_TAMER_THE = "The Bear Tamer"
 BEAUTY_BUSINESS_THE = "The Beauty Business"
+BEAUTY_QUEEN_THE = "The Beauty Queen"
 BEE_BUMBLES = "Bee Bumbles"
 BEST_LAID_PLANS = "Best Laid Plans"
 BICEPS_BLUES = "Biceps Blues"
@@ -87,6 +88,7 @@ CHECKER_GAME_THE = "The Checker Game"
 CHELTENHAMS_CHOICE = "Cheltenham's Choice"
 CHICKADEE_CHALLENGE_THE = "The Chickadee Challenge"
 CHINA_SHOP_SHAKEUP = "China Shop Shakeup"
+CHRISTMAS_CHA_CHA_THE = "The Christmas Cha Cha"
 CHRISTMAS_CHEERS = "Christmas Cheers"
 CHRISTMAS_FOR_SHACKTOWN_A = "A Christmas for Shacktown"
 CHRISTMAS_IN_DUCKBURG = "Christmas in Duckburg"
@@ -109,6 +111,7 @@ CRAZY_QUIZ_SHOW_THE = "The Crazy Quiz Show"
 CROWN_OF_THE_MAYAS = "Crown of the Mayas"
 CUSTARD_GUN_THE = "The Custard Gun"
 DAFFY_TAFFY_PULL_THE = "The Daffy Taffy Pull"
+DAISYS_DAZED_DAYS = "Daisy's Dazed Days"
 DANGEROUS_DISGUISE = "Dangerous Disguise"
 DARKEST_AFRICA = "Darkest Africa"
 DAYS_AT_THE_LAZY_K = "Days at the Lazy K"
@@ -139,7 +142,9 @@ DONALD_DUCK_TELLS_ABOUT_KITES = "Donald Duck Tells About Kites"
 DONALD_MINES_HIS_OWN_BUSINESS = "Donald Mines His Own Business"
 DONALD_OF_THE_COAST_GUARD = "Donald of the Coast Guard"
 DONALD_TAMES_HIS_TEMPER = "Donald Tames His Temper"
+DONALDS_PARTY = "Donald's Party"
 DOOM_DIAMOND_THE = "The Doom Diamond"
+DOUBLE_DATE_THE = "The Double Date"
 DOUBLE_MASQUERADE = "Double Masquerade"
 DOUGHNUT_DARE = "Doughnut Dare"
 DOWN_FOR_THE_COUNT = "Down for the Count"
@@ -195,6 +200,8 @@ FOR_OLD_DIMES_SAKE = "For Old Dime's Sake"
 FOXY_RELATIONS = "Foxy Relations"
 FRACTIOUS_FUN = "Fractious Fun"
 FRAIDY_FALCON_THE = "The Fraidy Falcon"
+FRAMED_MIRROR_THE = "The Framed Mirror"
+FREE_SKI_SPREE = "Free Ski Spree"
 FRIGHTFUL_FACE = "Frightful Face"
 FROGGY_FARMER = "Froggy Farmer"
 FROZEN_GOLD = "Frozen Gold"
@@ -308,6 +315,7 @@ LAUNDRY_FOR_LESS = "Laundry for Less"
 LEMMING_WITH_THE_LOCKET_THE = "The Lemming with the Locket"
 LEMONADE_FLING_THE = "The Lemonade Fling"
 LETTER_TO_SANTA = "Letter to Santa"
+LIBRARIAN_THE = "The Librarian"
 LIFEGUARD_DAZE = "Lifeguard Daze"
 LIGHTS_OUT = "Lights Out"
 LIMBER_W_GUEST_RANCH_THE = "The Limber W. Guest Ranch"
@@ -340,6 +348,7 @@ MAHARAJAH_DONALD = "Maharajah Donald"
 MANAGING_THE_ECHO_SYSTEM = "Managing the Echo System"
 MANY_FACES_OF_MAGICA_DE_SPELL_THE = "The Many Faces of Magica de Spell"
 MAN_VERSUS_MACHINE = "Man Versus Machine"
+MASTERING_THE_MATTERHORN = "Mastering the Matterhorn"
 MASTERS_OF_MELODY_THE = "The Masters of Melody"
 MASTER_GLASSER_THE = "The Master Glasser"
 MASTER_ICE_FISHER = "Master Ice Fisher"
@@ -376,6 +385,7 @@ MONEY_STAIRS_THE = "The Money Stairs"
 MONEY_WELL_THE = "The Money Well"
 MONKEY_BUSINESS = "Monkey Business"
 MOOLA_ON_THE_MOVE = "Moola on the Move"
+MOPPING_UP = "Mopping Up"
 MOVIE_MAD = "Movie Mad"
 MR_PRIVATE_EYE = "Mr. Private Eye"
 MUCH_ADO_ABOUT_QUACKLY_HALL = "Much Ado about Quackly Hall"
@@ -389,6 +399,7 @@ MYTHTIC_MYSTERY = "Mythtic Mystery"
 MY_LUCKY_VALENTINE = "My Lucky Valentine"
 NEST_EGG_COLLECTOR = "Nest Egg Collector"
 NET_WORTH = "Net Worth"
+NEW_GIRL_THE = "The New Girl"
 NEW_TOYS = "New Toys"
 NEW_YEARS_REVOLUTIONS = "New Year's Revolutions"
 NOBLE_PORPOISES = "Noble Porpoises"
@@ -503,6 +514,7 @@ SMASH_SUCCESS = "Smash Success"
 SMOKE_WRITER_IN_THE_SKY = "Smoke Writer in the Sky"
 SMUGSNORKLE_SQUATTIE_THE = "The Smugsnorkle Squattie"
 SNAKE_TAKE = "Snake Take"
+SNOW_CHASER_THE = "The Snow Chaser"
 SNOW_DUSTER = "Snow Duster"
 SNOW_FUN = "Snow Fun"
 SOMETHIN_FISHY_HERE = "Somethin' Fishy Here"
@@ -559,15 +571,18 @@ THUG_BUSTERS = "Thug Busters"
 THUMBS_UP = "Thumbs Up"
 TICKING_DETECTOR = "Ticking Detector"
 TIED_DOWN_TOOLS = "Tied-Down Tools"
+TIGHT_SHOES = "Tight Shoes"
 TITANIC_ANTS_THE = "The Titanic Ants!"
 TOASTY_TOYS = "Toasty Toys"
 TOO_FIT_TO_FIT = "Too Fit to Fit"
 TOO_MANY_PETS = "Too Many Pets"
 TOO_SAFE_SAFE = "Too Safe Safe"
 TOP_WAGES = "Top Wages"
+TOUCHE_TOUPEE = "Touche Toupee"
 TOYLAND = "Toyland"
 TRACKING_SANDY = "Tracking Sandy"
 TRAIL_OF_THE_UNICORN = "Trail of the Unicorn"
+TRAIL_TYCOON = "Trail Tycoon"
 TRALLA_LA = "Tralla La"
 TRAMP_STEAMER_THE = "The Tramp Steamer"
 TRAPPED_LIGHTNING = "Trapped Lightning"
@@ -590,6 +605,7 @@ TURKEY_TROT_AT_ONE_WHISTLE = "Turkey Trot at One Whistle"
 TURKEY_TROUBLE = "Turkey Trouble"
 TURKEY_WITH_ALL_THE_SCHEMINGS = "Turkey with All the Schemings"
 TURN_FOR_THE_WORSE = "Turn for the Worse"
+TV_BABYSITTER_THE = "The TV Babysitter"
 TWENTY_FOUR_CARAT_MOON_THE = "The Twenty-four Carat Moon"
 TWO_WAY_LUCK = "Two-Way Luck"
 UNCLE_SCROOGE___MONKEY_BUSINESS = "Uncle Scrooge - Monkey Business"
@@ -1079,6 +1095,8 @@ class Titles(IntEnum):
     WITCHING_STICK_THE = auto()
     INVENTORS_CONTEST_THE = auto()
     JUNGLE_HI_JINKS = auto()
+    MASTERING_THE_MATTERHORN = auto()
+    TRAIL_TYCOON = auto()
     FLYING_FARMHAND_THE = auto()
     HONEY_OF_A_HEN_A = auto()
     WEATHER_WATCHERS_THE = auto()
@@ -1090,11 +1108,25 @@ class Titles(IntEnum):
     MILKTIME_MELODIES = auto()
     LOST_RABBIT_FOOT_THE = auto()
     OODLES_OF_OOMPH = auto()
+    DAISYS_DAZED_DAYS = auto()
+    LIBRARIAN_THE = auto()
+    DOUBLE_DATE_THE = auto()
+    TV_BABYSITTER_THE = auto()
+    BEAUTY_QUEEN_THE = auto()
+    TIGHT_SHOES = auto()
+    FRAMED_MIRROR_THE = auto()
+    NEW_GIRL_THE = auto()
     MASTER_GLASSER_THE = auto()
     MONEY_HAT_THE = auto()
+    CHRISTMAS_CHA_CHA_THE = auto()
+    DONALDS_PARTY = auto()
     ISLAND_IN_THE_SKY = auto()
     UNDER_THE_POLAR_ICE = auto()
     HOUND_OF_THE_WHISKERVILLES = auto()
+    TOUCHE_TOUPEE = auto()
+    FREE_SKI_SPREE = auto()
+    MOPPING_UP = auto()
+    SNOW_CHASER_THE = auto()
     RIDING_THE_PONY_EXPRESS = auto()
     CAVE_OF_THE_WINDS = auto()
     MADBALL_PITCHER_THE = auto()
@@ -1266,7 +1298,7 @@ class Titles(IntEnum):
     CENSORSHIP_FIXES_AND_OTHER_CHANGES = auto()
 
 
-assert len(Titles) == NUM_TITLES
+assert len(Titles) == NUM_TITLES, f"{len(Titles)} != {NUM_TITLES}"
 
 BARKS_TITLES = [
     DONALD_DUCK_FINDS_PIRATE_GOLD,
@@ -1705,6 +1737,8 @@ BARKS_TITLES = [
     WITCHING_STICK_THE,
     INVENTORS_CONTEST_THE,
     JUNGLE_HI_JINKS,
+    MASTERING_THE_MATTERHORN,
+    TRAIL_TYCOON,
     FLYING_FARMHAND_THE,
     HONEY_OF_A_HEN_A,
     WEATHER_WATCHERS_THE,
@@ -1716,11 +1750,25 @@ BARKS_TITLES = [
     MILKTIME_MELODIES,
     LOST_RABBIT_FOOT_THE,
     OODLES_OF_OOMPH,
+    DAISYS_DAZED_DAYS,
+    LIBRARIAN_THE,
+    DOUBLE_DATE_THE,
+    TV_BABYSITTER_THE,
+    BEAUTY_QUEEN_THE,
+    TIGHT_SHOES,
+    FRAMED_MIRROR_THE,
+    NEW_GIRL_THE,
     MASTER_GLASSER_THE,
     MONEY_HAT_THE,
+    CHRISTMAS_CHA_CHA_THE,
+    DONALDS_PARTY,
     ISLAND_IN_THE_SKY,
     UNDER_THE_POLAR_ICE,
     HOUND_OF_THE_WHISKERVILLES,
+    TOUCHE_TOUPEE,
+    FREE_SKI_SPREE,
+    MOPPING_UP,
+    SNOW_CHASER_THE,
     RIDING_THE_PONY_EXPRESS,
     CAVE_OF_THE_WINDS,
     MADBALL_PITCHER_THE,
@@ -1892,7 +1940,7 @@ BARKS_TITLES = [
     CENSORSHIP_FIXES_AND_OTHER_CHANGES,
 ]
 
-assert len(BARKS_TITLES) == NUM_TITLES
+assert len(BARKS_TITLES) == NUM_TITLES, f"{len(BARKS_TITLES)} != {NUM_TITLES}"
 
 
 @dataclass
@@ -2384,6 +2432,8 @@ BARKS_TITLE_INFO: list[ComicBookInfo] = [
     ComicBookInfo(Titles.WITCHING_STICK_THE, False, Issues.US, 28, 12, 1959, 16, 1, 1959),
     ComicBookInfo(Titles.INVENTORS_CONTEST_THE, False, Issues.US, 28, 12, 1959, 16, 1, 1959),
     ComicBookInfo(Titles.JUNGLE_HI_JINKS, True, Issues.SF, 2, 8, 1959, 30, 1, 1959),
+    ComicBookInfo(Titles.MASTERING_THE_MATTERHORN, True, Issues.FC, 1025, 8, 1959, 14, 2, 1959),
+    ComicBookInfo(Titles.TRAIL_TYCOON, True, Issues.FC, 1025, 8, 1959, 14, 2, 1959),
     ComicBookInfo(Titles.FLYING_FARMHAND_THE, True, Issues.FC, 1010, 7, 1959, 6, 3, 1959),
     ComicBookInfo(Titles.HONEY_OF_A_HEN_A, True, Issues.FC, 1010, 7, 1959, 6, 3, 1959),
     ComicBookInfo(Titles.WEATHER_WATCHERS_THE, True, Issues.FC, 1010, 7, 1959, 6, 3, 1959),
@@ -2395,11 +2445,25 @@ BARKS_TITLE_INFO: list[ComicBookInfo] = [
     ComicBookInfo(Titles.MILKTIME_MELODIES, False, Issues.FC, 1047, 11, 1959, 14, 4, 1959),
     ComicBookInfo(Titles.LOST_RABBIT_FOOT_THE, False, Issues.FC, 1047, 11, 1959, 14, 4, 1959),
     ComicBookInfo(Titles.OODLES_OF_OOMPH, False, Issues.US, 29, 3, 1960, 20, 4, 1959),
+    ComicBookInfo(Titles.DAISYS_DAZED_DAYS, True, Issues.FC, 1055, 11, 1959, 14, 5, 1959),
+    ComicBookInfo(Titles.LIBRARIAN_THE, True, Issues.FC, 1055, 11, 1959, 14, 5, 1959),
+    ComicBookInfo(Titles.DOUBLE_DATE_THE, True, Issues.FC, 1055, 11, 1959, 14, 5, 1959),
+    ComicBookInfo(Titles.TV_BABYSITTER_THE, True, Issues.FC, 1055, 11, 1959, 14, 5, 1959),
+    ComicBookInfo(Titles.BEAUTY_QUEEN_THE, True, Issues.FC, 1055, 11, 1959, 14, 5, 1959),
+    ComicBookInfo(Titles.TIGHT_SHOES, True, Issues.FC, 1055, 11, 1959, 14, 5, 1959),
+    ComicBookInfo(Titles.FRAMED_MIRROR_THE, True, Issues.FC, 1055, 11, 1959, 14, 5, 1959),
+    ComicBookInfo(Titles.NEW_GIRL_THE, True, Issues.FC, 1055, 11, 1959, 14, 5, 1959),
     ComicBookInfo(Titles.MASTER_GLASSER_THE, True, Issues.DD, 68, 11, 1959, 20, 5, 1959),
     ComicBookInfo(Titles.MONEY_HAT_THE, False, Issues.US, 28, 12, 1959, 20, 5, 1959),
+    ComicBookInfo(Titles.CHRISTMAS_CHA_CHA_THE, True, Issues.CP, 26, 12, 1959, 26, 5, 1959),
+    ComicBookInfo(Titles.DONALDS_PARTY, True, Issues.FC, 1055, 11, 1959, 29, 5, 1959),
     ComicBookInfo(Titles.ISLAND_IN_THE_SKY, False, Issues.US, 29, 3, 1960, 15, 6, 1959),
     ComicBookInfo(Titles.UNDER_THE_POLAR_ICE, True, Issues.CS, 232, 1, 1960, 11, 7, 1959),
     ComicBookInfo(Titles.HOUND_OF_THE_WHISKERVILLES, False, Issues.US, 29, 3, 1960, 11, 7, 1959),
+    ComicBookInfo(Titles.TOUCHE_TOUPEE, True, Issues.FC, 1073, 1, 1960, 15, 7, 1959),
+    ComicBookInfo(Titles.FREE_SKI_SPREE, True, Issues.FC, 1073, 1, 1960, 15, 7, 1959),
+    ComicBookInfo(Titles.MOPPING_UP, True, Issues.FC, 1073, 1, 1960, 28, 7, 1959),
+    ComicBookInfo(Titles.SNOW_CHASER_THE, True, Issues.FC, 1073, 1, 1960, 28, 7, 1959),
     ComicBookInfo(Titles.RIDING_THE_PONY_EXPRESS, True, Issues.CS, 234, 3, 1960, 17, 8, 1959),
     ComicBookInfo(Titles.CAVE_OF_THE_WINDS, False, Issues.FC, 1095, 4, 1960, 12, 9, 1959),
     ComicBookInfo(Titles.MADBALL_PITCHER_THE, False, Issues.FC, 1095, 4, 1960, 12, 9, 1959),
@@ -2572,7 +2636,7 @@ BARKS_TITLE_INFO: list[ComicBookInfo] = [
 ]
 # fmt: on
 
-assert len(BARKS_TITLE_INFO) == NUM_TITLES
+assert len(BARKS_TITLE_INFO) == NUM_TITLES, f"{len(BARKS_TITLE_INFO)} != {NUM_TITLES}"
 
 USEFUL_TITLES = {
     Titles.HORSERADISH_STORY_THE: "Uncle Scrooge #3",
