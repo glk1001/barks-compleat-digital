@@ -8,7 +8,7 @@ from io import BytesIO
 import cairosvg
 import cv2 as cv
 from barks_fantagraphics.comics_consts import JPG_FILE_EXT, PNG_FILE_EXT
-from barks_fantagraphics.pil_image_utils import (
+from comic_utils.pil_image_utils import (
     METADATA_PROPERTY_GROUP,
     SAVE_JPG_COMPRESS_LEVEL,
     SAVE_JPG_QUALITY,

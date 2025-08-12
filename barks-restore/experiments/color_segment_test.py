@@ -77,7 +77,7 @@ def get_kmeans_clusters(
 
     bgr_centers = np.uint8(bgr_centers)
 
-    logging.info(f"\nTime taken to get kmeans for image:" f" {int(time.time() - start)}s.")
+    logging.info(f"\nTime taken to get kmeans for image: {int(time.time() - start)}s.")
 
     return color_labels, bgr_centers
 
@@ -198,7 +198,7 @@ def generate_svg(
     logging.info(f'Generating svg file "{svg_file}"...')
     image_file_to_svg(str(png_file), str(svg_file))
 
-    logging.info(f'\nTime taken to generate "{svg_file}":' f" {int(time.time() - start)}s.")
+    logging.info(f'\nTime taken to generate "{svg_file}": {int(time.time() - start)}s.')
 
 
 def blur_image_file(in_file: Path, out_file: Path) -> None:
@@ -246,8 +246,7 @@ def get_layered_svg_file(
     ET.ElementTree(base_image).write(out_svg)
 
     logging.info(
-        f'\nTime taken to layer all {len(svg_file_list)} svg files":'
-        f" {int(time.time() - start)}s."
+        f'\nTime taken to layer all {len(svg_file_list)} svg files": {int(time.time() - start)}s.'
     )
 
 

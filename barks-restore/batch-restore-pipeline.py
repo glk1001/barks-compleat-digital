@@ -9,9 +9,9 @@ import psutil
 from barks_fantagraphics.barks_titles import is_non_comic_title
 from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import get_abbrev_path
-from barks_fantagraphics.pil_image_utils import copy_file_to_png
+from comic_utils.comics_logging import setup_logging
+from comic_utils.pil_image_utils import copy_file_to_png
 from src.restore_pipeline import RestorePipeline, check_for_errors
 
 SCALE = 4

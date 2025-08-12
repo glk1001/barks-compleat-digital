@@ -4,7 +4,6 @@ from vtracer import convert_image_to_svg_py
 
 
 def image_file_to_svg(in_file: str, out_file: str) -> None:
-
     # colormode (str, optional): True color image `color` (default) or Binary image `binary`.
     # color_precision (int, optional): Number of significant bits to use in an RGB channel.
     #                                  Defaults to 8.

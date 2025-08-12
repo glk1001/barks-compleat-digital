@@ -12,7 +12,7 @@
     <content url="file://$MODULE_DIR$/../comic-utils">
       <sourceFolder url="file://$MODULE_DIR$/../comic-utils/src" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="uv (barks-compleat-digital)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="uv (barks-comic-building)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PackageRequirementsSettings">

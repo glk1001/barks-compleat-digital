@@ -4,7 +4,7 @@ import subprocess
 from pathlib import Path
 
 from barks_fantagraphics.comics_utils import get_clean_path
-from barks_fantagraphics.pil_image_utils import add_png_metadata
+from comic_utils.pil_image_utils import add_png_metadata
 
 UPSCAYL_BIN = os.path.join(str(Path.home()), ".local/share/upscayl/bin/upscayl-bin")
 UPSCAYL_MODELS_DIR = os.path.join(str(Path.home()), ".local/share/upscayl/models")

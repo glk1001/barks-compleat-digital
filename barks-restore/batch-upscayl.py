@@ -6,8 +6,8 @@ import time
 from barks_fantagraphics.barks_titles import is_non_comic_title
 from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import get_abbrev_path
+from comic_utils.comics_logging import setup_logging
 from src.upscale_image import upscale_image_file
 
 SCALE = 4

@@ -6,9 +6,9 @@ import time
 
 from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import get_abbrev_path
-from barks_fantagraphics.panel_bounding_box_processor import BoundingBoxProcessor
+from comic_utils.comics_logging import setup_logging
+from comic_utils.panel_bounding_box_processor import BoundingBoxProcessor
 
 
 def panel_bounds(title_list: list[str]) -> None:
@@ -82,8 +82,8 @@ def get_page_panel_bounds(
 
         bounding_box_processor.save_panels_segment_info(dest_file, segment_info)
 
-    except Exception:  # noqa: BLE001
-        logging.exception(f"Error: ")
+    except Exception:
+        logging.exception("Error: ")
         return
 
 
