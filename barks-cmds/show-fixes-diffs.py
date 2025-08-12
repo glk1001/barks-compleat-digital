@@ -12,9 +12,9 @@ import numpy as np
 from barks_fantagraphics.comic_book import ModifiedType
 from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import get_abbrev_path
-from barks_fantagraphics.pil_image_utils import downscale_jpg, open_pil_image_for_reading
+from comic_utils.comics_logging import setup_logging
+from comic_utils.pil_image_utils import downscale_jpg, open_pil_image_for_reading
 from skimage.metrics import structural_similarity
 
 # TODO: Put these somewhere else
