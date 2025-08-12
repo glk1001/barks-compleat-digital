@@ -23,6 +23,10 @@ show-env:
 info volume:
     uv run barks-cmds/fantagraphics-info.py --log-level WARN --volume {{volume}}
 
+# Get title page counts for Fanta volume or volumes
+page-count volume:
+    uv run barks-cmds/fantagraphics-stories-page-count.py --log-level WARN --volume {{volume}}
+
 # Build a title
 [group('comics')]
 build title:
@@ -41,12 +45,27 @@ upscayl volume:
 # Restore all restoreable pages in a volume or volumes
 [group('comics')]
 restore volume:
-    uv run barks-restore/batch-restore-pipeline.py --work-dir /mnt/2tb_drive/workdir/barks-restore/restore --volume {{volume}}
+    uv run barks-restore/batch-restore-pipeline.py \
+           --work-dir /mnt/2tb_drive/workdir/barks-restore/restore --volume {{volume}}
+
+# Restore all restoreable pages in a title
+[group('comics')]
+restore-title title:
+    uv run barks-restore/batch-restore-pipeline.py \
+           --work-dir /mnt/2tb_drive/workdir/barks-restore/restore --title "{{title}}"
 
 # Generate panel bounds for all restoreable pages in a volume or volumes
 [group('comics')]
 panels volume:
-    uv run barks-restore/batch-panel-bounds.py --work-dir /mnt/2tb_drive/workdir/barks-restore/panel-bounds --volume {{volume}}
+    uv run barks-restore/batch-panel-bounds.py \
+           --work-dir /mnt/2tb_drive/workdir/barks-restore/panel-bounds --volume {{volume}}
+
+# Generate panel bounds for all restoreable pages in a title
+[group('comics')]
+panels-title title:
+    uv run barks-restore/batch-panel-bounds.py \
+           --work-dir /mnt/2tb_drive/workdir/barks-restore/panel-bounds --title "{{title}}"
+
 
 # Make empty config files for all restoreable pages in a volume or volumes
 [group('comics')]
@@ -61,25 +80,29 @@ show-diffs volume:
 # Do a small build test
 [group('comics')]
 test-small:
-    bash small-build-test.sh
-    bash compare-build-dirs.sh "{{barks_2tb_external_books_dir}}/Carl Barks/Regression-Tests/Small/aaa-Chronological-dirs"\
-                               "{{barks_dir}}/The Comics/aaa-Chronological-dirs"
+    bash scripts/small-build-test.sh
+    bash scripts/compare-build-dirs.sh \
+         "{{barks_2tb_external_books_dir}}/Carl Barks/Regression-Tests/Small/aaa-Chronological-dirs" \
+         "{{barks_dir}}/The Comics/aaa-Chronological-dirs"
 
 # Compare all build files to the last known good build files
 [group('comics')]
 compare-all:
-    bash compare-build-dirs.sh "{{barks_2tb_external_books_dir}}/Carl Barks/Regression-Tests/Big/aaa-Chronological-dirs"\
-                               "{{barks_dir}}/The Comics/aaa-Chronological-dirs"
+    bash scripts/compare-build-dirs.sh \
+         "{{barks_2tb_external_books_dir}}/Carl Barks/Regression-Tests/Big/aaa-Chronological-dirs"\
+         "{{barks_dir}}/The Comics/aaa-Chronological-dirs"
 
 # Do a big image compare of restored to original looking for upscayl errors
 [group('comics')]
 check-for-upscayl-errors:
-    bash compare-fanta-image-dirs.sh "{{barks_dir}}/Fantagraphics-restored" "{{barks_dir}}/Fantagraphics-original" 50% 10000
+    bash scripts/compare-fanta-image-dirs.sh "{{barks_dir}}/Fantagraphics-restored" \
+                                             "{{barks_dir}}/Fantagraphics-original" 50% 10000
 
 # Do a big image compare of restored to original looking for obvious changes
 [group('comics')]
 compare-restored-orig:
-    bash compare-fanta-image-dirs.sh "{{barks_dir}}/Fantagraphics-restored" "{{barks_dir}}/Fantagraphics-original" 50% 5000
+    bash scripts/compare-fanta-image-dirs.sh "{{barks_dir}}/Fantagraphics-restored" \
+                                             "{{barks_dir}}/Fantagraphics-original" 50% 5000
 
 # Rsync all Barks files to the 2tb internal drive
 [group('rsync')]
