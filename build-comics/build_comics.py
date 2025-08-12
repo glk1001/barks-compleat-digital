@@ -37,8 +37,8 @@ from barks_fantagraphics.pages import (
     get_page_num_str,
     get_sorted_srce_and_dest_pages_with_dimensions,
 )
-from barks_fantagraphics.pil_image_utils import METADATA_PROPERTY_GROUP
 from build_comic_images import ComicBookImageBuilder
+from comic_utils.pil_image_utils import METADATA_PROPERTY_GROUP
 from consts import (
     DEST_JPG_COMPRESS_LEVEL,
     DEST_JPG_QUALITY,
