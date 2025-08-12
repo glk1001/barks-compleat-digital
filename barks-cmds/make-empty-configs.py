@@ -5,9 +5,9 @@ import os.path
 import sys
 
 from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
-from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import get_abbrev_path
 from barks_fantagraphics.fanta_comics_info import FantaComicBookInfo, get_fanta_volume_str
+from comic_utils.comics_logging import setup_logging
 
 
 def get_issue_titles(

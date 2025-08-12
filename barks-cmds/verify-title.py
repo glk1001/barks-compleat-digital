@@ -5,7 +5,7 @@ import sys
 
 from barks_fantagraphics.barks_titles import get_safe_title
 from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
-from barks_fantagraphics.comics_logging import setup_logging
+from comic_utils.comics_logging import setup_logging
 
 
 def get_display_title(ttl: str) -> str:

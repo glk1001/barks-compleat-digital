@@ -7,10 +7,10 @@ from pathlib import Path
 import cv2 as cv
 from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_consts import PNG_FILE_EXT, RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import get_abbrev_path
-from barks_fantagraphics.cv_image_utils import get_bw_image_from_alpha
-from barks_fantagraphics.panel_segmentation import get_min_max_panel_values
+from comic_utils.comics_logging import setup_logging
+from comic_utils.cv_image_utils import get_bw_image_from_alpha
+from comic_utils.panel_segmentation import get_min_max_panel_values
 from PIL import Image, ImageDraw
 
 
@@ -47,7 +47,7 @@ def write_bounds_to_image_file(
         return True
 
     logging.info(f'Loading panel segments file "{get_abbrev_path(panel_segments_file)}".')
-    with open(panel_segments_file, "r") as f:
+    with open(panel_segments_file) as f:
         panel_segment_info = json.load(f)
 
     bw_image = get_bw_image_from_alpha(png_file)

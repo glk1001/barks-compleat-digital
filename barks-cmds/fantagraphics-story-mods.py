@@ -11,9 +11,9 @@ from barks_fantagraphics import panel_bounding
 from barks_fantagraphics.comic_book import ComicBook, ModifiedType, get_page_str
 from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
 from barks_fantagraphics.comics_consts import FRONT_MATTER_PAGES, ROMAN_NUMERALS, PageType
-from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.fanta_comics_info import get_fanta_volume_str
 from barks_fantagraphics.pages import get_page_mod_type, get_sorted_srce_and_dest_pages
+from comic_utils.comics_logging import setup_logging
 
 if TYPE_CHECKING:
     from barks_fantagraphics.page_classes import CleanPage

@@ -5,8 +5,8 @@ import sys
 
 from barks_fantagraphics.barks_titles import BARKS_TITLE_INFO
 from barks_fantagraphics.comics_cmd_args import CmdArgs, ExtraArg
-from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.title_search import BarksTitleSearch, unique_extend
+from comic_utils.comics_logging import setup_logging
 
 extra_args: list[ExtraArg] = [
     ExtraArg("--prefix", action="store", type=str, default=""),

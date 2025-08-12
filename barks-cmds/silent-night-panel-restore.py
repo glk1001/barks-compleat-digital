@@ -8,10 +8,10 @@ from functools import cmp_to_key
 from pathlib import Path
 
 import cv2 as cv
-from barks_fantagraphics.comics_logging import setup_logging
-from barks_fantagraphics.panel_bounding_box_processor import BoundingBoxProcessor
-from barks_fantagraphics.panel_segmentation import KumikoBound, get_kumiko_panel_bound
-from barks_fantagraphics.pil_image_utils import open_pil_image_for_reading
+from comic_utils.comics_logging import setup_logging
+from comic_utils.panel_bounding_box_processor import BoundingBoxProcessor
+from comic_utils.panel_segmentation import KumikoBound, get_kumiko_panel_bound
+from comic_utils.pil_image_utils import open_pil_image_for_reading
 from PIL import Image, ImageDraw
 
 INPUT_IMAGE_WIDTH = 8700

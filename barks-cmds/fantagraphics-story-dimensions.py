@@ -9,9 +9,9 @@ from dataclasses import dataclass
 from barks_fantagraphics import panel_bounding
 from barks_fantagraphics.comic_book import ComicBook
 from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
-from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.page_classes import ComicDimensions
 from barks_fantagraphics.pages import PageType, get_sorted_srce_and_dest_pages
+from comic_utils.comics_logging import setup_logging
 from PIL import Image
 
 

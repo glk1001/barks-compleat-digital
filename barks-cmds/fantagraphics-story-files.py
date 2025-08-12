@@ -9,13 +9,13 @@ from barks_fantagraphics import panel_bounding
 from barks_fantagraphics.barks_titles import NON_COMIC_TITLES
 from barks_fantagraphics.comic_book import ModifiedType
 from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs, ExtraArg
-from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.comics_utils import (
     get_abbrev_path,
     get_timestamp,
     get_timestamp_as_str,
 )
 from barks_fantagraphics.pages import get_restored_srce_dependencies, get_sorted_srce_and_dest_pages
+from comic_utils.comics_logging import setup_logging
 
 
 def print_sources(indent: int, source_list: list[str]) -> None:

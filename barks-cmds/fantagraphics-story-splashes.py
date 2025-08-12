@@ -8,10 +8,10 @@ import sys
 from barks_fantagraphics import panel_bounding
 from barks_fantagraphics.comic_book import ComicBook, get_page_str
 from barks_fantagraphics.comics_cmd_args import CmdArgNames, CmdArgs
-from barks_fantagraphics.comics_logging import setup_logging
 from barks_fantagraphics.fanta_comics_info import get_fanta_volume_str
 from barks_fantagraphics.pages import PageType, get_sorted_srce_and_dest_pages
-from barks_fantagraphics.panel_segmentation import BIG_NUM, get_kumiko_panel_bound
+from comic_utils.comics_logging import setup_logging
+from comic_utils.panel_segmentation import BIG_NUM, get_kumiko_panel_bound
 
 
 def get_story_splashes(comic: ComicBook) -> list[str]:
@@ -31,7 +31,7 @@ def get_story_splashes(comic: ComicBook) -> list[str]:
             msg = f'Could not find panels segments info file "{panels_info_file}".'
             raise FileNotFoundError(msg)
 
-        with open(panels_info_file, "r") as f:
+        with open(panels_info_file) as f:
             panels = json.load(f)["panels"]
 
         # print(f'Checking panel file "{panels_info_file}".')
